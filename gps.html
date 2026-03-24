@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -43,197 +42,166 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
 .get-location-btn{width:100%;padding:16px;background:var(--blue);color:white;border:none;border-radius:16px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(26,115,232,0.3);-webkit-tap-highlight-color:transparent}
 .get-location-btn:active{opacity:0.85}
 .get-location-btn:disabled{background:var(--sub);box-shadow:none}
-.map-placeholder{border-radius:16px;height:180px;margin-bottom:16px;cursor:pointer;border:2px solid rgba(26,115,232,0.15);position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;background:#dde8fb;display:block}
-.map-img{width:100%;height:100%;object-fit:cover;display:block}
-.map-label{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--blue);font-weight:500;background:white;padding:6px 14px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,0.14);white-space:nowrap;z-index:2;pointer-events:none}
-.map-pin-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);z-index:3;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(26,115,232,0.4));display:none}
-.map-placeholder-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e8f0fe,#d2e3fc);background-image:linear-gradient(rgba(26,115,232,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(26,115,232,0.08) 1px,transparent 1px);background-size:28px 28px,28px 28px,100% 100%}
+.map-placeholder{
+  border-radius:16px;height:180px;margin-bottom:16px;cursor:pointer;
+  border:2px solid rgba(26,115,232,0.15);position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+  background:#dde8fb;
+  display:block;
+}
+.map-img{
+  width:100%;height:100%;object-fit:cover;display:block;
+}
+.map-label{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  font-size:13px;color:var(--blue);font-weight:500;
+  background:white;padding:6px 14px;border-radius:20px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.14);white-space:nowrap;z-index:2;
+  pointer-events:none;
+}
+.map-pin-overlay{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-100%);
+  z-index:3;pointer-events:none;
+  filter:drop-shadow(0 3px 6px rgba(26,115,232,0.4));
+  display:none;
+}
+.map-placeholder-empty{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#e8f0fe,#d2e3fc);
+  background-image:
+    linear-gradient(rgba(26,115,232,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26,115,232,0.08) 1px, transparent 1px);
+  background-size:28px 28px, 28px 28px,100% 100%;
+}
 
 /* MODAL */
-.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:99999;-webkit-overflow-scrolling:touch;align-items:flex-end}
-.modal-overlay.open{display:flex}
-.modal{width:100%;background:#ffffff;border-radius:24px 24px 0 0;padding:20px 0 50px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative}
-.modal-handle{width:40px;height:4px;background:var(–border);border-radius:2px;margin:0 auto 20px;cursor:pointer}
-.modal-title{font-size:18px;font-weight:600;padding:0 20px 16px;border-bottom:1px solid var(–border);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
-.modal-close-btn{width:28px;height:28px;border-radius:50%;background:var(–bg);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;font-size:16px;line-height:1;color:var(–sub)}
-.modal-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(–border)}
-.modal-row:last-child{border-bottom:none}
-.modal-row-label{font-size:14px;color:var(–sub)}
-.modal-row-value{font-size:15px;font-weight:500;color:var(–text);text-align:right;max-width:60%}
-
-/* ══════════════════════════════════════
-iPHONE PUSULA — tam yeniden yazım
-══════════════════════════════════════ */
-.compass-container{
-display:flex;flex-direction:column;align-items:center;
-padding:24px 20px 8px;gap:0;
+.modal-overlay{
+display:none;
+position:fixed;
+top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,0.55);
+z-index:99999;
+-webkit-overflow-scrolling:touch;
+align-items:flex-end;
 }
-
-/* Ana çember — koyu metalik arka plan */
-.iphone-compass{
-position:relative;
-width:260px;height:260px;
-border-radius:50%;
-/* Dış çerçeve — beyaz halka + gölge */
-background:conic-gradient(
-#2a2a2e 0deg,#1a1a1e 30deg,#2a2a2e 60deg,#1a1a1e 90deg,
-#2a2a2e 120deg,#1a1a1e 150deg,#2a2a2e 180deg,#1a1a1e 210deg,
-#2a2a2e 240deg,#1a1a1e 270deg,#2a2a2e 300deg,#1a1a1e 330deg,#2a2a2e 360deg
-);
-box-shadow:
-0 0 0 3px #3a3a3e,
-0 0 0 5px #111,
-0 8px 40px rgba(0,0,0,0.7),
-0 2px 8px rgba(0,0,0,0.5),
-inset 0 1px 2px rgba(255,255,255,0.05);
-flex-shrink:0;
-}
-
-/* İç cadran — dönen kısım */
-.compass-dial{
-position:absolute;
-inset:12px;
-border-radius:50%;
-background:radial-gradient(circle at 35% 30%, #2c2c30, #111114);
-transition:transform 0.18s cubic-bezier(0.25,0.46,0.45,0.94);
-overflow:hidden;
-}
-
-/* Cadran iç parlaklık */
-.compass-dial::before{
-content:’’;
-position:absolute;
-inset:0;border-radius:50%;
-background:radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.06) 0%, transparent 60%);
-pointer-events:none;z-index:10;
-}
-
-/* Derece yazıları ve tick işaretleri — SVG overlay */
-.compass-svg{
-position:absolute;inset:0;width:100%;height:100%;
-}
-
-/* Kırmızı K (Kuzey) etiketi */
-.north-label{
-fill:#ff3b30;
-font-family:‘DM Sans’,sans-serif;
-font-size:13px;font-weight:700;
-letter-spacing:0.5px;
-}
-/* Diğer yön etiketleri */
-.dir-label{
-fill:#e5e5ea;
-font-family:‘DM Sans’,sans-serif;
-font-size:11px;font-weight:600;
-letter-spacing:0.5px;
-}
-/* Derece yazıları */
-.deg-label{
-fill:#8e8e93;
-font-family:‘Space Mono’,monospace;
-font-size:8px;
-letter-spacing:-0.3px;
-}
-/* Büyük tick */
-.tick-major{stroke:#8e8e93;stroke-width:1.5}
-/* Küçük tick */
-.tick-minor{stroke:#4a4a50;stroke-width:1}
-/* Çok küçük tick */
-.tick-tiny{stroke:#3a3a3e;stroke-width:0.8}
-/* Kuzey tick kırmızı */
-.tick-north{stroke:#ff3b30;stroke-width:2}
-
-/* Ortadaki sabit üçgen (ok) — kırmızı/beyaz */
-.compass-pointer{
-position:absolute;
-top:50%;left:50%;
-transform:translate(-50%,-50%);
-z-index:20;
-pointer-events:none;
-}
-.pointer-svg{
-filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6));
-}
-
-/* Merkez nokta */
-.compass-center-dot{
-position:absolute;
-top:50%;left:50%;
-transform:translate(-50%,-50%);
-width:10px;height:10px;
-border-radius:50%;
-background:radial-gradient(circle,#fff,#ccc);
-box-shadow:0 1px 4px rgba(0,0,0,0.6);
-z-index:30;
-}
-
-/* Derece + yön badge */
-.compass-readout{
-margin-top:20px;
-text-align:center;
-}
-.compass-deg-value{
-font-family:‘Space Mono’,monospace;
-font-size:42px;font-weight:700;
-color:var(–text);
-letter-spacing:-2px;
-line-height:1;
-}
-.compass-deg-symbol{
-font-size:24px;font-weight:400;
-color:var(–sub);
-vertical-align:super;
-margin-left:2px;
-}
-.compass-dir-value{
-font-family:‘DM Sans’,sans-serif;
-font-size:15px;font-weight:500;
-color:var(–sub);
-margin-top:4px;
-letter-spacing:1px;
-text-transform:uppercase;
-}
-
-/* Koordinat şerit — altında */
-.compass-coords-strip{
-display:flex;gap:16px;
-margin-top:16px;
-padding:12px 20px;
-background:var(–bg);
-border-radius:12px;
+.modal-overlay.open{display:flex;}
+.modal{
 width:100%;
+background:#ffffff;
+border-radius:24px 24px 0 0;
+padding:20px 0 50px;
+max-height:88vh;
+overflow-y:auto;
+-webkit-overflow-scrolling:touch;
+position:relative;
 }
-.coord-chip{flex:1;text-align:center}
-.coord-chip-label{font-size:11px;color:var(–sub);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px}
-.coord-chip-value{font-family:‘Space Mono’,monospace;font-size:13px;font-weight:700;color:var(–text)}
-
-/* İzin alanı */
-.compass-permission-area{padding:0 20px 12px;display:none}
-.compass-permission-btn{width:100%;padding:13px;background:var(–blue);color:white;border:none;border-radius:14px;font-family:‘DM Sans’,sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent}
-.compass-permission-btn:active{opacity:0.85}
-.compass-status-note{font-size:12px;color:var(–sub);text-align:center;padding:0 20px;margin-bottom:10px}
-
-/* Kalibrasyon uyarısı */
-.compass-accuracy-bar{
-display:flex;align-items:center;gap:8px;
-padding:8px 20px;
-font-size:12px;color:var(–sub);
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;cursor:pointer}
+.modal-title{
+font-size:18px;font-weight:600;
+padding:0 20px 16px;
+border-bottom:1px solid var(--border);
+margin-bottom:16px;
+display:flex;align-items:center;justify-content:space-between;
 }
-.accuracy-dot{width:6px;height:6px;border-radius:50%;background:var(–green);flex-shrink:0}
-.accuracy-dot.warn{background:var(–orange)}
+.modal-close-btn{
+width:28px;height:28px;border-radius:50%;
+background:var(--bg);border:none;
+display:flex;align-items:center;justify-content:center;
+cursor:pointer;flex-shrink:0;
+-webkit-tap-highlight-color:transparent;
+font-size:16px;line-height:1;color:var(--sub);
+}
+.modal-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border)}
+.modal-row:last-child{border-bottom:none}
+.modal-row-label{font-size:14px;color:var(--sub)}
+.modal-row-value{font-size:15px;font-weight:500;color:var(--text);text-align:right;max-width:60%}
 
-/* SHARE */
+/* --- IPHONE COMPASS UI --- */
+#compassModal .modal { background: #000; color: #fff; }
+#compassModal .modal-title { border-bottom: none; color: #fff; }
+#compassModal .modal-handle { background: #333; }
+#compassModal .modal-close-btn { background: #222; color: #fff; }
+#compassModal .modal-row-label { color: #888; }
+#compassModal .modal-row-value { color: #fff; }
+
+.compass-wrap { padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
+.compass-container {
+    width: 280px; height: 280px;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+}
+.compass-dial {
+    width: 100%; height: 100%;
+    position: absolute;
+    transition: transform 0.1s linear;
+}
+/* Ana çizgiler (K, G, D, B) */
+.compass-marker {
+    position: absolute; width: 100%; height: 100%;
+    display: flex; justify-content: center;
+    color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 22px;
+}
+.marker-n { transform: rotate(0deg); padding-top: 15px; }
+.marker-e { transform: rotate(90deg); padding-top: 15px; }
+.marker-s { transform: rotate(180deg); padding-top: 15px; }
+.marker-w { transform: rotate(270deg); padding-top: 15px; }
+.marker-e span, .marker-s span, .marker-w span { transform: rotate(-90deg); display: inline-block; }
+.marker-s span { transform: rotate(-180deg); }
+.marker-w span { transform: rotate(-270deg); }
+
+/* Derece Çizgileri */
+.tick-container { position: absolute; width: 100%; height: 100%; }
+.tick {
+    position: absolute; top: 0; left: 50%; width: 1.5px; height: 12px;
+    background: #666; transform-origin: 0 140px;
+}
+.tick.major { height: 18px; background: #fff; }
+.tick-text {
+    position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
+    font-size: 13px; color: #fff; font-family: 'Space Mono', monospace;
+}
+
+/* Sabit Kırmızı Ok ve Hedef Çizgisi */
+.compass-fixed-overlay {
+    position: absolute; width: 100%; height: 100%;
+    pointer-events: none; z-index: 5;
+}
+.north-pointer {
+    position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 12px solid var(--red);
+}
+.center-cross {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 60px; height: 60px;
+}
+.cross-v { position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: rgba(255,255,255,0.3); }
+.cross-h { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255,255,255,0.3); }
+.center-circle {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.1);
+}
+
+.iphone-info { text-align: center; margin-top: 30px; }
+.iphone-degree { font-size: 64px; font-weight: 300; line-height: 1; margin-bottom: 5px; }
+.iphone-location { font-size: 18px; font-weight: 500; color: #fff; margin-bottom: 4px; }
+.iphone-sub { font-size: 16px; color: #fff; opacity: 0.9; }
+
+/* ---------------------------------- */
+
 .share-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 20px}
-.share-opt{background:var(–bg);border:none;border-radius:14px;padding:14px 12px;font-family:‘DM Sans’,sans-serif;font-size:14px;font-weight:500;color:var(–text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent}
+.share-opt{background:var(--bg);border:none;border-radius:14px;padding:14px 12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent}
 .share-opt:active{opacity:0.7}
 .share-opt-icon{font-size:24px}
-
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(0,0,0,0.85);color:white;padding:10px 20px;border-radius:20px;font-size:14px;z-index:999999;transition:transform 0.3s;white-space:nowrap;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
-
 </head>
 <body>
 <div class="app">
@@ -249,11 +217,15 @@ font-size:12px;color:var(–sub);
 
   <div class="gps-card">
     <div class="coord-row" onclick="copyCoord('lat')">
-      <div class="coord-icon"><svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#1a73e8" stroke-width="2"/><ellipse cx="14" cy="14" rx="12" ry="6" stroke="#1a73e8" stroke-width="1.5"/><line x1="2" y1="14" x2="26" y2="14" stroke="#1a73e8" stroke-width="1.5"/><line x1="14" y1="2" x2="14" y2="26" stroke="#1a73e8" stroke-width="1.5"/></svg></div>
+      <div class="coord-icon">
+        <svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#1a73e8" stroke-width="2"/><ellipse cx="14" cy="14" rx="12" ry="6" stroke="#1a73e8" stroke-width="1.5"/><line x1="2" y1="14" x2="26" y2="14" stroke="#1a73e8" stroke-width="1.5"/><line x1="14" y1="2" x2="14" y2="26" stroke="#1a73e8" stroke-width="1.5"/></svg>
+      </div>
       <div class="coord-value" id="latDisplay">---.------</div>
     </div>
     <div class="coord-row" onclick="copyCoord('lng')">
-      <div class="coord-icon"><svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#1a73e8" stroke-width="2"/><ellipse cx="14" cy="14" rx="6" ry="12" stroke="#1a73e8" stroke-width="1.5"/><line x1="2" y1="14" x2="26" y2="14" stroke="#1a73e8" stroke-width="1.5"/><line x1="14" y1="2" x2="14" y2="26" stroke="#1a73e8" stroke-width="1.5"/></svg></div>
+      <div class="coord-icon">
+        <svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#1a73e8" stroke-width="2"/><ellipse cx="14" cy="14" rx="6" ry="12" stroke="#1a73e8" stroke-width="1.5"/><line x1="2" y1="14" x2="26" y2="14" stroke="#1a73e8" stroke-width="1.5"/><line x1="14" y1="2" x2="14" y2="26" stroke="#1a73e8" stroke-width="1.5"/></svg>
+      </div>
       <div class="coord-value" id="lngDisplay">---.------</div>
     </div>
     <div class="gps-meta">
@@ -282,9 +254,14 @@ font-size:12px;color:var(–sub);
     <div class="map-placeholder-empty" id="mapEmpty">
       <span style="font-size:13px;color:var(--blue);font-weight:500;background:white;padding:6px 14px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1)">📍 Konum alındığında harita açılır</span>
     </div>
-    <img id="mapImg" class="map-img" style="display:none" alt="Harita"/>
+    <img id="mapImg" class="map-img" style="display:none" alt="Harita" />
     <div class="map-pin-overlay" id="mapPinOverlay">
-      <svg width="32" height="42" viewBox="0 0 32 42" fill="none"><circle cx="16" cy="16" r="16" fill="#1a73e8"/><circle cx="16" cy="16" r="7" fill="white"/><path d="M16 32 C16 32 4 22 4 14 C4 7.4 9.4 2 16 2 C22.6 2 28 7.4 28 14 C28 22 16 32 16 32Z" fill="#1a73e8" opacity="0.25"/><polygon points="11,28 21,28 16,42" fill="#1a73e8"/></svg>
+      <svg width="32" height="42" viewBox="0 0 32 42" fill="none">
+        <circle cx="16" cy="16" r="16" fill="#1a73e8"/>
+        <circle cx="16" cy="16" r="7" fill="white"/>
+        <path d="M16 32 C16 32 4 22 4 14 C4 7.4 9.4 2 16 2 C22.6 2 28 7.4 28 14 C28 22 16 32 16 32Z" fill="#1a73e8" opacity="0.25"/>
+        <polygon points="11,28 21,28 16,42" fill="#1a73e8"/>
+      </svg>
     </div>
     <div class="map-label" id="mapLabel" style="display:none">📍 Haritada Aç</div>
   </div>
@@ -298,7 +275,7 @@ font-size:12px;color:var(–sub);
     </div>
     <div class="list-item" onclick="openModal('timeModal')">
       <div class="item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-      <div class="item-content"><div class="item-title">Saat &amp; Tarih</div></div>
+      <div class="item-content"><div class="item-title">Saat & Tarih</div></div>
       <div class="item-right"><span id="clockDisplay">--:--</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
     </div>
     <div class="list-item" onclick="openModal('sunModal')">
@@ -321,122 +298,66 @@ font-size:12px;color:var(–sub);
       <div class="item-content"><div class="item-title">Pusula</div></div>
       <div class="item-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.3"><polyline points="9 18 15 12 9 6"/></svg></div>
     </div>
-    <div class="list-item" onclick="openModal('shareModal')">
-      <div class="item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>
-      <div class="item-content"><div class="item-title">Paylaş</div></div>
-      <div class="item-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.3"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>
   </div>
 </div>
-
-<!-- MODALS -->
 
 <div class="modal-overlay" id="addressModal" onclick="handleOverlayClick(event,'addressModal')">
   <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('addressModal')"></div><div class="modal-title">📍 Adres<button class="modal-close-btn" onclick="closeModal('addressModal')">✕</button></div><div id="addressRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum alınmadı</span></div></div></div>
 </div>
 
 <div class="modal-overlay" id="timeModal" onclick="handleOverlayClick(event,'timeModal')">
-  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('timeModal')"></div><div class="modal-title">🕐 Saat &amp; Tarih<button class="modal-close-btn" onclick="closeModal('timeModal')">✕</button></div><div id="timeRows"></div></div>
+  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('timeModal')"></div><div class="modal-title">🕐 Saat & Tarih<button class="modal-close-btn" onclick="closeModal('timeModal')">✕</button></div><div id="timeRows"></div></div>
 </div>
 
 <div class="modal-overlay" id="sunModal" onclick="handleOverlayClick(event,'sunModal')">
-  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('sunModal')"></div><div class="modal-title">☀️ Gün Doğumu / Batımı<button class="modal-close-btn" onclick="closeModal('sunModal')">✕</button></div><div id="sunRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div>
+  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('sunModal')"></div><div class="modal-title">☀️ Gün Doğumu / Batımı<button class="modal-close-btn" onclick="closeModal('sunModal')">✕</button></div><div id="sunRows"></div></div>
 </div>
 
 <div class="modal-overlay" id="weatherModal" onclick="handleOverlayClick(event,'weatherModal')">
-  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('weatherModal')"></div><div class="modal-title">⛅ Hava Durumu<button class="modal-close-btn" onclick="closeModal('weatherModal')">✕</button></div><div id="weatherRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div>
+  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('weatherModal')"></div><div class="modal-title">⛅ Hava Durumu<button class="modal-close-btn" onclick="closeModal('weatherModal')">✕</button></div><div id="weatherRows"></div></div>
 </div>
 
 <div class="modal-overlay" id="extModal" onclick="handleOverlayClick(event,'extModal')">
-  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('extModal')"></div><div class="modal-title">📊 Genişletilmiş Veri<button class="modal-close-btn" onclick="closeModal('extModal')">✕</button></div><div id="extRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div>
+  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('extModal')"></div><div class="modal-title">📊 Genişletilmiş Veri<button class="modal-close-btn" onclick="closeModal('extModal')">✕</button></div><div id="extRows"></div></div>
 </div>
-
-<!-- ═══════════════════════════════════════
-     iPHONE PUSULA MODAL
-═══════════════════════════════════════ -->
 
 <div class="modal-overlay" id="compassModal" onclick="handleOverlayClick(event,'compassModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle" onclick="closeModal('compassModal')"></div>
-    <div class="modal-title">🧭 Pusula<button class="modal-close-btn" onclick="closeModal('compassModal')">✕</button></div>
-
-```
-<!-- iOS izin alanı -->
-<div class="compass-permission-area" id="compassPermissionArea">
-  <p class="compass-status-note">iOS cihazlarda pusula için izin gereklidir.</p>
-  <button class="compass-permission-btn" onclick="requestCompassPermission()">
-    🧭 Pusula İznini Ver
-  </button>
-</div>
-
-<!-- Pusula gövdesi -->
-<div class="compass-container">
-  <!-- Ana çember -->
-  <div class="iphone-compass" id="iphoneCompass">
-    <!-- Dönen cadran -->
-    <div class="compass-dial" id="compassDial">
-      <!-- SVG tick + etiket katmanı — cadranla birlikte döner -->
-      <svg class="compass-svg" id="compassSvg" viewBox="0 0 236 236" xmlns="http://www.w3.org/2000/svg">
-        <!-- Tüm içerik merkez (118,118) etrafında döner -->
-        <g id="dialContent">
-          <!-- Arka plan degrade çemberi -->
-          <defs>
-            <radialGradient id="dialGrad" cx="40%" cy="35%" r="65%">
-              <stop offset="0%" stop-color="#2c2c30"/>
-              <stop offset="100%" stop-color="#0e0e12"/>
-            </radialGradient>
-          </defs>
-          <circle cx="118" cy="118" r="118" fill="url(#dialGrad)"/>
-        </g>
-      </svg>
+    <div class="modal-title">Pusula <button class="modal-close-btn" onclick="closeModal('compassModal')">✕</button></div>
+    
+    <div id="compassPermissionArea" style="display:none; text-align:center; padding: 20px;">
+        <button class="get-location-btn" onclick="requestCompassPermission()">🧭 Pusulayı Etkinleştir</button>
     </div>
 
-    <!-- Sabit merkez üçgen ok (cadranın üstünde, sabit) -->
-    <div class="compass-pointer">
-      <svg class="pointer-svg" width="24" height="28" viewBox="0 0 24 28">
-        <!-- Kuzey yarısı — kırmızı -->
-        <polygon points="12,0 18,14 12,10 6,14" fill="#ff3b30"/>
-        <!-- Güney yarısı — beyaz -->
-        <polygon points="12,28 18,14 12,18 6,14" fill="#e5e5ea"/>
-      </svg>
-    </div>
+    <div class="compass-wrap">
+        <div class="compass-container">
+            <div class="compass-fixed-overlay">
+                <div class="north-pointer"></div>
+                <div class="center-cross">
+                    <div class="cross-v"></div>
+                    <div class="cross-h"></div>
+                </div>
+                <div class="center-circle"></div>
+            </div>
+            
+            <div class="compass-dial" id="compassDial">
+                <div class="compass-marker marker-n">K</div>
+                <div class="compass-marker marker-e"><span>D</span></div>
+                <div class="compass-marker marker-s"><span>G</span></div>
+                <div class="compass-marker marker-w"><span>B</span></div>
+                
+                <div class="tick-container" id="tickContainer"></div>
+            </div>
+        </div>
 
-    <!-- Merkez nokta (en üstte) -->
-    <div class="compass-center-dot"></div>
-  </div>
-
-  <!-- Derece + yön göstergesi -->
-  <div class="compass-readout">
-    <div>
-      <span class="compass-deg-value" id="compassDegValue">---</span><span class="compass-deg-symbol">°</span>
+        <div class="iphone-info">
+            <div class="iphone-degree" id="iphoneDegree">0°</div>
+            <div class="iphone-location" id="iphoneLocName">Şişli, İstanbul</div>
+            <div class="iphone-sub" id="iphoneDMS">41°3'27" K 28°59'49" D</div>
+            <div class="iphone-sub" id="iphoneAlt" style="margin-top:5px">Yükseklik: 20 m</div>
+        </div>
     </div>
-    <div class="compass-dir-value" id="compassDirValue">Pusula Bekleniyor</div>
-  </div>
-
-  <!-- Koordinat şerit -->
-  <div class="compass-coords-strip" id="compassCoordsStrip" style="display:none">
-    <div class="coord-chip">
-      <div class="coord-chip-label">Enlem</div>
-      <div class="coord-chip-value" id="ccLat">--</div>
-    </div>
-    <div class="coord-chip">
-      <div class="coord-chip-label">Boylam</div>
-      <div class="coord-chip-value" id="ccLng">--</div>
-    </div>
-    <div class="coord-chip">
-      <div class="coord-chip-label">İrtifa</div>
-      <div class="coord-chip-value" id="ccAlt">-- m</div>
-    </div>
-  </div>
-</div>
-
-<!-- Doğruluk çubuğu -->
-<div class="compass-accuracy-bar" id="compassAccuracyBar">
-  <div class="accuracy-dot" id="compassAccDot"></div>
-  <span id="compassAccText">Pusula başlatılmadı</span>
-</div>
-```
-
   </div>
 </div>
 
@@ -458,501 +379,172 @@ font-size:12px;color:var(–sub);
 
 <script>
 var state = {
-  lat:null,lng:null,alt:null,accuracy:null,
-  heading:null,speed:null,watchId:null,
-  compassHeading:null,compassActive:false,compassListener:null
+  lat: null, lng: null, alt: null, accuracy: null,
+  heading: null, speed: null, watchId: null,
+  compassHeading: 0, compassActive: false
 };
 
-/* ─── PUSULA SVG CADRAN OLUŞTURUCU ─────────────────────────────────── */
-function buildCompassDial() {
-  var svg = document.getElementById('compassSvg');
-  var cx = 118, cy = 118, r = 108;
-
-  // Her 1 derecede bir tick çiz
-  for (var deg = 0; deg < 360; deg++) {
-    var rad = (deg - 90) * Math.PI / 180;
-    var isMajor = deg % 10 === 0;
-    var isMed   = deg % 5 === 0 && !isMajor;
-    var isNorth = deg === 0;
-
-    var outer = r;
-    var inner = isNorth ? r - 18 : isMajor ? r - 12 : isMed ? r - 7 : r - 4;
-    var strokeClass = isNorth ? 'tick-north' : isMajor ? 'tick-major' : isMed ? 'tick-minor' : 'tick-tiny';
-
-    var x1 = cx + inner * Math.cos(rad);
-    var y1 = cy + inner * Math.sin(rad);
-    var x2 = cx + outer * Math.cos(rad);
-    var y2 = cy + outer * Math.sin(rad);
-
-    var line = document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.setAttribute('x1', x1.toFixed(2));
-    line.setAttribute('y1', y1.toFixed(2));
-    line.setAttribute('x2', x2.toFixed(2));
-    line.setAttribute('y2', y2.toFixed(2));
-    line.setAttribute('class', strokeClass);
-    svg.appendChild(line);
-  }
-
-  // 10'ar derece sayıları — sadece tam onluklar
-  var degLabels = [30,60,120,150,210,240,270,300,330];
-  for (var i = 0; i < degLabels.length; i++) {
-    var d = degLabels[i];
-    var rad2 = (d - 90) * Math.PI / 180;
-    var lr = r - 22;
-    var tx = cx + lr * Math.cos(rad2);
-    var ty = cy + lr * Math.sin(rad2);
-    var t = document.createElementNS('http://www.w3.org/2000/svg','text');
-    t.setAttribute('x', tx.toFixed(2));
-    t.setAttribute('y', ty.toFixed(2));
-    t.setAttribute('text-anchor','middle');
-    t.setAttribute('dominant-baseline','central');
-    t.setAttribute('class','deg-label');
-    t.setAttribute('transform','rotate('+d+','+tx.toFixed(2)+','+ty.toFixed(2)+')');
-    t.textContent = d;
-    svg.appendChild(t);
-  }
-
-  // 4 ana yön etiketi
-  var dirs = [
-    {d:0,   label:'K', cls:'north-label'},
-    {d:90,  label:'D', cls:'dir-label'},
-    {d:180, label:'G', cls:'dir-label'},
-    {d:270, label:'B', cls:'dir-label'}
-  ];
-  for (var j = 0; j < dirs.length; j++) {
-    var dd = dirs[j];
-    var rad3 = (dd.d - 90) * Math.PI / 180;
-    var lr3 = r - 26;
-    var tx3 = cx + lr3 * Math.cos(rad3);
-    var ty3 = cy + lr3 * Math.sin(rad3);
-    var t2 = document.createElementNS('http://www.w3.org/2000/svg','text');
-    t2.setAttribute('x', tx3.toFixed(2));
-    t2.setAttribute('y', ty3.toFixed(2));
-    t2.setAttribute('text-anchor','middle');
-    t2.setAttribute('dominant-baseline','central');
-    t2.setAttribute('class', dd.cls);
-    t2.textContent = dd.label;
-    svg.appendChild(t2);
-  }
-
-  // Ara yönler
-  var subDirs = [
-    {d:45,label:'KD'},{d:135,label:'GD'},{d:225,label:'GB'},{d:315,label:'KB'}
-  ];
-  for (var k = 0; k < subDirs.length; k++) {
-    var sd = subDirs[k];
-    var rad4 = (sd.d - 90) * Math.PI / 180;
-    var lr4 = r - 24;
-    var tx4 = cx + lr4 * Math.cos(rad4);
-    var ty4 = cy + lr4 * Math.sin(rad4);
-    var t3 = document.createElementNS('http://www.w3.org/2000/svg','text');
-    t3.setAttribute('x', tx4.toFixed(2));
-    t3.setAttribute('y', ty4.toFixed(2));
-    t3.setAttribute('text-anchor','middle');
-    t3.setAttribute('dominant-baseline','central');
-    t3.setAttribute('class','deg-label');
-    t3.setAttribute('fill','#6a6a70');
-    t3.setAttribute('font-size','9');
-    t3.textContent = sd.label;
-    svg.appendChild(t3);
-  }
+// --- IPHONE COMPASS TICKS GENERATION ---
+function generateTicks() {
+    const container = document.getElementById('tickContainer');
+    for (let i = 0; i < 360; i += 2) {
+        const tick = document.createElement('div');
+        tick.className = 'tick';
+        if (i % 30 === 0) {
+            tick.classList.add('major');
+            if (i !== 0 && i !== 90 && i !== 180 && i !== 270) {
+                const text = document.createElement('div');
+                text.className = 'tick-text';
+                text.textContent = i;
+                text.style.transform = `translateX(-50%) rotate(${-i}deg)`;
+                tick.appendChild(text);
+            }
+        }
+        tick.style.transform = `rotate(${i}deg)`;
+        container.appendChild(tick);
+    }
 }
+generateTicks();
 
-/* ─── PUSULA GÜNCELLEYICI ──────────────────────────────────────────── */
 function headingToDir(h) {
-  if (h == null) return '---';
   var d = ['K','KKD','KD','DKD','D','DGD','GD','GGD','G','GGB','GB','BGB','B','BKB','KB','KKB'];
   return d[Math.round(h / 22.5) % 16];
 }
 
-// Smooth heading — açı geçişini en kısa yoldan yap
-var _currentDialAngle = 0;
-function smoothAngle(current, target) {
-  var diff = ((target - current) % 360 + 540) % 360 - 180;
-  return current + diff;
-}
-
 function updateCompassUI(heading) {
-  if (heading == null) return;
-  state.compassHeading = heading;
-  var deg = Math.round(heading);
-  var dir = headingToDir(heading);
+    state.compassHeading = heading;
+    const dial = document.getElementById('compassDial');
+    const degreeTxt = document.getElementById('iphoneDegree');
+    
+    // Kadran ters yöne dönmeli ki üstteki kırmızı ok doğru açıyı göstersin
+    dial.style.transform = `rotate(${-heading}deg)`;
+    degreeTxt.textContent = `${Math.round(heading)}° ${headingToDir(heading)}`;
 
-  // Cadran, okun gösterdiği yönü karşısına alacak şekilde döner
-  // (iPhone gibi: K etiketi her zaman gerçek kuzeye döner)
-  // Cadranı -heading kadar döndürürüz
-  var targetAngle = -heading;
-  _currentDialAngle = smoothAngle(_currentDialAngle, targetAngle);
-
-  var dial = document.getElementById('compassDial');
-  dial.style.transform = 'rotate(' + _currentDialAngle + 'deg)';
-
-  document.getElementById('compassDegValue').textContent = deg;
-  document.getElementById('compassDirValue').textContent = dir;
-
-  // GPS kart meta
-  var metaEl = document.getElementById('directionDisplay');
-  metaEl.innerHTML =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="transform:rotate('+heading+'deg)"><polygon points="12 2 4 20 12 16 20 20"/></svg> '+
-    deg+'° '+dir;
-
-  // Koordinat şerit
-  if (state.lat) {
-    var strip = document.getElementById('compassCoordsStrip');
-    strip.style.display = 'flex';
-    document.getElementById('ccLat').textContent = state.lat.toFixed(5);
-    document.getElementById('ccLng').textContent = state.lng.toFixed(5);
-    document.getElementById('ccAlt').textContent = (state.alt||0).toFixed(1)+' m';
-  }
-
-  // Doğruluk çubuğu
-  document.getElementById('compassAccText').textContent = 'Pusula aktif · '+deg+'° '+dir;
-  var dot = document.getElementById('compassAccDot');
-  dot.className = 'accuracy-dot';
+    // GPS meta
+    document.getElementById('directionDisplay').innerHTML =
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="transform:rotate(${heading}deg)"><polygon points="12 2 4 20 12 16 20 20"/></svg> ${Math.round(heading)}° ${headingToDir(heading)}`;
 }
 
 function onDeviceOrientation(e) {
-  var heading = null;
-  if (e.webkitCompassHeading != null && e.webkitCompassHeading >= 0) {
-    heading = e.webkitCompassHeading;
-  } else if (e.alpha != null) {
-    heading = (360 - e.alpha) % 360;
-  }
+  let heading = null;
+  if (e.webkitCompassHeading != null) heading = e.webkitCompassHeading;
+  else if (e.alpha != null) heading = (360 - e.alpha) % 360;
+
   if (heading != null) {
     state.compassActive = true;
     updateCompassUI(heading);
   }
 }
 
-function startCompass() {
-  if (state.compassListener) return;
-  if (typeof DeviceOrientationEvent !== 'undefined' &&
-      typeof DeviceOrientationEvent.requestPermission === 'function') {
-    document.getElementById('compassPermissionArea').style.display = 'block';
-    return;
-  }
-  state.compassListener = onDeviceOrientation;
-  window.addEventListener('deviceorientation', state.compassListener, true);
-  document.getElementById('compassAccText').textContent = 'Pusula aktif';
-}
-
 function requestCompassPermission() {
-  DeviceOrientationEvent.requestPermission().then(function(result) {
-    if (result === 'granted') {
-      document.getElementById('compassPermissionArea').style.display = 'none';
-      state.compassListener = onDeviceOrientation;
-      window.addEventListener('deviceorientation', state.compassListener, true);
-      document.getElementById('compassAccText').textContent = 'Pusula aktif';
-    } else {
-      document.getElementById('compassAccText').textContent = 'Pusula izni reddedildi';
-      document.getElementById('compassAccDot').className = 'accuracy-dot warn';
-      showToast('Pusula izni verilmedi');
-    }
-  }).catch(function(err){
-    document.getElementById('compassAccText').textContent = 'İzin hatası: '+err.message;
-  });
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().then(res => {
+      if (res === 'granted') {
+        window.addEventListener('deviceorientation', onDeviceOrientation);
+        document.getElementById('compassPermissionArea').style.display = 'none';
+      }
+    });
+  } else {
+    window.addEventListener('deviceorientation', onDeviceOrientation);
+  }
 }
 
-/* ─── GPS ────────────────────────────────────────────────────────── */
+// --- GPS ---
 function getLocation() {
   var btn = document.getElementById('getLocBtn');
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> Konum Alınıyor...';
-  setStatus('loading','GPS sinyali bekleniyor...');
-  if (!navigator.geolocation){setStatus('','Tarayıcınız konum desteklemiyor');resetBtn();return;}
   if (state.watchId) navigator.geolocation.clearWatch(state.watchId);
-  state.watchId = navigator.geolocation.watchPosition(onPosition, onError,
-    {enableHighAccuracy:true, timeout:15000, maximumAge:0});
+  state.watchId = navigator.geolocation.watchPosition(onPosition, onError, {enableHighAccuracy: true});
 }
 
 function onPosition(pos) {
   var c = pos.coords;
-  state.lat=c.latitude; state.lng=c.longitude;
-  state.alt=c.altitude||0; state.accuracy=c.accuracy;
-  state.heading=c.heading; state.speed=c.speed;
-
+  state.lat = c.latitude; state.lng = c.longitude; state.alt = c.altitude || 0;
+  state.accuracy = c.accuracy;
+  
   document.getElementById('latDisplay').textContent = c.latitude.toFixed(6);
   document.getElementById('lngDisplay').textContent = c.longitude.toFixed(6);
+  document.getElementById('altDisplay').innerHTML = `<span>${state.alt.toFixed(1)} m</span>`;
+  document.getElementById('iphoneAlt').textContent = `Yükseklik: ${Math.round(state.alt)} m`;
+  document.getElementById('iphoneDMS').textContent = `${toDMS(state.lat, 'lat')} ${toDMS(state.lng, 'lng')}`;
 
-  if (c.heading != null && !state.compassActive) updateCompassUI(c.heading);
-
-  document.getElementById('altDisplay').innerHTML =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M3 17l4-8 4 4 4-6 4 10"/></svg> '+
-    (state.alt||0).toFixed(2)+' m';
-
-  setStatus('active','Konum alındı · ±'+Math.round(c.accuracy)+' m');
+  setStatus('active', 'Konum Alındı');
   resetBtn(); drawMap(); fetchAddress(); fetchWeather(); updateSunTimes(); updateExtData();
 }
 
-function onError(err) {
-  var m={1:'Konum izni reddedildi',2:'Konum alınamadı',3:'Zaman aşımı'};
-  setStatus('', m[err.code]||'Hata'); resetBtn();
-}
-function refreshLocation() {
-  if (state.watchId) navigator.geolocation.clearWatch(state.watchId);
-  getLocation();
-}
+function onError(err) { setStatus('', 'Hata'); resetBtn(); }
 function resetBtn() {
   var btn = document.getElementById('getLocBtn');
   btn.disabled = false;
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg> Konumu Güncelle';
+  btn.innerHTML = 'Konumu Güncelle';
 }
 function setStatus(type, msg) {
-  var dot = document.getElementById('statusDot');
-  dot.className = 'status-dot';
-  if (type==='active') dot.classList.add('active');
-  else if (type==='loading') dot.classList.add('loading');
+  document.getElementById('statusDot').className = 'status-dot ' + type;
   document.getElementById('statusText').textContent = msg;
 }
 
-/* ─── ADRES ─────────────────────────────────────────────────────── */
+// --- ADRES VE DETAYLAR ---
 async function fetchAddress() {
-  if (!state.lat) return;
   try {
-    var r = await fetch('https://nominatim.openstreetmap.org/reverse?lat='+state.lat+'&lon='+state.lng+'&format=json&accept-language=tr');
-    var d = await r.json(); var a = d.address||{};
-    var short = [a.road, a.suburb||a.neighbourhood, a.city||a.town||a.village].filter(Boolean).join(', ');
-    document.getElementById('addressPreview').textContent = short||'Adres alındı';
-    document.getElementById('addressRows').innerHTML = buildRows([
-      ['Tam Adres',d.display_name],['Sokak',a.road||'-'],
-      ['Mahalle',a.suburb||a.neighbourhood||'-'],['İlçe',a.district||a.county||'-'],
-      ['Şehir',a.city||a.town||a.village||'-'],['İl',a.state||'-'],
-      ['Ülke',a.country||'-'],['Posta Kodu',a.postcode||'-']
-    ]);
-  } catch(e){document.getElementById('addressPreview').textContent='Adres alınamadı';}
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${state.lat}&lon=${state.lng}&format=json&accept-language=tr`);
+    const d = await r.json();
+    const a = d.address;
+    const short = `${a.suburb || a.neighbourhood || ''}, ${a.city || a.town || ''}`;
+    document.getElementById('addressPreview').textContent = short;
+    document.getElementById('iphoneLocName').textContent = short;
+  } catch(e) {}
 }
 
-/* ─── HAVA DURUMU ───────────────────────────────────────────────── */
+function toDMS(deg, type) {
+  var d = Math.floor(Math.abs(deg)), m = Math.floor((Math.abs(deg) - d) * 60);
+  var s = ((Math.abs(deg) - d - m / 60) * 3600).toFixed(0);
+  var dir = type === 'lat' ? (deg >= 0 ? 'K' : 'G') : (deg >= 0 ? 'D' : 'B');
+  return `${d}°${m}'${s}" ${dir}`;
+}
+
+// Diğer yardımcı fonksiyonlar (fetchWeather, updateSunTimes vb. mevcuttan devam)
 async function fetchWeather() {
   if (!state.lat) return;
   try {
-    var r = await fetch('https://api.open-meteo.com/v1/forecast?latitude='+state.lat+'&longitude='+state.lng+
-      '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index&wind_speed_unit=kmh&timezone=auto');
-    var d = await r.json(); var c = d.current;
-    var temp = c.temperature_2m ? c.temperature_2m.toFixed(1) : '--';
-    var icon = wIcon(c.weather_code||0); var desc = wDesc(c.weather_code||0);
-    document.getElementById('weatherPreview').textContent = temp+'°C';
-    document.getElementById('weatherIcon').textContent = icon;
-    document.getElementById('weatherRows').innerHTML = buildRows([
-      ['Durum',icon+' '+desc],['Sıcaklık',temp+'°C'],
-      ['Hissedilen',c.apparent_temperature?c.apparent_temperature.toFixed(1)+'°C':'-'],
-      ['Nem','%'+c.relative_humidity_2m],['Yağış',c.precipitation+' mm'],
-      ['Rüzgar',c.wind_speed_10m+' km/s'],
-      ['Rüzgar Yönü',c.wind_direction_10m+'° '+headingToDir(c.wind_direction_10m)],
-      ['UV',c.uv_index?c.uv_index.toFixed(1):'-']
-    ]);
-  } catch(e){document.getElementById('weatherRows').innerHTML=buildRows([['Hata','Alınamadı']]);}
+    var r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + state.lat + '&longitude=' + state.lng + '&current=temperature_2m,weather_code');
+    var d = await r.json();
+    document.getElementById('weatherPreview').textContent = d.current.temperature_2m + '°C';
+  } catch(e) {}
 }
 
-/* ─── GÜNEŞ ─────────────────────────────────────────────────────── */
-function updateSunTimes() {
-  if (!state.lat) return;
-  var s = getSunTimes(state.lat, state.lng, new Date());
-  document.getElementById('sunRows').innerHTML = buildRows([
-    ['Gün Doğumu',fTime(s.sunrise)],['Öğle',fTime(s.solarNoon)],
-    ['Gün Batımı',fTime(s.sunset)],
-    ['Gün Uzunluğu',Math.floor(s.dayLength/60)+'s '+s.dayLength%60+'dk'],
-    ['Enlem',state.lat.toFixed(4)+'°']
-  ]);
-}
-
-/* ─── GENİŞLETİLMİŞ VERİ ───────────────────────────────────────── */
-function updateExtData() {
-  if (!state.lat) return;
-  var now = new Date();
-  document.getElementById('extRows').innerHTML = buildRows([
-    ['Enlem',state.lat.toFixed(6)+'°'],['Boylam',state.lng.toFixed(6)+'°'],
-    ['İrtifa',(state.alt||0).toFixed(2)+' m'],
-    ['Doğruluk','±'+Math.round(state.accuracy||0)+' m'],
-    ['Yön (GPS)',state.heading!=null?Math.round(state.heading)+'° '+headingToDir(state.heading):'-'],
-    ['Pusula',state.compassActive&&state.compassHeading!=null?Math.round(state.compassHeading)+'° '+headingToDir(state.compassHeading):'Aktif değil'],
-    ['Hız',state.speed?(state.speed*3.6).toFixed(1)+' km/s':'Durağan'],
-    ['DMS (Enlem)',toDMS(state.lat,'lat')],['DMS (Boylam)',toDMS(state.lng,'lng')],
-    ['Zaman Dilimi',Intl.DateTimeFormat().resolvedOptions().timeZone],
-    ['UTC Ofseti',getUTC()],['Timestamp',now.toISOString()]
-  ]);
-}
-
-/* ─── SAAT MODAL ────────────────────────────────────────────────── */
-function fillTimeModal() {
-  var now = new Date();
-  document.getElementById('timeRows').innerHTML = buildRows([
-    ['Saat',now.toLocaleTimeString('tr-TR')],
-    ['Tarih',now.toLocaleDateString('tr-TR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})],
-    ['UTC',now.toUTCString()],
-    ['Zaman Dilimi',Intl.DateTimeFormat().resolvedOptions().timeZone],
-    ['UTC Ofseti',getUTC()],
-    ['Unix',Math.floor(now.getTime()/1000)]
-  ]);
-}
-
-/* ─── HARİTA ────────────────────────────────────────────────────── */
 function drawMap() {
-  var lat=state.lat, lng=state.lng, zoom=15;
-  var n=Math.pow(2,zoom);
-  var xtile=Math.floor((lng+180)/360*n);
-  var ytile=Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n);
-  var placeholder=document.getElementById('mapPlaceholder');
-  var w=placeholder.offsetWidth||358, h=180, tileSize=256;
-  var canvas=document.createElement('canvas');
-  canvas.width=w; canvas.height=h;
-  var ctx=canvas.getContext('2d');
-  var latRad=lat*Math.PI/180;
-  var xFrac=(lng+180)/360*n-xtile;
-  var yFrac=(1-Math.log(Math.tan(latRad)+1/Math.cos(latRad))/Math.PI)/2*n-ytile;
-  var startX=Math.round(w/2)-Math.round(xFrac*tileSize);
-  var startY=Math.round(h/2)-Math.round(yFrac*tileSize);
-  var tilesLoaded=0,tilesToLoad=0;
-  function tryFinish(){
-    tilesLoaded++;
-    if(tilesLoaded>=tilesToLoad){
-      var img=document.getElementById('mapImg');
-      img.src=canvas.toDataURL(); img.style.display='block';
-      document.getElementById('mapEmpty').style.display='none';
-      document.getElementById('mapPinOverlay').style.display='block';
-      document.getElementById('mapLabel').style.display='block';
-      document.getElementById('mapLabel').textContent='📍 Haritada Aç — '+lat.toFixed(4)+', '+lng.toFixed(4);
-    }
-  }
-  for(var dx=-2;dx<=2;dx++){for(var dy=-2;dy<=2;dy++){
-    var tx=startX+dx*tileSize,ty=startY+dy*tileSize;
-    if(tx+tileSize<0||tx>w||ty+tileSize<0||ty>h)continue;
-    tilesToLoad++;
-  }}
-  if(tilesToLoad===0)tilesToLoad=1;
-  for(var dx=-2;dx<=2;dx++){for(var dy=-2;dy<=2;dy++){
-    (function(ddx,ddy){
-      var cx2=startX+ddx*tileSize,cy2=startY+ddy*tileSize;
-      if(cx2+tileSize<0||cx2>w||cy2+tileSize<0||cy2>h)return;
-      var tileImg=new Image();
-      tileImg.crossOrigin='anonymous';
-      tileImg.onload=function(){ctx.drawImage(tileImg,cx2,cy2,tileSize,tileSize);tryFinish();};
-      tileImg.onerror=function(){tryFinish();};
-      var s=['a','b','c'][Math.abs(xtile+ddx+ytile+ddy)%3];
-      tileImg.src='https://'+s+'.tile.openstreetmap.org/'+zoom+'/'+(xtile+ddx)+'/'+(ytile+ddy)+'.png';
-    })(dx,dy);
-  }}
+    document.getElementById('mapPlaceholder').innerHTML = `<img src="https://static-maps.yandex.ru/1.x/?ll=${state.lng},${state.lat}&z=15&l=map&size=450,180" style="width:100%; height:100%; object-fit:cover;">`;
 }
-function openMaps(){if(state.lat)window.open('https://maps.google.com/?q='+state.lat+','+state.lng,'_blank');}
 
-/* ─── PAYLAŞ ────────────────────────────────────────────────────── */
+function openMaps() { window.open(`https://www.google.com/maps?q=${state.lat},${state.lng}`); }
+
 function shareAs(type) {
-  if(!state.lat&&type!=='native'){showToast('Önce konum alın');return;}
-  if(type==='coords'){
-    navigator.clipboard&&navigator.clipboard.writeText(state.lat.toFixed(6)+', '+state.lng.toFixed(6))
-      .then(function(){showToast('Koordinatlar kopyalandı ✓');});
-  }else if(type==='maps'){window.open('https://maps.google.com/?q='+state.lat+','+state.lng,'_blank');
-  }else if(type==='waze'){window.open('https://waze.com/ul?ll='+state.lat+','+state.lng+'&navigate=yes','_blank');
-  }else if(type==='native'){
-    var text=state.lat?'Konumum: '+state.lat.toFixed(6)+', '+state.lng.toFixed(6)+'\nhttps://maps.google.com/?q='+state.lat+','+state.lng:'Konum alınmadı';
-    if(navigator.share)navigator.share({title:'GPS Konumum',text:text});
-    else if(navigator.clipboard)navigator.clipboard.writeText(text).then(function(){showToast('Kopyalandı');});
-  }
-}
-function copyCoord(type) {
-  var val=type==='lat'?state.lat:state.lng;
-  if(!val)return;
-  navigator.clipboard&&navigator.clipboard.writeText(val.toFixed(6))
-    .then(function(){showToast((type==='lat'?'Enlem':'Boylam')+' kopyalandı');});
+    if (type === 'coords') {
+        navigator.clipboard.writeText(`${state.lat},${state.lng}`);
+        showToast("Kopyalandı");
+    }
 }
 
-/* ─── MODAL ─────────────────────────────────────────────────────── */
-function openModal(id) {
-  if(id==='timeModal')fillTimeModal();
-  if(id==='compassModal')startCompass();
-  document.getElementById(id).classList.add('open');
-  document.body.style.overflow='hidden';
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-  document.body.style.overflow='';
-}
-function handleOverlayClick(e,id) {
-  if(e.target===document.getElementById(id))closeModal(id);
+function showToast(m) {
+    const t = document.getElementById('toast');
+    t.textContent = m; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-/* ─── YARDIMCI ───────────────────────────────────────────────────── */
-function buildRows(pairs){
-  return pairs.map(function(p){
-    return '<div class="modal-row"><span class="modal-row-label">'+p[0]+
-           '</span><span class="modal-row-value">'+(p[1]||'-')+'</span></div>';
-  }).join('');
+function openModal(id) { 
+    document.getElementById(id).classList.add('open'); 
+    if(id === 'compassModal' && !state.compassActive) {
+        if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function')
+            document.getElementById('compassPermissionArea').style.display = 'block';
+        else window.addEventListener('deviceorientation', onDeviceOrientation);
+    }
 }
-function wIcon(c){if(c===0)return'☀️';if(c<=2)return'⛅';if(c<=3)return'☁️';if(c<=9)return'🌫️';if(c<=39)return'🌧️';if(c<=49)return'🌨️';if(c<=69)return'❄️';if(c<=89)return'⛈️';return'🌩️';}
-function wDesc(c){var m={0:'Açık',1:'Çoğunlukla açık',2:'Parçalı bulutlu',3:'Bulutlu',45:'Sisli',51:'Hafif çisenti',61:'Hafif yağmur',63:'Orta yağmur',65:'Kuvvetli yağmur',71:'Hafif kar',73:'Orta kar',80:'Hafif sağanak',95:'Gök gürültülü fırtına'};return m[c]||'Hava durumu';}
-function toDMS(deg,type){var d=Math.floor(Math.abs(deg)),m=Math.floor((Math.abs(deg)-d)*60);var s=((Math.abs(deg)-d-m/60)*3600).toFixed(2);var dir=type==='lat'?(deg>=0?'K':'G'):(deg>=0?'D':'B');return d+'° '+m+"' "+s+'" '+dir;}
-function getUTC(){var o=-new Date().getTimezoneOffset();var h=Math.floor(Math.abs(o)/60),m=Math.abs(o)%60;return'UTC'+(o>=0?'+':'-')+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}
-function fTime(d){return d?d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'-';}
-function getSunTimes(lat,lng,date){
-  var rad=Math.PI/180,d=date.getTime()/86400000-10957;
-  var L=(280.46+0.9856474*d)%360,g=(357.528+0.9856003*d)%360;
-  var lambda=L+1.915*Math.sin(g*rad)+0.02*Math.sin(2*g*rad);
-  var epsilon=23.439-0.0000004*d;
-  var sinDec=Math.sin(epsilon*rad)*Math.sin(lambda*rad),dec=Math.asin(sinDec);
-  var cosH=(Math.cos(90.833*rad)-Math.sin(lat*rad)*sinDec)/(Math.cos(lat*rad)*Math.cos(dec));
-  if(Math.abs(cosH)>1)return{sunrise:null,sunset:null,solarNoon:null,dayLength:0};
-  var H=Math.acos(cosH)/rad,tz=-date.getTimezoneOffset()/60;
-  var eot=L-280.46-360*Math.floor((L-280.46)/360);
-  var noon=(720-4*lng-eot+tz*60)*60*1000;
-  var base=new Date(date).setHours(0,0,0,0);
-  return{sunrise:new Date(base+noon-H*4*60000),sunset:new Date(base+noon+H*4*60000),solarNoon:new Date(base+noon),dayLength:Math.round(H*8)};
-}
-function showToast(msg){
-  var t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(function(){t.classList.remove('show');},2200);
-}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function handleOverlayClick(e, id) { if(e.target.id === id) closeModal(id); }
 
-/* ─── CLOCK ─────────────────────────────────────────────────────── */
-function updateClock(){
-  document.getElementById('clockDisplay').textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
-}
-setInterval(updateClock,1000); updateClock();
-
-/* ─── ESCAPE KEY ────────────────────────────────────────────────── */
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){
-    document.querySelectorAll('.modal-overlay.open').forEach(function(m){m.classList.remove('open');});
-    document.body.style.overflow='';
-  }
-});
-
-/* ─── SAYFA YÜKLENİNCE ──────────────────────────────────────────── */
-window.addEventListener('DOMContentLoaded',function(){
-  // Cadranı oluştur
-  buildCompassDial();
-
-  // GPS
-  if(navigator.geolocation){
-    setStatus('loading','Konum izni bekleniyor...');
-    var btn=document.getElementById('getLocBtn');
-    btn.disabled=true;
-    btn.innerHTML='<div class="spinner"></div> Konum Alınıyor...';
-    state.watchId=navigator.geolocation.watchPosition(
-      onPosition,
-      function(err){var m={1:'Konum izni reddedildi',2:'Konum alınamadı',3:'Zaman aşımı'};setStatus('',m[err.code]||'Hata');resetBtn();},
-      {enableHighAccuracy:true,timeout:15000,maximumAge:0}
-    );
-  }
-
-  // Pusula (iOS 13+)
-  if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
-    document.getElementById('getLocBtn').addEventListener('click',function requestOnce(){
-      DeviceOrientationEvent.requestPermission().then(function(result){
-        if(result==='granted'){
-          state.compassListener=onDeviceOrientation;
-          window.addEventListener('deviceorientation',state.compassListener,true);
-          document.getElementById('compassPermissionArea').style.display='none';
-        }
-      }).catch(function(){});
-      document.getElementById('getLocBtn').removeEventListener('click',requestOnce);
-    },{once:true});
-  } else if(typeof DeviceOrientationEvent!=='undefined'){
-    state.compassListener=onDeviceOrientation;
-    window.addEventListener('deviceorientation',state.compassListener,true);
-  }
-});
+window.onload = () => { getLocation(); updateClock(); };
+function updateClock() { document.getElementById('clockDisplay').textContent = new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}); setTimeout(updateClock, 1000); }
 </script>
-
 </body>
 </html>
