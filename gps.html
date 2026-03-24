@@ -3,358 +3,323 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GPS & Pusula Pro</title>
+<title>GPS Pro Konum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-/* GENEL AYARLAR VE DEĞİŞKENLER */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --blue:#007aff;
-  --bg:#f2f2f7;
-  --card:#ffffff;
-  --text:#1c1c1e;
-  --sub:#8e8e93;
-  --border:#e5e5ea;
-  --green:#34c759;
-  --orange:#ff9500;
-  --red:#ff3b30;
+    --blue:#007aff;
+    --bg:#f2f2f7;
+    --card:#ffffff;
+    --text:#1c1c1e;
+    --sub:#8e8e93;
+    --border:#e5e5ea;
+    --green:#34c759;
+    --orange:#ff9500;
+    --red:#ff3b30;
+    --shadow: 0 8px 32px rgba(0,0,0,0.08);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-.app{max-width:430px;margin:0 auto;padding:16px 16px 60px}
 
-/* HEADER */
+body{
+    font-family:'DM Sans',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    height: 100vh;
+    overflow-x: hidden;
+}
+
+.app{max-width:430px;margin:0 auto;padding:16px 16px 80px}
+
+/* Header & Cards */
 .header{display:flex;align-items:center;justify-content:space-between;padding:12px 0 20px}
 .header h1{font-size:18px;font-weight:700;letter-spacing:-0.5px}
-.header-btn{width:40px;height:40px;border-radius:50%;background:var(--card);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.08);-webkit-tap-highlight-color:transparent}
-
-/* GPS KARTI */
-.gps-card{background:var(--card);border-radius:24px;padding:24px;margin-bottom:12px;box-shadow:0 4px 20px rgba(0,0,0,0.05);border:1px solid var(--border)}
-.coord-row{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;cursor:pointer}
-.coord-label{font-size:12px;color:var(--sub);font-weight:600;text-transform:uppercase;margin-left:2px}
-.coord-value{font-family:'Space Mono',monospace;font-size:32px;font-weight:700;color:var(--text);letter-spacing:-1.5px;line-height:1}
-
-.gps-meta{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:16px;margin-top:12px}
-.meta-item{display:flex;align-items:center;gap:6px;color:var(--text);font-size:14px;font-weight:600}
-
-/* STATUS & BUTTONS */
-.status-bar{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);margin:10px 0 20px 4px}
-.status-dot{width:8px;height:8px;border-radius:50%;background:var(--sub)}
-.status-dot.active{background:var(--green);box-shadow:0 0 8px var(--green)}
-.status-dot.loading{background:var(--orange);animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-
-.get-location-btn{width:100%;padding:18px;background:var(--blue);color:white;border:none;border-radius:18px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 16px rgba(0,122,255,0.25);-webkit-tap-highlight-color:transparent}
-
-/* MAP PLACEHOLDER */
-.map-placeholder{border-radius:20px;height:180px;margin:16px 0;background:#e5e5ea;position:relative;overflow:hidden;border:1px solid var(--border);cursor:pointer}
-.map-img{width:100%;height:100%;object-fit:cover;display:none}
-.map-label{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:white;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
-
-/* LIST CARDS */
-.section-label{font-size:13px;font-weight:700;color:var(--sub);margin:20px 0 8px 4px;text-transform:uppercase}
-.list-card{background:var(--card);border-radius:20px;overflow:hidden;border:1px solid var(--border)}
-.list-item{display:flex;align-items:center;padding:16px;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.list-item:last-child{border-bottom:none}
-.item-icon{width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;margin-right:12px}
-.item-content{flex:1}
-.item-title{font-size:15px;font-weight:500}
-.item-subtitle{font-size:12px;color:var(--sub)}
-.item-right{color:var(--sub);font-size:14px;font-weight:500}
-
-/* MODALS */
-.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);z-index:9999;align-items:flex-end}
-.modal-overlay.open{display:flex}
-.modal{width:100%;background:var(--card);border-radius:28px 28px 0 0;padding:20px 0 40px;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s ease-out}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-handle{width:40px;height:5px;background:var(--border);border-radius:10px;margin:0 auto 20px}
-.modal-title{padding:0 20px 16px;font-size:18px;font-weight:700;display:flex;justify-content:space-between;border-bottom:1px solid var(--border)}
-.modal-close-btn{border:none;background:var(--bg);width:30px;height:30px;border-radius:50%;font-weight:bold;color:var(--sub);cursor:pointer}
-.modal-row{display:flex;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
-
-/* PUSULA TASARIMI */
-.compass-wrap{display:flex;flex-direction:column;align-items:center;padding:30px 16px;gap:20px}
-.compass{
-  width:240px;height:240px;border-radius:50%;background:#ffffff;position:relative;
-  box-shadow:0 10px 40px rgba(0,0,0,0.1), inset 0 0 0 2px #f2f2f7;
-  display:flex;align-items:center;justify-content:center;
+.header-btn{
+    width:40px;height:40px;border-radius:12px;
+    background:var(--card);border:none;display:flex;
+    align-items:center;justify-content:center;cursor:pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: var(--transition);
 }
-.compass-svg{width:100%;height:100%;position:absolute;overflow:visible}
-#compassNeedle{transition:transform 0.15s cubic-bezier(0.1, 0.3, 0.3, 1);transform-origin:110px 110px}
-.compass-dirs{position:absolute;inset:0;pointer-events:none}
-.compass-dir{position:absolute;font-size:16px;font-weight:800;font-family:'Space Mono',monospace}
-.dir-n{top:12px;left:50%;transform:translateX(-50%);color:var(--red)}
-.dir-s{bottom:12px;left:50%;transform:translateX(-50%);color:var(--text)}
-.dir-e{right:14px;top:50%;transform:translateY(-50%);color:var(--text)}
-.dir-w{left:14px;top:50%;transform:translateY(-50%);color:var(--text)}
-.compass-degree-badge{font-family:'Space Mono',monospace;font-size:42px;font-weight:700;color:var(--text);letter-spacing:-2px}
-.compass-dir-badge{font-size:18px;color:var(--sub);font-weight:600;margin-top:-10px}
+.header-btn:active{transform: scale(0.9)}
 
-/* TOAST & UTILS */
-.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:rgba(0,0,0,0.8);color:white;padding:12px 24px;border-radius:30px;font-size:14px;z-index:10000;transition:transform 0.3s}
+.gps-card{
+    background:var(--card);border-radius:24px;padding:24px;
+    border:1px solid var(--border);margin-bottom:12px;
+    box-shadow: var(--shadow);
+}
+.coord-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;transition: var(--transition)}
+.coord-row:active{opacity: 0.6; transform: scale(0.98)}
+.coord-value{font-family:'Space Mono',monospace;font-size:32px;font-weight:700;letter-spacing:-1.5px}
+
+/* Modal Animations */
+.modal-overlay{
+    display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,0.4);backdrop-filter: blur(4px);
+    z-index:99999;align-items:flex-end;
+    opacity: 0; transition: opacity 0.3s ease;
+}
+.modal-overlay.open{display:flex; opacity: 1;}
+.modal{
+    width:100%;background:var(--card);border-radius:28px 28px 0 0;
+    padding:20px 0 40px;max-height:90vh;overflow-y:auto;
+    transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal-overlay.open .modal{transform: translateY(0);}
+.modal-handle{width:36px;height:5px;background:var(--border);border-radius:10px;margin:0 auto 20px}
+
+/* Compass Redesign */
+.compass-wrap{display:flex;flex-direction:column;align-items:center;padding:30px 20px}
+.compass{
+    width:240px;height:240px;border-radius:50%;
+    background:#1c1c1e; /* Darker, professional look */
+    border:8px solid #2c2c2e;
+    position:relative;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3), inset 0 0 15px rgba(0,0,0,0.5);
+    display:flex;align-items:center;justify-content:center;
+}
+.compass-inner-ring{
+    position:absolute;inset:10px;border:1px solid rgba(255,255,255,0.1);border-radius:50%;
+}
+.compass-needle{
+    position:absolute;width:12px;height:100%;
+    transition: transform 0.2s cubic-bezier(0.1, 0.3, 0.1, 1);
+}
+.needle-north{
+    width:0;height:0;
+    border-left:6px solid transparent;border-right:6px solid transparent;
+    border-bottom:90px solid var(--red);
+    position:absolute;top:20px;left:0;
+}
+.needle-south{
+    width:0;height:0;
+    border-left:6px solid transparent;border-right:6px solid transparent;
+    border-top:90px solid #e5e5ea;
+    position:absolute;bottom:20px;left:0;
+}
+.compass-center-cap{
+    width:16px;height:16px;background:#fff;border-radius:50%;
+    z-index:10;box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+.compass-dir{
+    position:absolute;font-weight:800;font-size:16px;color:rgba(255,255,255,0.9);
+}
+.dir-n{top:15px;color:var(--red)}
+.dir-s{bottom:15px}
+.dir-e{right:15px}
+.dir-w{left:15px}
+
+/* Buttons & Lists */
+.list-item{
+    display:flex;align-items:center;padding:16px 20px;
+    border-bottom:1px solid var(--border);transition: var(--transition);
+}
+.list-item:active{background:rgba(0,0,0,0.05); transform: scale(0.99)}
+.get-location-btn{
+    width:100%;padding:18px;background:var(--blue);color:white;
+    border:none;border-radius:18px;font-size:16px;font-weight:600;
+    box-shadow: 0 4px 15px rgba(0,122,255,0.3); transition: var(--transition);
+}
+.get-location-btn:active{transform: scale(0.96)}
+
+.status-bar{
+    background:var(--card);border-radius:14px;padding:12px 16px;
+    margin-bottom:16px;display:flex;align-items:center;gap:10px;
+    font-size:13px;border:1px solid var(--border);
+}
+.status-dot.active{background:var(--green);box-shadow: 0 0 8px var(--green)}
+
+.toast{
+    position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(100px);
+    background:rgba(0,0,0,0.8);color:#fff;padding:12px 24px;
+    border-radius:30px;font-weight:500;z-index:1000000;transition: var(--transition);
+}
 .toast.show{transform:translateX(-50%) translateY(0)}
-.spinner{width:20px;height:20px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite}
+
+/* Helpers */
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
 <div class="app">
-  <div class="header">
-    <button class="header-btn" onclick="refreshLocation()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-    </button>
-    <h1>GPS & PUSULA</h1>
-    <button class="header-btn" onclick="openModal('shareModal')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-    </button>
-  </div>
+    <div class="header">
+        <button class="header-btn" onclick="refreshLocation()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5" width="20" height="20"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg>
+        </button>
+        <h1>GPS PRO</h1>
+        <button class="header-btn" onclick="openModal('shareModal')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5" width="20" height="20"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+        </button>
+    </div>
 
-  <div class="gps-card">
-    <div class="coord-row" onclick="copyValue(state.lat, 'Enlem')">
-      <span class="coord-label">Enlem</span>
-      <div class="coord-value" id="latDisplay">00.000000</div>
-    </div>
-    <div class="coord-row" onclick="copyValue(state.lng, 'Boylam')">
-      <span class="coord-label">Boylam</span>
-      <div class="coord-value" id="lngDisplay">00.000000</div>
-    </div>
-    <div class="gps-meta">
-      <div class="meta-item" id="miniCompass">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
-        <span id="miniHeading">---° ---</span>
-      </div>
-      <div class="meta-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 17l4-8 4 4 4-6 4 10"/></svg>
-        <span id="altDisplay">0.0 m</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="status-bar">
-    <div class="status-dot" id="statusDot"></div>
-    <span id="statusText">GPS aranıyor...</span>
-  </div>
-
-  <button class="get-location-btn" id="getLocBtn" onclick="getLocation()">
-    <div id="btnContent" style="display:flex; align-items:center; gap:8px;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
-        Konumu Güncelle
-    </div>
-  </button>
-
-  <div class="map-placeholder" id="mapBox" onclick="openGoogleMaps()">
-    <div id="mapEmpty" style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--sub); font-size:13px; font-weight:600;">📍 Harita yükleniyor...</div>
-    <img id="mapImg" class="map-img" alt="Harita" />
-    <div class="map-label" id="mapLabel">Google Maps'te Aç</div>
-  </div>
-
-  <div class="section-label">Detaylar</div>
-  <div class="list-card">
-    <div class="list-item" onclick="openModal('compassModal')">
-        <div class="item-icon">🧭</div>
-        <div class="item-content"><div class="item-title">Pusula</div><div class="item-subtitle">Tam ekran yön bilgisi</div></div>
-        <div class="item-right" id="listDir">---° ---</div>
-    </div>
-    <div class="list-item" onclick="openModal('weatherModal')">
-        <div class="item-icon">⛅</div>
-        <div class="item-content"><div class="item-title">Hava Durumu</div><div class="item-subtitle">Open-Meteo verisi</div></div>
-        <div class="item-right" id="listTemp">--°C</div>
-    </div>
-    <div class="list-item" onclick="openModal('addressModal')">
-        <div class="item-icon">📍</div>
-        <div class="item-content"><div class="item-title">Adres</div><div class="item-subtitle" id="addrSub">Adres alınıyor...</div></div>
-        <div class="item-right">〉</div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="compassModal" onclick="handleOverlayClick(event,'compassModal')">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Pusula <button class="modal-close-btn" onclick="closeModal('compassModal')">✕</button></div>
-    <div class="compass-wrap">
-      <div class="compass">
-        <svg class="compass-svg" viewBox="0 0 220 220">
-          <defs>
-            <linearGradient id="redG" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="100%" stop-color="#ff3b30"/></linearGradient>
-            <linearGradient id="darkG" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#48484a"/><stop offset="100%" stop-color="#1c1c1e"/></linearGradient>
-          </defs>
-          <circle cx="110" cy="110" r="100" fill="none" stroke="#f2f2f7" stroke-width="6"/>
-          <g id="compassNeedle">
-            <path d="M110 25 L122 110 L98 110 Z" fill="url(#redG)" />
-            <path d="M110 195 L122 110 L98 110 Z" fill="url(#darkG)" />
-            <circle cx="110" cy="110" r="6" fill="black" stroke="white" stroke-width="2"/>
-          </g>
-        </svg>
-        <div class="compass-dirs">
-          <span class="compass-dir dir-n">K</span><span class="compass-dir dir-s">G</span>
-          <span class="compass-dir dir-e">D</span><span class="compass-dir dir-w">B</span>
+    <div class="gps-card">
+        <div class="coord-row" onclick="copyCoord('lat')">
+            <span style="color:var(--sub);font-weight:600;width:30px">LAT</span>
+            <div class="coord-value" id="latDisplay">---.------</div>
         </div>
-      </div>
-      <div class="compass-degree-badge" id="fullDeg">0°</div>
-      <div class="compass-dir-badge" id="fullDir">Kuzey</div>
+        <div class="coord-row" onclick="copyCoord('lng')">
+            <span style="color:var(--sub);font-weight:600;width:30px">LNG</span>
+            <div class="coord-value" id="lngDisplay">---.------</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:20px;padding-top:15px;border-top:1px solid var(--border)">
+            <div id="directionDisplay" style="font-weight:600;color:var(--sub)">---° --</div>
+            <div id="altDisplay" style="font-weight:600;color:var(--sub)">0.00 m</div>
+        </div>
     </div>
-  </div>
+
+    <div class="status-bar">
+        <div class="status-dot" id="statusDot" style="width:8px;height:8px;border-radius:50%;background:var(--sub)"></div>
+        <span id="statusText">Konum bekleniyor...</span>
+    </div>
+
+    <button class="get-location-btn" id="getLocBtn" onclick="getLocation()">
+        📍 Konum Al
+    </button>
+
+    <div style="margin-top:25px">
+        <div class="list-item" onclick="openModal('addressModal')">
+            <div style="flex:1"><div style="font-weight:600">📍 Adres Detayı</div><div id="addressPreview" style="font-size:12px;color:var(--sub)">Yüklenmedi</div></div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+        <div class="list-item" onclick="openModal('compassModal')">
+            <div style="flex:1"><div style="font-weight:600">🧭 Profesyonel Pusula</div><div style="font-size:12px;color:var(--sub)">Yön ve Derece</div></div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+        <div class="list-item" onclick="openModal('weatherModal')">
+            <div style="flex:1"><div style="font-weight:600">⛅ Hava Durumu</div><div id="weatherPreview" style="font-size:12px;color:var(--sub)">--°C</div></div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+    </div>
 </div>
 
-<div class="modal-overlay" id="addressModal" onclick="handleOverlayClick(event,'addressModal')">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">📍 Tam Adres <button class="modal-close-btn" onclick="closeModal('addressModal')">✕</button></div>
-    <div id="addressContent"></div>
-  </div>
+<div class="modal-overlay" id="compassModal" onclick="closeModal('compassModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <h2 style="text-align:center;margin-bottom:10px">Pusula</h2>
+        <div class="compass-wrap">
+            <div class="compass">
+                <div class="compass-inner-ring"></div>
+                <div class="compass-dir dir-n">N</div>
+                <div class="compass-dir dir-s">S</div>
+                <div class="compass-dir dir-e">E</div>
+                <div class="compass-dir dir-w">W</div>
+                <div class="compass-needle" id="compassNeedle">
+                    <div class="needle-north"></div>
+                    <div class="needle-south"></div>
+                </div>
+                <div class="compass-center-cap"></div>
+            </div>
+            <div id="compassDegree" style="font-size:48px;font-weight:700;margin-top:20px;font-family:'Space Mono'">0°</div>
+            <div id="compassDirBadge" style="color:var(--sub);font-weight:600;letter-spacing:2px">KUZEY</div>
+        </div>
+        <button class="get-location-btn" style="width:80%;margin:0 auto;display:block" onclick="requestCompassPermission()">İzin Ver (iOS)</button>
+    </div>
 </div>
 
-<div class="toast" id="toast">Kopyalandı</div>
+<div class="modal-overlay" id="addressModal" onclick="closeModal('addressModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div id="addressRows" style="padding:0 20px">Adres bilgisi aranıyor...</div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-let state = { lat: 0, lng: 0, alt: 0, heading: 0, watchId: null };
+var state = { lat: null, lng: null, compassActive: false };
 
-// BAŞLANGIÇ
-window.onload = () => {
-    getLocation();
-    initCompass();
-};
+function openModal(id) {
+    const modal = document.getElementById(id);
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('open'), 10);
+    if(id === 'compassModal') startCompass();
+}
+
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    modal.classList.remove('open');
+    setTimeout(() => modal.style.display = 'none', 300);
+}
+
+function startCompass() {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission !== 'function') {
+        window.addEventListener('deviceorientation', onOrientation, true);
+    }
+}
+
+function requestCompassPermission() {
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission().then(res => {
+            if (res === 'granted') window.addEventListener('deviceorientation', onOrientation, true);
+        });
+    }
+}
+
+function onOrientation(e) {
+    let heading = e.webkitCompassHeading || (360 - e.alpha);
+    if (heading) {
+        document.getElementById('compassNeedle').style.transform = `rotate(${-heading}deg)`;
+        document.getElementById('compassDegree').innerText = Math.round(heading) + '°';
+        document.getElementById('directionDisplay').innerText = Math.round(heading) + '° ' + getDir(heading);
+        document.getElementById('compassDirBadge').innerText = getDirFull(heading);
+    }
+}
+
+function getDir(h) {
+    const dirs = ['K','KD','D','GD','G','GB','B','KB'];
+    return dirs[Math.round(h / 45) % 8];
+}
+
+function getDirFull(h) {
+    const dirs = ['KUZEY','KUZEYDOĞU','DOĞU','GÜNEYDOĞU','GÜNEY','GÜNEYBATI','BATI','KUZEYBATI'];
+    return dirs[Math.round(h / 45) % 8];
+}
 
 function getLocation() {
-    const btn = document.getElementById('btnContent');
-    btn.innerHTML = '<div class="spinner"></div> Alınıyor...';
-    setStatus('loading', 'GPS sinyali aranıyor...');
-
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(onSuccess, onError, {enableHighAccuracy:true});
-        state.watchId = navigator.geolocation.watchPosition(onSuccess, onError, {enableHighAccuracy:true});
-    }
+    const btn = document.getElementById('getLocBtn');
+    btn.innerHTML = '<div class="spinner"></div>';
+    navigator.geolocation.getCurrentPosition(pos => {
+        state.lat = pos.coords.latitude;
+        state.lng = pos.coords.longitude;
+        document.getElementById('latDisplay').innerText = state.lat.toFixed(6);
+        document.getElementById('lngDisplay').innerText = state.lng.toFixed(6);
+        document.getElementById('statusDot').style.background = 'var(--green)';
+        document.getElementById('statusText').innerText = 'Konum Güncel';
+        btn.innerHTML = '📍 Konumu Güncelle';
+        showToast('Konum başarıyla alındı');
+        fetchAddress();
+    }, () => {
+        showToast('Hata: Konum alınamadı');
+        btn.innerHTML = '📍 Tekrar Dene';
+    });
 }
 
-function onSuccess(pos) {
-    const c = pos.coords;
-    state.lat = c.latitude;
-    state.lng = c.longitude;
-    state.alt = c.altitude || 0;
-
-    document.getElementById('latDisplay').innerText = state.lat.toFixed(6);
-    document.getElementById('lngDisplay').innerText = state.lng.toFixed(6);
-    document.getElementById('altDisplay').innerText = state.alt.toFixed(1) + ' m';
-    
-    setStatus('active', 'Konum Güncel (±' + Math.round(c.accuracy) + 'm)');
-    resetBtn();
-    updateMap();
-    fetchReverseGeocode();
-    fetchWeather();
-}
-
-function onError(err) {
-    setStatus('', 'Hata: Konum izni verin.');
-    resetBtn();
-}
-
-function resetBtn() {
-    document.getElementById('btnContent').innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
-        Konumu Güncelle`;
-}
-
-function setStatus(type, msg) {
-    const dot = document.getElementById('statusDot');
-    dot.className = 'status-dot ' + type;
-    document.getElementById('statusText').innerText = msg;
-}
-
-// PUSULA MANTIĞI
-function initCompass() {
-    if (window.DeviceOrientationEvent) {
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-            // iOS için ilk dokunuşta izin iste
-            document.body.addEventListener('click', () => {
-                DeviceOrientationEvent.requestPermission().then(res => {
-                    if(res === 'granted') window.addEventListener('deviceorientation', handleOrientation, true);
-                });
-            }, {once: true});
-        } else {
-            window.addEventListener('deviceorientation', handleOrientation, true);
-        }
-    }
-}
-
-function handleOrientation(e) {
-    let heading = e.webkitCompassHeading || (360 - e.alpha);
-    if (!heading) return;
-    
-    state.heading = heading;
-    const dir = getDirLabel(heading);
-    const deg = Math.round(heading);
-
-    // Görsel Rotasyonlar
-    document.getElementById('compassNeedle').style.transform = `rotate(${heading}deg)`;
-    document.getElementById('miniCompass').querySelector('svg').style.transform = `rotate(${heading}deg)`;
-    
-    // Metinler
-    document.getElementById('miniHeading').innerText = `${deg}° ${dir}`;
-    document.getElementById('listDir').innerText = `${deg}° ${dir}`;
-    document.getElementById('fullDeg').innerText = `${deg}°`;
-    document.getElementById('fullDir').innerText = dir;
-}
-
-function getDirLabel(h) {
-    const labels = ['Kuzey','KD','Doğu','GD','Güney','GB','Batı','KB'];
-    return labels[Math.round(h / 45) % 8];
-}
-
-// SERVİSLER (Adres & Hava)
-async function fetchReverseGeocode() {
+async function fetchAddress() {
     try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${state.lat}&lon=${state.lng}&format=json&accept-language=tr`);
-        const data = await res.json();
-        const addr = data.address;
-        document.getElementById('addrSub').innerText = `${addr.suburb || addr.town || ''}, ${addr.city || addr.province || ''}`;
-        document.getElementById('addressContent').innerHTML = `
-            <div class="modal-row"><span>Mahalle</span><span>${addr.suburb || '-'}</span></div>
-            <div class="modal-row"><span>İlçe</span><span>${addr.district || addr.town || '-'}</span></div>
-            <div class="modal-row"><span>Şehir</span><span>${addr.city || addr.province || '-'}</span></div>
-            <div class="modal-row"><span>Ülke</span><span>${addr.country || '-'}</span></div>
-            <div style="padding:20px; font-size:13px; color:var(--sub); line-height:1.5">${data.display_name}</div>
-        `;
+        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${state.lat}&lon=${state.lng}&format=json`);
+        const d = await r.json();
+        document.getElementById('addressPreview').innerText = d.display_name.substring(0, 40) + '...';
+        document.getElementById('addressRows').innerHTML = `<div style="padding:20px; line-height:1.6">${d.display_name}</div>`;
     } catch(e) {}
 }
 
-async function fetchWeather() {
-    try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${state.lat}&longitude=${state.lng}&current=temperature_2m`);
-        const data = await res.json();
-        document.getElementById('listTemp').innerText = Math.round(data.current.temperature_2m) + '°C';
-    } catch(e) {}
-}
-
-function updateMap() {
-    const img = document.getElementById('mapImg');
-    const box = document.getElementById('mapEmpty');
-    // Statik OSM Haritası
-    img.src = `https://static-maps.yandex.ru/1.x/?lang=tr_TR&ll=${state.lng},${state.lat}&z=15&l=map&size=450,200&pt=${state.lng},${state.lat},pm2rdm`;
-    img.onload = () => {
-        img.style.display = 'block';
-        box.style.display = 'none';
-    };
-}
-
-// UTILS
-function openGoogleMaps() {
-    window.open(`https://www.google.com/maps?q=${state.lat},${state.lng}`, '_blank');
-}
-
-function copyValue(val, label) {
-    navigator.clipboard.writeText(val.toString());
+function showToast(m) {
     const t = document.getElementById('toast');
-    t.innerText = label + ' Kopyalandı!';
-    t.classList.add('show');
+    t.innerText = m; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function handleOverlayClick(e, id) { if(e.target.classList.contains('modal-overlay')) closeModal(id); }
-function refreshLocation() { location.reload(); }
+function copyCoord(t) {
+    const val = t === 'lat' ? state.lat : state.lng;
+    if(val) {
+        navigator.clipboard.writeText(val.toString());
+        showToast('Kopyalandı');
+    }
+}
 </script>
-
 </body>
 </html>
