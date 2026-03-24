@@ -16,10 +16,8 @@
     --sub:#8e8e93;
     --border:#e5e5ea;
     --green:#34c759;
-    --orange:#ff9500;
     --red:#ff3b30;
-    --shadow: 0 8px 32px rgba(0,0,0,0.08);
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow: 0 8px 30px rgba(0,0,0,0.08);
 }
 
 body{
@@ -27,7 +25,6 @@ body{
     background:var(--bg);
     color:var(--text);
     -webkit-font-smoothing:antialiased;
-    height: 100vh;
     overflow-x: hidden;
 }
 
@@ -41,104 +38,109 @@ body{
     background:var(--card);border:none;display:flex;
     align-items:center;justify-content:center;cursor:pointer;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    transition: var(--transition);
 }
-.header-btn:active{transform: scale(0.9)}
 
 .gps-card{
     background:var(--card);border-radius:24px;padding:24px;
-    border:1px solid var(--border);margin-bottom:12px;
+    border:1.5px solid var(--border);margin-bottom:12px;
     box-shadow: var(--shadow);
 }
-.coord-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;transition: var(--transition)}
-.coord-row:active{opacity: 0.6; transform: scale(0.98)}
+.coord-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer}
 .coord-value{font-family:'Space Mono',monospace;font-size:32px;font-weight:700;letter-spacing:-1.5px}
 
-/* Modal Animations */
+/* --- YENİ MODAL ANİMASYONLARI --- */
 .modal-overlay{
     display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-    background:rgba(0,0,0,0.4);backdrop-filter: blur(4px);
-    z-index:99999;align-items:flex-end;
+    background:rgba(0,0,0,0.4);backdrop-filter: blur(6px);
+    z-index:9999;align-items:flex-end;
     opacity: 0; transition: opacity 0.3s ease;
 }
 .modal-overlay.open{display:flex; opacity: 1;}
+
 .modal{
     width:100%;background:var(--card);border-radius:28px 28px 0 0;
     padding:20px 0 40px;max-height:90vh;overflow-y:auto;
-    transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(100%); 
+    transition: transform 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
 }
 .modal-overlay.open .modal{transform: translateY(0);}
-.modal-handle{width:36px;height:5px;background:var(--border);border-radius:10px;margin:0 auto 20px}
+.modal-handle{width:40px;height:5px;background:var(--border);border-radius:10px;margin:0 auto 20px}
 
-/* Compass Redesign */
+.modal-title{
+    font-size:19px;font-weight:700;padding:0 24px 15px;
+    border-bottom:1px solid var(--border);margin-bottom:15px;
+    display:flex;justify-content:space-between;align-items:center;
+}
+
+/* --- YENİ NESİL PUSULA TASARIMI --- */
 .compass-wrap{display:flex;flex-direction:column;align-items:center;padding:30px 20px}
 .compass{
-    width:240px;height:240px;border-radius:50%;
-    background:#1c1c1e; /* Darker, professional look */
-    border:8px solid #2c2c2e;
+    width:260px;height:260px;border-radius:50%;
+    background:#1c1c1e; /* Koyu premium tema */
+    border:10px solid #2c2c2e;
     position:relative;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.3), inset 0 0 15px rgba(0,0,0,0.5);
-    display:flex;align-items:center;justify-content:center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3), inset 0 0 25px rgba(0,0,0,0.5);
 }
-.compass-inner-ring{
-    position:absolute;inset:10px;border:1px solid rgba(255,255,255,0.1);border-radius:50%;
+.compass-inner{
+    position:absolute;inset:8px;border:1px solid rgba(255,255,255,0.1);border-radius:50%;
 }
+.dir-label{position:absolute;font-weight:900;font-size:18px;color:#fff;font-family:'Space Mono'}
+.n{top:12px;left:50%;transform:translateX(-50%);color:var(--red)}
+.s{bottom:12px;left:50%;transform:translateX(-50%)}
+.e{right:12px;top:50%;transform:translateY(-50%)}
+.w{left:12px;top:50%;transform:translateY(-50%)}
+
 .compass-needle{
-    position:absolute;width:12px;height:100%;
+    width:100%;height:100%;position:absolute;
     transition: transform 0.2s cubic-bezier(0.1, 0.3, 0.1, 1);
 }
-.needle-north{
-    width:0;height:0;
-    border-left:6px solid transparent;border-right:6px solid transparent;
-    border-bottom:90px solid var(--red);
-    position:absolute;top:20px;left:0;
+.needle-n{
+    width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;
+    border-bottom:100px solid var(--red);
+    position:absolute;top:25px;left:calc(50% - 8px);
+    filter:drop-shadow(0 0 8px rgba(255,59,48,0.4));
 }
-.needle-south{
-    width:0;height:0;
-    border-left:6px solid transparent;border-right:6px solid transparent;
-    border-top:90px solid #e5e5ea;
-    position:absolute;bottom:20px;left:0;
+.needle-s{
+    width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;
+    border-top:100px solid #e5e5ea;
+    position:absolute;bottom:25px;left:calc(50% - 8px);
 }
-.compass-center-cap{
-    width:16px;height:16px;background:#fff;border-radius:50%;
-    z-index:10;box-shadow: 0 0 10px rgba(0,0,0,0.5);
+.compass-cap{
+    width:22px;height:22px;background:#fff;border-radius:50%;
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);z-index:10;
 }
-.compass-dir{
-    position:absolute;font-weight:800;font-size:16px;color:rgba(255,255,255,0.9);
-}
-.dir-n{top:15px;color:var(--red)}
-.dir-s{bottom:15px}
-.dir-e{right:15px}
-.dir-w{left:15px}
 
-/* Buttons & Lists */
+/* List Items */
 .list-item{
-    display:flex;align-items:center;padding:16px 20px;
-    border-bottom:1px solid var(--border);transition: var(--transition);
+    display:flex;align-items:center;padding:18px 22px;
+    border-bottom:1px solid var(--border);transition: background 0.2s;
 }
-.list-item:active{background:rgba(0,0,0,0.05); transform: scale(0.99)}
+.list-item:active{background:rgba(0,0,0,0.05)}
+.item-content{flex:1}
+.item-title{font-weight:600;font-size:16px}
+.item-sub{font-size:12px;color:var(--sub);margin-top:2px}
+
 .get-location-btn{
     width:100%;padding:18px;background:var(--blue);color:white;
-    border:none;border-radius:18px;font-size:16px;font-weight:600;
-    box-shadow: 0 4px 15px rgba(0,122,255,0.3); transition: var(--transition);
+    border:none;border-radius:20px;font-size:16px;font-weight:600;
+    box-shadow: 0 4px 15px rgba(0,122,255,0.3); transition: transform 0.1s;
 }
-.get-location-btn:active{transform: scale(0.96)}
+.get-location-btn:active{transform: scale(0.97)}
 
 .status-bar{
     background:var(--card);border-radius:14px;padding:12px 16px;
-    margin-bottom:16px;display:flex;align-items:center;gap:10px;
-    font-size:13px;border:1px solid var(--border);
+    margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;
 }
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--sub)}
 .status-dot.active{background:var(--green);box-shadow: 0 0 8px var(--green)}
 
 .toast{
     position:fixed;bottom:40px;left:50%;transform:translateX(-50%) translateY(100px);
-    background:rgba(0,0,0,0.8);color:#fff;padding:12px 24px;
-    border-radius:30px;font-weight:500;z-index:1000000;transition: var(--transition);
+    background:rgba(0,0,0,0.85);color:#fff;padding:12px 24px;
+    border-radius:30px;font-size:14px;z-index:999999;transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
 .toast.show{transform:translateX(-50%) translateY(0)}
-
-/* Helpers */
 .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
@@ -147,10 +149,10 @@ body{
 
 <div class="app">
     <div class="header">
-        <button class="header-btn" onclick="refreshLocation()">
+        <button class="header-btn" onclick="location.reload()">
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5" width="20" height="20"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg>
         </button>
-        <h1>GPS PRO</h1>
+        <h1>GPS PRO KONUM</h1>
         <button class="header-btn" onclick="openModal('shareModal')">
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5" width="20" height="20"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
         </button>
@@ -158,40 +160,40 @@ body{
 
     <div class="gps-card">
         <div class="coord-row" onclick="copyCoord('lat')">
-            <span style="color:var(--sub);font-weight:600;width:30px">LAT</span>
+            <span style="color:var(--sub);font-weight:700;width:35px">ENL</span>
             <div class="coord-value" id="latDisplay">---.------</div>
         </div>
         <div class="coord-row" onclick="copyCoord('lng')">
-            <span style="color:var(--sub);font-weight:600;width:30px">LNG</span>
+            <span style="color:var(--sub);font-weight:700;width:35px">BOY</span>
             <div class="coord-value" id="lngDisplay">---.------</div>
         </div>
-        <div style="display:flex;justify-content:space-between;margin-top:20px;padding-top:15px;border-top:1px solid var(--border)">
-            <div id="directionDisplay" style="font-weight:600;color:var(--sub)">---° --</div>
-            <div id="altDisplay" style="font-weight:600;color:var(--sub)">0.00 m</div>
+        <div style="display:flex;justify-content:space-between;margin-top:20px;padding-top:15px;border-top:1px solid var(--border); color:var(--sub); font-weight:600">
+            <div id="directionDisplay">0° KUZEY</div>
+            <div id="altDisplay">0.00 m</div>
         </div>
     </div>
 
     <div class="status-bar">
-        <div class="status-dot" id="statusDot" style="width:8px;height:8px;border-radius:50%;background:var(--sub)"></div>
-        <span id="statusText">Konum bekleniyor...</span>
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">GPS Sinyali Bekleniyor...</span>
     </div>
 
     <button class="get-location-btn" id="getLocBtn" onclick="getLocation()">
-        📍 Konum Al
+        📍 Konumu Al
     </button>
 
-    <div style="margin-top:25px">
+    <div style="margin-top:25px; background:var(--card); border-radius:20px; overflow:hidden; border:1px solid var(--border)">
         <div class="list-item" onclick="openModal('addressModal')">
-            <div style="flex:1"><div style="font-weight:600">📍 Adres Detayı</div><div id="addressPreview" style="font-size:12px;color:var(--sub)">Yüklenmedi</div></div>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+            <div class="item-content"><div class="item-title">Adres Detayı</div><div id="addressPreview" class="item-sub">Konum bekleniyor...</div></div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
         </div>
         <div class="list-item" onclick="openModal('compassModal')">
-            <div style="flex:1"><div style="font-weight:600">🧭 Profesyonel Pusula</div><div style="font-size:12px;color:var(--sub)">Yön ve Derece</div></div>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+            <div class="item-content"><div class="item-title">Pusula</div><div class="item-sub">Gerçek zamanlı yön takibi</div></div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
         </div>
         <div class="list-item" onclick="openModal('weatherModal')">
-            <div style="flex:1"><div style="font-weight:600">⛅ Hava Durumu</div><div id="weatherPreview" style="font-size:12px;color:var(--sub)">--°C</div></div>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
+            <div class="item-content"><div class="item-title">Hava Durumu</div><div id="weatherPreview" class="item-sub">--°C</div></div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>
         </div>
     </div>
 </div>
@@ -199,127 +201,145 @@ body{
 <div class="modal-overlay" id="compassModal" onclick="closeModal('compassModal')">
     <div class="modal" onclick="event.stopPropagation()">
         <div class="modal-handle"></div>
-        <h2 style="text-align:center;margin-bottom:10px">Pusula</h2>
+        <div class="modal-title">🧭 Profesyonel Pusula</div>
         <div class="compass-wrap">
             <div class="compass">
-                <div class="compass-inner-ring"></div>
-                <div class="compass-dir dir-n">N</div>
-                <div class="compass-dir dir-s">S</div>
-                <div class="compass-dir dir-e">E</div>
-                <div class="compass-dir dir-w">W</div>
+                <div class="compass-inner"></div>
+                <div class="dir-label n">N</div>
+                <div class="dir-label s">S</div>
+                <div class="dir-label e">E</div>
+                <div class="dir-label w">W</div>
                 <div class="compass-needle" id="compassNeedle">
-                    <div class="needle-north"></div>
-                    <div class="needle-south"></div>
+                    <div class="needle-n"></div>
+                    <div class="needle-s"></div>
                 </div>
-                <div class="compass-center-cap"></div>
+                <div class="compass-cap"></div>
             </div>
-            <div id="compassDegree" style="font-size:48px;font-weight:700;margin-top:20px;font-family:'Space Mono'">0°</div>
-            <div id="compassDirBadge" style="color:var(--sub);font-weight:600;letter-spacing:2px">KUZEY</div>
+            <div id="compassDegree" style="font-size:52px; font-weight:700; margin-top:20px; font-family:'Space Mono'">0°</div>
+            <div id="compassDirBadge" style="color:var(--sub); font-weight:600; letter-spacing:3px; text-transform:uppercase">KUZEY</div>
         </div>
-        <button class="get-location-btn" style="width:80%;margin:0 auto;display:block" onclick="requestCompassPermission()">İzin Ver (iOS)</button>
+        <button class="get-location-btn" style="width:80%; margin:0 auto; display:block" onclick="requestCompassPermission()">iOS İzin Ver</button>
     </div>
 </div>
 
 <div class="modal-overlay" id="addressModal" onclick="closeModal('addressModal')">
     <div class="modal" onclick="event.stopPropagation()">
         <div class="modal-handle"></div>
-        <div id="addressRows" style="padding:0 20px">Adres bilgisi aranıyor...</div>
+        <div class="modal-title">📍 Adres Bilgisi</div>
+        <div id="addressRows" style="padding:20px; line-height:1.6; color:var(--text)">Lütfen önce konumu alın.</div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="shareModal" onclick="closeModal('shareModal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Paylaş</div>
+        <div style="padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px">
+            <button class="get-location-btn" style="background:#f2f2f7; color:var(--text); box-shadow:none" onclick="copyCoord('both')">📋 Kopyala</button>
+            <button class="get-location-btn" onclick="window.open('https://maps.google.com/?q='+state.lat+','+state.lng)">🗺️ Haritalar</button>
+        </div>
     </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-var state = { lat: null, lng: null, compassActive: false };
+var state = { lat: 0, lng: 0, alt: 0 };
 
+// Modal Fonksiyonları
 function openModal(id) {
-    const modal = document.getElementById(id);
-    modal.style.display = 'flex';
-    setTimeout(() => modal.classList.add('open'), 10);
-    if(id === 'compassModal') startCompass();
+    const m = document.getElementById(id);
+    m.style.display = 'flex';
+    setTimeout(() => m.classList.add('open'), 10);
 }
-
 function closeModal(id) {
-    const modal = document.getElementById(id);
-    modal.classList.remove('open');
-    setTimeout(() => modal.style.display = 'none', 300);
+    const m = document.getElementById(id);
+    m.classList.remove('open');
+    setTimeout(() => m.style.display = 'none', 400);
 }
 
-function startCompass() {
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission !== 'function') {
-        window.addEventListener('deviceorientation', onOrientation, true);
-    }
-}
-
+// Pusula Mantığı
 function requestCompassPermission() {
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission().then(res => {
             if (res === 'granted') window.addEventListener('deviceorientation', onOrientation, true);
         });
+    } else {
+        window.addEventListener('deviceorientation', onOrientation, true);
     }
 }
 
 function onOrientation(e) {
     let heading = e.webkitCompassHeading || (360 - e.alpha);
     if (heading) {
-        document.getElementById('compassNeedle').style.transform = `rotate(${-heading}deg)`;
-        document.getElementById('compassDegree').innerText = Math.round(heading) + '°';
-        document.getElementById('directionDisplay').innerText = Math.round(heading) + '° ' + getDir(heading);
-        document.getElementById('compassDirBadge').innerText = getDirFull(heading);
+        let h = Math.round(heading);
+        document.getElementById('compassNeedle').style.transform = `rotate(${h}deg)`;
+        document.getElementById('compassDegree').innerText = h + '°';
+        document.getElementById('compassDirBadge').innerText = getFullDir(h);
+        document.getElementById('directionDisplay').innerText = h + '° ' + getShortDir(h);
     }
 }
 
-function getDir(h) {
-    const dirs = ['K','KD','D','GD','G','GB','B','KB'];
-    return dirs[Math.round(h / 45) % 8];
+function getFullDir(deg) {
+    const d = ['KUZEY','KUZEYDOĞU','DOĞU','GÜNEYDOĞU','GÜNEY','GÜNEYBATI','BATI','KUZEYBATI'];
+    return d[Math.round(deg / 45) % 8];
+}
+function getShortDir(deg) {
+    const d = ['K','KD','D','GD','G','GB','B','KB'];
+    return d[Math.round(deg / 45) % 8];
 }
 
-function getDirFull(h) {
-    const dirs = ['KUZEY','KUZEYDOĞU','DOĞU','GÜNEYDOĞU','GÜNEY','GÜNEYBATI','BATI','KUZEYBATI'];
-    return dirs[Math.round(h / 45) % 8];
-}
-
+// Konum Mantığı
 function getLocation() {
     const btn = document.getElementById('getLocBtn');
     btn.innerHTML = '<div class="spinner"></div>';
     navigator.geolocation.getCurrentPosition(pos => {
         state.lat = pos.coords.latitude;
         state.lng = pos.coords.longitude;
+        state.alt = pos.coords.altitude || 0;
+        
         document.getElementById('latDisplay').innerText = state.lat.toFixed(6);
         document.getElementById('lngDisplay').innerText = state.lng.toFixed(6);
-        document.getElementById('statusDot').style.background = 'var(--green)';
-        document.getElementById('statusText').innerText = 'Konum Güncel';
+        document.getElementById('altDisplay').innerText = state.alt.toFixed(2) + ' m';
+        
+        document.getElementById('statusDot').classList.add('active');
+        document.getElementById('statusText').innerText = 'Konum Alındı';
         btn.innerHTML = '📍 Konumu Güncelle';
-        showToast('Konum başarıyla alındı');
+        showToast('Konum güncellendi');
         fetchAddress();
     }, () => {
-        showToast('Hata: Konum alınamadı');
+        showToast('Hata: GPS Erişimi Yok');
         btn.innerHTML = '📍 Tekrar Dene';
-    });
+    }, {enableHighAccuracy: true});
 }
 
 async function fetchAddress() {
     try {
-        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${state.lat}&lon=${state.lng}&format=json`);
+        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${state.lat}&lon=${state.lng}&format=json&accept-language=tr`);
         const d = await r.json();
-        document.getElementById('addressPreview').innerText = d.display_name.substring(0, 40) + '...';
-        document.getElementById('addressRows').innerHTML = `<div style="padding:20px; line-height:1.6">${d.display_name}</div>`;
-    } catch(e) {}
+        document.getElementById('addressPreview').innerText = d.address.road || d.display_name.split(',')[0];
+        document.getElementById('addressRows').innerHTML = `<div style="padding:10px">${d.display_name}</div>`;
+    } catch(e) { console.log(e); }
 }
 
-function showToast(m) {
+function showToast(msg) {
     const t = document.getElementById('toast');
-    t.innerText = m; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2000);
+    t.innerText = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-function copyCoord(t) {
-    const val = t === 'lat' ? state.lat : state.lng;
-    if(val) {
-        navigator.clipboard.writeText(val.toString());
-        showToast('Kopyalandı');
-    }
+function copyCoord(type) {
+    let txt = type === 'lat' ? state.lat : (type === 'lng' ? state.lng : state.lat + ',' + state.lng);
+    navigator.clipboard.writeText(txt);
+    showToast('Kopyalandı');
 }
+
+// Sayfa açılışında pusulayı dinlemeye başla (Android için otomatik)
+window.onload = () => {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission !== 'function') {
+        window.addEventListener('deviceorientation', onOrientation, true);
+    }
+};
 </script>
 </body>
 </html>
