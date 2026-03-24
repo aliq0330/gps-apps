@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="tr">
+<!DOCTYPE html><html lang="tr">
 
 <head>
 <meta charset="UTF-8">
@@ -48,336 +47,101 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
 .map-label{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--blue);font-weight:500;background:white;padding:6px 14px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,0.14);white-space:nowrap;z-index:2;pointer-events:none}
 .map-pin-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);z-index:3;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(26,115,232,0.4));display:none}
 .map-placeholder-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e8f0fe,#d2e3fc);background-image:linear-gradient(rgba(26,115,232,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(26,115,232,0.08) 1px,transparent 1px);background-size:28px 28px,28px 28px,100% 100%}
-
-/* MODAL - Animasyonlu */
-.modal-overlay{
-  display:none;
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0);
-  z-index:99999;
-  -webkit-overflow-scrolling:touch;
-  align-items:flex-end;
-  opacity:0;
-  transition:background 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s cubic-bezier(0.4,0,0.2,1);
-}
-.modal-overlay.open{
-  display:flex;
-  opacity:1;
-  background:rgba(0,0,0,0.55);
-}
-.modal{
-  width:100%;
-  background:#ffffff;
-  border-radius:24px 24px 0 0;
-  padding:20px 0 50px;
-  max-height:88vh;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-  position:relative;
-  transform:translateY(100%);
-  transition:transform 0.4s cubic-bezier(0.32,0.72,0,1);
-  will-change:transform;
-}
-.modal-overlay.open .modal{
-  transform:translateY(0);
-}
-.modal-handle{
-  width:40px;
-  height:4px;
-  background:var(--border);
-  border-radius:2px;
-  margin:0 auto 20px;
-  cursor:pointer;
-  transition:background 0.2s;
-}
-.modal-handle:active{background:var(--sub)}
-.modal-title{
-  font-size:18px;
-  font-weight:600;
-  padding:0 20px 16px;
-  border-bottom:1px solid var(--border);
-  margin-bottom:16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  opacity:0;
-  transform:translateY(-10px);
-  transition:opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
-}
-.modal-overlay.open .modal-title{
-  opacity:1;
-  transform:translateY(0);
-}
-.modal-close-btn{
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  background:var(--bg);
-  border:none;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  flex-shrink:0;
-  -webkit-tap-highlight-color:transparent;
-  font-size:16px;
-  line-height:1;
-  color:var(--sub);
-  transition:transform 0.2s, background 0.2s;
-}
-.modal-close-btn:active{transform:scale(0.9); background:var(--border)}
-.modal-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 20px;
-  border-bottom:1px solid var(--border);
-  opacity:0;
-  transform:translateX(-20px);
-  transition:opacity 0.3s ease, transform 0.3s ease, background 0.2s;
-}
-.modal-overlay.open .modal-row{
-  opacity:1;
-  transform:translateX(0);
-}
-.modal-overlay.open .modal-row:nth-child(1){transition-delay:0.08s}
-.modal-overlay.open .modal-row:nth-child(2){transition-delay:0.12s}
-.modal-overlay.open .modal-row:nth-child(3){transition-delay:0.16s}
-.modal-overlay.open .modal-row:nth-child(4){transition-delay:0.20s}
-.modal-overlay.open .modal-row:nth-child(5){transition-delay:0.24s}
-.modal-overlay.open .modal-row:nth-child(6){transition-delay:0.28s}
-.modal-overlay.open .modal-row:nth-child(7){transition-delay:0.32s}
-.modal-overlay.open .modal-row:nth-child(8){transition-delay:0.36s}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:99999;-webkit-overflow-scrolling:touch;align-items:flex-end}
+.modal-overlay.open{display:flex}
+.modal{width:100%;background:#ffffff;border-radius:24px 24px 0 0;padding:20px 0 50px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;cursor:pointer}
+.modal-title{font-size:18px;font-weight:600;padding:0 20px 16px;border-bottom:1px solid var(--border);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.modal-close-btn{width:28px;height:28px;border-radius:50%;background:var(--bg);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;font-size:16px;line-height:1;color:var(--sub)}
+.modal-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border)}
 .modal-row:last-child{border-bottom:none}
-.modal-row:active{background:rgba(0,0,0,0.04)}
 .modal-row-label{font-size:14px;color:var(--sub)}
 .modal-row-value{font-size:15px;font-weight:500;color:var(--text);text-align:right;max-width:60%}
-
-.share-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  padding:0 20px;
-  opacity:0;
-  transform:translateY(20px);
-  transition:opacity 0.35s ease 0.15s, transform 0.35s ease 0.15s;
-}
-.modal-overlay.open .share-grid{
-  opacity:1;
-  transform:translateY(0);
-}
-.share-opt{
-  background:var(--bg);
-  border:none;
-  border-radius:14px;
-  padding:14px 12px;
-  font-family:'DM Sans',sans-serif;
-  font-size:14px;
-  font-weight:500;
-  color:var(--text);
-  cursor:pointer;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:8px;
-  -webkit-tap-highlight-color:transparent;
-  transition:transform 0.2s, background 0.2s;
-  opacity:0;
-  transform:scale(0.9);
-}
-.modal-overlay.open .share-opt{
-  opacity:1;
-  transform:scale(1);
-}
-.modal-overlay.open .share-opt:nth-child(1){transition-delay:0.1s, 0.1s}
-.modal-overlay.open .share-opt:nth-child(2){transition-delay:0.15s, 0.15s}
-.modal-overlay.open .share-opt:nth-child(3){transition-delay:0.2s, 0.2s}
-.modal-overlay.open .share-opt:nth-child(4){transition-delay:0.25s, 0.25s}
-.share-opt:active{transform:scale(0.95) !important; background:var(--border)}
-.share-opt-icon{font-size:24px;transition:transform 0.2s}
-.share-opt:hover .share-opt-icon{transform:scale(1.1)}
-
-.toast{
-  position:fixed;
-  bottom:30px;
-  left:50%;
-  transform:translateX(-50%) translateY(80px);
-  background:rgba(0,0,0,0.85);
-  color:white;
-  padding:10px 20px;
-  border-radius:20px;
-  font-size:14px;
-  z-index:999999;
-  transition:transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.3s;
-  white-space:nowrap;
-  pointer-events:none;
-  opacity:0;
-}
-.toast.show{
-  transform:translateX(-50%) translateY(0);
-  opacity:1;
-}
+.share-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 20px}
+.share-opt{background:var(--bg);border:none;border-radius:14px;padding:14px 12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent}
+.share-opt:active{opacity:0.7}
+.share-opt-icon{font-size:24px}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(0,0,0,0.85);color:white;padding:10px 20px;border-radius:20px;font-size:14px;z-index:999999;transition:transform 0.3s;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
 .spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── iPhone Pusula Modal ──────────────────────────────────────────────────── */
 .compass-modal-inner{
-  background:#000;
-  border-radius:24px 24px 0 0;
-  padding:0 0 50px;
-  max-height:88vh;
-  overflow-y:auto;
-  transform:translateY(100%);
-  transition:transform 0.4s cubic-bezier(0.32,0.72,0,1);
-  will-change:transform;
+background:#000;
+border-radius:24px 24px 0 0;
+padding:0 0 50px;
+max-height:88vh;
+overflow-y:auto;
 }
-.modal-overlay.open .compass-modal-inner{
-  transform:translateY(0);
-}
-.compass-modal-handle{width:40px;height:4px;background:#444;border-radius:2px;margin:16px auto 0;cursor:pointer;transition:background 0.2s}
-.compass-modal-handle:active{background:#666}
-.compass-modal-close{
-  position:absolute;
-  top:20px;
-  right:20px;
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  background:#1c1c1e;
-  border:none;
-  color:#8e8e93;
-  font-size:15px;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:2;
-  transition:transform 0.2s, background 0.2s;
-}
-.compass-modal-close:active{transform:scale(0.9); background:#2c2c2e}
+.compass-modal-handle{width:40px;height:4px;background:#444;border-radius:2px;margin:16px auto 0;cursor:pointer}
+.compass-modal-close{position:absolute;top:20px;right:20px;width:28px;height:28px;border-radius:50%;background:#1c1c1e;border:none;color:#8e8e93;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
 
 /* Derece göstergesi */
 .iphone-compass-heading{
-  font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
-  font-size:72px;font-weight:200;letter-spacing:-3px;
-  color:#fff;text-align:center;
-  padding:32px 0 4px;line-height:1;
-  opacity:0;
-  transform:scale(0.8);
-  transition:opacity 0.4s ease 0.2s, transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275) 0.2s;
-}
-.modal-overlay.open .iphone-compass-heading{
-  opacity:1;
-  transform:scale(1);
+font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,sans-serif;
+font-size:72px;font-weight:200;letter-spacing:-3px;
+color:#fff;text-align:center;
+padding:32px 0 4px;line-height:1;
 }
 .iphone-compass-dir{
-  font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
-  font-size:17px;font-weight:400;color:#8e8e93;
-  text-align:center;margin-bottom:24px;letter-spacing:0.5px;
-  opacity:0;
-  transition:opacity 0.3s ease 0.3s;
-}
-.modal-overlay.open .iphone-compass-dir{
-  opacity:1;
+font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,sans-serif;
+font-size:17px;font-weight:400;color:#8e8e93;
+text-align:center;margin-bottom:24px;letter-spacing:0.5px;
 }
 
 /* Pusula çemberi */
 .iphone-compass-wrap{
-  display:flex;justify-content:center;align-items:center;
-  padding:0 24px 28px;
-  opacity:0;
-  transform:scale(0.9);
-  transition:opacity 0.4s ease 0.25s, transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275) 0.25s;
-}
-.modal-overlay.open .iphone-compass-wrap{
-  opacity:1;
-  transform:scale(1);
+display:flex;justify-content:center;align-items:center;
+padding:0 24px 28px;
 }
 .iphone-compass-svg-wrap{
-  position:relative;width:300px;height:300px;flex-shrink:0;
+position:relative;width:300px;height:300px;flex-shrink:0;
 }
 /* Kırmızı üst gösterge oku */
 .iphone-compass-pointer{
-  position:absolute;top:-10px;left:50%;transform:translateX(-50%);
-  width:0;height:0;
-  border-left:8px solid transparent;
-  border-right:8px solid transparent;
-  border-top:14px solid #ff3b30;
-  z-index:10;
-  filter:drop-shadow(0 0 4px rgba(255,59,48,0.7));
+position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+width:0;height:0;
+border-left:8px solid transparent;
+border-right:8px solid transparent;
+border-top:14px solid #ff3b30;
+z-index:10;
+filter:drop-shadow(0 0 4px rgba(255,59,48,0.7));
 }
 .iphone-compass-canvas{
-  width:300px;height:300px;display:block;
-  border-radius:50%;
+width:300px;height:300px;display:block;
+border-radius:50%;
 }
 
 /* Koordinat + irtifa alt satır */
 .iphone-compass-coords{
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  padding:0 20px;
-  opacity:0;
-  transform:translateY(20px);
-  transition:opacity 0.35s ease 0.35s, transform 0.35s ease 0.35s;
-}
-.modal-overlay.open .iphone-compass-coords{
-  opacity:1;
-  transform:translateY(0);
+display:flex;flex-direction:column;align-items:center;gap:6px;
+padding:0 20px;
 }
 .iphone-compass-dms{
-  font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
-  font-size:17px;font-weight:400;color:#fff;
-  text-align:center;letter-spacing:0.2px;
+font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,sans-serif;
+font-size:17px;font-weight:400;color:#fff;
+text-align:center;letter-spacing:0.2px;
 }
 .iphone-compass-location{
-  font-size:14px;color:#8e8e93;text-align:center;margin-top:2px;
+font-size:14px;color:#8e8e93;text-align:center;margin-top:2px;
 }
 .iphone-compass-alt{
-  font-size:14px;color:#8e8e93;text-align:center;
+font-size:14px;color:#8e8e93;text-align:center;
 }
 
 /* İzin butonu */
 .compass-permission-btn{
-  width:calc(100% - 40px);margin:16px 20px;
-  padding:13px;background:var(--blue);color:white;border:none;
-  border-radius:14px;font-family:'DM Sans',sans-serif;
-  font-size:15px;font-weight:600;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  -webkit-tap-highlight-color:transparent;
-  transition:transform 0.2s, opacity 0.2s;
+width:calc(100% - 40px);margin:16px 20px;
+padding:13px;background:var(–blue);color:white;border:none;
+border-radius:14px;font-family:‘DM Sans’,sans-serif;
+font-size:15px;font-weight:600;cursor:pointer;
+display:flex;align-items:center;justify-content:center;gap:8px;
+-webkit-tap-highlight-color:transparent;
 }
-.compass-permission-btn:active{transform:scale(0.98)}
-#compassPermissionArea{
-  display:none;
-  opacity:0;
-  animation:fadeIn 0.3s forwards;
-}
-@keyframes fadeIn{to{opacity:1}}
+#compassPermissionArea{display:none;padding-bottom:10px}
 .compass-status-text{font-size:12px;color:#8e8e93;text-align:center;padding:0 20px 10px}
-
-/* Liste kart hover efekti */
-.list-item{transition:background 0.2s, transform 0.2s}
-.list-item:active{transform:scale(0.98)}
-
-/* Harita placeholder hover */
-.map-placeholder{transition:transform 0.3s, box-shadow 0.3s}
-.map-placeholder:active{transform:scale(0.98)}
-
-/* Koordinat kartı hover efekti */
-.coord-row{transition:transform 0.2s, opacity 0.2s}
-.coord-row:active{transform:scale(0.98); opacity:0.8}
-
-/* Header butonları hover */
-.header-btn{transition:transform 0.2s, box-shadow 0.2s}
-.header-btn:active{transform:scale(0.9); box-shadow:0 2px 8px rgba(0,0,0,0.15)}
-
-/* Get location butonu pulse animasyonu */
-.get-location-btn{transition:transform 0.2s, box-shadow 0.2s, background 0.2s}
-.get-location-btn:not(:disabled):active{transform:scale(0.98)}
-.get-location-btn:not(:disabled):hover{box-shadow:0 6px 20px rgba(26,115,232,0.4)}
 </style>
 
 </head>
@@ -500,32 +264,35 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
     <div class="compass-modal-handle" onclick="closeModal('compassModal')"></div>
     <button class="compass-modal-close" onclick="closeModal('compassModal')">✕</button>
 
-    <!-- iOS izin alanı -->
-    <div id="compassPermissionArea">
-      <p class="compass-status-text">iOS cihazlarda pusula için izin gereklidir.</p>
-      <button class="compass-permission-btn" onclick="requestCompassPermission()">🧭 Pusula İznini Ver</button>
-    </div>
+```
+<!-- iOS izin alanı -->
+<div id="compassPermissionArea">
+  <p class="compass-status-text">iOS cihazlarda pusula için izin gereklidir.</p>
+  <button class="compass-permission-btn" onclick="requestCompassPermission()">🧭 Pusula İznini Ver</button>
+</div>
 
-    <!-- Büyük derece + yön -->
-    <div class="iphone-compass-heading" id="iCompassDeg">---°</div>
-    <div class="iphone-compass-dir" id="iCompassDir">Pusula bekleniyor</div>
+<!-- Büyük derece + yön -->
+<div class="iphone-compass-heading" id="iCompassDeg">---°</div>
+<div class="iphone-compass-dir" id="iCompassDir">Pusula bekleniyor</div>
 
-    <!-- Pusula çemberi -->
-    <div class="iphone-compass-wrap">
-      <div class="iphone-compass-svg-wrap">
-        <!-- Kırmızı üst ok -->
-        <div class="iphone-compass-pointer"></div>
-        <!-- Canvas pusula -->
-        <canvas class="iphone-compass-canvas" id="compassCanvas" width="300" height="300"></canvas>
-      </div>
-    </div>
+<!-- Pusula çemberi -->
+<div class="iphone-compass-wrap">
+  <div class="iphone-compass-svg-wrap">
+    <!-- Kırmızı üst ok -->
+    <div class="iphone-compass-pointer"></div>
+    <!-- Canvas pusula -->
+    <canvas class="iphone-compass-canvas" id="compassCanvas" width="300" height="300"></canvas>
+  </div>
+</div>
 
-    <!-- Koordinat bilgileri -->
-    <div class="iphone-compass-coords">
-      <div class="iphone-compass-dms" id="iCompassLatDMS">--°--'--" K  --°--'--" D</div>
-      <div class="iphone-compass-location" id="iCompassLocation">Şişli, İstanbul</div>
-      <div class="iphone-compass-alt" id="iCompassAlt">Yükseklik: -- m</div>
-    </div>
+<!-- Koordinat bilgileri -->
+<div class="iphone-compass-coords">
+  <div class="iphone-compass-dms" id="iCompassLatDMS">--°--'--" K  --°--'--" D</div>
+  <div class="iphone-compass-location" id="iCompassLocation">Şişli, İstanbul</div>
+  <div class="iphone-compass-alt" id="iCompassAlt">Yükseklik: -- m</div>
+</div>
+```
+
   </div>
 </div>
 
@@ -927,15 +694,10 @@ function openModal(id) {
   document.body.style.overflow='hidden';
 }
 function closeModal(id) {
-  var modal = document.getElementById(id);
-  modal.classList.remove('open');
-  
-  // Kapanış animasyonu için bekleme süresi
-  setTimeout(function() {
-    document.body.style.overflow='';
-    // Pusula modal kapandığında animasyonu durdur (pil tasarrufu)
-    if(id==='compassModal'&&compassRAF){cancelAnimationFrame(compassRAF);compassRAF=null;}
-  }, 350);
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow='';
+  // Pusula modal kapandığında animasyonu durdur (pil tasarrufu)
+  if(id==='compassModal'&&compassRAF){cancelAnimationFrame(compassRAF);compassRAF=null;}
 }
 function handleOverlayClick(e,id){if(e.target===document.getElementById(id))closeModal(id);}
 
@@ -949,7 +711,7 @@ function fTime(d){return d?d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'
 function getSunTimes(lat,lng,date){var rad=Math.PI/180,d=date.getTime()/86400000-10957,L=(280.46+0.9856474*d)%360,g=(357.528+0.9856003*d)%360,lambda=L+1.915*Math.sin(g*rad)+0.02*Math.sin(2*g*rad),epsilon=23.439-0.0000004*d,sinDec=Math.sin(epsilon*rad)*Math.sin(lambda*rad),dec=Math.asin(sinDec),cosH=(Math.cos(90.833*rad)-Math.sin(lat*rad)*sinDec)/(Math.cos(lat*rad)*Math.cos(dec));if(Math.abs(cosH)>1)return{sunrise:null,sunset:null,solarNoon:null,dayLength:0};var H=Math.acos(cosH)/rad,tz=-date.getTimezoneOffset()/60,eot=L-280.46-360*Math.floor((L-280.46)/360),noon=(720-4*lng-eot+tz*60)*60*1000,base=new Date(date).setHours(0,0,0,0);return{sunrise:new Date(base+noon-H*4*60000),sunset:new Date(base+noon+H*4*60000),solarNoon:new Date(base+noon),dayLength:Math.round(H*8)};}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
 
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.open').forEach(function(m){m.classList.remove('open');setTimeout(function(){document.body.style.overflow='';},350);});}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.open').forEach(function(m){m.classList.remove('open');});document.body.style.overflow='';}});
 
 // ── Sayfa yüklenince ──────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function() {
@@ -958,7 +720,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
   if(navigator.geolocation){
     setStatus('loading','Konum izni bekleniyor...');
-    var btn=document.getElementBy
+    var btn=document.getElementById('getLocBtn');
     btn.disabled=true;
     btn.innerHTML='<div class="spinner"></div> Konum Alınıyor...';
     state.watchId=navigator.geolocation.watchPosition(onPosition,function(err){var m={1:'Konum izni reddedildi',2:'Konum alınamadı',3:'Zaman aşımı'};setStatus('',m[err.code]||'Hata');resetBtn();},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
