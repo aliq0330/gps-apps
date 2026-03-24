@@ -55,21 +55,35 @@ top:0;left:0;width:100%;height:100%;
 background:rgba(0,0,0,0.55);
 z-index:99999;
 -webkit-overflow-scrolling:touch;
+align-items:flex-end;
 }
-.modal-overlay.open{display:block}
+.modal-overlay.open{display:flex;}
 .modal{
-position:fixed;
-bottom:0;left:0;right:0;
+width:100%;
 background:#ffffff;
 border-radius:24px 24px 0 0;
 padding:20px 0 50px;
 max-height:88vh;
 overflow-y:auto;
 -webkit-overflow-scrolling:touch;
-z-index:100000;
+position:relative;
 }
-.modal-handle{width:40px;height:4px;background:var(–border);border-radius:2px;margin:0 auto 20px}
-.modal-title{font-size:18px;font-weight:600;padding:0 20px 16px;border-bottom:1px solid var(–border);margin-bottom:16px}
+.modal-handle{width:40px;height:4px;background:var(–border);border-radius:2px;margin:0 auto 20px;cursor:pointer}
+.modal-title{
+font-size:18px;font-weight:600;
+padding:0 20px 16px;
+border-bottom:1px solid var(–border);
+margin-bottom:16px;
+display:flex;align-items:center;justify-content:space-between;
+}
+.modal-close-btn{
+width:28px;height:28px;border-radius:50%;
+background:var(–bg);border:none;
+display:flex;align-items:center;justify-content:center;
+cursor:pointer;flex-shrink:0;
+-webkit-tap-highlight-color:transparent;
+font-size:16px;line-height:1;color:var(–sub);
+}
 .modal-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(–border)}
 .modal-row:last-child{border-bottom:none}
 .modal-row-label{font-size:14px;color:var(–sub)}
@@ -272,31 +286,31 @@ font-size:12px;color:var(–sub);text-align:center;padding:0 20px;margin-bottom:
 <!-- MODALS -->
 
 <div class="modal-overlay" id="addressModal" onclick="handleOverlayClick(event,'addressModal')">
-  <div class="modal"><div class="modal-handle"></div><div class="modal-title">📍 Adres</div><div id="addressRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum alınmadı</span></div></div></div>
+  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('addressModal')"></div><div class="modal-title">📍 Adres<button class="modal-close-btn" onclick="closeModal('addressModal')">✕</button></div><div id="addressRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum alınmadı</span></div></div></div>
 </div>
 
 <div class="modal-overlay" id="timeModal" onclick="handleOverlayClick(event,'timeModal')">
-  <div class="modal"><div class="modal-handle"></div><div class="modal-title">🕐 Saat &amp; Tarih</div><div id="timeRows"></div></div>
+  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('timeModal')"></div><div class="modal-title">🕐 Saat &amp; Tarih<button class="modal-close-btn" onclick="closeModal('timeModal')">✕</button></div><div id="timeRows"></div></div>
 </div>
 
 <div class="modal-overlay" id="sunModal" onclick="handleOverlayClick(event,'sunModal')">
-  <div class="modal"><div class="modal-handle"></div><div class="modal-title">☀️ Gün Doğumu / Batımı</div><div id="sunRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div>
+  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('sunModal')"></div><div class="modal-title">☀️ Gün Doğumu / Batımı<button class="modal-close-btn" onclick="closeModal('sunModal')">✕</button></div><div id="sunRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div>
 </div>
 
 <div class="modal-overlay" id="weatherModal" onclick="handleOverlayClick(event,'weatherModal')">
-  <div class="modal"><div class="modal-handle"></div><div class="modal-title">⛅ Hava Durumu</div><div id="weatherRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div>
+  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('weatherModal')"></div><div class="modal-title">⛅ Hava Durumu<button class="modal-close-btn" onclick="closeModal('weatherModal')">✕</button></div><div id="weatherRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div>
 </div>
 
 <div class="modal-overlay" id="extModal" onclick="handleOverlayClick(event,'extModal')">
-  <div class="modal"><div class="modal-handle"></div><div class="modal-title">📊 Genişletilmiş Veri</div><div id="extRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div>
+  <div class="modal" onclick="event.stopPropagation()"><div class="modal-handle" onclick="closeModal('extModal')"></div><div class="modal-title">📊 Genişletilmiş Veri<button class="modal-close-btn" onclick="closeModal('extModal')">✕</button></div><div id="extRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div>
 </div>
 
 <!-- PUSULA MODAL -->
 
 <div class="modal-overlay" id="compassModal" onclick="handleOverlayClick(event,'compassModal')">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">🧭 Pusula</div>
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('compassModal')"></div>
+    <div class="modal-title">🧭 Pusula<button class="modal-close-btn" onclick="closeModal('compassModal')">✕</button></div>
 
 ```
 <!-- iOS izin butonu (gerekirse gösterilir) -->
@@ -338,9 +352,9 @@ font-size:12px;color:var(–sub);text-align:center;padding:0 20px;margin-bottom:
 </div>
 
 <div class="modal-overlay" id="shareModal" onclick="handleOverlayClick(event,'shareModal')">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Konumu Paylaş</div>
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle" onclick="closeModal('shareModal')"></div>
+    <div class="modal-title">Konumu Paylaş<button class="modal-close-btn" onclick="closeModal('shareModal')">✕</button></div>
     <div class="share-grid">
       <button class="share-opt" onclick="shareAs('coords')"><span class="share-opt-icon">📋</span>Koordinat Kopyala</button>
       <button class="share-opt" onclick="shareAs('maps')"><span class="share-opt-icon">🗺️</span>Google Maps</button>
@@ -421,15 +435,15 @@ function onDeviceOrientation(e) {
 function startCompass() {
   if (state.compassListener) return; // zaten başlatıldı
 
-  // iOS 13+ izin gerektirir
+  // iOS 13+ — izin butonu zaten DOMContentLoaded'da ele alındı
+  // Eğer buraya gelinirse izin verilmemiş demektir, butonu göster
   if (typeof DeviceOrientationEvent !== 'undefined' &&
       typeof DeviceOrientationEvent.requestPermission === 'function') {
-    // İzin henüz verilmemişse izin butonunu göster
     document.getElementById('compassPermissionArea').style.display = 'block';
     return;
   }
 
-  // Android / diğer — direkt başlat
+  // Android / diğer
   state.compassListener = onDeviceOrientation;
   window.addEventListener('deviceorientation', state.compassListener, true);
   document.getElementById('compassStatusText').textContent = 'Pusula aktif';
@@ -705,6 +719,50 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     document.querySelectorAll('.modal-overlay.open').forEach(function(m) { m.classList.remove('open'); });
     document.body.style.overflow = '';
+  }
+});
+
+// ─── SAYFA YÜKLENINCE OTOMATİK İZİN ─────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+  // 1) GPS iznini hemen iste
+  if (navigator.geolocation) {
+    setStatus('loading', 'Konum izni bekleniyor...');
+    var btn = document.getElementById('getLocBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Konum Alınıyor...';
+
+    state.watchId = navigator.geolocation.watchPosition(
+      onPosition,
+      function(err) {
+        // İzin reddedildiyse butonu sıfırla, hata göster
+        var m = {1:'Konum izni reddedildi', 2:'Konum alınamadı', 3:'Zaman aşımı'};
+        setStatus('', m[err.code] || 'Hata');
+        resetBtn();
+      },
+      {enableHighAccuracy: true, timeout: 15000, maximumAge: 0}
+    );
+  }
+
+  // 2) Pusula iznini iste (iOS 13+)
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // iOS'ta kullanıcı etkileşimi olmadan requestPermission çağrılamaz,
+    // bu yüzden ilk butona basıldığında iste
+    document.getElementById('getLocBtn').addEventListener('click', function requestOnce() {
+      DeviceOrientationEvent.requestPermission().then(function(result) {
+        if (result === 'granted') {
+          state.compassListener = onDeviceOrientation;
+          window.addEventListener('deviceorientation', state.compassListener, true);
+          document.getElementById('compassPermissionArea').style.display = 'none';
+        }
+      }).catch(function() {});
+      // Sadece bir kez çalış
+      document.getElementById('getLocBtn').removeEventListener('click', requestOnce);
+    }, {once: true});
+  } else if (typeof DeviceOrientationEvent !== 'undefined') {
+    // Android / diğer — direkt başlat
+    state.compassListener = onDeviceOrientation;
+    window.addEventListener('deviceorientation', state.compassListener, true);
   }
 });
 </script>
