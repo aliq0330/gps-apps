@@ -41,7 +41,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
 .get-location-btn{width:100%;padding:16px;background:var(--blue);color:white;border:none;border-radius:16px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(26,115,232,0.3);-webkit-tap-highlight-color:transparent}
 .get-location-btn:active{opacity:0.85}
 .get-location-btn:disabled{background:var(--sub);box-shadow:none}
-.map-placeholder{border-radius:16px;height:220px;margin-bottom:16px;cursor:pointer;border:2px solid rgba(26,115,232,0.15);position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;background:#dde8fb;display:block}
+.map-placeholder{border-radius:16px;height:180px;margin-bottom:16px;cursor:pointer;border:2px solid rgba(26,115,232,0.15);position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;background:#dde8fb;display:block}
 .map-img{width:100%;height:100%;object-fit:cover;display:block}
 .map-label{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--blue);font-weight:500;background:white;padding:6px 14px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,0.14);white-space:nowrap;z-index:2;pointer-events:none}
 .map-pin-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);z-index:3;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(26,115,232,0.4));display:none}
@@ -741,68 +741,23 @@ function fillTimeModal(){
    MAP
 ═══════════════════════════════════════════════════════════════ */
 function drawMap(){
-  var lat=state.lat,lng=state.lng;
+  var lat=state.lat,lng=state.lng,zoom=15;
+  var n=Math.pow(2,zoom);
+  var xtile=Math.floor((lng+180)/360*n);
+  var ytile=Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n);
   var placeholder=document.getElementById('mapPlaceholder');
-
-  // Temizle
-  ['mapTileWrap','mapIframe','mapLeaflet'].forEach(function(id){
-    var el=document.getElementById(id);if(el)el.remove();
-  });
-  document.getElementById('mapImg').style.display='none';
-  document.getElementById('mapEmpty').style.display='none';
-  document.getElementById('mapPinOverlay').style.display='none';
-
-  // Leaflet container
-  var mapDiv=document.createElement('div');
-  mapDiv.id='mapLeaflet';
-  mapDiv.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;border-radius:14px;overflow:hidden;';
-  placeholder.appendChild(mapDiv);
-
-  // Leaflet CSS + JS yükle
-  if(!document.getElementById('leaflet-css')){
-    var lc=document.createElement('link');
-    lc.id='leaflet-css';lc.rel='stylesheet';
-    lc.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
-    document.head.appendChild(lc);
-  }
-
-  function initLeaflet(){
-    var L=window.L;
-    if(window._leafletMap){window._leafletMap.remove();window._leafletMap=null;}
-
-    var map=L.map(mapDiv,{
-      zoomControl:false,attributionControl:false,
-      dragging:false,scrollWheelZoom:false,doubleClickZoom:false,
-      touchZoom:false,keyboard:false
-    }).setView([lat,lng],16);
-
-    window._leafletMap=map;
-
-    // Stadia Maps - key gerektirmez, CORS yok
-    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png',{
-      maxZoom:20
-    }).addTo(map);
-
-    // Google tarzı mavi pin
-    var icon=L.divIcon({
-      className:'',
-      html:'<svg width="36" height="48" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 0C8.06 0 0 8.06 0 18C0 31.5 18 48 18 48C18 48 36 31.5 36 18C36 8.06 27.94 0 18 0Z" fill="#1a73e8"/><circle cx="18" cy="18" r="8" fill="white"/></svg>',
-      iconSize:[36,48],iconAnchor:[18,48]
-    });
-    L.marker([lat,lng],{icon:icon}).addTo(map);
-
-    document.getElementById('mapLabel').style.display='block';
-    document.getElementById('mapLabel').textContent='📍 Haritada Aç — '+lat.toFixed(4)+', '+lng.toFixed(4);
-  }
-
-  if(window.L){
-    initLeaflet();
-  } else {
-    var ls=document.createElement('script');
-    ls.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-    ls.onload=initLeaflet;
-    document.head.appendChild(ls);
-  }
+  var w=placeholder.offsetWidth||358,h=180,tileSize=256;
+  var canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+  var ctx=canvas.getContext('2d');
+  var latRad=lat*Math.PI/180;
+  var xFrac=(lng+180)/360*n-xtile,yFrac=(1-Math.log(Math.tan(latRad)+1/Math.cos(latRad))/Math.PI)/2*n-ytile;
+  var pinX=Math.round(w/2),pinY=Math.round(h/2);
+  var startX=pinX-Math.round(xFrac*tileSize),startY=pinY-Math.round(yFrac*tileSize);
+  var tilesLoaded=0,tilesToLoad=0;
+  function tryFinish(){tilesLoaded++;if(tilesLoaded>=tilesToLoad){var img=document.getElementById('mapImg');img.src=canvas.toDataURL();img.style.display='block';document.getElementById('mapEmpty').style.display='none';document.getElementById('mapPinOverlay').style.display='block';document.getElementById('mapLabel').style.display='block';document.getElementById('mapLabel').textContent='📍 Haritada Aç — '+lat.toFixed(4)+', '+lng.toFixed(4);}}
+  for(var dx=-2;dx<=2;dx++){for(var dy=-2;dy<=2;dy++){var tx=startX+dx*tileSize,ty=startY+dy*tileSize;if(tx+tileSize<0||tx>w||ty+tileSize<0||ty>h)continue;tilesToLoad++;}}
+  if(tilesToLoad===0)tilesToLoad=1;
+  for(var dx=-2;dx<=2;dx++){for(var dy=-2;dy<=2;dy++){(function(ddx,ddy){var cx2=startX+ddx*tileSize,cy2=startY+ddy*tileSize;if(cx2+tileSize<0||cx2>w||cy2+tileSize<0||cy2>h)return;var tileImg=new Image();tileImg.crossOrigin='anonymous';tileImg.onload=function(){ctx.drawImage(tileImg,cx2,cy2,tileSize,tileSize);tryFinish();};tileImg.onerror=function(){tryFinish();};var s=['a','b','c'][Math.abs(xtile+ddx+ytile+ddy)%3];tileImg.src='https://'+s+'.tile.openstreetmap.org/'+zoom+'/'+(xtile+ddx)+'/'+(ytile+ddy)+'.png';})(dx,dy);}}
 }
 function openMaps(){if(state.lat)window.open('https://maps.google.com/?q='+state.lat+','+state.lng,'_blank');}
 
