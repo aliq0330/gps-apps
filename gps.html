@@ -47,7 +47,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
 .map-placeholder canvas{position:absolute;inset:0;width:100%;height:100%}
 .map-label{position:relative;z-index:1;font-size:13px;color:var(--blue);font-weight:500;background:white;padding:6px 12px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
 
-/* MODAL - iOS Safari uyumlu */
+/* MODAL */
 .modal-overlay{
 display:none;
 position:fixed;
@@ -75,18 +75,97 @@ z-index:100000;
 .modal-row-label{font-size:14px;color:var(–sub)}
 .modal-row-value{font-size:15px;font-weight:500;color:var(–text);text-align:right;max-width:60%}
 
-.compass-wrap{display:flex;align-items:center;justify-content:center;padding:20px}
-.compass{width:160px;height:160px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#f8f9fa,#e9ecef);border:3px solid var(–border);position:relative;box-shadow:0 4px 20px rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center}
-.compass-needle{width:4px;height:70px;position:absolute;top:50%;left:50%;transform-origin:bottom center;transform:translate(-50%,-100%) rotate(0deg)}
-.needle-n{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:50px solid var(–red);position:absolute;bottom:50%;left:50%;transform:translateX(-50%)}
-.needle-s{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:50px solid #888;position:absolute;top:50%;left:50%;transform:translateX(-50%)}
-.compass-center{width:10px;height:10px;border-radius:50%;background:#333;z-index:1}
-.compass-dirs{position:absolute;inset:0}
-.compass-dir{position:absolute;font-size:13px;font-weight:700;color:var(–text);font-family:‘Space Mono’,monospace}
-.dir-n{top:8px;left:50%;transform:translateX(-50%);color:var(–red)}
-.dir-s{bottom:8px;left:50%;transform:translateX(-50%)}
-.dir-e{right:10px;top:50%;transform:translateY(-50%)}
-.dir-w{left:10px;top:50%;transform:translateY(-50%)}
+/* COMPASS */
+.compass-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px}
+.compass{
+width:200px;height:200px;
+border-radius:50%;
+background:radial-gradient(circle at 40% 35%,#f8f9fa,#e9ecef);
+border:3px solid var(–border);
+position:relative;
+box-shadow:0 4px 20px rgba(0,0,0,0.12),inset 0 1px 3px rgba(255,255,255,0.8);
+display:flex;align-items:center;justify-content:center;
+transition: opacity 0.3s;
+}
+.compass-ring{
+position:absolute;inset:8px;
+border-radius:50%;
+border:1px solid rgba(0,0,0,0.06);
+}
+/* İbre: transform-origin merkez */
+.compass-needle{
+width:0;height:0;
+position:absolute;
+top:50%;left:50%;
+transform:translate(-50%,-50%) rotate(0deg);
+transition:transform 0.15s ease-out;
+}
+.needle-body{
+position:absolute;
+left:50%;
+transform:translateX(-50%);
+display:flex;flex-direction:column;align-items:center;
+}
+.needle-north{
+width:10px;height:70px;
+background:linear-gradient(to bottom,var(–red),#cc0000);
+border-radius:5px 5px 0 0;
+transform:translateY(-100%);
+box-shadow:0 -2px 6px rgba(255,59,48,0.4);
+}
+.needle-south{
+width:10px;height:70px;
+background:linear-gradient(to top,#aaa,#888);
+border-radius:0 0 5px 5px;
+}
+.compass-center{
+width:14px;height:14px;
+border-radius:50%;
+background:radial-gradient(circle,#555,#222);
+box-shadow:0 1px 4px rgba(0,0,0,0.4);
+z-index:2;
+position:relative;
+}
+.compass-dirs{position:absolute;inset:0;pointer-events:none}
+.compass-dir{
+position:absolute;
+font-size:13px;font-weight:700;
+color:var(–text);
+font-family:‘Space Mono’,monospace;
+line-height:1;
+}
+.dir-n{top:10px;left:50%;transform:translateX(-50%);color:var(–red)}
+.dir-s{bottom:10px;left:50%;transform:translateX(-50%)}
+.dir-e{right:12px;top:50%;transform:translateY(-50%)}
+.dir-w{left:12px;top:50%;transform:translateY(-50%)}
+/* tick marks */
+.compass-ticks{position:absolute;inset:0;border-radius:50%}
+
+.compass-degree-badge{
+font-family:‘Space Mono’,monospace;
+font-size:22px;font-weight:700;
+color:var(–text);
+letter-spacing:-1px;
+}
+.compass-dir-badge{
+font-size:14px;color:var(–sub);font-weight:500;margin-top:2px;
+}
+
+/* Pusula izin butonu */
+.compass-permission-btn{
+width:calc(100% - 40px);margin:0 20px 16px;
+padding:13px;
+background:var(–blue);color:white;border:none;
+border-radius:14px;font-family:‘DM Sans’,sans-serif;
+font-size:15px;font-weight:600;cursor:pointer;
+display:flex;align-items:center;justify-content:center;gap:8px;
+-webkit-tap-highlight-color:transparent;
+}
+.compass-permission-btn:active{opacity:0.85}
+.compass-status{
+font-size:12px;color:var(–sub);text-align:center;padding:0 20px;margin-bottom:8px;
+}
+
 .share-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 20px}
 .share-opt{background:var(–bg);border:none;border-radius:14px;padding:14px 12px;font-family:‘DM Sans’,sans-serif;font-size:14px;font-weight:500;color:var(–text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent}
 .share-opt:active{opacity:0.7}
@@ -159,7 +238,7 @@ z-index:100000;
     </div>
     <div class="list-item" onclick="openModal('timeModal')">
       <div class="item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-      <div class="item-content"><div class="item-title">Saat & Tarih</div></div>
+      <div class="item-content"><div class="item-title">Saat &amp; Tarih</div></div>
       <div class="item-right"><span id="clockDisplay">--:--</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
     </div>
     <div class="list-item" onclick="openModal('sunModal')">
@@ -190,14 +269,14 @@ z-index:100000;
   </div>
 </div>
 
-<!-- MODALS - body'nin direkt çocuğu olarak -->
+<!-- MODALS -->
 
 <div class="modal-overlay" id="addressModal" onclick="handleOverlayClick(event,'addressModal')">
   <div class="modal"><div class="modal-handle"></div><div class="modal-title">📍 Adres</div><div id="addressRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum alınmadı</span></div></div></div>
 </div>
 
 <div class="modal-overlay" id="timeModal" onclick="handleOverlayClick(event,'timeModal')">
-  <div class="modal"><div class="modal-handle"></div><div class="modal-title">🕐 Saat & Tarih</div><div id="timeRows"></div></div>
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">🕐 Saat &amp; Tarih</div><div id="timeRows"></div></div>
 </div>
 
 <div class="modal-overlay" id="sunModal" onclick="handleOverlayClick(event,'sunModal')">
@@ -212,21 +291,49 @@ z-index:100000;
   <div class="modal"><div class="modal-handle"></div><div class="modal-title">📊 Genişletilmiş Veri</div><div id="extRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div>
 </div>
 
+<!-- PUSULA MODAL -->
+
 <div class="modal-overlay" id="compassModal" onclick="handleOverlayClick(event,'compassModal')">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">🧭 Pusula</div>
-    <div class="compass-wrap">
-      <div class="compass">
-        <div class="compass-dirs">
-          <span class="compass-dir dir-n">K</span><span class="compass-dir dir-s">G</span>
-          <span class="compass-dir dir-e">D</span><span class="compass-dir dir-w">B</span>
-        </div>
-        <div class="compass-needle" id="compassNeedle"><div class="needle-n"></div><div class="needle-s"></div></div>
-        <div class="compass-center"></div>
+
+```
+<!-- iOS izin butonu (gerekirse gösterilir) -->
+<div id="compassPermissionArea" style="display:none">
+  <p class="compass-status">iOS cihazlarda pusula için izin gereklidir.</p>
+  <button class="compass-permission-btn" onclick="requestCompassPermission()">
+    🧭 Pusula İznini Ver
+  </button>
+</div>
+
+<div class="compass-wrap">
+  <div class="compass" id="compassDial">
+    <div class="compass-ring"></div>
+    <div class="compass-dirs">
+      <span class="compass-dir dir-n">K</span>
+      <span class="compass-dir dir-s">G</span>
+      <span class="compass-dir dir-e">D</span>
+      <span class="compass-dir dir-w">B</span>
+    </div>
+    <!-- İbre: needle wrap, transform-origin merkez -->
+    <div class="compass-needle" id="compassNeedle">
+      <div class="needle-body">
+        <div class="needle-north"></div>
+        <div class="needle-south"></div>
       </div>
     </div>
-    <div id="compassRows"><div class="modal-row"><span class="modal-row-label">Yön</span><span class="modal-row-value">Konum gerekli</span></div></div>
+    <div class="compass-center"></div>
+  </div>
+  <div class="compass-degree-badge" id="compassDegree">---°</div>
+  <div class="compass-dir-badge" id="compassDirBadge">Pusula bekleniyor</div>
+</div>
+
+<div id="compassRows">
+  <div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value" id="compassStatusText">Pusula başlatılmadı</span></div>
+</div>
+```
+
   </div>
 </div>
 
@@ -247,170 +354,359 @@ z-index:100000;
 <div class="toast" id="toast"></div>
 
 <script>
-var state={lat:null,lng:null,alt:null,accuracy:null,heading:null,speed:null,watchId:null};
+var state = {
+  lat: null, lng: null, alt: null, accuracy: null,
+  heading: null, speed: null, watchId: null,
+  compassHeading: null,
+  compassActive: false,
+  compassListener: null
+};
 
 // Clock
-function updateClock(){document.getElementById('clockDisplay').textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});}
-setInterval(updateClock,1000);updateClock();
+function updateClock() {
+  document.getElementById('clockDisplay').textContent =
+    new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+}
+setInterval(updateClock, 1000); updateClock();
 
-// Location
-function getLocation(){
-  var btn=document.getElementById('getLocBtn');
-  btn.disabled=true;
-  btn.innerHTML='<div class="spinner"></div> Konum Alınıyor...';
-  setStatus('loading','GPS sinyali bekleniyor...');
-  if(!navigator.geolocation){setStatus('','Tarayıcınız konum desteklemiyor');resetBtn();return;}
-  if(state.watchId){navigator.geolocation.clearWatch(state.watchId);}
-  state.watchId=navigator.geolocation.watchPosition(onPosition,onError,{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+// ─── PUSULA (DeviceOrientationEvent) ────────────────────────────────────────
+
+function headingToDir(h) {
+  if (h == null) return '---';
+  var d = ['K','KKD','KD','DKD','D','DGD','GD','GGD','G','GGB','GB','BGB','B','BKB','KB','KKB'];
+  return d[Math.round(h / 22.5) % 16];
 }
 
-function onPosition(pos){
-  var c=pos.coords;
-  state.lat=c.latitude;state.lng=c.longitude;state.alt=c.altitude||0;
-  state.accuracy=c.accuracy;state.heading=c.heading;state.speed=c.speed;
-  document.getElementById('latDisplay').textContent=c.latitude.toFixed(6);
-  document.getElementById('lngDisplay').textContent=c.longitude.toFixed(6);
-  var dir=headingToDir(c.heading);
-  document.getElementById('directionDisplay').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="transform:rotate('+(c.heading||0)+'deg)"><polygon points="12 2 4 20 12 16 20 20"/></svg> '+(c.heading!=null?Math.round(c.heading)+'° '+dir:'--- °');
-  document.getElementById('altDisplay').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M3 17l4-8 4 4 4-6 4 10"/></svg> '+(state.alt||0).toFixed(2)+' m';
-  if(c.heading!=null){
-    document.getElementById('compassNeedle').style.transform='translate(-50%,-100%) rotate('+c.heading+'deg)';
-    document.getElementById('compassRows').innerHTML=buildRows([['Yön',Math.round(c.heading)+'° '+dir],['Hız',c.speed?(c.speed*3.6).toFixed(1)+' km/s':'Durağan']]);
+function updateCompassUI(heading) {
+  if (heading == null) return;
+  state.compassHeading = heading;
+  var deg = Math.round(heading);
+  var dir = headingToDir(heading);
+
+  // İbre: kuzey (K) her zaman gerçek kuzeyi gösterir.
+  // Pusula cadranı sabit, ibre heading kadar döner.
+  document.getElementById('compassNeedle').style.transform =
+    'rotate(' + heading + 'deg)';
+
+  document.getElementById('compassDegree').textContent = deg + '°';
+  document.getElementById('compassDirBadge').textContent = dir;
+  document.getElementById('compassStatusText').textContent =
+    deg + '° ' + dir;
+
+  // GPS meta kısmını da güncelle
+  document.getElementById('directionDisplay').innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="transform:rotate(' + heading + 'deg)"><polygon points="12 2 4 20 12 16 20 20"/></svg> ' +
+    deg + '° ' + dir;
+}
+
+function onDeviceOrientation(e) {
+  var heading = null;
+
+  // iOS: webkitCompassHeading (0-360, manyetik kuzey)
+  if (e.webkitCompassHeading != null && e.webkitCompassHeading >= 0) {
+    heading = e.webkitCompassHeading;
   }
-  setStatus('active','Konum alındı · ±'+Math.round(c.accuracy)+' m');
-  resetBtn();drawMap();fetchAddress();fetchWeather();updateSunTimes();updateExtData();
+  // Android / Diğer: alpha (0-360, 0 = kuzey, saat yönü tersine)
+  else if (e.alpha != null) {
+    // alpha: cihazın döndüğü açı — pusulada kuzeyi bulmak için tersini alırız
+    heading = (360 - e.alpha) % 360;
+  }
+
+  if (heading != null) {
+    state.compassActive = true;
+    updateCompassUI(heading);
+  }
 }
 
-function onError(err){
-  var m={1:'Konum izni reddedildi — Ayarlar > Safari > Konum',2:'Konum alınamadı',3:'Zaman aşımı — tekrar deneyin'};
-  setStatus('',m[err.code]||'Hata');resetBtn();
+function startCompass() {
+  if (state.compassListener) return; // zaten başlatıldı
+
+  // iOS 13+ izin gerektirir
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // İzin henüz verilmemişse izin butonunu göster
+    document.getElementById('compassPermissionArea').style.display = 'block';
+    return;
+  }
+
+  // Android / diğer — direkt başlat
+  state.compassListener = onDeviceOrientation;
+  window.addEventListener('deviceorientation', state.compassListener, true);
+  document.getElementById('compassStatusText').textContent = 'Pusula aktif';
 }
 
-function refreshLocation(){if(state.watchId)navigator.geolocation.clearWatch(state.watchId);getLocation();}
-
-function resetBtn(){
-  var btn=document.getElementById('getLocBtn');btn.disabled=false;
-  btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg> Konumu Güncelle';
+function requestCompassPermission() {
+  DeviceOrientationEvent.requestPermission().then(function(result) {
+    if (result === 'granted') {
+      document.getElementById('compassPermissionArea').style.display = 'none';
+      state.compassListener = onDeviceOrientation;
+      window.addEventListener('deviceorientation', state.compassListener, true);
+      document.getElementById('compassStatusText').textContent = 'Pusula aktif';
+    } else {
+      document.getElementById('compassStatusText').textContent = 'Pusula izni reddedildi';
+      showToast('Pusula izni verilmedi');
+    }
+  }).catch(function(err) {
+    document.getElementById('compassStatusText').textContent = 'İzin hatası: ' + err.message;
+  });
 }
 
-function setStatus(type,msg){
-  var dot=document.getElementById('statusDot');dot.className='status-dot';
-  if(type==='active')dot.classList.add('active');
-  else if(type==='loading')dot.classList.add('loading');
-  document.getElementById('statusText').textContent=msg;
+// ─── GPS KONUM ───────────────────────────────────────────────────────────────
+
+function getLocation() {
+  var btn = document.getElementById('getLocBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Konum Alınıyor...';
+  setStatus('loading', 'GPS sinyali bekleniyor...');
+  if (!navigator.geolocation) { setStatus('', 'Tarayıcınız konum desteklemiyor'); resetBtn(); return; }
+  if (state.watchId) navigator.geolocation.clearWatch(state.watchId);
+  state.watchId = navigator.geolocation.watchPosition(onPosition, onError,
+    {enableHighAccuracy: true, timeout: 15000, maximumAge: 0});
 }
 
-// Address
-async function fetchAddress(){
-  if(!state.lat)return;
-  try{
-    var r=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+state.lat+'&lon='+state.lng+'&format=json&accept-language=tr');
-    var d=await r.json();var a=d.address||{};
-    var short=[a.road,a.suburb||a.neighbourhood,a.city||a.town||a.village].filter(Boolean).join(', ');
-    document.getElementById('addressPreview').textContent=short||'Adres alındı';
-    document.getElementById('addressRows').innerHTML=buildRows([['Tam Adres',d.display_name],['Sokak',a.road||'-'],['Mahalle',a.suburb||a.neighbourhood||'-'],['İlçe',a.district||a.county||'-'],['Şehir',a.city||a.town||a.village||'-'],['İl',a.state||'-'],['Ülke',a.country||'-'],['Posta Kodu',a.postcode||'-']]);
-  }catch(e){document.getElementById('addressPreview').textContent='Adres alınamadı';}
+function onPosition(pos) {
+  var c = pos.coords;
+  state.lat = c.latitude; state.lng = c.longitude;
+  state.alt = c.altitude || 0;
+  state.accuracy = c.accuracy;
+  state.heading = c.heading;
+  state.speed = c.speed;
+
+  document.getElementById('latDisplay').textContent = c.latitude.toFixed(6);
+  document.getElementById('lngDisplay').textContent = c.longitude.toFixed(6);
+
+  // GPS heading varsa göster (pusula yokken fallback)
+  if (c.heading != null && !state.compassActive) {
+    updateCompassUI(c.heading);
+  }
+
+  document.getElementById('altDisplay').innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M3 17l4-8 4 4 4-6 4 10"/></svg> ' +
+    (state.alt || 0).toFixed(2) + ' m';
+
+  setStatus('active', 'Konum alındı · ±' + Math.round(c.accuracy) + ' m');
+  resetBtn(); drawMap(); fetchAddress(); fetchWeather(); updateSunTimes(); updateExtData();
 }
 
-// Weather
-async function fetchWeather(){
-  if(!state.lat)return;
-  try{
-    var r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+state.lat+'&longitude='+state.lng+'&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index&wind_speed_unit=kmh&timezone=auto');
-    var d=await r.json();var c=d.current;
-    var temp=c.temperature_2m?c.temperature_2m.toFixed(1):'--';
-    var icon=wIcon(c.weather_code||0);var desc=wDesc(c.weather_code||0);
-    document.getElementById('weatherPreview').textContent=temp+'°C';
-    document.getElementById('weatherIcon').textContent=icon;
-    document.getElementById('weatherRows').innerHTML=buildRows([['Durum',icon+' '+desc],['Sıcaklık',temp+'°C'],['Hissedilen',c.apparent_temperature?c.apparent_temperature.toFixed(1)+'°C':'-'],['Nem','%'+c.relative_humidity_2m],['Yağış',c.precipitation+' mm'],['Rüzgar',c.wind_speed_10m+' km/s'],['Rüzgar Yönü',c.wind_direction_10m+'° '+headingToDir(c.wind_direction_10m)],['UV',c.uv_index?c.uv_index.toFixed(1):'-']]);
-  }catch(e){document.getElementById('weatherRows').innerHTML=buildRows([['Hata','Alınamadı']]);}
+function onError(err) {
+  var m = {1:'Konum izni reddedildi — Ayarlar > Konum', 2:'Konum alınamadı', 3:'Zaman aşımı — tekrar deneyin'};
+  setStatus('', m[err.code] || 'Hata'); resetBtn();
 }
 
-// Sun
-function updateSunTimes(){
-  if(!state.lat)return;
-  var s=getSunTimes(state.lat,state.lng,new Date());
-  document.getElementById('sunRows').innerHTML=buildRows([['Gün Doğumu',fTime(s.sunrise)],['Öğle',fTime(s.solarNoon)],['Gün Batımı',fTime(s.sunset)],['Gün Uzunluğu',Math.floor(s.dayLength/60)+'s '+s.dayLength%60+'dk'],['Enlem',state.lat.toFixed(4)+'°']]);
+function refreshLocation() {
+  if (state.watchId) navigator.geolocation.clearWatch(state.watchId);
+  getLocation();
 }
 
-// Ext
-function updateExtData(){
-  if(!state.lat)return;
-  var now=new Date();
-  document.getElementById('extRows').innerHTML=buildRows([['Enlem',state.lat.toFixed(6)+'°'],['Boylam',state.lng.toFixed(6)+'°'],['İrtifa',(state.alt||0).toFixed(2)+' m'],['Doğruluk','±'+Math.round(state.accuracy||0)+' m'],['Yön',state.heading!=null?Math.round(state.heading)+'° '+headingToDir(state.heading):'-'],['Hız',state.speed?(state.speed*3.6).toFixed(1)+' km/s':'Durağan'],['DMS (Enlem)',toDMS(state.lat,'lat')],['DMS (Boylam)',toDMS(state.lng,'lng')],['Zaman Dilimi',Intl.DateTimeFormat().resolvedOptions().timeZone],['UTC Ofseti',getUTC()],['Timestamp',now.toISOString()]]);
+function resetBtn() {
+  var btn = document.getElementById('getLocBtn');
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg> Konumu Güncelle';
 }
 
-// Time modal
-function fillTimeModal(){
-  var now=new Date();
-  document.getElementById('timeRows').innerHTML=buildRows([['Saat',now.toLocaleTimeString('tr-TR')],['Tarih',now.toLocaleDateString('tr-TR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})],['UTC',now.toUTCString()],['Zaman Dilimi',Intl.DateTimeFormat().resolvedOptions().timeZone],['UTC Ofseti',getUTC()],['Unix',Math.floor(now.getTime()/1000)]]);
+function setStatus(type, msg) {
+  var dot = document.getElementById('statusDot');
+  dot.className = 'status-dot';
+  if (type === 'active') dot.classList.add('active');
+  else if (type === 'loading') dot.classList.add('loading');
+  document.getElementById('statusText').textContent = msg;
 }
 
-// Map
-function drawMap(){
-  var canvas=document.getElementById('mapCanvas');var ctx=canvas.getContext('2d');
-  var w=canvas.offsetWidth,h=canvas.offsetHeight;canvas.width=w;canvas.height=h;
-  ctx.fillStyle='#d2e3fc';ctx.fillRect(0,0,w,h);
-  ctx.strokeStyle='#b8d0f8';ctx.lineWidth=1;
-  for(var x=0;x<w;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
-  for(var y=0;y<h;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
-  var cx=w/2,cy=h/2;
-  ctx.beginPath();ctx.arc(cx,cy,14,0,Math.PI*2);ctx.fillStyle='rgba(26,115,232,0.18)';ctx.fill();
-  ctx.beginPath();ctx.arc(cx,cy,8,0,Math.PI*2);ctx.fillStyle='#1a73e8';ctx.fill();
-  ctx.beginPath();ctx.arc(cx,cy,8,0,Math.PI*2);ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
-  document.getElementById('mapLabel').textContent='📍 Haritada Aç — '+state.lat.toFixed(4)+', '+state.lng.toFixed(4);
-}
-function openMaps(){if(state.lat)window.open('https://maps.google.com/?q='+state.lat+','+state.lng,'_blank');}
-
-// Share
-function shareAs(type){
-  if(!state.lat&&type!=='native'){showToast('Önce konum alın');return;}
-  if(type==='coords'){navigator.clipboard&&navigator.clipboard.writeText(state.lat.toFixed(6)+', '+state.lng.toFixed(6)).then(function(){showToast('Koordinatlar kopyalandı ✓');});}
-  else if(type==='maps'){window.open('https://maps.google.com/?q='+state.lat+','+state.lng,'_blank');}
-  else if(type==='waze'){window.open('https://waze.com/ul?ll='+state.lat+','+state.lng+'&navigate=yes','_blank');}
-  else if(type==='native'){var text=state.lat?'Konumum: '+state.lat.toFixed(6)+', '+state.lng.toFixed(6)+'\nhttps://maps.google.com/?q='+state.lat+','+state.lng:'Konum alınmadı';if(navigator.share)navigator.share({title:'GPS Konumum',text:text});else if(navigator.clipboard)navigator.clipboard.writeText(text).then(function(){showToast('Kopyalandı');});}
+// ─── ADRES ───────────────────────────────────────────────────────────────────
+async function fetchAddress() {
+  if (!state.lat) return;
+  try {
+    var r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + state.lat + '&lon=' + state.lng + '&format=json&accept-language=tr');
+    var d = await r.json(); var a = d.address || {};
+    var short = [a.road, a.suburb || a.neighbourhood, a.city || a.town || a.village].filter(Boolean).join(', ');
+    document.getElementById('addressPreview').textContent = short || 'Adres alındı';
+    document.getElementById('addressRows').innerHTML = buildRows([
+      ['Tam Adres', d.display_name], ['Sokak', a.road||'-'],
+      ['Mahalle', a.suburb || a.neighbourhood||'-'], ['İlçe', a.district || a.county||'-'],
+      ['Şehir', a.city || a.town || a.village||'-'], ['İl', a.state||'-'],
+      ['Ülke', a.country||'-'], ['Posta Kodu', a.postcode||'-']
+    ]);
+  } catch(e) { document.getElementById('addressPreview').textContent = 'Adres alınamadı'; }
 }
 
-function copyCoord(type){
-  var val=type==='lat'?state.lat:state.lng;
-  if(!val)return;
-  navigator.clipboard&&navigator.clipboard.writeText(val.toFixed(6)).then(function(){showToast((type==='lat'?'Enlem':'Boylam')+' kopyalandı');});
+// ─── HAVA DURUMU ─────────────────────────────────────────────────────────────
+async function fetchWeather() {
+  if (!state.lat) return;
+  try {
+    var r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + state.lat + '&longitude=' + state.lng +
+      '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index&wind_speed_unit=kmh&timezone=auto');
+    var d = await r.json(); var c = d.current;
+    var temp = c.temperature_2m ? c.temperature_2m.toFixed(1) : '--';
+    var icon = wIcon(c.weather_code || 0); var desc = wDesc(c.weather_code || 0);
+    document.getElementById('weatherPreview').textContent = temp + '°C';
+    document.getElementById('weatherIcon').textContent = icon;
+    document.getElementById('weatherRows').innerHTML = buildRows([
+      ['Durum', icon + ' ' + desc], ['Sıcaklık', temp + '°C'],
+      ['Hissedilen', c.apparent_temperature ? c.apparent_temperature.toFixed(1) + '°C' : '-'],
+      ['Nem', '%' + c.relative_humidity_2m], ['Yağış', c.precipitation + ' mm'],
+      ['Rüzgar', c.wind_speed_10m + ' km/s'],
+      ['Rüzgar Yönü', c.wind_direction_10m + '° ' + headingToDir(c.wind_direction_10m)],
+      ['UV', c.uv_index ? c.uv_index.toFixed(1) : '-']
+    ]);
+  } catch(e) { document.getElementById('weatherRows').innerHTML = buildRows([['Hata','Alınamadı']]); }
 }
 
-// Modal
-function openModal(id){
-  if(id==='timeModal')fillTimeModal();
+// ─── GÜNEŞ ───────────────────────────────────────────────────────────────────
+function updateSunTimes() {
+  if (!state.lat) return;
+  var s = getSunTimes(state.lat, state.lng, new Date());
+  document.getElementById('sunRows').innerHTML = buildRows([
+    ['Gün Doğumu', fTime(s.sunrise)], ['Öğle', fTime(s.solarNoon)],
+    ['Gün Batımı', fTime(s.sunset)],
+    ['Gün Uzunluğu', Math.floor(s.dayLength / 60) + 's ' + s.dayLength % 60 + 'dk'],
+    ['Enlem', state.lat.toFixed(4) + '°']
+  ]);
+}
+
+// ─── GENİŞLETİLMİŞ VERİ ─────────────────────────────────────────────────────
+function updateExtData() {
+  if (!state.lat) return;
+  var now = new Date();
+  document.getElementById('extRows').innerHTML = buildRows([
+    ['Enlem', state.lat.toFixed(6) + '°'], ['Boylam', state.lng.toFixed(6) + '°'],
+    ['İrtifa', (state.alt || 0).toFixed(2) + ' m'],
+    ['Doğruluk', '±' + Math.round(state.accuracy || 0) + ' m'],
+    ['Yön (GPS)', state.heading != null ? Math.round(state.heading) + '° ' + headingToDir(state.heading) : '-'],
+    ['Pusula', state.compassActive && state.compassHeading != null ? Math.round(state.compassHeading) + '° ' + headingToDir(state.compassHeading) : 'Aktif değil'],
+    ['Hız', state.speed ? (state.speed * 3.6).toFixed(1) + ' km/s' : 'Durağan'],
+    ['DMS (Enlem)', toDMS(state.lat, 'lat')], ['DMS (Boylam)', toDMS(state.lng, 'lng')],
+    ['Zaman Dilimi', Intl.DateTimeFormat().resolvedOptions().timeZone],
+    ['UTC Ofseti', getUTC()], ['Timestamp', now.toISOString()]
+  ]);
+}
+
+// ─── SAAT MODAL ──────────────────────────────────────────────────────────────
+function fillTimeModal() {
+  var now = new Date();
+  document.getElementById('timeRows').innerHTML = buildRows([
+    ['Saat', now.toLocaleTimeString('tr-TR')],
+    ['Tarih', now.toLocaleDateString('tr-TR', {weekday:'long', year:'numeric', month:'long', day:'numeric'})],
+    ['UTC', now.toUTCString()],
+    ['Zaman Dilimi', Intl.DateTimeFormat().resolvedOptions().timeZone],
+    ['UTC Ofseti', getUTC()],
+    ['Unix', Math.floor(now.getTime() / 1000)]
+  ]);
+}
+
+// ─── HARİTA ──────────────────────────────────────────────────────────────────
+function drawMap() {
+  var canvas = document.getElementById('mapCanvas');
+  var ctx = canvas.getContext('2d');
+  var w = canvas.offsetWidth, h = canvas.offsetHeight;
+  canvas.width = w; canvas.height = h;
+  ctx.fillStyle = '#d2e3fc'; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = '#b8d0f8'; ctx.lineWidth = 1;
+  for (var x = 0; x < w; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (var y = 0; y < h; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+  var cx = w / 2, cy = h / 2;
+  ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI * 2); ctx.fillStyle = 'rgba(26,115,232,0.18)'; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI * 2); ctx.fillStyle = '#1a73e8'; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI * 2); ctx.strokeStyle = 'white'; ctx.lineWidth = 2.5; ctx.stroke();
+  document.getElementById('mapLabel').textContent = '📍 Haritada Aç — ' + state.lat.toFixed(4) + ', ' + state.lng.toFixed(4);
+}
+function openMaps() { if (state.lat) window.open('https://maps.google.com/?q=' + state.lat + ',' + state.lng, '_blank'); }
+
+// ─── PAYLAŞ ──────────────────────────────────────────────────────────────────
+function shareAs(type) {
+  if (!state.lat && type !== 'native') { showToast('Önce konum alın'); return; }
+  if (type === 'coords') {
+    navigator.clipboard && navigator.clipboard.writeText(state.lat.toFixed(6) + ', ' + state.lng.toFixed(6))
+      .then(function() { showToast('Koordinatlar kopyalandı ✓'); });
+  } else if (type === 'maps') {
+    window.open('https://maps.google.com/?q=' + state.lat + ',' + state.lng, '_blank');
+  } else if (type === 'waze') {
+    window.open('https://waze.com/ul?ll=' + state.lat + ',' + state.lng + '&navigate=yes', '_blank');
+  } else if (type === 'native') {
+    var text = state.lat
+      ? 'Konumum: ' + state.lat.toFixed(6) + ', ' + state.lng.toFixed(6) + '\nhttps://maps.google.com/?q=' + state.lat + ',' + state.lng
+      : 'Konum alınmadı';
+    if (navigator.share) navigator.share({title: 'GPS Konumum', text: text});
+    else if (navigator.clipboard) navigator.clipboard.writeText(text).then(function() { showToast('Kopyalandı'); });
+  }
+}
+
+function copyCoord(type) {
+  var val = type === 'lat' ? state.lat : state.lng;
+  if (!val) return;
+  navigator.clipboard && navigator.clipboard.writeText(val.toFixed(6))
+    .then(function() { showToast((type === 'lat' ? 'Enlem' : 'Boylam') + ' kopyalandı'); });
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function openModal(id) {
+  if (id === 'timeModal') fillTimeModal();
+  if (id === 'compassModal') startCompass();  // pusula başlat
   document.getElementById(id).classList.add('open');
-  document.body.style.overflow='hidden';
+  document.body.style.overflow = 'hidden';
 }
-function closeModal(id){
+function closeModal(id) {
   document.getElementById(id).classList.remove('open');
-  document.body.style.overflow='';
+  document.body.style.overflow = '';
 }
-function handleOverlayClick(e,id){
-  if(e.target===document.getElementById(id))closeModal(id);
+function handleOverlayClick(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
 }
 
-// Helpers
-function buildRows(pairs){return pairs.map(function(p){return'<div class="modal-row"><span class="modal-row-label">'+p[0]+'</span><span class="modal-row-value">'+(p[1]||'-')+'</span></div>';}).join('');}
-function headingToDir(h){if(h==null)return'---';var d=['K','KKD','KD','DKD','D','DGD','GD','GGD','G','GGB','GB','BGB','B','BKB','KB','KKB'];return d[Math.round(h/22.5)%16];}
-function wIcon(c){if(c===0)return'☀️';if(c<=2)return'⛅';if(c<=3)return'☁️';if(c<=9)return'🌫️';if(c<=39)return'🌧️';if(c<=49)return'🌨️';if(c<=69)return'❄️';if(c<=89)return'⛈️';return'🌩️';}
-function wDesc(c){var m={0:'Açık',1:'Çoğunlukla açık',2:'Parçalı bulutlu',3:'Bulutlu',45:'Sisli',51:'Hafif çisenti',61:'Hafif yağmur',63:'Orta yağmur',65:'Kuvvetli yağmur',71:'Hafif kar',73:'Orta kar',80:'Hafif sağanak',95:'Gök gürültülü fırtına'};return m[c]||'Hava durumu';}
-function toDMS(deg,type){var d=Math.floor(Math.abs(deg)),m=Math.floor((Math.abs(deg)-d)*60),s=((Math.abs(deg)-d-m/60)*3600).toFixed(2),dir=type==='lat'?(deg>=0?'K':'G'):(deg>=0?'D':'B');return d+"° "+m+"' "+s+'" '+dir;}
-function getUTC(){var o=-new Date().getTimezoneOffset(),h=Math.floor(Math.abs(o)/60),m=Math.abs(o)%60;return'UTC'+(o>=0?'+':'-')+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}
-function fTime(d){return d?d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'-';}
-function getSunTimes(lat,lng,date){
-  var rad=Math.PI/180,d=date.getTime()/86400000-10957,L=(280.46+0.9856474*d)%360,g=(357.528+0.9856003*d)%360,
-  lambda=L+1.915*Math.sin(g*rad)+0.02*Math.sin(2*g*rad),epsilon=23.439-0.0000004*d,
-  sinDec=Math.sin(epsilon*rad)*Math.sin(lambda*rad),dec=Math.asin(sinDec),
-  cosH=(Math.cos(90.833*rad)-Math.sin(lat*rad)*sinDec)/(Math.cos(lat*rad)*Math.cos(dec));
-  if(Math.abs(cosH)>1)return{sunrise:null,sunset:null,solarNoon:null,dayLength:0};
-  var H=Math.acos(cosH)/rad,tz=-date.getTimezoneOffset()/60,eot=L-280.46-360*Math.floor((L-280.46)/360),
-  noon=(720-4*lng-eot+tz*60)*60*1000,base=new Date(date).setHours(0,0,0,0);
-  return{sunrise:new Date(base+noon-H*4*60000),sunset:new Date(base+noon+H*4*60000),solarNoon:new Date(base+noon),dayLength:Math.round(H*8)};
+// ─── YARDIMCI FONKSİYONLAR ───────────────────────────────────────────────────
+function buildRows(pairs) {
+  return pairs.map(function(p) {
+    return '<div class="modal-row"><span class="modal-row-label">' + p[0] +
+           '</span><span class="modal-row-value">' + (p[1] || '-') + '</span></div>';
+  }).join('');
 }
-function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
-document.addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(function(m){m.classList.remove('open');});document.body.style.overflow='';});
+function wIcon(c) {
+  if (c === 0) return '☀️'; if (c <= 2) return '⛅'; if (c <= 3) return '☁️';
+  if (c <= 9) return '🌫️'; if (c <= 39) return '🌧️'; if (c <= 49) return '🌨️';
+  if (c <= 69) return '❄️'; if (c <= 89) return '⛈️'; return '🌩️';
+}
+function wDesc(c) {
+  var m = {0:'Açık',1:'Çoğunlukla açık',2:'Parçalı bulutlu',3:'Bulutlu',45:'Sisli',
+    51:'Hafif çisenti',61:'Hafif yağmur',63:'Orta yağmur',65:'Kuvvetli yağmur',
+    71:'Hafif kar',73:'Orta kar',80:'Hafif sağanak',95:'Gök gürültülü fırtına'};
+  return m[c] || 'Hava durumu';
+}
+function toDMS(deg, type) {
+  var d = Math.floor(Math.abs(deg)), m = Math.floor((Math.abs(deg) - d) * 60);
+  var s = ((Math.abs(deg) - d - m / 60) * 3600).toFixed(2);
+  var dir = type === 'lat' ? (deg >= 0 ? 'K' : 'G') : (deg >= 0 ? 'D' : 'B');
+  return d + "° " + m + "' " + s + '" ' + dir;
+}
+function getUTC() {
+  var o = -new Date().getTimezoneOffset();
+  var h = Math.floor(Math.abs(o) / 60), m = Math.abs(o) % 60;
+  return 'UTC' + (o >= 0 ? '+' : '-') + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+function fTime(d) { return d ? d.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) : '-'; }
+function getSunTimes(lat, lng, date) {
+  var rad = Math.PI / 180, d = date.getTime() / 86400000 - 10957;
+  var L = (280.46 + 0.9856474 * d) % 360, g = (357.528 + 0.9856003 * d) % 360;
+  var lambda = L + 1.915 * Math.sin(g * rad) + 0.02 * Math.sin(2 * g * rad);
+  var epsilon = 23.439 - 0.0000004 * d;
+  var sinDec = Math.sin(epsilon * rad) * Math.sin(lambda * rad), dec = Math.asin(sinDec);
+  var cosH = (Math.cos(90.833 * rad) - Math.sin(lat * rad) * sinDec) / (Math.cos(lat * rad) * Math.cos(dec));
+  if (Math.abs(cosH) > 1) return {sunrise: null, sunset: null, solarNoon: null, dayLength: 0};
+  var H = Math.acos(cosH) / rad, tz = -date.getTimezoneOffset() / 60;
+  var eot = L - 280.46 - 360 * Math.floor((L - 280.46) / 360);
+  var noon = (720 - 4 * lng - eot + tz * 60) * 60 * 1000;
+  var base = new Date(date).setHours(0, 0, 0, 0);
+  return {sunrise: new Date(base + noon - H * 4 * 60000), sunset: new Date(base + noon + H * 4 * 60000), solarNoon: new Date(base + noon), dayLength: Math.round(H * 8)};
+}
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2200);
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(function(m) { m.classList.remove('open'); });
+    document.body.style.overflow = '';
+  }
+});
 </script>
 
 </body>
