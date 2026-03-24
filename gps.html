@@ -383,17 +383,24 @@ function closeModal(id) {
   var overlay = document.getElementById(id);
   var sheet   = getSheet(id);
 
-  overlay.classList.add('anim-out');
-  overlay.classList.remove('anim-in');
+  // Sheet'i aşağı kaydır
+  sheet.style.transition = 'transform 0.38s cubic-bezier(0.32,0.72,0,1)';
+  sheet.style.transform  = 'translateY(100%)';
+
+  // Arka planı soldur
+  overlay.style.transition = 'background 0.38s cubic-bezier(0.32,0.72,0,1)';
+  overlay.style.background  = 'rgba(0,0,0,0)';
 
   setTimeout(function() {
-    overlay.style.display = 'none';
-    overlay.classList.remove('anim-out');
-    sheet.style.transform = '';
+    overlay.style.display    = 'none';
+    overlay.style.background = '';
+    overlay.style.transition = '';
+    overlay.classList.remove('anim-in', 'anim-out');
+    sheet.style.transform    = '';
+    sheet.style.transition   = '';
     sheet.classList.remove('dragging');
-  }, 420);
-
-  document.body.style.overflow = '';
+    document.body.style.overflow = '';
+  }, 400);
 
   if (id === 'compassModal' && compassRAF) {
     cancelAnimationFrame(compassRAF);
