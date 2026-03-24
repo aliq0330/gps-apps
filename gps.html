@@ -47,35 +47,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
   border-radius:16px;height:180px;margin-bottom:16px;cursor:pointer;
   border:2px solid rgba(26,115,232,0.15);position:relative;overflow:hidden;
   -webkit-tap-highlight-color:transparent;
-  background-color:#dde8fb;
-  background-image:
-    linear-gradient(rgba(26,115,232,0.10) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(26,115,232,0.10) 1px, transparent 1px);
-  background-size:28px 28px;
-  display:flex;align-items:center;justify-content:center;
+  background:#dde8fb;
+  display:block;
 }
-.map-pin{
-  display:flex;flex-direction:column;align-items:center;
-  position:relative;z-index:1;
-  filter:drop-shadow(0 4px 8px rgba(26,115,232,0.35));
-}
-.map-pin-circle{
-  width:22px;height:22px;border-radius:50%;
-  background:#1a73e8;border:3px solid white;
-  box-shadow:0 0 0 6px rgba(26,115,232,0.18);
-}
-.map-pin-tail{
-  width:0;height:0;
-  border-left:6px solid transparent;
-  border-right:6px solid transparent;
-  border-top:10px solid #1a73e8;
-  margin-top:-1px;
+.map-img{
+  width:100%;height:100%;object-fit:cover;display:block;
 }
 .map-label{
-  position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
   font-size:13px;color:var(--blue);font-weight:500;
   background:white;padding:6px 14px;border-radius:20px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.12);white-space:nowrap;z-index:2;
+  box-shadow:0 2px 10px rgba(0,0,0,0.14);white-space:nowrap;z-index:2;
+  pointer-events:none;
+}
+.map-pin-overlay{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-100%);
+  z-index:3;pointer-events:none;
+  filter:drop-shadow(0 3px 6px rgba(26,115,232,0.4));
+  display:none;
+}
+.map-placeholder-empty{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#e8f0fe,#d2e3fc);
+  background-image:
+    linear-gradient(rgba(26,115,232,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26,115,232,0.08) 1px, transparent 1px);
+  background-size:28px 28px, 28px 28px,100% 100%;
 }
 
 /* MODAL */
@@ -270,11 +269,20 @@ font-size:12px;color:var(–sub);text-align:center;padding:0 20px;margin-bottom:
   </button>
 
   <div class="map-placeholder" id="mapPlaceholder" onclick="openMaps()">
-    <div class="map-pin" id="mapPin" style="display:none">
-      <div class="map-pin-circle"></div>
-      <div class="map-pin-tail"></div>
+    <div class="map-placeholder-empty" id="mapEmpty">
+      <span style="font-size:13px;color:var(--blue);font-weight:500;background:white;padding:6px 14px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1)">📍 Konum alındığında harita açılır</span>
     </div>
-    <div class="map-label" id="mapLabel">📍 Konum alındığında harita açılır</div>
+    <img id="mapImg" class="map-img" style="display:none" alt="Harita" />
+    <!-- SVG pin ortada sabit -->
+    <div class="map-pin-overlay" id="mapPinOverlay">
+      <svg width="32" height="42" viewBox="0 0 32 42" fill="none">
+        <circle cx="16" cy="16" r="16" fill="#1a73e8"/>
+        <circle cx="16" cy="16" r="7" fill="white"/>
+        <path d="M16 32 C16 32 4 22 4 14 C4 7.4 9.4 2 16 2 C22.6 2 28 7.4 28 14 C28 22 16 32 16 32Z" fill="#1a73e8" opacity="0.25"/>
+        <polygon points="11,28 21,28 16,42" fill="#1a73e8"/>
+      </svg>
+    </div>
+    <div class="map-label" id="mapLabel" style="display:none">📍 Haritada Aç</div>
   </div>
 
   <div class="section-label">Yer Detayları</div>
@@ -643,9 +651,89 @@ function fillTimeModal() {
 
 // ─── HARİTA ──────────────────────────────────────────────────────────────────
 function drawMap() {
-  document.getElementById('mapPin').style.display = 'flex';
-  document.getElementById('mapLabel').textContent =
-    '📍 Haritada Aç — ' + state.lat.toFixed(4) + ', ' + state.lng.toFixed(4);
+  var lat = state.lat, lng = state.lng;
+  var zoom = 15;
+
+  // OpenStreetMap Static tile — ücretsiz, CORS yok
+  // tile.openstreetmap.org/{z}/{x}/{y}.png formatı
+  // Merkez tile koordinatlarını hesapla
+  var n = Math.pow(2, zoom);
+  var xtile = Math.floor((lng + 180) / 360 * n);
+  var ytile = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n);
+
+  // 3x3 tile grid — merkez tile ve komşuları
+  var placeholder = document.getElementById('mapPlaceholder');
+  var w = placeholder.offsetWidth || 358;
+  var h = 180;
+  var tileSize = 256;
+
+  // Canvas ile tile'ları birleştir
+  var canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  var ctx = canvas.getContext('2d');
+
+  // Piksel offsetleri — merkez tile'ın içinde konumun tam pikseli
+  var latRad = lat * Math.PI / 180;
+  var xFrac = (lng + 180) / 360 * n - xtile; // 0-1 arası tile içi konum
+  var yFrac = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n - ytile;
+
+  var pinX = Math.round(w / 2);
+  var pinY = Math.round(h / 2);
+
+  // Tile'ların başlangıç pikseli
+  var startX = pinX - Math.round(xFrac * tileSize);
+  var startY = pinY - Math.round(yFrac * tileSize);
+
+  var tilesLoaded = 0;
+  var tilesToLoad = 0;
+
+  function tryFinish() {
+    tilesLoaded++;
+    if (tilesLoaded >= tilesToLoad) {
+      // Canvas'ı img'ye aktar
+      var img = document.getElementById('mapImg');
+      img.src = canvas.toDataURL();
+      img.style.display = 'block';
+      document.getElementById('mapEmpty').style.display = 'none';
+      document.getElementById('mapPinOverlay').style.display = 'block';
+      document.getElementById('mapLabel').style.display = 'block';
+      document.getElementById('mapLabel').textContent = '📍 Haritada Aç — ' + lat.toFixed(4) + ', ' + lng.toFixed(4);
+    }
+  }
+
+  // Kaç tile gerekli
+  for (var dx = -2; dx <= 2; dx++) {
+    for (var dy = -2; dy <= 2; dy++) {
+      var tx = startX + (dx + 0) * tileSize; // x pozisyonu canvas'ta
+      var ty = startY + (dy + 0) * tileSize;
+      if (tx + tileSize < 0 || tx > w || ty + tileSize < 0 || ty > h) continue;
+      tilesToLoad++;
+    }
+  }
+  if (tilesToLoad === 0) tilesToLoad = 1;
+
+  var anyDrawn = false;
+  for (var dx = -2; dx <= 2; dx++) {
+    for (var dy = -2; dy <= 2; dy++) {
+      (function(ddx, ddy) {
+        var cx2 = startX + ddx * tileSize;
+        var cy2 = startY + ddy * tileSize;
+        if (cx2 + tileSize < 0 || cx2 > w || cy2 + tileSize < 0 || cy2 > h) return;
+        anyDrawn = true;
+        var tileImg = new Image();
+        tileImg.crossOrigin = 'anonymous';
+        tileImg.onload = function() {
+          ctx.drawImage(tileImg, cx2, cy2, tileSize, tileSize);
+          tryFinish();
+        };
+        tileImg.onerror = function() { tryFinish(); };
+        var servers = ['a','b','c'];
+        var s = servers[Math.abs(xtile + ddx + ytile + ddy) % 3];
+        tileImg.src = 'https://' + s + '.tile.openstreetmap.org/' + zoom + '/' + (xtile + ddx) + '/' + (ytile + ddy) + '.png';
+      })(dx, dy);
+    }
+  }
 }
 function openMaps() { if (state.lat) window.open('https://maps.google.com/?q=' + state.lat + ',' + state.lng, '_blank'); }
 
