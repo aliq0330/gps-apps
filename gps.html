@@ -120,95 +120,43 @@ font-size:16px;line-height:1;color:var(–sub);
 .modal-row-value{font-size:15px;font-weight:500;color:var(–text);text-align:right;max-width:60%}
 
 /* COMPASS */
-.compass-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px}
+.compass-wrap{display:flex;flex-direction:column;align-items:center;padding:16px;gap:10px}
 .compass{
-width:200px;height:200px;
+width:220px;height:220px;
 border-radius:50%;
-background:radial-gradient(circle at 40% 35%,#f8f9fa,#e9ecef);
-border:3px solid var(–border);
+background:radial-gradient(circle at 45% 40%,#ffffff,#f0f0f2);
+border:2px solid #e0e0e5;
 position:relative;
-box-shadow:0 4px 20px rgba(0,0,0,0.12),inset 0 1px 3px rgba(255,255,255,0.8);
+box-shadow:0 6px 24px rgba(0,0,0,0.10),inset 0 1px 2px rgba(255,255,255,0.9);
 display:flex;align-items:center;justify-content:center;
-transition: opacity 0.3s;
 }
-.compass-ring{
-position:absolute;inset:8px;
-border-radius:50%;
-border:1px solid rgba(0,0,0,0.06);
-}
-/* İbre: transform-origin merkez */
-.compass-needle{
-width:0;height:0;
-position:absolute;
-top:50%;left:50%;
-transform:translate(-50%,-50%) rotate(0deg);
-transition:transform 0.15s ease-out;
-}
-.needle-body{
-position:absolute;
-left:50%;
-transform:translateX(-50%);
-display:flex;flex-direction:column;align-items:center;
-}
-.needle-north{
-width:10px;height:70px;
-background:linear-gradient(to bottom,var(–red),#cc0000);
-border-radius:5px 5px 0 0;
-transform:translateY(-100%);
-box-shadow:0 -2px 6px rgba(255,59,48,0.4);
-}
-.needle-south{
-width:10px;height:70px;
-background:linear-gradient(to top,#aaa,#888);
-border-radius:0 0 5px 5px;
-}
-.compass-center{
-width:14px;height:14px;
-border-radius:50%;
-background:radial-gradient(circle,#555,#222);
-box-shadow:0 1px 4px rgba(0,0,0,0.4);
-z-index:2;
-position:relative;
+.compass svg.compass-svg{
+position:absolute;inset:0;width:100%;height:100%;
+overflow:visible;
 }
 .compass-dirs{position:absolute;inset:0;pointer-events:none}
 .compass-dir{
-position:absolute;
-font-size:13px;font-weight:700;
-color:var(–text);
-font-family:‘Space Mono’,monospace;
-line-height:1;
+position:absolute;font-size:14px;font-weight:800;
+font-family:‘Space Mono’,monospace;line-height:1;
 }
-.dir-n{top:10px;left:50%;transform:translateX(-50%);color:var(–red)}
-.dir-s{bottom:10px;left:50%;transform:translateX(-50%)}
-.dir-e{right:12px;top:50%;transform:translateY(-50%)}
-.dir-w{left:12px;top:50%;transform:translateY(-50%)}
-/* tick marks */
-.compass-ticks{position:absolute;inset:0;border-radius:50%}
-
+.dir-n{top:8px;left:50%;transform:translateX(-50%);color:#ff3b30}
+.dir-s{bottom:8px;left:50%;transform:translateX(-50%);color:#555}
+.dir-e{right:10px;top:50%;transform:translateY(-50%);color:#555}
+.dir-w{left:10px;top:50%;transform:translateY(-50%);color:#555}
 .compass-degree-badge{
-font-family:‘Space Mono’,monospace;
-font-size:22px;font-weight:700;
-color:var(–text);
-letter-spacing:-1px;
+font-family:‘Space Mono’,monospace;font-size:26px;font-weight:700;
+color:var(–text);letter-spacing:-1px;
 }
-.compass-dir-badge{
-font-size:14px;color:var(–sub);font-weight:500;margin-top:2px;
-}
-
-/* Pusula izin butonu */
+.compass-dir-badge{font-size:14px;color:var(–sub);font-weight:500}
 .compass-permission-btn{
-width:calc(100% - 40px);margin:0 20px 16px;
-padding:13px;
-background:var(–blue);color:white;border:none;
-border-radius:14px;font-family:‘DM Sans’,sans-serif;
-font-size:15px;font-weight:600;cursor:pointer;
+width:calc(100% - 40px);margin:0 20px 16px;padding:13px;
+background:var(–blue);color:white;border:none;border-radius:14px;
+font-family:‘DM Sans’,sans-serif;font-size:15px;font-weight:600;cursor:pointer;
 display:flex;align-items:center;justify-content:center;gap:8px;
 -webkit-tap-highlight-color:transparent;
 }
 .compass-permission-btn:active{opacity:0.85}
-.compass-status{
-font-size:12px;color:var(–sub);text-align:center;padding:0 20px;margin-bottom:8px;
-}
+.compass-status{font-size:12px;color:var(–sub);text-align:center;padding:0 20px;margin-bottom:8px}
 
 .share-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 20px}
 .share-opt{background:var(–bg);border:none;border-radius:14px;padding:14px 12px;font-family:‘DM Sans’,sans-serif;font-size:14px;font-weight:500;color:var(–text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent}
@@ -304,7 +252,7 @@ font-size:12px;color:var(–sub);text-align:center;padding:0 20px;margin-bottom:
     </div>
     <div class="list-item" onclick="openModal('weatherModal')">
       <div class="item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div>
-      <div class="item-content"><div class="item-title">Hava Durumu</div></div>
+      <div class="item-content"><div class="item-title">Open-Meteo</div></div>
       <div class="item-right"><span id="weatherPreview">--°C</span><span id="weatherIcon" class="weather-icon">⛅</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
     </div>
     <div class="list-item" onclick="openModal('extModal')">
@@ -365,21 +313,38 @@ font-size:12px;color:var(–sub);text-align:center;padding:0 20px;margin-bottom:
 
 <div class="compass-wrap">
   <div class="compass" id="compassDial">
-    <div class="compass-ring"></div>
+    <!-- SVG ibre — transform-origin merkez (110,110) -->
+    <svg class="compass-svg" viewBox="0 0 220 220">
+      <!-- Dış halka çizgisi -->
+      <circle cx="110" cy="110" r="100" fill="none" stroke="#e0e0e5" stroke-width="1.5"/>
+      <!-- Tick çizgileri -->
+      <g id="compassTicks"></g>
+      <!-- İbre grubu — rotate bu grup üzerinde uygulanır -->
+      <g id="compassNeedle" style="transform-origin:110px 110px;transform:rotate(0deg);transition:transform 0.15s ease-out;">
+        <!-- Kuzey (kırmızı) -->
+        <polygon points="110,30 104,110 116,110" fill="#ff3b30"/>
+        <polygon points="110,30 104,110 116,110" fill="url(#northGrad)"/>
+        <!-- Güney (koyu gri) -->
+        <polygon points="110,190 104,110 116,110" fill="#555"/>
+      </g>
+      <!-- Merkez nokta -->
+      <circle cx="110" cy="110" r="7" fill="#222" stroke="white" stroke-width="2"/>
+      <!-- Gradyan tanımı -->
+      <defs>
+        <linearGradient id="northGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#ff6b6b" stop-opacity="0.3"/>
+          <stop offset="50%" stop-color="#ff3b30"/>
+          <stop offset="100%" stop-color="#cc0000" stop-opacity="0.3"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <!-- Yön etiketleri -->
     <div class="compass-dirs">
       <span class="compass-dir dir-n">K</span>
       <span class="compass-dir dir-s">G</span>
       <span class="compass-dir dir-e">D</span>
       <span class="compass-dir dir-w">B</span>
     </div>
-    <!-- İbre: needle wrap, transform-origin merkez -->
-    <div class="compass-needle" id="compassNeedle">
-      <div class="needle-body">
-        <div class="needle-north"></div>
-        <div class="needle-south"></div>
-      </div>
-    </div>
-    <div class="compass-center"></div>
   </div>
   <div class="compass-degree-badge" id="compassDegree">---°</div>
   <div class="compass-dir-badge" id="compassDirBadge">Pusula bekleniyor</div>
@@ -439,17 +404,17 @@ function updateCompassUI(heading) {
   var deg = Math.round(heading);
   var dir = headingToDir(heading);
 
-  // İbre: kuzey (K) her zaman gerçek kuzeyi gösterir.
-  // Pusula cadranı sabit, ibre heading kadar döner.
-  document.getElementById('compassNeedle').style.transform =
-    'rotate(' + heading + 'deg)';
+  // SVG <g> elementinde rotate — transform attribute ile (iOS uyumlu)
+  var needle = document.getElementById('compassNeedle');
+  if (needle) {
+    needle.setAttribute('transform', 'rotate(' + heading + ', 110, 110)');
+    needle.style.transform = ''; // inline style'ı temizle, attribute kullan
+  }
 
   document.getElementById('compassDegree').textContent = deg + '°';
   document.getElementById('compassDirBadge').textContent = dir;
-  document.getElementById('compassStatusText').textContent =
-    deg + '° ' + dir;
+  document.getElementById('compassStatusText').textContent = deg + '° ' + dir;
 
-  // GPS meta kısmını da güncelle
   document.getElementById('directionDisplay').innerHTML =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="transform:rotate(' + heading + 'deg)"><polygon points="12 2 4 20 12 16 20 20"/></svg> ' +
     deg + '° ' + dir;
