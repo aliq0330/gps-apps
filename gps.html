@@ -89,7 +89,9 @@ margin:0 auto 18px;cursor:grab;touch-action:none;
 .modal-handle:active{cursor:grabbing;background:#b0b0b8}
 
 .modal-title{font-size:18px;font-weight:600;padding:0 20px 16px;border-bottom:1px solid var(–border);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
-.modal-close-btn{width:28px;height:28px;border-radius:50%;background:var(–bg);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;font-size:16px;line-height:1;color:var(–sub)}
+.modal-close-btn{width:30px;height:30px;border-radius:50%;background:#e5e5ea;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;line-height:1;color:#6e6e73;font-size:0;padding:0;}
+.modal-close-btn::after{content:’’;display:block;width:30px;height:30px;background-image:url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ viewBox=‘0 0 30 30’%3E%3Cline x1=‘10’ y1=‘10’ x2=‘20’ y2=‘20’ stroke=’%236e6e73’ stroke-width=‘2’ stroke-linecap=‘round’/%3E%3Cline x1=‘20’ y1=‘10’ x2=‘10’ y2=‘20’ stroke=’%236e6e73’ stroke-width=‘2’ stroke-linecap=‘round’/%3E%3C/svg%3E”);background-repeat:no-repeat;background-size:contain;}
+.modal-close-btn:active{background:#d1d1d6;}
 .modal-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(–border)}
 .modal-row:last-child{border-bottom:none}
 .modal-row-label{font-size:14px;color:var(–sub);flex-shrink:0;margin-right:12px}
@@ -257,7 +259,7 @@ will-change:transform;touch-action:none;
 <div class="modal-overlay" id="addressModal" onclick="handleOverlayClick(event,'addressModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="modal-title">📍 Adres<button class="modal-close-btn" onclick="closeModal('addressModal')">✕</button></div>
+    <div class="modal-title">📍 Adres<button class="modal-close-btn" onclick="closeModal('addressModal')"</button></div>
     <div id="addressRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum alınmadı</span></div></div>
   </div>
 </div>
@@ -265,7 +267,7 @@ will-change:transform;touch-action:none;
 <div class="modal-overlay" id="timeModal" onclick="handleOverlayClick(event,'timeModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="modal-title">🕐 Saat &amp; Tarih<button class="modal-close-btn" onclick="closeModal('timeModal')">✕</button></div>
+    <div class="modal-title">🕐 Saat &amp; Tarih<button class="modal-close-btn" onclick="closeModal('timeModal')"</button></div>
     <div id="timeRows"></div>
   </div>
 </div>
@@ -273,7 +275,7 @@ will-change:transform;touch-action:none;
 <div class="modal-overlay" id="sunModal" onclick="handleOverlayClick(event,'sunModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="modal-title">☀️ Gün Doğumu / Batımı<button class="modal-close-btn" onclick="closeModal('sunModal')">✕</button></div>
+    <div class="modal-title">☀️ Gün Doğumu / Batımı<button class="modal-close-btn" onclick="closeModal('sunModal')"</button></div>
     <div id="sunRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div>
   </div>
 </div>
@@ -281,7 +283,7 @@ will-change:transform;touch-action:none;
 <div class="modal-overlay" id="weatherModal" onclick="handleOverlayClick(event,'weatherModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="modal-title">⛅ Hava Durumu<button class="modal-close-btn" onclick="closeModal('weatherModal')">✕</button></div>
+    <div class="modal-title">⛅ Hava Durumu<button class="modal-close-btn" onclick="closeModal('weatherModal')"</button></div>
     <div id="weatherRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div>
   </div>
 </div>
@@ -289,7 +291,7 @@ will-change:transform;touch-action:none;
 <div class="modal-overlay" id="extModal" onclick="handleOverlayClick(event,'extModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="modal-title">📊 Genişletilmiş Veri<button class="modal-close-btn" onclick="closeModal('extModal')">✕</button></div>
+    <div class="modal-title">📊 Genişletilmiş Veri<button class="modal-close-btn" onclick="closeModal('extModal')"</button></div>
     <div id="extRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div>
   </div>
 </div>
@@ -325,7 +327,7 @@ will-change:transform;touch-action:none;
 <div class="modal-overlay" id="shareModal" onclick="handleOverlayClick(event,'shareModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="modal-title">Konumu Paylaş<button class="modal-close-btn" onclick="closeModal('shareModal')">✕</button></div>
+    <div class="modal-title">Konumu Paylaş<button class="modal-close-btn" onclick="closeModal('shareModal')"</button></div>
     <div class="share-grid">
       <button class="share-opt" onclick="shareAs('coords')"><span class="share-opt-icon">📋</span>Koordinat Kopyala</button>
       <button class="share-opt" onclick="shareAs('maps')"><span class="share-opt-icon">🗺️</span>Google Maps</button>
