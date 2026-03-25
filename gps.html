@@ -1,6 +1,5 @@
-<!DOCTYPE html><html lang="tr"><head>
+<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8">
 
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>GPS Konum</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,13 +46,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
 .map-pin-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);z-index:3;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(26,115,232,0.4));display:none}
 .map-placeholder-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e8f0fe,#d2e3fc);background-image:linear-gradient(rgba(26,115,232,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(26,115,232,0.08) 1px,transparent 1px);background-size:28px 28px,28px 28px,100% 100%}
 
-/* ── MODAL OVERLAY ─────────────────────────────────────────────────────── */
+/* ── MODAL OVERLAY ──────────────────────────────────────────── */
 .modal-overlay{
 display:none;
 position:fixed;top:0;left:0;width:100%;height:100%;
 background:rgba(0,0,0,0);
 z-index:99999;
--webkit-overflow-scrolling:touch;
 align-items:flex-end;
 transition:background 0.32s cubic-bezier(0.32,0.72,0,1);
 will-change:background;
@@ -62,7 +60,7 @@ will-change:background;
 .modal-overlay.anim-in{background:rgba(0,0,0,0.55)}
 .modal-overlay.anim-out{background:rgba(0,0,0,0)!important}
 
-/* ── MODAL SHEET ───────────────────────────────────────────────────────── */
+/* ── MODAL SHEET ────────────────────────────────────────────── */
 .modal{
 width:100%;
 background:#ffffff;
@@ -75,7 +73,7 @@ position:relative;
 transform:translateY(100%);
 transition:transform 0.42s cubic-bezier(0.32,0.72,0,1);
 will-change:transform;
-touch-action:none;
+/* touch-action artık burada yok — sadece handle’da */
 }
 .modal-overlay.anim-in .modal{transform:translateY(0)}
 .modal-overlay.anim-out .modal{transform:translateY(100%)}
@@ -88,14 +86,22 @@ margin:0 auto 18px;cursor:grab;touch-action:none;
 }
 .modal-handle:active{cursor:grabbing;background:#b0b0b8}
 
-.modal-title{font-size:18px;font-weight:600;padding:0 20px 16px;border-bottom:1px solid var(–border);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.modal-title{
+font-size:18px;font-weight:600;
+padding:0 20px 16px;
+border-bottom:1px solid var(–border);
+margin-bottom:16px;
+display:flex;align-items:center;justify-content:space-between;
+/* touch-action kaldırıldı — modal title’dan sürükleme kaldırıldı */
+}
 .modal-close-btn{width:40px;height:40px;border-radius:50%;background:#e5e5ea;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;padding:0;}
 .modal-close-btn:active{background:#d1d1d6;}
+
 .modal-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(–border)}
 .modal-row:last-child{border-bottom:none}
 .modal-row-label{font-size:14px;color:var(–sub);flex-shrink:0;margin-right:12px}
 
-/* ── Kopyalanabilir değer ─────────────────────────────────────────────── */
+/* ── Kopyalanabilir değer ─────────────────────────────────── */
 .modal-row-value{
 font-size:15px;font-weight:500;color:var(–text);
 text-align:right;max-width:65%;
@@ -103,7 +109,7 @@ cursor:pointer;
 -webkit-tap-highlight-color:transparent;
 padding:4px 8px;
 border-radius:8px;
-transition:background 0.15s, color 0.15s;
+transition:background 0.15s,color 0.15s;
 word-break:break-all;
 display:inline-flex;
 align-items:center;
@@ -125,17 +131,18 @@ flex-wrap:wrap;
 .share-opt{background:var(–bg);border:none;border-radius:14px;padding:14px 12px;font-family:‘DM Sans’,sans-serif;font-size:14px;font-weight:500;color:var(–text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent}
 .share-opt:active{opacity:0.7}
 .share-opt-icon{font-size:24px}
+
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(0,0,0,0.85);color:white;padding:10px 20px;border-radius:20px;font-size:14px;z-index:999999;transition:transform 0.3s;white-space:nowrap;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── iPhone Pusula Modal ──────────────────────────────────────────────── */
+/* ── iPhone Pusula Modal ──────────────────────────────────── */
 .compass-modal-inner{
 background:#000;border-radius:24px 24px 0 0;padding:0 0 50px;
 max-height:88vh;overflow-y:auto;width:100%;position:relative;
 transform:translateY(100%);transition:transform 0.42s cubic-bezier(0.32,0.72,0,1);
-will-change:transform;touch-action:none;
+will-change:transform;
 }
 .modal-overlay.anim-in .compass-modal-inner{transform:translateY(0)}
 .modal-overlay.anim-out .compass-modal-inner{transform:translateY(100%)}
@@ -157,10 +164,30 @@ will-change:transform;touch-action:none;
 #compassPermissionArea{display:none;padding-bottom:10px}
 .compass-status-text{font-size:12px;color:#8e8e93;text-align:center;padding:0 20px 10px}
 
-/* ── 10 Günlük Hava Durumu ────────────────────────────────────────────── */
-.forecast-scroll{display:flex;gap:8px;overflow-x:auto;padding:0 16px 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+/* ── 10 Günlük Hava Durumu ───────────────────────────────── */
+/* FIX: overflow-x:auto + touch-action:pan-x ile yatay kaydırma */
+.forecast-scroll{
+display:flex;
+gap:8px;
+overflow-x:auto;
+overflow-y:hidden;
+padding:0 16px 16px;
+scrollbar-width:none;
+-webkit-overflow-scrolling:touch;
+touch-action:pan-x;          /* ← yatay kaydırmaya izin ver */
+scroll-snap-type:x mandatory;
+}
 .forecast-scroll::-webkit-scrollbar{display:none}
-.forecast-day{flex-shrink:0;width:72px;background:var(–bg);border-radius:14px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:default}
+
+.forecast-day{
+flex-shrink:0;
+width:72px;
+background:var(–bg);
+border-radius:14px;
+padding:10px 6px;
+display:flex;flex-direction:column;align-items:center;gap:4px;
+scroll-snap-align:start;
+}
 .forecast-day.today{background:var(–blue);color:white}
 .forecast-day-name{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;opacity:0.7}
 .forecast-day.today .forecast-day-name{opacity:0.9;color:white}
@@ -169,6 +196,9 @@ will-change:transform;touch-action:none;
 .forecast-day-min{font-size:12px;opacity:0.55}
 .forecast-day.today .forecast-day-min{opacity:0.75;color:white}
 .forecast-rain{font-size:10px;opacity:0.6;display:flex;align-items:center;gap:2px}
+
+/* FIX: Hava detay satırları için ekstra alt boşluk */
+.weather-detail-section{padding-bottom:8px}
 </style>
 
 </head>
@@ -292,14 +322,16 @@ will-change:transform;touch-action:none;
   </div>
 </div>
 
-<!-- Hava Durumu Modal — 10 günlük tahmin -->
+<!-- Hava Durumu Modal -->
 
 <div class="modal-overlay" id="weatherModal" onclick="handleOverlayClick(event,'weatherModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div class="modal-title">⛅ Hava Durumu<button class="modal-close-btn" onclick="closeModal('weatherModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+    <!-- FIX: Şu anki hava kartı burada — JS tarafından doldurulacak -->
     <div id="weatherCurrentBlock"></div>
     <div style="padding:0 16px 8px"><span style="font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">10 Günlük Tahmin</span></div>
+    <!-- FIX: Tahmin + detay bu bölümde — overflow sorunsuz -->
     <div id="weatherForecastBlock"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div>
   </div>
 </div>
@@ -357,9 +389,9 @@ will-change:transform;touch-action:none;
 <div class="toast" id="toast"></div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    STATE
-═══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 var state = {
   lat:null,lng:null,alt:null,accuracy:null,
   heading:null,speed:null,watchId:null,
@@ -367,9 +399,10 @@ var state = {
   addressCity:''
 };
 
-/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    MODAL ANIMATION + SWIPE TO DISMISS
-═══════════════════════════════════════════════════════════════ */
+   — Sadece handle'dan sürükleme, scroll bozmaz
+═══════════════════════════════════════════════════════ */
 var DISMISS_THRESHOLD = 100;
 var VELOCITY_THRESHOLD = 0.5;
 
@@ -427,39 +460,38 @@ function handleOverlayClick(e, id) {
   if (e.target === document.getElementById(id)) closeModal(id);
 }
 
-/* ── Swipe-to-dismiss ─────────────────────────────────────────── */
+/* ── Swipe-to-dismiss: SADECE handle'dan ──────────────── */
 function attachSwipe(overlayId) {
-  var overlay   = document.getElementById(overlayId);
-  var sheet     = getSheet(overlayId);
-  var handle    = sheet.querySelector('.modal-handle, .compass-modal-handle');
-  var dragZone  = sheet.querySelector('.modal-title') || handle;
+  var overlay = document.getElementById(overlayId);
+  var sheet   = getSheet(overlayId);
+  var handle  = sheet.querySelector('.modal-handle, .compass-modal-handle');
 
   if (!handle) return;
 
   var startY = 0, startTime = 0, currentY = 0, isDragging = false;
 
   function onStart(e) {
-    var target = e.target;
-    var isHandle = handle.contains(target) || (dragZone && dragZone.contains(target));
-    if (!isHandle && sheet.scrollTop > 0) return;
+    /* Yalnızca handle'a dokunulduğunda başla */
+    var touch = e.touches ? e.touches[0] : e;
+    var target = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!handle.contains(target) && target !== handle) return;
 
     isDragging = true;
-    startY     = e.touches ? e.touches[0].clientY : e.clientY;
+    startY     = touch.clientY;
     startTime  = Date.now();
     currentY   = 0;
     sheet.classList.add('dragging');
-    e.stopPropagation();
+    e.preventDefault(); /* yalnızca handle touch'larında preventDefault */
   }
 
   function onMove(e) {
     if (!isDragging) return;
-    var y = e.touches ? e.touches[0].clientY : e.clientY;
-    currentY = Math.max(0, y - startY);
+    var touch = e.touches ? e.touches[0] : e;
+    currentY = Math.max(0, touch.clientY - startY);
     sheet.style.transform = 'translateY(' + currentY + 'px)';
 
     var ratio = Math.max(0, 1 - currentY / 300);
     overlay.style.background = 'rgba(0,0,0,' + (0.55 * ratio) + ')';
-
     e.preventDefault();
   }
 
@@ -501,23 +533,24 @@ function attachSwipe(overlayId) {
     currentY = 0;
   }
 
-  sheet.addEventListener('touchstart', onStart, {passive:true});
-  sheet.addEventListener('touchmove',  onMove,  {passive:false});
-  sheet.addEventListener('touchend',   onEnd,   {passive:true});
-  sheet.addEventListener('mousedown',  onStart);
+  /* passive:false sadece onMove'da gerekli, onStart'ta da gerekli */
+  handle.addEventListener('touchstart', onStart, {passive:false});
+  document.addEventListener('touchmove',  onMove,  {passive:false});
+  document.addEventListener('touchend',   onEnd,   {passive:true});
+  handle.addEventListener('mousedown',  onStart);
   window.addEventListener('mousemove', onMove);
   window.addEventListener('mouseup',   onEnd);
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    CLOCK
-═══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function updateClock(){document.getElementById('clockDisplay').textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});}
 setInterval(updateClock,1000);updateClock();
 
-/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    COMPASS CANVAS
-═══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 var compassRotation=0,compassTarget=0,compassRAF=null;
 
 function drawCompassCanvas(heading){
@@ -628,9 +661,9 @@ function requestCompassPermission(){
   }).catch(function(err){showToast('İzin hatası: '+err.message);});
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    GPS
-═══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function getLocation(){
   var btn=document.getElementById('getLocBtn');
   btn.disabled=true;
@@ -672,9 +705,9 @@ function setStatus(type,msg){
   document.getElementById('statusText').textContent=msg;
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    ADDRESS / WEATHER / SUN / EXT / TIME
-═══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 async function fetchAddress(){
   if(!state.lat)return;
   try{
@@ -704,55 +737,73 @@ async function fetchWeather(){
     );
     var d=await r.json();
     var c=d.current;
-    var temp=c.temperature_2m?c.temperature_2m.toFixed(1):'--';
-    var icon=wIcon(c.weather_code||0),desc=wDesc(c.weather_code||0);
 
-    document.getElementById('weatherPreview').textContent=temp+'°C';
-    document.getElementById('weatherIcon').textContent=icon;
+    /* FIX: Sıcaklık değeri — toFixed güvenli şekilde */
+    var temp = (c.temperature_2m !== null && c.temperature_2m !== undefined)
+      ? parseFloat(c.temperature_2m).toFixed(1)
+      : '--';
+    var icon = wIcon(c.weather_code || 0);
+    var desc = wDesc(c.weather_code || 0);
+    var humidity = c.relative_humidity_2m != null ? c.relative_humidity_2m : '--';
+    var windSpd  = c.wind_speed_10m != null ? c.wind_speed_10m : '--';
+    var uvIdx    = (c.uv_index != null) ? parseFloat(c.uv_index).toFixed(1) : '-';
+    var apparent = (c.apparent_temperature != null) ? parseFloat(c.apparent_temperature).toFixed(1)+'°C' : '-';
+
+    /* Önizleme güncelle */
+    document.getElementById('weatherPreview').textContent = temp + '°C';
+    document.getElementById('weatherIcon').textContent = icon;
 
     /* ── Şu anki hava kartı ── */
-    var currentHtml='<div style="padding:0 16px 14px">';
-    currentHtml+='<div style="background:linear-gradient(135deg,#1a73e8,#0d5cb8);border-radius:16px;padding:16px 20px;color:white">';
-    currentHtml+='<div style="font-size:13px;opacity:0.85;margin-bottom:4px">Şu an · '+desc+'</div>';
-    currentHtml+='<div style="font-size:52px;font-weight:200;line-height:1.1">'+icon+' '+temp+'°</div>';
-    currentHtml+='<div style="display:flex;gap:16px;margin-top:10px;font-size:13px;opacity:0.9">';
-    currentHtml+='<span>💧 %'+c.relative_humidity_2m+'</span>';
-    currentHtml+='<span>💨 '+c.wind_speed_10m+' km/s</span>';
-    currentHtml+='<span>☀️ UV '+(c.uv_index?c.uv_index.toFixed(1):'-')+'</span>';
-    currentHtml+='</div></div></div>';
-    document.getElementById('weatherCurrentBlock').innerHTML=currentHtml;
+    var currentHtml =
+      '<div style="padding:0 16px 14px">' +
+        '<div style="background:linear-gradient(135deg,#1a73e8,#0d5cb8);border-radius:16px;padding:16px 20px;color:white">' +
+          '<div style="font-size:13px;opacity:0.85;margin-bottom:4px">Şu an · ' + desc + '</div>' +
+          '<div style="font-size:52px;font-weight:200;line-height:1.1">' + icon + ' ' + temp + '°</div>' +
+          '<div style="display:flex;gap:16px;margin-top:10px;font-size:13px;opacity:0.9">' +
+            '<span>💧 %' + humidity + '</span>' +
+            '<span>💨 ' + windSpd + ' km/s</span>' +
+            '<span>☀️ UV ' + uvIdx + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    document.getElementById('weatherCurrentBlock').innerHTML = currentHtml;
 
     /* ── 10 günlük kaydırmalı kartlar ── */
-    var days=d.daily;
-    var tr=['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'];
-    var scrollHtml='<div class="forecast-scroll">';
-    for(var i=0;i<days.time.length;i++){
-      var dayDate=new Date(days.time[i]+'T12:00:00');
-      var dayName=i===0?'Bugün':tr[dayDate.getDay()];
-      var isToday=i===0;
-      var rain=days.precipitation_probability_max[i]||0;
-      scrollHtml+='<div class="forecast-day'+(isToday?' today':'')+'">';
-      scrollHtml+='<div class="forecast-day-name">'+dayName+'</div>';
-      scrollHtml+='<div class="forecast-day-icon">'+wIcon(days.weather_code[i])+'</div>';
-      scrollHtml+='<div class="forecast-day-max">'+Math.round(days.temperature_2m_max[i])+'°</div>';
-      scrollHtml+='<div class="forecast-day-min">'+Math.round(days.temperature_2m_min[i])+'°</div>';
-      if(rain>10)scrollHtml+='<div class="forecast-rain">💧'+rain+'%</div>';
-      scrollHtml+='</div>';
+    var days = d.daily;
+    var tr   = ['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'];
+    var scrollHtml = '<div class="forecast-scroll">';
+    for(var i = 0; i < days.time.length; i++){
+      var dayDate = new Date(days.time[i] + 'T12:00:00');
+      var dayName = i === 0 ? 'Bugün' : tr[dayDate.getDay()];
+      var isToday = i === 0;
+      var rain    = days.precipitation_probability_max[i] || 0;
+      var maxT    = Math.round(days.temperature_2m_max[i]);
+      var minT    = Math.round(days.temperature_2m_min[i]);
+      scrollHtml += '<div class="forecast-day' + (isToday ? ' today' : '') + '">';
+      scrollHtml += '<div class="forecast-day-name">' + dayName + '</div>';
+      scrollHtml += '<div class="forecast-day-icon">' + wIcon(days.weather_code[i]) + '</div>';
+      scrollHtml += '<div class="forecast-day-max">' + maxT + '°</div>';
+      scrollHtml += '<div class="forecast-day-min">' + minT + '°</div>';
+      if(rain > 10) scrollHtml += '<div class="forecast-rain">💧' + rain + '%</div>';
+      scrollHtml += '</div>';
     }
-    scrollHtml+='</div>';
+    scrollHtml += '</div>';
 
     /* ── Detay satırları ── */
-    var detailRows=[
-      ['Hissedilen',c.apparent_temperature?c.apparent_temperature.toFixed(1)+'°C':'-'],
-      ['Yağış (bugün)',days.precipitation_sum[0]+' mm'],
-      ['Rüzgar',c.wind_speed_10m+' km/s · '+headingToDir(c.wind_direction_10m)],
-      ['Nem','%'+c.relative_humidity_2m],
-      ['UV İndeksi',c.uv_index?c.uv_index.toFixed(1):'-']
+    var detailRows = [
+      ['Hissedilen', apparent],
+      ['Yağış (bugün)', days.precipitation_sum[0] + ' mm'],
+      ['Rüzgar', windSpd + ' km/s · ' + headingToDir(c.wind_direction_10m)],
+      ['Nem', '%' + humidity],
+      ['UV İndeksi', uvIdx]
     ];
-    document.getElementById('weatherForecastBlock').innerHTML=scrollHtml+buildRows(detailRows);
+    /* FIX: Forecast scroll + detay satırları tek blokta, modal scroll çalışır */
+    document.getElementById('weatherForecastBlock').innerHTML =
+      scrollHtml +
+      '<div class="weather-detail-section">' + buildRows(detailRows) + '</div>';
 
   }catch(e){
-    document.getElementById('weatherForecastBlock').innerHTML=buildRows([['Hata','Alınamadı']]);
+    document.getElementById('weatherForecastBlock').innerHTML = buildRows([['Hata','Alınamadı']]);
   }
 }
 
@@ -795,9 +846,9 @@ function fillTimeModal(){
   ]);
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    MAP
-═══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function drawMap(){
   var lat=state.lat,lng=state.lng,zoom=15;
   var n=Math.pow(2,zoom);
@@ -819,9 +870,9 @@ function drawMap(){
 }
 function openMaps(){if(state.lat)window.open('https://maps.google.com/?q='+state.lat+','+state.lng,'_blank');}
 
-/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    SHARE / COPY
-═══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function shareAs(type){
   if(!state.lat&&type!=='native'){showToast('Önce konum alın');return;}
   if(type==='coords'){navigator.clipboard&&navigator.clipboard.writeText(state.lat.toFixed(6)+', '+state.lng.toFixed(6)).then(function(){showToast('Koordinatlar kopyalandı ✓');});}
@@ -831,9 +882,9 @@ function shareAs(type){
 }
 function copyCoord(type){var val=type==='lat'?state.lat:state.lng;if(!val)return;navigator.clipboard&&navigator.clipboard.writeText(val.toFixed(6)).then(function(){showToast((type==='lat'?'Enlem':'Boylam')+' kopyalandı');});}
 
-/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    COPY ROW VALUE
-═══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function copyRowValue(el, text) {
   if (!text || text === '-') return;
   var plain = text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim();
@@ -866,9 +917,9 @@ function flashCopied(el, text) {
   setTimeout(function(){ el.classList.remove('copied'); }, 1600);
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    HELPERS
-═══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 var ICON_COPY  = '<svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
 var ICON_CHECK = '<svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 
@@ -895,9 +946,9 @@ function fTime(d){return d?d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'
 function getSunTimes(lat,lng,date){var rad=Math.PI/180,d=date.getTime()/86400000-10957,L=(280.46+0.9856474*d)%360,g=(357.528+0.9856003*d)%360,lambda=L+1.915*Math.sin(g*rad)+0.02*Math.sin(2*g*rad),epsilon=23.439-0.0000004*d,sinDec=Math.sin(epsilon*rad)*Math.sin(lambda*rad),dec=Math.asin(sinDec),cosH=(Math.cos(90.833*rad)-Math.sin(lat*rad)*sinDec)/(Math.cos(lat*rad)*Math.cos(dec));if(Math.abs(cosH)>1)return{sunrise:null,sunset:null,solarNoon:null,dayLength:0};var H=Math.acos(cosH)/rad,tz=-date.getTimezoneOffset()/60,eot=L-280.46-360*Math.floor((L-280.46)/360),noon=(720-4*lng-eot+tz*60)*60*1000,base=new Date(date).setHours(0,0,0,0);return{sunrise:new Date(base+noon-H*4*60000),sunset:new Date(base+noon+H*4*60000),solarNoon:new Date(base+noon),dayLength:Math.round(H*8)};}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
 
-/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    INIT
-═══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
     document.querySelectorAll('.modal-overlay').forEach(function(m){
