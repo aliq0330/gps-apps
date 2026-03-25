@@ -1,4 +1,3 @@
-
 <!DOCTYPE html><html lang="tr"><head>
 
 <meta charset="UTF-8">
@@ -157,6 +156,19 @@ will-change:transform;touch-action:none;
 .compass-permission-btn{width:calc(100% - 40px);margin:16px 20px;padding:13px;background:#1a73e8;color:white;border:none;border-radius:14px;font-family:‘DM Sans’,sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent}
 #compassPermissionArea{display:none;padding-bottom:10px}
 .compass-status-text{font-size:12px;color:#8e8e93;text-align:center;padding:0 20px 10px}
+
+/* ── 10 Günlük Hava Durumu ────────────────────────────────────────────── */
+.forecast-scroll{display:flex;gap:8px;overflow-x:auto;padding:0 16px 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.forecast-scroll::-webkit-scrollbar{display:none}
+.forecast-day{flex-shrink:0;width:72px;background:var(–bg);border-radius:14px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:default}
+.forecast-day.today{background:var(–blue);color:white}
+.forecast-day-name{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;opacity:0.7}
+.forecast-day.today .forecast-day-name{opacity:0.9;color:white}
+.forecast-day-icon{font-size:26px;line-height:1;margin:2px 0}
+.forecast-day-max{font-size:15px;font-weight:700}
+.forecast-day-min{font-size:12px;opacity:0.55}
+.forecast-day.today .forecast-day-min{opacity:0.75;color:white}
+.forecast-rain{font-size:10px;opacity:0.6;display:flex;align-items:center;gap:2px}
 </style>
 
 </head>
@@ -280,11 +292,15 @@ will-change:transform;touch-action:none;
   </div>
 </div>
 
+<!-- Hava Durumu Modal — 10 günlük tahmin -->
+
 <div class="modal-overlay" id="weatherModal" onclick="handleOverlayClick(event,'weatherModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div class="modal-title">⛅ Hava Durumu<button class="modal-close-btn" onclick="closeModal('weatherModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
-    <div id="weatherRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div>
+    <div id="weatherCurrentBlock"></div>
+    <div style="padding:0 16px 8px"><span style="font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">10 Günlük Tahmin</span></div>
+    <div id="weatherForecastBlock"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div>
   </div>
 </div>
 
@@ -384,11 +400,9 @@ function closeModal(id) {
   var overlay = document.getElementById(id);
   var sheet   = getSheet(id);
 
-  // Sheet'i aşağı kaydır
   sheet.style.transition = 'transform 0.38s cubic-bezier(0.32,0.72,0,1)';
   sheet.style.transform  = 'translateY(100%)';
 
-  // Arka planı soldur
   overlay.style.transition = 'background 0.38s cubic-bezier(0.32,0.72,0,1)';
   overlay.style.background  = 'rgba(0,0,0,0)';
 
@@ -682,21 +696,64 @@ async function fetchAddress(){
 async function fetchWeather(){
   if(!state.lat)return;
   try{
-    var r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+state.lat+'&longitude='+state.lng+'&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index&wind_speed_unit=kmh&timezone=auto');
-    var d=await r.json();var c=d.current;
+    var r=await fetch(
+      'https://api.open-meteo.com/v1/forecast?latitude='+state.lat+'&longitude='+state.lng+
+      '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index'+
+      '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max'+
+      '&wind_speed_unit=kmh&timezone=auto&forecast_days=10'
+    );
+    var d=await r.json();
+    var c=d.current;
     var temp=c.temperature_2m?c.temperature_2m.toFixed(1):'--';
     var icon=wIcon(c.weather_code||0),desc=wDesc(c.weather_code||0);
+
     document.getElementById('weatherPreview').textContent=temp+'°C';
     document.getElementById('weatherIcon').textContent=icon;
-    document.getElementById('weatherRows').innerHTML=buildRows([
-      ['Durum',icon+' '+desc],['Sıcaklık',temp+'°C'],
+
+    /* ── Şu anki hava kartı ── */
+    var currentHtml='<div style="padding:0 16px 14px">';
+    currentHtml+='<div style="background:linear-gradient(135deg,#1a73e8,#0d5cb8);border-radius:16px;padding:16px 20px;color:white">';
+    currentHtml+='<div style="font-size:13px;opacity:0.85;margin-bottom:4px">Şu an · '+desc+'</div>';
+    currentHtml+='<div style="font-size:52px;font-weight:200;line-height:1.1">'+icon+' '+temp+'°</div>';
+    currentHtml+='<div style="display:flex;gap:16px;margin-top:10px;font-size:13px;opacity:0.9">';
+    currentHtml+='<span>💧 %'+c.relative_humidity_2m+'</span>';
+    currentHtml+='<span>💨 '+c.wind_speed_10m+' km/s</span>';
+    currentHtml+='<span>☀️ UV '+(c.uv_index?c.uv_index.toFixed(1):'-')+'</span>';
+    currentHtml+='</div></div></div>';
+    document.getElementById('weatherCurrentBlock').innerHTML=currentHtml;
+
+    /* ── 10 günlük kaydırmalı kartlar ── */
+    var days=d.daily;
+    var tr=['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'];
+    var scrollHtml='<div class="forecast-scroll">';
+    for(var i=0;i<days.time.length;i++){
+      var dayDate=new Date(days.time[i]+'T12:00:00');
+      var dayName=i===0?'Bugün':tr[dayDate.getDay()];
+      var isToday=i===0;
+      var rain=days.precipitation_probability_max[i]||0;
+      scrollHtml+='<div class="forecast-day'+(isToday?' today':'')+'">';
+      scrollHtml+='<div class="forecast-day-name">'+dayName+'</div>';
+      scrollHtml+='<div class="forecast-day-icon">'+wIcon(days.weather_code[i])+'</div>';
+      scrollHtml+='<div class="forecast-day-max">'+Math.round(days.temperature_2m_max[i])+'°</div>';
+      scrollHtml+='<div class="forecast-day-min">'+Math.round(days.temperature_2m_min[i])+'°</div>';
+      if(rain>10)scrollHtml+='<div class="forecast-rain">💧'+rain+'%</div>';
+      scrollHtml+='</div>';
+    }
+    scrollHtml+='</div>';
+
+    /* ── Detay satırları ── */
+    var detailRows=[
       ['Hissedilen',c.apparent_temperature?c.apparent_temperature.toFixed(1)+'°C':'-'],
-      ['Nem','%'+c.relative_humidity_2m],['Yağış',c.precipitation+' mm'],
-      ['Rüzgar',c.wind_speed_10m+' km/s'],
-      ['Rüzgar Yönü',c.wind_direction_10m+'° '+headingToDir(c.wind_direction_10m)],
-      ['UV',c.uv_index?c.uv_index.toFixed(1):'-']
-    ]);
-  }catch(e){document.getElementById('weatherRows').innerHTML=buildRows([['Hata','Alınamadı']]);}
+      ['Yağış (bugün)',days.precipitation_sum[0]+' mm'],
+      ['Rüzgar',c.wind_speed_10m+' km/s · '+headingToDir(c.wind_direction_10m)],
+      ['Nem','%'+c.relative_humidity_2m],
+      ['UV İndeksi',c.uv_index?c.uv_index.toFixed(1):'-']
+    ];
+    document.getElementById('weatherForecastBlock').innerHTML=scrollHtml+buildRows(detailRows);
+
+  }catch(e){
+    document.getElementById('weatherForecastBlock').innerHTML=buildRows([['Hata','Alınamadı']]);
+  }
 }
 
 function updateSunTimes(){
@@ -775,15 +832,12 @@ function shareAs(type){
 function copyCoord(type){var val=type==='lat'?state.lat:state.lng;if(!val)return;navigator.clipboard&&navigator.clipboard.writeText(val.toFixed(6)).then(function(){showToast((type==='lat'?'Enlem':'Boylam')+' kopyalandı');});}
 
 /* ═══════════════════════════════════════════════════════════════
-   COPY ROW VALUE — tek dokunuşla kopyala
+   COPY ROW VALUE
 ═══════════════════════════════════════════════════════════════ */
 function copyRowValue(el, text) {
   if (!text || text === '-') return;
-
-  // Emoji veya icon'ları soyut metin olarak temizle (opsiyonel)
   var plain = text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim();
   if (!plain) plain = text;
-
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(plain).then(function() {
       flashCopied(el, plain);
@@ -807,7 +861,6 @@ function fallbackCopy(el, text) {
 
 function flashCopied(el, text) {
   el.classList.add('copied');
-  // Kısa metinse toast'u göster
   var display = text.length > 40 ? text.substring(0,40)+'…' : text;
   showToast('Kopyalandı: ' + display);
   setTimeout(function(){ el.classList.remove('copied'); }, 1600);
