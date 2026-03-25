@@ -477,11 +477,9 @@ function attachSwipe(overlayId) {
   var startY = 0, startTime = 0, currentY = 0, isDragging = false;
 
   function onTouchStart(e) {
-    var t  = e.touches[0];
-    var el = document.elementFromPoint(t.clientX, t.clientY);
-    if (!handle.contains(el) && el !== handle) return;
+    /* handle'a doğrudan bağlı — extra kontrol gerekmez */
     isDragging = true;
-    startY     = t.clientY;
+    startY     = e.touches[0].clientY;
     startTime  = Date.now();
     currentY   = 0;
     sheet.classList.add('dragging');
@@ -529,9 +527,10 @@ function attachSwipe(overlayId) {
     currentY = 0;
   }
 
-  sheet.addEventListener('touchstart', onTouchStart, {passive:false});
-  sheet.addEventListener('touchmove',  onTouchMove,  {passive:false});
-  sheet.addEventListener('touchend',   onTouchEnd,   {passive:true});
+  /* touchstart/end handle'a, touchmove document'a — scroll bozmaz */
+  handle.addEventListener('touchstart', onTouchStart, {passive:false});
+  document.addEventListener('touchmove',  onTouchMove,  {passive:false});
+  document.addEventListener('touchend',   onTouchEnd,   {passive:true});
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -771,12 +770,17 @@ async function fetchWeather(){
       var rain    = days.precipitation_probability_max[i] || 0;
       var maxT    = Math.round(days.temperature_2m_max[i]);
       var minT    = Math.round(days.temperature_2m_min[i]);
+      /* today kartında tüm metinler inline style ile zorla — CSS specificity sorununu bypass et */
+      var nameStyle  = isToday ? ' style="color:white;opacity:1;font-weight:700"' : '';
+      var maxStyle   = isToday ? ' style="color:white"' : '';
+      var minStyle   = isToday ? ' style="color:rgba(255,255,255,0.75)"' : '';
+      var rainStyle  = isToday ? ' style="color:rgba(255,255,255,0.85)"' : '';
       scrollHtml += '<div class="forecast-day' + (isToday ? ' today' : '') + '">';
-      scrollHtml += '<div class="forecast-day-name">' + dayName + '</div>';
+      scrollHtml += '<div class="forecast-day-name"' + nameStyle + '>' + dayName + '</div>';
       scrollHtml += '<div class="forecast-day-icon">' + wIcon(days.weather_code[i]) + '</div>';
-      scrollHtml += '<div class="forecast-day-max">' + maxT + '°</div>';
-      scrollHtml += '<div class="forecast-day-min">' + minT + '°</div>';
-      if(rain > 10) scrollHtml += '<div class="forecast-rain">💧' + rain + '%</div>';
+      scrollHtml += '<div class="forecast-day-max"' + maxStyle + '>' + maxT + '°</div>';
+      scrollHtml += '<div class="forecast-day-min"' + minStyle + '>' + minT + '°</div>';
+      if(rain > 10) scrollHtml += '<div class="forecast-rain"' + rainStyle + '>💧' + rain + '%</div>';
       scrollHtml += '</div>';
     }
     scrollHtml += '</div>';
