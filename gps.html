@@ -168,6 +168,13 @@ will-change:transform;touch-action:none;
 .forecast-day-min{font-size:12px;opacity:0.55}
 .forecast-day.today .forecast-day-min{opacity:0.75;color:white}
 .forecast-rain{font-size:10px;opacity:0.6;display:flex;align-items:center;gap:2px}
+
+/* ── Hava durumu modal — scroll yok, içeriğe göre büyür ── */
+.modal-weather{
+overflow-y:visible;
+max-height:none;
+padding-bottom:60px;
+}
 </style>
 
 </head>
@@ -294,7 +301,7 @@ will-change:transform;touch-action:none;
 <!-- Hava Durumu Modal — 10 günlük tahmin -->
 
 <div class="modal-overlay" id="weatherModal" onclick="handleOverlayClick(event,'weatherModal')">
-  <div class="modal" onclick="event.stopPropagation()">
+  <div class="modal modal-weather" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div class="modal-title">⛅ Hava Durumu<button class="modal-close-btn" onclick="closeModal('weatherModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
     <div id="weatherCurrentBlock"></div>
