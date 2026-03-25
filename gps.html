@@ -195,6 +195,8 @@ scroll-snap-align:start;
 .forecast-day-max{font-size:15px;font-weight:700}
 .forecast-day-min{font-size:12px;opacity:0.55}
 .forecast-day.today .forecast-day-min{opacity:0.75;color:white}
+.forecast-day.today .forecast-day-max{color:white}
+.forecast-day.today .forecast-rain{color:white}
 .forecast-rain{font-size:10px;opacity:0.6;display:flex;align-items:center;gap:2px}
 
 /* FIX: Hava detay satırları için ekstra alt boşluk */
@@ -460,86 +462,76 @@ function handleOverlayClick(e, id) {
   if (e.target === document.getElementById(id)) closeModal(id);
 }
 
-/* ── Swipe-to-dismiss: SADECE handle'dan ──────────────── */
+/* ── Swipe-to-dismiss: her modal için sadece BİR KEZ bağlanır ── */
+var swipeAttachedIds = {};
+
 function attachSwipe(overlayId) {
+  if (swipeAttachedIds[overlayId]) return;
+  swipeAttachedIds[overlayId] = true;
+
   var overlay = document.getElementById(overlayId);
   var sheet   = getSheet(overlayId);
   var handle  = sheet.querySelector('.modal-handle, .compass-modal-handle');
-
   if (!handle) return;
 
   var startY = 0, startTime = 0, currentY = 0, isDragging = false;
 
-  function onStart(e) {
-    /* Yalnızca handle'a dokunulduğunda başla */
-    var touch = e.touches ? e.touches[0] : e;
-    var target = document.elementFromPoint(touch.clientX, touch.clientY);
-    if (!handle.contains(target) && target !== handle) return;
-
+  function onTouchStart(e) {
+    var t  = e.touches[0];
+    var el = document.elementFromPoint(t.clientX, t.clientY);
+    if (!handle.contains(el) && el !== handle) return;
     isDragging = true;
-    startY     = touch.clientY;
+    startY     = t.clientY;
     startTime  = Date.now();
     currentY   = 0;
     sheet.classList.add('dragging');
-    e.preventDefault(); /* yalnızca handle touch'larında preventDefault */
-  }
-
-  function onMove(e) {
-    if (!isDragging) return;
-    var touch = e.touches ? e.touches[0] : e;
-    currentY = Math.max(0, touch.clientY - startY);
-    sheet.style.transform = 'translateY(' + currentY + 'px)';
-
-    var ratio = Math.max(0, 1 - currentY / 300);
-    overlay.style.background = 'rgba(0,0,0,' + (0.55 * ratio) + ')';
     e.preventDefault();
   }
 
-  function onEnd() {
+  function onTouchMove(e) {
+    if (!isDragging) return;
+    currentY = Math.max(0, e.touches[0].clientY - startY);
+    sheet.style.transform = 'translateY(' + currentY + 'px)';
+    overlay.style.background = 'rgba(0,0,0,' + Math.max(0, 0.55 * (1 - currentY / 300)) + ')';
+    e.preventDefault();
+  }
+
+  function onTouchEnd() {
     if (!isDragging) return;
     isDragging = false;
     sheet.classList.remove('dragging');
-
-    var elapsed  = Date.now() - startTime;
-    var velocity = currentY / Math.max(elapsed, 1);
+    var velocity = currentY / Math.max(Date.now() - startTime, 1);
 
     if (currentY > DISMISS_THRESHOLD || velocity > VELOCITY_THRESHOLD) {
-      sheet.style.transition = 'transform 0.32s cubic-bezier(0.32,0.72,0,1)';
-      sheet.style.transform  = 'translateY(100%)';
+      sheet.style.transition   = 'transform 0.32s cubic-bezier(0.32,0.72,0,1)';
+      sheet.style.transform    = 'translateY(100%)';
       overlay.style.transition = 'background 0.32s';
       overlay.style.background = 'rgba(0,0,0,0)';
       setTimeout(function() {
-        overlay.style.display = 'none';
+        overlay.style.display    = 'none';
         overlay.style.background = '';
         overlay.style.transition = '';
         overlay.classList.remove('anim-in','anim-out');
-        sheet.style.transform  = '';
-        sheet.style.transition = '';
+        sheet.style.transform    = '';
+        sheet.style.transition   = '';
         document.body.style.overflow = '';
         if (overlayId === 'compassModal' && compassRAF) {
           cancelAnimationFrame(compassRAF); compassRAF = null;
         }
       }, 340);
     } else {
-      sheet.style.transition = 'transform 0.45s cubic-bezier(0.32,0.72,0,1)';
-      sheet.style.transform  = 'translateY(0)';
+      sheet.style.transition   = 'transform 0.45s cubic-bezier(0.32,0.72,0,1)';
+      sheet.style.transform    = 'translateY(0)';
       overlay.style.transition = 'background 0.45s';
       overlay.style.background = 'rgba(0,0,0,0.55)';
-      setTimeout(function() {
-        sheet.style.transition = '';
-        overlay.style.transition = '';
-      }, 460);
+      setTimeout(function() { sheet.style.transition = ''; overlay.style.transition = ''; }, 460);
     }
     currentY = 0;
   }
 
-  /* passive:false sadece onMove'da gerekli, onStart'ta da gerekli */
-  handle.addEventListener('touchstart', onStart, {passive:false});
-  document.addEventListener('touchmove',  onMove,  {passive:false});
-  document.addEventListener('touchend',   onEnd,   {passive:true});
-  handle.addEventListener('mousedown',  onStart);
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('mouseup',   onEnd);
+  sheet.addEventListener('touchstart', onTouchStart, {passive:false});
+  sheet.addEventListener('touchmove',  onTouchMove,  {passive:false});
+  sheet.addEventListener('touchend',   onTouchEnd,   {passive:true});
 }
 
 /* ═══════════════════════════════════════════════════════
