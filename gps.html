@@ -79,17 +79,6 @@ margin:0 auto 16px;
 pointer-events:none;
 flex-shrink:0;
 }
-/* Handle bölgesi görsel ipucu — başlık dahil ilk kısım */
-.modal > .modal-handle,
-.modal > .modal-title {
-  cursor: grab;
-  user-select: none;
-  -webkit-user-select: none;
-}
-.modal > .modal-handle:active,
-.modal > .modal-title:active {
-  cursor: grabbing;
-}
 .compass-modal-handle{
 width:36px;height:4px;background:#444;border-radius:3px;
 margin:12px auto 0;
@@ -587,68 +576,33 @@ function handleOverlayClick(e, id) {
   if (e.target === document.getElementById(id)) closeModal(id);
 }
 
-/* ── Swipe-to-dismiss — SADECE HANDLE + BAŞLIK BÖLGESINDEN ── */
+/* ── Swipe-to-dismiss ── */
 var swipeAttachedIds = {};
-
-/* Dokunulan elementin yatay scroll eden bir container içinde olup olmadığını kontrol et */
-function isInsideHorizontalScroller(target, sheet) {
-  var el = target;
-  while (el && el !== sheet) {
-    var style = window.getComputedStyle(el);
-    var overflowX = style.overflowX;
-    if ((overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth + 2) {
-      return true;
-    }
-    el = el.parentElement;
-  }
-  return false;
-}
-
 function attachSwipe(overlayId) {
   if (swipeAttachedIds[overlayId]) return;
   swipeAttachedIds[overlayId] = true;
 
   var overlay   = document.getElementById(overlayId);
   var sheet     = getSheet(overlayId);
-
-  /* Handle bölgesi: handle div + modal-title = sheet'in üst ~80px */
-  var HANDLE_ZONE_HEIGHT = 84; /* px — handle(4) + margin(16) + title(~48) + biraz pay */
-
   var startY    = 0;
-  var startX    = 0;
   var startTime = 0;
   var currentY  = 0;
   var isDragging = false;
-  var isHandleZone = false;
+  var startScrollTop = 0;
 
   sheet.addEventListener('touchstart', function(e) {
-    /* Dokunulan nokta handle bölgesinde mi? (sheet'in üstüne göre relatif) */
-    var rect = sheet.getBoundingClientRect();
-    var touchY = e.touches[0].clientY - rect.top;
-    isHandleZone = (touchY <= HANDLE_ZONE_HEIGHT);
-
+    startScrollTop = sheet.scrollTop;
     startY    = e.touches[0].clientY;
-    startX    = e.touches[0].clientX;
     startTime = Date.now();
     currentY  = 0;
     isDragging = false;
   }, {passive: true});
 
   sheet.addEventListener('touchmove', function(e) {
-    /* Sadece handle bölgesinden başlayan dokunuşlar dismiss yapabilir */
-    if (!isHandleZone) return;
-
     var dy = e.touches[0].clientY - startY;
-    var dx = e.touches[0].clientX - startX;
-
-    /* Yatay hareket baskınsa dismiss etme */
-    if (!isDragging && Math.abs(dx) > Math.abs(dy) + 4) {
-      isHandleZone = false;
-      return;
-    }
 
     if (!isDragging) {
-      if (dy > 6) {
+      if (dy > 6 && startScrollTop <= 0) {
         isDragging = true;
         sheet.classList.add('dragging');
       } else {
@@ -660,7 +614,6 @@ function attachSwipe(overlayId) {
       if (dy < 0) {
         isDragging = false;
         sheet.classList.remove('dragging');
-        isHandleZone = false;
         return;
       }
       currentY = dy;
@@ -671,9 +624,8 @@ function attachSwipe(overlayId) {
   }, {passive: false});
 
   sheet.addEventListener('touchend', function() {
-    if (!isDragging) { currentY = 0; return; }
+    if (!isDragging) return;
     isDragging = false;
-    isHandleZone = false;
     sheet.classList.remove('dragging');
 
     var velocity = currentY / Math.max(Date.now() - startTime, 1);
@@ -711,12 +663,11 @@ function attachSwipe(overlayId) {
 
 /* ═══════════════════════════════════════════════════════
    GÜN DETAY YATAY SWIPE (sol/sağ gün geçişi)
-   — forecast-scroll ve hourly-scroll içindeyken tetiklenme
 ═══════════════════════════════════════════════════════ */
 var daySwipeStartX = 0;
 var daySwipeStartY = 0;
 var daySwipeActive = false;
-var daySwipeLocked = false;
+var daySwipeLocked = false; /* yatay mı dikey mi kilitlendi */
 var DAY_SWIPE_THRESHOLD = 50;
 
 function attachDaySwipe() {
@@ -725,11 +676,6 @@ function attachDaySwipe() {
   content._daySwipeAttached = true;
 
   content.addEventListener('touchstart', function(e) {
-    /* Yatay scroll container içindeyse gün geçişini başlatma */
-    if (isInsideHorizontalScroller(e.target, content)) {
-      daySwipeActive = false;
-      return;
-    }
     daySwipeStartX = e.touches[0].clientX;
     daySwipeStartY = e.touches[0].clientY;
     daySwipeActive = true;
@@ -742,6 +688,7 @@ function attachDaySwipe() {
     var dy = e.touches[0].clientY - daySwipeStartY;
 
     if (!daySwipeLocked) {
+      /* Hangisi daha baskın? */
       if (Math.abs(dx) > Math.abs(dy) + 5) {
         daySwipeLocked = 'horizontal';
       } else if (Math.abs(dy) > Math.abs(dx) + 5) {
@@ -752,7 +699,7 @@ function attachDaySwipe() {
     }
 
     if (daySwipeLocked === 'horizontal') {
-      e.preventDefault();
+      e.preventDefault(); /* dikey scroll'u engelle */
     }
   }, {passive: false});
 
@@ -765,8 +712,10 @@ function attachDaySwipe() {
     var dx = e.changedTouches[0].clientX - daySwipeStartX;
 
     if (dx < -DAY_SWIPE_THRESHOLD) {
+      /* Sola kaydır → sonraki gün */
       navigateDayDetail(1);
     } else if (dx > DAY_SWIPE_THRESHOLD) {
+      /* Sağa kaydır → önceki gün */
       navigateDayDetail(-1);
     }
   }, {passive: true});
