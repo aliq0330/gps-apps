@@ -1434,58 +1434,15 @@ function showToast(msg){var t=document.getElementById('toast');t.textContent=msg
 /* ═══════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════ */
-/* --- SADECE İLGİLİ MODAL KAPATMA MANTIĞI GÜNCELLENMİŞTİR --- */
-
-function initSwipeToClose(modalId) {
-  const overlay = document.getElementById(modalId);
-  const modal = overlay.querySelector('.modal, .compass-modal-inner');
-  if (!modal) return;
-
-  let startY = 0;
-  let currentY = 0;
-  let isDragging = false;
-
-  modal.addEventListener('touchstart', (e) => {
-    // GÜNCELLEME: Hava durumu modallarında sadece başlık veya handle üzerinden sürüklemeye izin ver
-    if (modalId === 'weatherModal' || modalId === 'dayDetailModal') {
-      const isHandle = e.target.closest('.modal-handle');
-      const isTitle = e.target.closest('.modal-title');
-      if (!isHandle && !isTitle) return; 
-    }
-    
-    // Diğer modallar veya başlık/handle tespiti sonrası normal işleyiş
-    if (modal.scrollTop > 0) return;
-    startY = e.touches[0].clientY;
-    isDragging = true;
-    modal.classList.add('dragging');
-  }, { passive: true });
-
-  modal.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    currentY = e.touches[0].clientY;
-    const diff = currentY - startY;
-    if (diff > 0) {
-      modal.style.transform = `translateY(${diff}px)`;
-    }
-  }, { passive: true });
-
-  modal.addEventListener('touchend', () => {
-    if (!isDragging) return;
-    isDragging = false;
-    modal.classList.remove('dragging');
-    const diff = currentY - startY;
-    if (diff > 100) {
-      closeModal(modalId);
-    } else {
-      modal.style.transform = '';
-    }
-    startY = 0;
-    currentY = 0;
-  });
-}
-
-/* --- KODUN GERİ KALANINDA HİÇBİR DEĞİŞİKLİK YAPILMAMIŞTIR --- */
-
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    document.querySelectorAll('.modal-overlay').forEach(function(m){
+      if(m.style.display==='flex')closeModal(m.id);
+    });
+  }
+  if(e.key==='ArrowRight'&&document.getElementById('dayDetailModal').style.display==='flex'){navigateDayDetail(1);}
+  if(e.key==='ArrowLeft'&&document.getElementById('dayDetailModal').style.display==='flex'){navigateDayDetail(-1);}
+});
 window.addEventListener('DOMContentLoaded',function(){
   drawCompassCanvas(0);
   if(navigator.geolocation){
