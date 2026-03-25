@@ -75,7 +75,6 @@ position:relative;
 transform:translateY(100%);
 transition:transform 0.42s cubic-bezier(0.32,0.72,0,1);
 will-change:transform;
-touch-action:none;
 }
 .modal-overlay.anim-in .modal{transform:translateY(0)}
 .modal-overlay.anim-out .modal{transform:translateY(100%)}
@@ -432,34 +431,51 @@ function attachSwipe(overlayId) {
   var overlay   = document.getElementById(overlayId);
   var sheet     = getSheet(overlayId);
   var handle    = sheet.querySelector('.modal-handle, .compass-modal-handle');
-  var dragZone  = sheet.querySelector('.modal-title') || handle;
 
   if (!handle) return;
 
-  var startY = 0, startTime = 0, currentY = 0, isDragging = false;
+  var startY = 0, startX = 0, startTime = 0, currentY = 0;
+  var isDragging = false, directionLocked = false, isVertical = false;
 
   function onStart(e) {
-    var target = e.target;
-    var isHandle = handle.contains(target) || (dragZone && dragZone.contains(target));
-    if (!isHandle && sheet.scrollTop > 0) return;
+    // Sadece handle'dan başlat
+    var touch = e.touches ? e.touches[0] : e;
+    if (!handle.contains(e.target)) return;
 
-    isDragging = true;
-    startY     = e.touches ? e.touches[0].clientY : e.clientY;
-    startTime  = Date.now();
-    currentY   = 0;
+    isDragging     = true;
+    directionLocked = false;
+    isVertical     = false;
+    startY         = touch.clientY;
+    startX         = touch.clientX;
+    startTime      = Date.now();
+    currentY       = 0;
     sheet.classList.add('dragging');
-    e.stopPropagation();
   }
 
   function onMove(e) {
     if (!isDragging) return;
-    var y = e.touches ? e.touches[0].clientY : e.clientY;
-    currentY = Math.max(0, y - startY);
-    sheet.style.transform = 'translateY(' + currentY + 'px)';
+    var touch = e.touches ? e.touches[0] : e;
+    var dy = touch.clientY - startY;
+    var dx = touch.clientX - startX;
 
+    // İlk 6px hareketle yönü belirle
+    if (!directionLocked && (Math.abs(dy) > 6 || Math.abs(dx) > 6)) {
+      isVertical      = Math.abs(dy) >= Math.abs(dx);
+      directionLocked = true;
+    }
+
+    if (!directionLocked) return;
+
+    // Yatay hareket → dokunmaya karışma, kaydırma serbest
+    if (!isVertical) return;
+
+    // Dikey ama yukarı sürükleme → müdahale etme
+    if (dy < 0) return;
+
+    currentY = dy;
+    sheet.style.transform = 'translateY(' + currentY + 'px)';
     var ratio = Math.max(0, 1 - currentY / 300);
     overlay.style.background = 'rgba(0,0,0,' + (0.55 * ratio) + ')';
-
     e.preventDefault();
   }
 
@@ -501,12 +517,12 @@ function attachSwipe(overlayId) {
     currentY = 0;
   }
 
-  sheet.addEventListener('touchstart', onStart, {passive:true});
-  sheet.addEventListener('touchmove',  onMove,  {passive:false});
-  sheet.addEventListener('touchend',   onEnd,   {passive:true});
-  sheet.addEventListener('mousedown',  onStart);
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('mouseup',   onEnd);
+  handle.addEventListener('touchstart', onStart, {passive:true});
+  sheet.addEventListener('touchmove',   onMove,  {passive:false});
+  sheet.addEventListener('touchend',    onEnd,   {passive:true});
+  handle.addEventListener('mousedown',  onStart);
+  window.addEventListener('mousemove',  onMove);
+  window.addEventListener('mouseup',    onEnd);
 }
 
 /* ═══════════════════════════════════════════════════════════════
