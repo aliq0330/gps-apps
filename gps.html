@@ -1434,40 +1434,6 @@ function showToast(msg){var t=document.getElementById('toast');t.textContent=msg
 /* ═══════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════ */
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){
-    document.querySelectorAll('.modal-overlay').forEach(function(m){
-      if(m.style.display==='flex')closeModal(m.id);
-    });
-  }
-  if(e.key==='ArrowRight'&&document.getElementById('dayDetailModal').style.display==='flex'){navigateDayDetail(1);}
-  if(e.key==='ArrowLeft'&&document.getElementById('dayDetailModal').style.display==='flex'){navigateDayDetail(-1);}
-});
-window.addEventListener('DOMContentLoaded',function(){
-  drawCompassCanvas(0);
-  if(navigator.geolocation){
-    setStatus('loading','Konum izni bekleniyor…');
-    var btn=document.getElementById('getLocBtn');
-    btn.disabled=true;
-    btn.innerHTML='<div class="spinner"></div> Konum Alınıyor…';
-    state.watchId=navigator.geolocation.watchPosition(
-      onPosition,
-      function(err){var m={1:'Konum izni reddedildi',2:'Konum alınamadı',3:'Zaman aşımı'};setStatus('',m[err.code]||'Hata');resetBtn();},
-      {enableHighAccuracy:true,timeout:15000,maximumAge:0}
-    );
-  }
-  if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
-    document.getElementById('getLocBtn').addEventListener('click',function requestOnce(){
-      DeviceOrientationEvent.requestPermission().then(function(result){
-        if(result==='granted'){state.compassListener=onDeviceOrientation;window.addEventListener('deviceorientation',state.compassListener,true);document.getElementById('compassPermissionArea').style.display='none';}
-      }).catch(function(){});
-    },{once:true});
-  }else if(typeof DeviceOrientationEvent!=='undefined'){
-    state.compassListener=onDeviceOrientation;
-    window.addEventListener('deviceorientation',state.compassListener,true);
-  }
-});
-
 /* --- SADECE İLGİLİ MODAL KAPATMA MANTIĞI GÜNCELLENMİŞTİR --- */
 
 function initSwipeToClose(modalId) {
@@ -1517,8 +1483,33 @@ function initSwipeToClose(modalId) {
     currentY = 0;
   });
 }
+
 /* --- KODUN GERİ KALANINDA HİÇBİR DEĞİŞİKLİK YAPILMAMIŞTIR --- */
 
+window.addEventListener('DOMContentLoaded',function(){
+  drawCompassCanvas(0);
+  if(navigator.geolocation){
+    setStatus('loading','Konum izni bekleniyor…');
+    var btn=document.getElementById('getLocBtn');
+    btn.disabled=true;
+    btn.innerHTML='<div class="spinner"></div> Konum Alınıyor…';
+    state.watchId=navigator.geolocation.watchPosition(
+      onPosition,
+      function(err){var m={1:'Konum izni reddedildi',2:'Konum alınamadı',3:'Zaman aşımı'};setStatus('',m[err.code]||'Hata');resetBtn();},
+      {enableHighAccuracy:true,timeout:15000,maximumAge:0}
+    );
+  }
+  if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+    document.getElementById('getLocBtn').addEventListener('click',function requestOnce(){
+      DeviceOrientationEvent.requestPermission().then(function(result){
+        if(result==='granted'){state.compassListener=onDeviceOrientation;window.addEventListener('deviceorientation',state.compassListener,true);document.getElementById('compassPermissionArea').style.display='none';}
+      }).catch(function(){});
+    },{once:true});
+  }else if(typeof DeviceOrientationEvent!=='undefined'){
+    state.compassListener=onDeviceOrientation;
+    window.addEventListener('deviceorientation',state.compassListener,true);
+  }
+});
 </script>
 
 </body>
