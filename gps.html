@@ -80,9 +80,13 @@ will-change:transform;
 .modal.dragging{transition:none!important}
 
 .modal-handle{
-width:36px;height:5px;background:#d1d1d6;border-radius:3px;
+width:60px;height:5px;background:#d1d1d6;border-radius:3px;
 margin:0 auto 18px;cursor:grab;touch-action:none;
 -webkit-tap-highlight-color:transparent;flex-shrink:0;
+/* Görünmez hit alanını büyüt */
+padding:12px 30px;
+box-sizing:content-box;
+margin-top:-12px;
 }
 .modal-handle:active{cursor:grabbing;background:#b0b0b8}
 
@@ -147,7 +151,7 @@ will-change:transform;
 .modal-overlay.anim-in .compass-modal-inner{transform:translateY(0)}
 .modal-overlay.anim-out .compass-modal-inner{transform:translateY(100%)}
 .compass-modal-inner.dragging{transition:none!important}
-.compass-modal-handle{width:36px;height:5px;background:#444;border-radius:3px;margin:16px auto 0;cursor:grab;touch-action:none;-webkit-tap-highlight-color:transparent;}
+.compass-modal-handle{width:60px;height:5px;background:#444;border-radius:3px;margin:16px auto 0;cursor:grab;touch-action:none;-webkit-tap-highlight-color:transparent;padding:12px 30px;box-sizing:content-box;margin-top:4px;}
 .compass-modal-handle:active{cursor:grabbing;background:#666}
 .compass-modal-close{position:absolute;top:20px;right:20px;width:28px;height:28px;border-radius:50%;background:#1c1c1e;border:none;color:#8e8e93;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
 .iphone-compass-heading{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,sans-serif;font-size:72px;font-weight:200;letter-spacing:-3px;color:#fff;text-align:center;padding:32px 0 4px;line-height:1}
@@ -165,17 +169,15 @@ will-change:transform;
 .compass-status-text{font-size:12px;color:#8e8e93;text-align:center;padding:0 20px 10px}
 
 /* ── 10 Günlük Hava Durumu ───────────────────────────────── */
-/* FIX: overflow-x:auto + touch-action:pan-x ile yatay kaydırma */
 .forecast-scroll{
 display:flex;
 gap:8px;
 overflow-x:auto;
 overflow-y:hidden;
+overscroll-behavior-x:contain;
 padding:0 16px 16px;
 scrollbar-width:none;
 -webkit-overflow-scrolling:touch;
-touch-action:pan-x;          /* ← yatay kaydırmaya izin ver */
-scroll-snap-type:x mandatory;
 }
 .forecast-scroll::-webkit-scrollbar{display:none}
 
@@ -186,9 +188,8 @@ background:var(–bg);
 border-radius:14px;
 padding:10px 6px;
 display:flex;flex-direction:column;align-items:center;gap:4px;
-scroll-snap-align:start;
 }
-.forecast-day.today{background:var(–blue);color:white}
+.forecast-day.today{background:#5a9ef5;color:#000000}
 .forecast-day-name{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;opacity:0.7}
 .forecast-day.today .forecast-day-name{opacity:0.9;color:white}
 .forecast-day-icon{font-size:26px;line-height:1;margin:2px 0}
@@ -471,30 +472,37 @@ function attachSwipe(overlayId) {
 
   var overlay = document.getElementById(overlayId);
   var sheet   = getSheet(overlayId);
-  var handle  = sheet.querySelector('.modal-handle, .compass-modal-handle');
-  if (!handle) return;
 
   var startY = 0, startTime = 0, currentY = 0, isDragging = false;
 
-  function onTouchStart(e) {
-    /* handle'a doğrudan bağlı — extra kontrol gerekmez */
+  sheet.addEventListener('touchstart', function(e) {
+    /* Modal en üstteyken (scrollTop=0) VEYA handle bölgesine dokunulunca başla */
+    var handle = sheet.querySelector('.modal-handle, .compass-modal-handle');
+    var touchY = e.touches[0].clientY;
+    var sheetTop = sheet.getBoundingClientRect().top;
+    var isNearTop = (touchY - sheetTop) < 60; /* üstten 60px içinde */
+    var isHandle  = handle && handle.getBoundingClientRect().bottom >= touchY && touchY >= handle.getBoundingClientRect().top - 20;
+    
+    if (!isHandle && !(sheet.scrollTop <= 0 && isNearTop)) return;
+    
     isDragging = true;
-    startY     = e.touches[0].clientY;
+    startY     = touchY;
     startTime  = Date.now();
     currentY   = 0;
     sheet.classList.add('dragging');
-    e.preventDefault();
-  }
+  }, {passive:true});
 
-  function onTouchMove(e) {
+  document.addEventListener('touchmove', function(e) {
     if (!isDragging) return;
-    currentY = Math.max(0, e.touches[0].clientY - startY);
+    var dy = e.touches[0].clientY - startY;
+    if (dy < 0) { isDragging = false; return; } /* yukarı scroll — iptal */
+    currentY = dy;
     sheet.style.transform = 'translateY(' + currentY + 'px)';
     overlay.style.background = 'rgba(0,0,0,' + Math.max(0, 0.55 * (1 - currentY / 300)) + ')';
     e.preventDefault();
-  }
+  }, {passive:false});
 
-  function onTouchEnd() {
+  document.addEventListener('touchend', function() {
     if (!isDragging) return;
     isDragging = false;
     sheet.classList.remove('dragging');
@@ -525,12 +533,7 @@ function attachSwipe(overlayId) {
       setTimeout(function() { sheet.style.transition = ''; overlay.style.transition = ''; }, 460);
     }
     currentY = 0;
-  }
-
-  /* touchstart/end handle'a, touchmove document'a — scroll bozmaz */
-  handle.addEventListener('touchstart', onTouchStart, {passive:false});
-  document.addEventListener('touchmove',  onTouchMove,  {passive:false});
-  document.addEventListener('touchend',   onTouchEnd,   {passive:true});
+  }, {passive:true});
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -771,10 +774,10 @@ async function fetchWeather(){
       var maxT    = Math.round(days.temperature_2m_max[i]);
       var minT    = Math.round(days.temperature_2m_min[i]);
       /* today kartında tüm metinler inline style ile zorla — CSS specificity sorununu bypass et */
-      var nameStyle  = isToday ? ' style="color:white;opacity:1;font-weight:700"' : '';
-      var maxStyle   = isToday ? ' style="color:white"' : '';
-      var minStyle   = isToday ? ' style="color:rgba(255,255,255,0.75)"' : '';
-      var rainStyle  = isToday ? ' style="color:rgba(255,255,255,0.85)"' : '';
+      var nameStyle  = isToday ? ' style="color:#000000;opacity:1;font-weight:700"' : '';
+      var maxStyle   = isToday ? ' style="color:#000000;font-weight:800"' : '';
+      var minStyle   = isToday ? ' style="color:rgba(0,0,0,0.6)"' : '';
+      var rainStyle  = isToday ? ' style="color:rgba(0,0,0,0.7)"' : '';
       scrollHtml += '<div class="forecast-day' + (isToday ? ' today' : '') + '">';
       scrollHtml += '<div class="forecast-day-name"' + nameStyle + '>' + dayName + '</div>';
       scrollHtml += '<div class="forecast-day-icon">' + wIcon(days.weather_code[i]) + '</div>';
