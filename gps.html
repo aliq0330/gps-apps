@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GPS Konum</title><link rel="preconnect" href="https://fonts.googleapis.com">
- 
+
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -13,6 +13,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
 .gps-card{background:var(--card);border-radius:20px;padding:20px 22px;border:2.5px solid var(--blue);margin-bottom:10px;box-shadow:0 2px 16px rgba(26,115,232,0.10)}
 .coord-row{display:flex;align-items:center;gap:12px;margin-bottom:6px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .coord-icon{width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.coord-icon svg{width:28px;height:28px;display:block;}
 .coord-value{font-family:'Space Mono',monospace;font-size:30px;font-weight:700;color:var(--text);letter-spacing:-1px;line-height:1}
 .gps-meta{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:14px;margin-top:10px}
 .meta-item{display:flex;align-items:center;gap:6px;color:var(--sub);font-size:14px;font-weight:500}
@@ -304,6 +305,13 @@ opacity:0;transform:translateX(40px);
 #dayDetailContent.swipe-in-right{
 opacity:0;transform:translateX(-40px);
 }
+
+/* ── Hava & Gün Detay: sadece başlık drag alanı ── */
+.modal-drag-handle-area {
+cursor: grab;
+user-select: none;
+-webkit-user-select: none;
+}
 </style>
 
 </head>
@@ -321,11 +329,25 @@ opacity:0;transform:translateX(-40px);
 
   <div class="gps-card">
     <div class="coord-row" onclick="copyCoord('lat')">
-      <div class="coord-icon"><svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#1a73e8" stroke-width="2"/><ellipse cx="14" cy="14" rx="12" ry="6" stroke="#1a73e8" stroke-width="1.5"/><line x1="2" y1="14" x2="26" y2="14" stroke="#1a73e8" stroke-width="1.5"/><line x1="14" y1="2" x2="14" y2="26" stroke="#1a73e8" stroke-width="1.5"/></svg></div>
+      <div class="coord-icon">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="14" cy="14" r="12" stroke="#1a73e8" stroke-width="2"/>
+          <ellipse cx="14" cy="14" rx="12" ry="6" stroke="#1a73e8" stroke-width="1.5"/>
+          <line x1="2" y1="14" x2="26" y2="14" stroke="#1a73e8" stroke-width="1.5"/>
+          <line x1="14" y1="2" x2="14" y2="26" stroke="#1a73e8" stroke-width="1.5"/>
+        </svg>
+      </div>
       <div class="coord-value" id="latDisplay">---.------</div>
     </div>
     <div class="coord-row" onclick="copyCoord('lng')">
-      <div class="coord-icon"><svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#1a73e8" stroke-width="2"/><ellipse cx="14" cy="14" rx="6" ry="12" stroke="#1a73e8" stroke-width="1.5"/><line x1="2" y1="14" x2="26" y2="14" stroke="#1a73e8" stroke-width="1.5"/><line x1="14" y1="2" x2="14" y2="26" stroke="#1a73e8" stroke-width="1.5"/></svg></div>
+      <div class="coord-icon">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="14" cy="14" r="12" stroke="#1a73e8" stroke-width="2"/>
+          <ellipse cx="14" cy="14" rx="6" ry="12" stroke="#1a73e8" stroke-width="1.5"/>
+          <line x1="2" y1="14" x2="26" y2="14" stroke="#1a73e8" stroke-width="1.5"/>
+          <line x1="14" y1="2" x2="14" y2="26" stroke="#1a73e8" stroke-width="1.5"/>
+        </svg>
+      </div>
       <div class="coord-value" id="lngDisplay">---.------</div>
     </div>
     <div class="gps-meta">
@@ -427,10 +449,14 @@ opacity:0;transform:translateX(-40px);
   </div>
 </div>
 
+<!-- Hava Durumu Modal: modal-handle + modal-title = drag alanı -->
+
 <div class="modal-overlay" id="weatherModal" onclick="handleOverlayClick(event,'weatherModal')">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-handle"></div>
-    <div class="modal-title">⛅ Hava Durumu<button class="modal-close-btn" onclick="closeModal('weatherModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+    <div class="modal-drag-handle-area" id="weatherDragArea">
+      <div class="modal-handle"></div>
+      <div class="modal-title">⛅ Hava Durumu<button class="modal-close-btn" onclick="closeModal('weatherModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+    </div>
     <div id="weatherCurrentBlock"></div>
     <div style="padding:0 16px 8px"><span style="font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">10 Günlük Tahmin</span></div>
     <div id="weatherForecastBlock"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div>
@@ -485,14 +511,16 @@ opacity:0;transform:translateX(-40px);
 
 <div class="toast" id="toast"></div>
 
-<!-- Gün Detay Modal -->
+<!-- Gün Detay Modal: sadece başlık drag alanı -->
 
 <div class="modal-overlay" id="dayDetailModal" onclick="handleOverlayClick(event,'dayDetailModal')">
   <div class="modal" id="dayDetailSheet" onclick="event.stopPropagation()" style="background:var(--bg)">
-    <div class="modal-handle"></div>
-    <div class="modal-title" style="background:var(--bg)">
-      <span id="dayDetailTitle">Gün Detayı</span>
-      <button class="modal-close-btn" onclick="closeModal('dayDetailModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    <div class="modal-drag-handle-area" id="dayDetailDragArea">
+      <div class="modal-handle"></div>
+      <div class="modal-title" style="background:var(--bg)">
+        <span id="dayDetailTitle">Gün Detayı</span>
+        <button class="modal-close-btn" onclick="closeModal('dayDetailModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      </div>
     </div>
     <!-- Navigasyon: ok butonları + noktalar -->
     <div class="day-detail-nav" id="dayDetailNav">
@@ -519,15 +547,14 @@ var state = {
   addressCity:'',weatherData:null
 };
 
-/* Gün detay için mevcut indeks */
 var currentDayIdx = 0;
 var totalDays = 0;
 
 /* ═══════════════════════════════════════════════════════
-   MODAL ANIMATION + SWIPE TO DISMISS
+   MODAL ANIMATION
 ═══════════════════════════════════════════════════════ */
-var DISMISS_THRESHOLD = 100;
-var VELOCITY_THRESHOLD = 0.5;
+var DISMISS_THRESHOLD = 80;
+var VELOCITY_THRESHOLD = 0.4;
 
 function getSheet(overlayId) {
   var overlay = document.getElementById(overlayId);
@@ -546,7 +573,14 @@ function openModal(id) {
     });
   });
   document.body.style.overflow = 'hidden';
-  attachSwipe(id);
+  /* Swipe tipini belirle */
+  if (id === 'weatherModal') {
+    attachHeaderOnlySwipe(id, 'weatherDragArea');
+  } else if (id === 'dayDetailModal') {
+    attachHeaderOnlySwipe(id, 'dayDetailDragArea');
+  } else {
+    attachSwipe(id);
+  }
 }
 
 function closeModal(id) {
@@ -576,7 +610,7 @@ function handleOverlayClick(e, id) {
   if (e.target === document.getElementById(id)) closeModal(id);
 }
 
-/* ── Swipe-to-dismiss ── */
+/* ── Genel Swipe-to-dismiss (tüm modal) ── */
 var swipeAttachedIds = {};
 function attachSwipe(overlayId) {
   if (swipeAttachedIds[overlayId]) return;
@@ -600,22 +634,12 @@ function attachSwipe(overlayId) {
 
   sheet.addEventListener('touchmove', function(e) {
     var dy = e.touches[0].clientY - startY;
-
     if (!isDragging) {
-      if (dy > 6 && startScrollTop <= 0) {
-        isDragging = true;
-        sheet.classList.add('dragging');
-      } else {
-        return;
-      }
+      if (dy > 6 && startScrollTop <= 0) { isDragging = true; sheet.classList.add('dragging'); }
+      else return;
     }
-
     if (isDragging) {
-      if (dy < 0) {
-        isDragging = false;
-        sheet.classList.remove('dragging');
-        return;
-      }
+      if (dy < 0) { isDragging = false; sheet.classList.remove('dragging'); return; }
       currentY = dy;
       sheet.style.transform = 'translateY(' + currentY + 'px)';
       overlay.style.background = 'rgba(0,0,0,' + Math.max(0, 0.55 * (1 - currentY / 300)) + ')';
@@ -627,47 +651,100 @@ function attachSwipe(overlayId) {
     if (!isDragging) return;
     isDragging = false;
     sheet.classList.remove('dragging');
-
     var velocity = currentY / Math.max(Date.now() - startTime, 1);
-
     if (currentY > DISMISS_THRESHOLD || velocity > VELOCITY_THRESHOLD) {
-      sheet.style.transition   = 'transform 0.32s cubic-bezier(0.32,0.72,0,1)';
-      sheet.style.transform    = 'translateY(100%)';
-      overlay.style.transition = 'background 0.32s';
-      overlay.style.background = 'rgba(0,0,0,0)';
-      setTimeout(function() {
-        overlay.style.display    = 'none';
-        overlay.style.background = '';
-        overlay.style.transition = '';
-        overlay.classList.remove('anim-in', 'anim-out');
-        sheet.style.transform    = '';
-        sheet.style.transition   = '';
-        document.body.style.overflow = '';
-        if (overlayId === 'compassModal' && compassRAF) {
-          cancelAnimationFrame(compassRAF); compassRAF = null;
-        }
-      }, 340);
+      dismissSheet(overlayId, sheet, overlay);
     } else {
-      sheet.style.transition   = 'transform 0.45s cubic-bezier(0.32,0.72,0,1)';
-      sheet.style.transform    = 'translateY(0)';
-      overlay.style.transition = 'background 0.45s';
-      overlay.style.background = 'rgba(0,0,0,0.55)';
-      setTimeout(function() {
-        sheet.style.transition = '';
-        overlay.style.transition = '';
-      }, 460);
+      snapBack(sheet, overlay);
     }
     currentY = 0;
   }, {passive: true});
 }
 
+/* ── Header-only Swipe-to-dismiss (hava & gün detay) ── */
+var headerSwipeAttached = {};
+function attachHeaderOnlySwipe(overlayId, dragAreaId) {
+  if (headerSwipeAttached[overlayId]) return;
+  headerSwipeAttached[overlayId] = true;
+
+  var overlay  = document.getElementById(overlayId);
+  var sheet    = getSheet(overlayId);
+  var dragArea = document.getElementById(dragAreaId);
+
+  var startY   = 0;
+  var startTime= 0;
+  var currentY = 0;
+  var isDragging = false;
+
+  dragArea.addEventListener('touchstart', function(e) {
+    startY    = e.touches[0].clientY;
+    startTime = Date.now();
+    currentY  = 0;
+    isDragging = true;
+    sheet.classList.add('dragging');
+  }, {passive: true});
+
+  dragArea.addEventListener('touchmove', function(e) {
+    if (!isDragging) return;
+    var dy = e.touches[0].clientY - startY;
+    if (dy < 0) { /* yukarı çekme engelle */ return; }
+    currentY = dy;
+    sheet.style.transform = 'translateY(' + currentY + 'px)';
+    overlay.style.background = 'rgba(0,0,0,' + Math.max(0, 0.55 * (1 - currentY / 300)) + ')';
+    e.preventDefault();
+  }, {passive: false});
+
+  dragArea.addEventListener('touchend', function() {
+    if (!isDragging) return;
+    isDragging = false;
+    sheet.classList.remove('dragging');
+    var velocity = currentY / Math.max(Date.now() - startTime, 1);
+    if (currentY > DISMISS_THRESHOLD || velocity > VELOCITY_THRESHOLD) {
+      dismissSheet(overlayId, sheet, overlay);
+    } else {
+      snapBack(sheet, overlay);
+    }
+    currentY = 0;
+  }, {passive: true});
+}
+
+function dismissSheet(overlayId, sheet, overlay) {
+  sheet.style.transition   = 'transform 0.32s cubic-bezier(0.32,0.72,0,1)';
+  sheet.style.transform    = 'translateY(100%)';
+  overlay.style.transition = 'background 0.32s';
+  overlay.style.background = 'rgba(0,0,0,0)';
+  setTimeout(function() {
+    overlay.style.display    = 'none';
+    overlay.style.background = '';
+    overlay.style.transition = '';
+    overlay.classList.remove('anim-in', 'anim-out');
+    sheet.style.transform    = '';
+    sheet.style.transition   = '';
+    document.body.style.overflow = '';
+    if (overlayId === 'compassModal' && compassRAF) {
+      cancelAnimationFrame(compassRAF); compassRAF = null;
+    }
+  }, 340);
+}
+
+function snapBack(sheet, overlay) {
+  sheet.style.transition   = 'transform 0.45s cubic-bezier(0.32,0.72,0,1)';
+  sheet.style.transform    = 'translateY(0)';
+  overlay.style.transition = 'background 0.45s';
+  overlay.style.background = 'rgba(0,0,0,0.55)';
+  setTimeout(function() {
+    sheet.style.transition = '';
+    overlay.style.transition = '';
+  }, 460);
+}
+
 /* ═══════════════════════════════════════════════════════
-   GÜN DETAY YATAY SWIPE (sol/sağ gün geçişi)
+   GÜN DETAY YATAY SWIPE
 ═══════════════════════════════════════════════════════ */
 var daySwipeStartX = 0;
 var daySwipeStartY = 0;
 var daySwipeActive = false;
-var daySwipeLocked = false; /* yatay mı dikey mi kilitlendi */
+var daySwipeLocked = false;
 var DAY_SWIPE_THRESHOLD = 50;
 
 function attachDaySwipe() {
@@ -686,38 +763,19 @@ function attachDaySwipe() {
     if (!daySwipeActive) return;
     var dx = e.touches[0].clientX - daySwipeStartX;
     var dy = e.touches[0].clientY - daySwipeStartY;
-
     if (!daySwipeLocked) {
-      /* Hangisi daha baskın? */
-      if (Math.abs(dx) > Math.abs(dy) + 5) {
-        daySwipeLocked = 'horizontal';
-      } else if (Math.abs(dy) > Math.abs(dx) + 5) {
-        daySwipeLocked = 'vertical';
-        daySwipeActive = false;
-        return;
-      }
+      if (Math.abs(dx) > Math.abs(dy) + 5) daySwipeLocked = 'horizontal';
+      else if (Math.abs(dy) > Math.abs(dx) + 5) { daySwipeLocked = 'vertical'; daySwipeActive = false; return; }
     }
-
-    if (daySwipeLocked === 'horizontal') {
-      e.preventDefault(); /* dikey scroll'u engelle */
-    }
+    if (daySwipeLocked === 'horizontal') e.preventDefault();
   }, {passive: false});
 
   content.addEventListener('touchend', function(e) {
-    if (!daySwipeActive || daySwipeLocked !== 'horizontal') {
-      daySwipeActive = false;
-      return;
-    }
+    if (!daySwipeActive || daySwipeLocked !== 'horizontal') { daySwipeActive = false; return; }
     daySwipeActive = false;
     var dx = e.changedTouches[0].clientX - daySwipeStartX;
-
-    if (dx < -DAY_SWIPE_THRESHOLD) {
-      /* Sola kaydır → sonraki gün */
-      navigateDayDetail(1);
-    } else if (dx > DAY_SWIPE_THRESHOLD) {
-      /* Sağa kaydır → önceki gün */
-      navigateDayDetail(-1);
-    }
+    if (dx < -DAY_SWIPE_THRESHOLD) navigateDayDetail(1);
+    else if (dx > DAY_SWIPE_THRESHOLD) navigateDayDetail(-1);
   }, {passive: true});
 }
 
@@ -727,43 +785,25 @@ function attachDaySwipe() {
 function navigateDayDetail(direction) {
   var newIdx = currentDayIdx + direction;
   if (newIdx < 0 || newIdx >= totalDays) return;
-
-  var content = document.getElementById('dayDetailContent');
+  var content  = document.getElementById('dayDetailContent');
   var outClass = direction > 0 ? 'swipe-out-left' : 'swipe-out-right';
   var inClass  = direction > 0 ? 'swipe-in-left'  : 'swipe-in-right';
-
-  /* Çıkış animasyonu */
   content.classList.add(outClass);
-
   setTimeout(function() {
     currentDayIdx = newIdx;
     renderDayDetailContent(currentDayIdx);
     updateDayNavUI();
-
-    /* İçeriği gizle (giriş başlangıç pozisyonu) */
     content.classList.remove(outClass);
     content.classList.add(inClass);
-
-    /* Bir frame bekle, sonra giriş animasyonu */
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        content.classList.remove(inClass);
-      });
-    });
-
-    /* Modalı en üste scroll et */
+    requestAnimationFrame(function() { requestAnimationFrame(function() { content.classList.remove(inClass); }); });
     var sheet = document.getElementById('dayDetailSheet');
     if (sheet) sheet.scrollTop = 0;
-
   }, 180);
 }
 
 function updateDayNavUI() {
-  /* Önceki/sonraki butonları */
   document.getElementById('dayNavPrev').disabled = (currentDayIdx === 0);
   document.getElementById('dayNavNext').disabled = (currentDayIdx === totalDays - 1);
-
-  /* Başlık güncelle */
   if (state.weatherData) {
     var d = state.weatherData;
     var tr = ['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'];
@@ -772,8 +812,6 @@ function updateDayNavUI() {
     var dayName = currentDayIdx === 0 ? 'Bugün' : (currentDayIdx === 1 ? 'Yarın' : tr[dayDate.getDay()]);
     document.getElementById('dayDetailTitle').textContent = dayName + ' · ' + dayDate.getDate() + ' ' + aylar[dayDate.getMonth()];
   }
-
-  /* Noktaları güncelle */
   var dotsContainer = document.getElementById('dayNavDots');
   var dots = dotsContainer.querySelectorAll('.day-nav-dot');
   dots.forEach(function(dot, i) {
@@ -793,9 +831,7 @@ function buildDayNavDots(count, activeIdx) {
 function jumpToDayDetail(idx) {
   if (idx === currentDayIdx) return;
   var direction = idx > currentDayIdx ? 1 : -1;
-  var steps = Math.abs(idx - currentDayIdx);
-  /* Direkt atlama: sadece animasyonu yap */
-  var content = document.getElementById('dayDetailContent');
+  var content  = document.getElementById('dayDetailContent');
   var outClass = direction > 0 ? 'swipe-out-left' : 'swipe-out-right';
   var inClass  = direction > 0 ? 'swipe-in-left'  : 'swipe-in-right';
   content.classList.add(outClass);
@@ -805,11 +841,7 @@ function jumpToDayDetail(idx) {
     updateDayNavUI();
     content.classList.remove(outClass);
     content.classList.add(inClass);
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        content.classList.remove(inClass);
-      });
-    });
+    requestAnimationFrame(function() { requestAnimationFrame(function() { content.classList.remove(inClass); }); });
     var sheet = document.getElementById('dayDetailSheet');
     if (sheet) sheet.scrollTop = 0;
   }, 180);
@@ -987,6 +1019,7 @@ async function fetchAddress(){
     ]);
   }catch(e){document.getElementById('addressPreview').textContent='Adres alınamadı';}
 }
+
 async function fetchWeather(){
   if(!state.lat)return;
   try{
@@ -998,303 +1031,251 @@ async function fetchWeather(){
       '&wind_speed_unit=kmh&timezone=auto&forecast_days=10'
     );
     var d=await r.json();
-    state.weatherData = d;
-    totalDays = d.daily.time.length;
+    state.weatherData=d;
+    totalDays=d.daily.time.length;
     var c=d.current;
-    var temp = (c.temperature_2m !== null && c.temperature_2m !== undefined)
-      ? parseFloat(c.temperature_2m).toFixed(1) : '–';
-    var icon = wIcon(c.weather_code || 0);
-    var desc = wDesc(c.weather_code || 0);
-    var humidity = c.relative_humidity_2m != null ? c.relative_humidity_2m : '–';
-    var windSpd  = c.wind_speed_10m != null ? c.wind_speed_10m : '–';
-    var uvIdx    = (c.uv_index != null) ? parseFloat(c.uv_index).toFixed(1) : '-';
-    var apparent = (c.apparent_temperature != null) ? parseFloat(c.apparent_temperature).toFixed(1)+'°C' : '-';
-    document.getElementById('weatherPreview').textContent = temp + '°C';
-    document.getElementById('weatherIcon').textContent = icon;
-    var currentHtml =
-      '<div style="padding:0 16px 14px">' +
-      '<div style="background:linear-gradient(135deg,#1a73e8,#0d5cb8);border-radius:16px;padding:16px 20px;color:white">' +
-      '<div style="font-size:13px;opacity:0.85;margin-bottom:4px">Şu an · ' + desc + '</div>' +
-      '<div style="font-size:52px;font-weight:200;line-height:1.1">' + icon + ' ' + temp + '°</div>' +
-      '<div style="display:flex;gap:16px;margin-top:10px;font-size:13px;opacity:0.9">' +
-      '<span>💧 %' + humidity + '</span>' +
-      '<span>💨 ' + windSpd + ' km/s</span>' +
-      '<span>☀️ UV ' + uvIdx + '</span>' +
-      '</div>' +
-      '</div>' +
+    var temp=(c.temperature_2m!==null&&c.temperature_2m!==undefined)?parseFloat(c.temperature_2m).toFixed(1):'–';
+    var icon=wIcon(c.weather_code||0);
+    var desc=wDesc(c.weather_code||0);
+    var humidity=c.relative_humidity_2m!=null?c.relative_humidity_2m:'–';
+    var windSpd=c.wind_speed_10m!=null?c.wind_speed_10m:'–';
+    var uvIdx=(c.uv_index!=null)?parseFloat(c.uv_index).toFixed(1):'-';
+    var apparent=(c.apparent_temperature!=null)?parseFloat(c.apparent_temperature).toFixed(1)+'°C':'-';
+    document.getElementById('weatherPreview').textContent=temp+'°C';
+    document.getElementById('weatherIcon').textContent=icon;
+    var currentHtml=
+      '<div style="padding:0 16px 14px">'+
+      '<div style="background:linear-gradient(135deg,#1a73e8,#0d5cb8);border-radius:16px;padding:16px 20px;color:white">'+
+      '<div style="font-size:13px;opacity:0.85;margin-bottom:4px">Şu an · '+desc+'</div>'+
+      '<div style="font-size:52px;font-weight:200;line-height:1.1">'+icon+' '+temp+'°</div>'+
+      '<div style="display:flex;gap:16px;margin-top:10px;font-size:13px;opacity:0.9">'+
+      '<span>💧 %'+humidity+'</span>'+
+      '<span>💨 '+windSpd+' km/s</span>'+
+      '<span>☀️ UV '+uvIdx+'</span>'+
+      '</div>'+
+      '</div>'+
       '</div>';
-    document.getElementById('weatherCurrentBlock').innerHTML = currentHtml;
-    var days = d.daily;
-    var tr   = ['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'];
-    var scrollHtml = '<div class="forecast-scroll">';
-    for(var i = 0; i < days.time.length; i++){
-      var dayDate = new Date(days.time[i] + 'T12:00:00');
-      var dayName = i === 0 ? 'Bugün' : tr[dayDate.getDay()];
-      var isToday = i === 0;
-      var rain    = days.precipitation_probability_max[i] || 0;
-      var maxT    = Math.round(days.temperature_2m_max[i]);
-      var minT    = Math.round(days.temperature_2m_min[i]);
-      var nameStyle  = isToday ? ' style="color:#000000;opacity:1;font-weight:700"' : '';
-      var maxStyle   = isToday ? ' style="color:#000000;font-weight:800"' : '';
-      var minStyle   = isToday ? ' style="color:rgba(0,0,0,0.6)"' : '';
-      var rainStyle  = isToday ? ' style="color:rgba(0,0,0,0.7)"' : '';
-      scrollHtml += '<div class="forecast-day' + (isToday ? ' today' : '') + '" onclick="openDayDetail('+i+')" style="cursor:pointer">';
-      scrollHtml += '<div class="forecast-day-name"' + nameStyle + '>' + dayName + '</div>';
-      scrollHtml += '<div class="forecast-day-icon">' + wIcon(days.weather_code[i]) + '</div>';
-      scrollHtml += '<div class="forecast-day-max"' + maxStyle + '>' + maxT + '°</div>';
-      scrollHtml += '<div class="forecast-day-min"' + minStyle + '>' + minT + '°</div>';
-      if(rain > 10) scrollHtml += '<div class="forecast-rain"' + rainStyle + '>💧' + rain + '%</div>';
-      scrollHtml += '</div>';
+    document.getElementById('weatherCurrentBlock').innerHTML=currentHtml;
+    var days=d.daily;
+    var tr=['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'];
+    var scrollHtml='<div class="forecast-scroll">';
+    for(var i=0;i<days.time.length;i++){
+      var dayDate=new Date(days.time[i]+'T12:00:00');
+      var dayName=i===0?'Bugün':tr[dayDate.getDay()];
+      var isToday=i===0;
+      var rain=days.precipitation_probability_max[i]||0;
+      var maxT=Math.round(days.temperature_2m_max[i]);
+      var minT=Math.round(days.temperature_2m_min[i]);
+      var nameStyle=isToday?' style="color:#000000;opacity:1;font-weight:700"':'';
+      var maxStyle=isToday?' style="color:#000000;font-weight:800"':'';
+      var minStyle=isToday?' style="color:rgba(0,0,0,0.6)"':'';
+      var rainStyle=isToday?' style="color:rgba(0,0,0,0.7)"':'';
+      scrollHtml+='<div class="forecast-day'+(isToday?' today':'')+'" onclick="openDayDetail('+i+')" style="cursor:pointer">';
+      scrollHtml+='<div class="forecast-day-name"'+nameStyle+'>'+dayName+'</div>';
+      scrollHtml+='<div class="forecast-day-icon">'+wIcon(days.weather_code[i])+'</div>';
+      scrollHtml+='<div class="forecast-day-max"'+maxStyle+'>'+maxT+'°</div>';
+      scrollHtml+='<div class="forecast-day-min"'+minStyle+'>'+minT+'°</div>';
+      if(rain>10)scrollHtml+='<div class="forecast-rain"'+rainStyle+'>💧'+rain+'%</div>';
+      scrollHtml+='</div>';
     }
-    scrollHtml += '</div>';
-    var detailRows = [
-      ['Hissedilen', apparent],
-      ['Yağış (bugün)', days.precipitation_sum[0] + ' mm'],
-      ['Rüzgar', windSpd + ' km/s · ' + headingToDir(c.wind_direction_10m)],
-      ['Nem', '%' + humidity],
-      ['UV İndeksi', uvIdx]
+    scrollHtml+='</div>';
+    var detailRows=[
+      ['Hissedilen',apparent],
+      ['Yağış (bugün)',days.precipitation_sum[0]+' mm'],
+      ['Rüzgar',windSpd+' km/s · '+headingToDir(c.wind_direction_10m)],
+      ['Nem','%'+humidity],
+      ['UV İndeksi',uvIdx]
     ];
-    document.getElementById('weatherForecastBlock').innerHTML =
-      scrollHtml +
-      '<div class="weather-detail-section">' + buildRows(detailRows) + '</div>';
+    document.getElementById('weatherForecastBlock').innerHTML=
+      scrollHtml+
+      '<div class="weather-detail-section">'+buildRows(detailRows)+'</div>';
   }catch(e){
-    document.getElementById('weatherForecastBlock').innerHTML = buildRows([['Hata','Alınamadı']]);
+    document.getElementById('weatherForecastBlock').innerHTML=buildRows([['Hata','Alınamadı']]);
   }
 }
 
 /* ═══════════════════════════════════════════════════════
-   GÜN DETAY MODAL — Ana giriş noktası
+   GÜN DETAY MODAL
 ═══════════════════════════════════════════════════════ */
 function openDayDetail(idx) {
-  var d = state.weatherData;
-  if (!d) { showToast('Hava verisi yok'); return; }
-
-  currentDayIdx = idx;
-  totalDays = d.daily.time.length;
-
-  /* Nokta navigasyonu oluştur */
-  buildDayNavDots(totalDays, currentDayIdx);
-
-  /* İçeriği doldur */
+  var d=state.weatherData;
+  if(!d){showToast('Hava verisi yok');return;}
+  currentDayIdx=idx;
+  totalDays=d.daily.time.length;
+  buildDayNavDots(totalDays,currentDayIdx);
   renderDayDetailContent(currentDayIdx);
   updateDayNavUI();
-
-  /* Modalı aç */
   openModal('dayDetailModal');
-
-  /* Swipe listener ekle (bir kez) */
-  setTimeout(function() { attachDaySwipe(); }, 100);
+  setTimeout(function(){attachDaySwipe();},100);
 }
 
-/* ═══════════════════════════════════════════════════════
-   GÜN DETAY İÇERİK RENDER
-═══════════════════════════════════════════════════════ */
 function renderDayDetailContent(idx) {
-  var d = state.weatherData;
-  if (!d) return;
-  var days = d.daily;
-  var hourly = d.hourly;
-  var tr = ['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'];
-  var aylar = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
-  var dayDate = new Date(days.time[idx] + 'T12:00:00');
-  var dayName = idx === 0 ? 'Bugün' : (idx === 1 ? 'Yarın' : tr[dayDate.getDay()]);
-  var fullDate = dayDate.getDate() + ' ' + aylar[dayDate.getMonth()] + ' ' + dayDate.getFullYear() + ', ' + tr[dayDate.getDay()];
-
-  var maxT = parseFloat(days.temperature_2m_max[idx]).toFixed(1);
-  var minT = parseFloat(days.temperature_2m_min[idx]).toFixed(1);
-  var wcode = days.weather_code[idx];
-  var icon = wIcon(wcode);
-  var desc = wDesc(wcode);
-  var rain = days.precipitation_sum[idx] != null ? parseFloat(days.precipitation_sum[idx]).toFixed(1) : '0';
-  var rainProb = days.precipitation_probability_max[idx] || 0;
-  var windMax = days.wind_speed_10m_max[idx] != null ? parseFloat(days.wind_speed_10m_max[idx]).toFixed(0) : '-';
-  var windDir = days.wind_direction_10m_dominant ? days.wind_direction_10m_dominant[idx] : null;
-  var uvMax = days.uv_index_max ? parseFloat(days.uv_index_max[idx]).toFixed(1) : '-';
-  var sunriseStr = days.sunrise ? days.sunrise[idx] : null;
-  var sunsetStr  = days.sunset  ? days.sunset[idx]  : null;
-  var daylightSec = days.daylight_duration ? days.daylight_duration[idx] : null;
-  var sunshineSec = days.sunshine_duration ? days.sunshine_duration[idx] : null;
-  var precipHours = days.precipitation_hours ? parseFloat(days.precipitation_hours[idx]).toFixed(0) : '-';
-  var evapot = days.et0_fao_evapotranspiration ? parseFloat(days.et0_fao_evapotranspiration[idx]).toFixed(1) : '-';
-  var radiation = days.shortwave_radiation_sum ? parseFloat(days.shortwave_radiation_sum[idx]).toFixed(1) : '-';
-
-  /* Gradient rengi */
-  var gradMap = {
-    0:'linear-gradient(135deg,#1a73e8,#0d5cb8)',
-    1:'linear-gradient(135deg,#2196f3,#1565c0)',
-    2:'linear-gradient(135deg,#607d8b,#455a64)',
-    3:'linear-gradient(135deg,#546e7a,#37474f)',
-    45:'linear-gradient(135deg,#78909c,#546e7a)',
-    51:'linear-gradient(135deg,#29b6f6,#0277bd)',
-    61:'linear-gradient(135deg,#1e88e5,#1565c0)',
-    63:'linear-gradient(135deg,#1565c0,#0d47a1)',
-    65:'linear-gradient(135deg,#0d47a1,#01579b)',
-    71:'linear-gradient(135deg,#80cbc4,#4db6ac)',
-    73:'linear-gradient(135deg,#80deea,#26c6da)',
-    80:'linear-gradient(135deg,#42a5f5,#1976d2)',
+  var d=state.weatherData;
+  if(!d)return;
+  var days=d.daily;
+  var hourly=d.hourly;
+  var tr=['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'];
+  var aylar=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+  var dayDate=new Date(days.time[idx]+'T12:00:00');
+  var dayName=idx===0?'Bugün':(idx===1?'Yarın':tr[dayDate.getDay()]);
+  var fullDate=dayDate.getDate()+' '+aylar[dayDate.getMonth()]+' '+dayDate.getFullYear()+', '+tr[dayDate.getDay()];
+  var maxT=parseFloat(days.temperature_2m_max[idx]).toFixed(1);
+  var minT=parseFloat(days.temperature_2m_min[idx]).toFixed(1);
+  var wcode=days.weather_code[idx];
+  var icon=wIcon(wcode);
+  var desc=wDesc(wcode);
+  var rain=days.precipitation_sum[idx]!=null?parseFloat(days.precipitation_sum[idx]).toFixed(1):'0';
+  var rainProb=days.precipitation_probability_max[idx]||0;
+  var windMax=days.wind_speed_10m_max[idx]!=null?parseFloat(days.wind_speed_10m_max[idx]).toFixed(0):'-';
+  var windDir=days.wind_direction_10m_dominant?days.wind_direction_10m_dominant[idx]:null;
+  var uvMax=days.uv_index_max?parseFloat(days.uv_index_max[idx]).toFixed(1):'-';
+  var sunriseStr=days.sunrise?days.sunrise[idx]:null;
+  var sunsetStr=days.sunset?days.sunset[idx]:null;
+  var daylightSec=days.daylight_duration?days.daylight_duration[idx]:null;
+  var sunshineSec=days.sunshine_duration?days.sunshine_duration[idx]:null;
+  var precipHours=days.precipitation_hours?parseFloat(days.precipitation_hours[idx]).toFixed(0):'-';
+  var evapot=days.et0_fao_evapotranspiration?parseFloat(days.et0_fao_evapotranspiration[idx]).toFixed(1):'-';
+  var radiation=days.shortwave_radiation_sum?parseFloat(days.shortwave_radiation_sum[idx]).toFixed(1):'-';
+  var gradMap={
+    0:'linear-gradient(135deg,#1a73e8,#0d5cb8)',1:'linear-gradient(135deg,#2196f3,#1565c0)',
+    2:'linear-gradient(135deg,#607d8b,#455a64)',3:'linear-gradient(135deg,#546e7a,#37474f)',
+    45:'linear-gradient(135deg,#78909c,#546e7a)',51:'linear-gradient(135deg,#29b6f6,#0277bd)',
+    61:'linear-gradient(135deg,#1e88e5,#1565c0)',63:'linear-gradient(135deg,#1565c0,#0d47a1)',
+    65:'linear-gradient(135deg,#0d47a1,#01579b)',71:'linear-gradient(135deg,#80cbc4,#4db6ac)',
+    73:'linear-gradient(135deg,#80deea,#26c6da)',80:'linear-gradient(135deg,#42a5f5,#1976d2)',
     95:'linear-gradient(135deg,#616161,#212121)'
   };
-  var grad = gradMap[wcode] || gradMap[0];
-
-  /* Gün doğumu / batımı */
-  var srTime = '-', ssTime = '-';
-  if (sunriseStr) { var srD = new Date(sunriseStr); srTime = srD.getHours().toString().padStart(2,'0')+':'+srD.getMinutes().toString().padStart(2,'0'); }
-  if (sunsetStr)  { var ssD = new Date(sunsetStr);  ssTime = ssD.getHours().toString().padStart(2,'0')+':'+ssD.getMinutes().toString().padStart(2,'0'); }
-
-  /* Güneşlenme süresi */
-  var daylightStr = '-', sunshineStr = '-';
-  if (daylightSec) { var dh=Math.floor(daylightSec/3600),dm=Math.floor((daylightSec%3600)/60); daylightStr=dh+'s '+dm+'dk'; }
-  if (sunshineSec) { var sh=Math.floor(sunshineSec/3600),sm=Math.floor((sunshineSec%3600)/60); sunshineStr=sh+'s '+sm+'dk'; }
-
-  /* Gün batımı çubuğu yüzdesi */
-  var sunBarPct = 0;
-  if (sunriseStr && sunsetStr) {
-    var now = Date.now();
-    var srMs = new Date(sunriseStr).getTime();
-    var ssMs = new Date(sunsetStr).getTime();
-    if (idx === 0) { sunBarPct = Math.max(0, Math.min(100, (now-srMs)/(ssMs-srMs)*100)); }
+  var grad=gradMap[wcode]||gradMap[0];
+  var srTime='-',ssTime='-';
+  if(sunriseStr){var srD=new Date(sunriseStr);srTime=srD.getHours().toString().padStart(2,'0')+':'+srD.getMinutes().toString().padStart(2,'0');}
+  if(sunsetStr){var ssD=new Date(sunsetStr);ssTime=ssD.getHours().toString().padStart(2,'0')+':'+ssD.getMinutes().toString().padStart(2,'0');}
+  var daylightStr='-',sunshineStr='-';
+  if(daylightSec){var dh=Math.floor(daylightSec/3600),dm=Math.floor((daylightSec%3600)/60);daylightStr=dh+'s '+dm+'dk';}
+  if(sunshineSec){var sh=Math.floor(sunshineSec/3600),sm=Math.floor((sunshineSec%3600)/60);sunshineStr=sh+'s '+sm+'dk';}
+  var sunBarPct=0;
+  if(sunriseStr&&sunsetStr){
+    var now=Date.now(),srMs=new Date(sunriseStr).getTime(),ssMs=new Date(sunsetStr).getTime();
+    if(idx===0){sunBarPct=Math.max(0,Math.min(100,(now-srMs)/(ssMs-srMs)*100));}
   }
-
-  /* Saatlik veri */
-  var hourlyHtml = '';
-  if (hourly && hourly.time) {
-    var dayStr = days.time[idx];
-    var nowHour = new Date().getHours();
-    var items = [];
-    for (var h = 0; h < hourly.time.length; h++) {
-      if (hourly.time[h].startsWith(dayStr)) {
-        var hDate = new Date(hourly.time[h]);
-        var hHour = hDate.getHours();
-        var isNow = (idx === 0 && hHour === nowHour);
-        var hTemp = hourly.temperature_2m ? Math.round(hourly.temperature_2m[h]) : '-';
-        var hCode = hourly.weather_code ? hourly.weather_code[h] : 0;
-        var hRain = hourly.precipitation_probability ? hourly.precipitation_probability[h] : 0;
-        items.push({hour:hHour, temp:hTemp, code:hCode, rain:hRain, isNow:isNow});
+  var hourlyHtml='';
+  if(hourly&&hourly.time){
+    var dayStr=days.time[idx];
+    var nowHour=new Date().getHours();
+    var items=[];
+    for(var h=0;h<hourly.time.length;h++){
+      if(hourly.time[h].startsWith(dayStr)){
+        var hDate=new Date(hourly.time[h]);
+        var hHour=hDate.getHours();
+        var isNow=(idx===0&&hHour===nowHour);
+        var hTemp=hourly.temperature_2m?Math.round(hourly.temperature_2m[h]):'-';
+        var hCode=hourly.weather_code?hourly.weather_code[h]:0;
+        var hRain=hourly.precipitation_probability?hourly.precipitation_probability[h]:0;
+        items.push({hour:hHour,temp:hTemp,code:hCode,rain:hRain,isNow:isNow});
       }
     }
-    if (items.length > 0) {
-      hourlyHtml = '<div class="hourly-section-label">Saatlik</div><div class="hourly-scroll">';
-      for (var k = 0; k < items.length; k++) {
-        var it = items[k];
-        var cls = it.isNow ? ' now' : '';
-        var timeStr = it.hour.toString().padStart(2,'0') + ':00';
-        hourlyHtml += '<div class="hourly-item'+cls+'">';
-        hourlyHtml += '<div class="hourly-time">' + (it.isNow ? 'Şimdi' : timeStr) + '</div>';
-        hourlyHtml += '<div class="hourly-icon">' + wIcon(it.code) + '</div>';
-        hourlyHtml += '<div class="hourly-temp">' + it.temp + '°</div>';
-        if (it.rain > 10) hourlyHtml += '<div class="hourly-rain">💧' + it.rain + '%</div>';
-        hourlyHtml += '</div>';
+    if(items.length>0){
+      hourlyHtml='<div class="hourly-section-label">Saatlik</div><div class="hourly-scroll">';
+      for(var k=0;k<items.length;k++){
+        var it=items[k];
+        var cls=it.isNow?' now':'';
+        var timeStr=it.hour.toString().padStart(2,'0')+':00';
+        hourlyHtml+='<div class="hourly-item'+cls+'">';
+        hourlyHtml+='<div class="hourly-time">'+(it.isNow?'Şimdi':timeStr)+'</div>';
+        hourlyHtml+='<div class="hourly-icon">'+wIcon(it.code)+'</div>';
+        hourlyHtml+='<div class="hourly-temp">'+it.temp+'°</div>';
+        if(it.rain>10)hourlyHtml+='<div class="hourly-rain">💧'+it.rain+'%</div>';
+        hourlyHtml+='</div>';
       }
-      hourlyHtml += '</div>';
+      hourlyHtml+='</div>';
     }
   }
-
-  /* UV açıklaması */
-  function uvLabel(v){ var n=parseFloat(v); if(isNaN(n))return''; if(n<3)return'Düşük'; if(n<6)return'Orta'; if(n<8)return'Yüksek'; if(n<11)return'Çok Yüksek'; return'Aşırı'; }
-
-  /* Detay grid */
-  var gridHtml = '<div class="detail-grid">';
-  gridHtml += detailCell('🌡️','Max / Min', maxT+'° / '+minT+'°', desc);
-  gridHtml += detailCell('🌧️','Yağış', rain+' mm', 'Olasılık %'+rainProb);
-  gridHtml += detailCell('💨','Max Rüzgar', windMax+' km/s', windDir!=null?headingToDir(windDir)+' ('+windDir+'°)':'');
-  gridHtml += detailCell('☀️','UV Maks.', uvMax, uvLabel(uvMax));
-  gridHtml += detailCell('💧','Yağış Süresi', precipHours+' saat', 'Toplam yağışlı');
-  gridHtml += detailCell('🌞','Güneşlenme', sunshineStr, 'Gündüz: '+daylightStr);
-  gridHtml += detailCell('🔆','Radyasyon', radiation+' MJ/m²', 'Kısa dalga');
-  gridHtml += detailCell('💦','Evapotransp.', evapot+' mm', 'FAO-56 ref.');
-  gridHtml += '</div>';
-
-  /* Saatlik ortalama */
-  var avgHum = '-', avgVis = '-', avgDew = '-', avgPres = '-';
-  if (hourly) {
-    var dayStr2 = days.time[idx];
-    var humArr=[], visArr=[], dewArr=[], presArr=[];
-    for (var h2=0; h2<hourly.time.length; h2++) {
-      if (!hourly.time[h2].startsWith(dayStr2)) continue;
-      if (hourly.relative_humidity_2m) humArr.push(hourly.relative_humidity_2m[h2]);
-      if (hourly.visibility) visArr.push(hourly.visibility[h2]);
-      if (hourly.dew_point_2m) dewArr.push(hourly.dew_point_2m[h2]);
-      if (hourly.surface_pressure) presArr.push(hourly.surface_pressure[h2]);
+  function uvLabel(v){var n=parseFloat(v);if(isNaN(n))return'';if(n<3)return'Düşük';if(n<6)return'Orta';if(n<8)return'Yüksek';if(n<11)return'Çok Yüksek';return'Aşırı';}
+  var gridHtml='<div class="detail-grid">';
+  gridHtml+=detailCell('🌡️','Max / Min',maxT+'° / '+minT+'°',desc);
+  gridHtml+=detailCell('🌧️','Yağış',rain+' mm','Olasılık %'+rainProb);
+  gridHtml+=detailCell('💨','Max Rüzgar',windMax+' km/s',windDir!=null?headingToDir(windDir)+' ('+windDir+'°)':'');
+  gridHtml+=detailCell('☀️','UV Maks.',uvMax,uvLabel(uvMax));
+  gridHtml+=detailCell('💧','Yağış Süresi',precipHours+' saat','Toplam yağışlı');
+  gridHtml+=detailCell('🌞','Güneşlenme',sunshineStr,'Gündüz: '+daylightStr);
+  gridHtml+=detailCell('🔆','Radyasyon',radiation+' MJ/m²','Kısa dalga');
+  gridHtml+=detailCell('💦','Evapotransp.',evapot+' mm','FAO-56 ref.');
+  gridHtml+='</div>';
+  var avgHum='-',avgVis='-',avgDew='-',avgPres='-';
+  if(hourly){
+    var dayStr2=days.time[idx];
+    var humArr=[],visArr=[],dewArr=[],presArr=[];
+    for(var h2=0;h2<hourly.time.length;h2++){
+      if(!hourly.time[h2].startsWith(dayStr2))continue;
+      if(hourly.relative_humidity_2m)humArr.push(hourly.relative_humidity_2m[h2]);
+      if(hourly.visibility)visArr.push(hourly.visibility[h2]);
+      if(hourly.dew_point_2m)dewArr.push(hourly.dew_point_2m[h2]);
+      if(hourly.surface_pressure)presArr.push(hourly.surface_pressure[h2]);
     }
-    var avg = function(a){ return a.length ? (a.reduce(function(s,v){return s+v;},0)/a.length) : null; };
-    var avgHumV = avg(humArr); if(avgHumV!=null) avgHum = '%' + Math.round(avgHumV);
-    var avgVisV = avg(visArr); if(avgVisV!=null) avgVis = (avgVisV/1000).toFixed(1)+' km';
-    var avgDewV = avg(dewArr); if(avgDewV!=null) avgDew = avgDewV.toFixed(1)+'°C';
-    var avgPresV = avg(presArr); if(avgPresV!=null) avgPres = avgPresV.toFixed(0)+' hPa';
+    var avg=function(a){return a.length?(a.reduce(function(s,v){return s+v;},0)/a.length):null;};
+    var avgHumV=avg(humArr);if(avgHumV!=null)avgHum='%'+Math.round(avgHumV);
+    var avgVisV=avg(visArr);if(avgVisV!=null)avgVis=(avgVisV/1000).toFixed(1)+' km';
+    var avgDewV=avg(dewArr);if(avgDewV!=null)avgDew=avgDewV.toFixed(1)+'°C';
+    var avgPresV=avg(presArr);if(avgPresV!=null)avgPres=avgPresV.toFixed(0)+' hPa';
   }
-  var extraGrid = '<div class="detail-grid">';
-  extraGrid += detailCell('💧','Ort. Nem', avgHum, 'Günlük ortalama');
-  extraGrid += detailCell('👁️','Görüş', avgVis, 'Ort. görüş mesafesi');
-  extraGrid += detailCell('🌡️','Çiğ Noktası', avgDew, 'Ort. çiğ noktası');
-  extraGrid += detailCell('🔵','Basınç', avgPres, 'Yüzey basıncı');
-  extraGrid += '</div>';
-
-  /* Güneş çubuğu */
-  var sunBarHtml =
-    '<div class="sun-bar-wrap">' +
-    '<div class="sun-bar-card">' +
-    '<div class="sun-bar-title">🌅 Gün Işığı</div>' +
-    '<div class="sun-bar-row">' +
-    '<span style="font-size:14px">🌄</span>' +
-    '<div class="sun-bar-track"><div class="sun-bar-fill" style="width:'+Math.round(sunBarPct)+'%"></div></div>' +
-    '<span style="font-size:14px">🌇</span>' +
-    '</div>' +
-    '<div class="sun-times-row"><span>Doğuş: '+srTime+'</span><span>Batış: '+ssTime+'</span></div>' +
-    '</div>' +
+  var extraGrid='<div class="detail-grid">';
+  extraGrid+=detailCell('💧','Ort. Nem',avgHum,'Günlük ortalama');
+  extraGrid+=detailCell('👁️','Görüş',avgVis,'Ort. görüş mesafesi');
+  extraGrid+=detailCell('🌡️','Çiğ Noktası',avgDew,'Ort. çiğ noktası');
+  extraGrid+=detailCell('🔵','Basınç',avgPres,'Yüzey basıncı');
+  extraGrid+='</div>';
+  var sunBarHtml=
+    '<div class="sun-bar-wrap">'+
+    '<div class="sun-bar-card">'+
+    '<div class="sun-bar-title">🌅 Gün Işığı</div>'+
+    '<div class="sun-bar-row">'+
+    '<span style="font-size:14px">🌄</span>'+
+    '<div class="sun-bar-track"><div class="sun-bar-fill" style="width:'+Math.round(sunBarPct)+'%"></div></div>'+
+    '<span style="font-size:14px">🌇</span>'+
+    '</div>'+
+    '<div class="sun-times-row"><span>Doğuş: '+srTime+'</span><span>Batış: '+ssTime+'</span></div>'+
+    '</div>'+
     '</div>';
-
-  /* Hero kart */
-  var heroHtml =
-    '<div class="day-detail-hero" style="background:'+grad+'">' +
-    '<div class="day-detail-date" style="position:relative;z-index:1">'+fullDate+'</div>' +
-    '<div class="day-detail-desc" style="position:relative;z-index:1">'+desc+'</div>' +
-    '<div class="day-detail-temp-row" style="position:relative;z-index:1">' +
-    '<div class="day-detail-icon">'+icon+'</div>' +
-    '<div class="day-detail-temps">' +
-    '<div class="day-detail-max">'+Math.round(parseFloat(maxT))+'°</div>' +
-    '<div class="day-detail-minmax">En yüksek '+maxT+'° / En düşük '+minT+'°</div>' +
-    '</div>' +
-    '</div>' +
-    '<div class="day-detail-chips" style="position:relative;z-index:1">' +
-    '<div class="day-chip">💧 '+rain+' mm</div>' +
-    '<div class="day-chip">💨 '+windMax+' km/s</div>' +
-    '<div class="day-chip">☀️ UV '+uvMax+'</div>' +
+  var heroHtml=
+    '<div class="day-detail-hero" style="background:'+grad+'">'+
+    '<div class="day-detail-date" style="position:relative;z-index:1">'+fullDate+'</div>'+
+    '<div class="day-detail-desc" style="position:relative;z-index:1">'+desc+'</div>'+
+    '<div class="day-detail-temp-row" style="position:relative;z-index:1">'+
+    '<div class="day-detail-icon">'+icon+'</div>'+
+    '<div class="day-detail-temps">'+
+    '<div class="day-detail-max">'+Math.round(parseFloat(maxT))+'°</div>'+
+    '<div class="day-detail-minmax">En yüksek '+maxT+'° / En düşük '+minT+'°</div>'+
+    '</div>'+
+    '</div>'+
+    '<div class="day-detail-chips" style="position:relative;z-index:1">'+
+    '<div class="day-chip">💧 '+rain+' mm</div>'+
+    '<div class="day-chip">💨 '+windMax+' km/s</div>'+
+    '<div class="day-chip">☀️ UV '+uvMax+'</div>'+
     (rainProb>10?'<div class="day-chip">🌧️ %'+rainProb+'</div>':'')+
-    '</div>' +
+    '</div>'+
     '</div>';
-
-  /* Swipe ipucu (sadece ilk gün) */
-  var swipeHint = '';
-  if (totalDays > 1) {
-    var hints = [];
-    if (idx > 0) hints.push('← Önceki gün');
-    if (idx < totalDays - 1) hints.push('Sonraki gün →');
-    if (hints.length > 0) {
-      swipeHint = '<div style="text-align:center;font-size:11px;color:var(--sub);padding:0 16px 12px;opacity:0.7">'+hints.join('  ·  ')+'</div>';
-    }
+  var swipeHint='';
+  if(totalDays>1){
+    var hints=[];
+    if(idx>0)hints.push('← Önceki gün');
+    if(idx<totalDays-1)hints.push('Sonraki gün →');
+    if(hints.length>0)swipeHint='<div style="text-align:center;font-size:11px;color:var(--sub);padding:0 16px 12px;opacity:0.7">'+hints.join('  ·  ')+'</div>';
   }
-
-  document.getElementById('dayDetailContent').innerHTML =
-    heroHtml +
-    swipeHint +
-    sunBarHtml +
-    hourlyHtml +
-    '<div style="padding:0 16px 8px"><span style="font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">Hava Detayları</span></div>' +
-    gridHtml +
-    '<div style="padding:0 16px 8px"><span style="font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">Atmosfer</span></div>' +
+  document.getElementById('dayDetailContent').innerHTML=
+    heroHtml+swipeHint+sunBarHtml+hourlyHtml+
+    '<div style="padding:0 16px 8px"><span style="font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">Hava Detayları</span></div>'+
+    gridHtml+
+    '<div style="padding:0 16px 8px"><span style="font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">Atmosfer</span></div>'+
     extraGrid;
-
-  /* Swipe listener'ı yeniden bağla (içerik değişti) */
-  var content = document.getElementById('dayDetailContent');
-  content._daySwipeAttached = false;
+  var content=document.getElementById('dayDetailContent');
+  content._daySwipeAttached=false;
   attachDaySwipe();
 }
 
-function detailCell(emoji, label, value, sub) {
-  return '<div class="detail-cell">' +
-    '<div class="detail-cell-label">'+emoji+' '+label+'</div>' +
-    '<div class="detail-cell-value">'+value+'</div>' +
-    (sub ? '<div class="detail-cell-sub">'+sub+'</div>' : '') +
+function detailCell(emoji,label,value,sub){
+  return '<div class="detail-cell">'+
+    '<div class="detail-cell-label">'+emoji+' '+label+'</div>'+
+    '<div class="detail-cell-value">'+value+'</div>'+
+    (sub?'<div class="detail-cell-sub">'+sub+'</div>':'')+
     '</div>';
 }
 
@@ -1374,52 +1355,44 @@ function copyCoord(type){var val=type==='lat'?state.lat:state.lng;if(!val)return
 /* ═══════════════════════════════════════════════════════
    COPY ROW VALUE
 ═══════════════════════════════════════════════════════ */
-function copyRowValue(el, text) {
-  if (!text || text === '-') return;
-  var plain = text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim();
-  if (!plain) plain = text;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(plain).then(function() {
-      flashCopied(el, plain);
-    }).catch(function() {
-      fallbackCopy(el, plain);
-    });
-  } else {
-    fallbackCopy(el, plain);
-  }
+function copyRowValue(el,text){
+  if(!text||text==='-')return;
+  var plain=text.replace(/[\u{1F300}-\u{1FAFF}]/gu,'').trim();
+  if(!plain)plain=text;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(plain).then(function(){flashCopied(el,plain);}).catch(function(){fallbackCopy(el,plain);});
+  }else{fallbackCopy(el,plain);}
 }
-function fallbackCopy(el, text) {
-  var ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
-  document.body.appendChild(ta);
-  ta.focus(); ta.select();
-  try { document.execCommand('copy'); flashCopied(el, text); } catch(e){}
+function fallbackCopy(el,text){
+  var ta=document.createElement('textarea');ta.value=text;
+  ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta);ta.focus();ta.select();
+  try{document.execCommand('copy');flashCopied(el,text);}catch(e){}
   document.body.removeChild(ta);
 }
-function flashCopied(el, text) {
+function flashCopied(el,text){
   el.classList.add('copied');
-  var display = text.length > 40 ? text.substring(0,40)+'…' : text;
-  showToast('Kopyalandı: ' + display);
-  setTimeout(function(){ el.classList.remove('copied'); }, 1600);
+  var display=text.length>40?text.substring(0,40)+'…':text;
+  showToast('Kopyalandı: '+display);
+  setTimeout(function(){el.classList.remove('copied');},1600);
 }
 
 /* ═══════════════════════════════════════════════════════
    HELPERS
 ═══════════════════════════════════════════════════════ */
-var ICON_COPY  = '<svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-var ICON_CHECK = '<svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+var ICON_COPY='<svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+var ICON_CHECK='<svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 function buildRows(pairs){
   return pairs.map(function(p){
-    var label = p[0];
-    var val   = p[1] != null ? p[1] : '-';
-    var escapedVal = String(val).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return '<div class="modal-row">' +
-      '<span class="modal-row-label">' + label + '</span>' +
-      '<span class="modal-row-value" onclick="copyRowValue(this,\'' + escapedVal + '\')">' +
-      val +
-      '<span class="copy-icon">' + ICON_COPY + ICON_CHECK + '</span>' +
-      '</span>' +
+    var label=p[0];
+    var val=p[1]!=null?p[1]:'-';
+    var escapedVal=String(val).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return '<div class="modal-row">'+
+      '<span class="modal-row-label">'+label+'</span>'+
+      '<span class="modal-row-value" onclick="copyRowValue(this,\''+escapedVal+'\')">'+
+      val+
+      '<span class="copy-icon">'+ICON_COPY+ICON_CHECK+'</span>'+
+      '</span>'+
       '</div>';
   }).join('');
 }
@@ -1435,14 +1408,11 @@ function showToast(msg){var t=document.getElementById('toast');t.textContent=msg
    INIT
 ═══════════════════════════════════════════════════════ */
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){
-    document.querySelectorAll('.modal-overlay').forEach(function(m){
-      if(m.style.display==='flex')closeModal(m.id);
-    });
-  }
+  if(e.key==='Escape'){document.querySelectorAll('.modal-overlay').forEach(function(m){if(m.style.display==='flex')closeModal(m.id);});}
   if(e.key==='ArrowRight'&&document.getElementById('dayDetailModal').style.display==='flex'){navigateDayDetail(1);}
   if(e.key==='ArrowLeft'&&document.getElementById('dayDetailModal').style.display==='flex'){navigateDayDetail(-1);}
 });
+
 window.addEventListener('DOMContentLoaded',function(){
   drawCompassCanvas(0);
   if(navigator.geolocation){
