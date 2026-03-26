@@ -1,3 +1,4 @@
+
 <!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GPS Konum</title><link rel="preconnect" href="https://fonts.googleapis.com">
 
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -749,9 +750,18 @@ var daySwipeLocked = false;
 var DAY_SWIPE_THRESHOLD = 50;
 
 function attachDaySwipe() {
-  var content = document.getElementById('dayDetailContent');
-  if (!content || content._daySwipeAttached) return;
-  content._daySwipeAttached = true;
+    var content=document.getElementById('dayDetailContent');
+  content._daySwipeAttached=false;
+  attachDaySwipe();
+  setTimeout(function(){
+    var hs=document.querySelector('.hourly-scroll');
+    if(!hs||hs._scrollFixed)return;
+    hs._scrollFixed=true;
+    hs.addEventListener('touchstart',function(e){e.stopPropagation();},{passive:true});
+    hs.addEventListener('touchmove',function(e){e.stopPropagation();},{passive:true});
+    hs.addEventListener('touchend',function(e){e.stopPropagation();},{passive:true});
+  },150);
+
 
   content.addEventListener('touchstart', function(e) {
     daySwipeStartX = e.touches[0].clientX;
