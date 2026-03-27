@@ -323,30 +323,32 @@ function refreshLocation(){if(state.watchId)navigator.geolocation.clearWatch(sta
 function resetBtn(){var btn=document.getElementById('getLocBtn');btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg> Konumu Güncelle';}
 function setStatus(type,msg){var dot=document.getElementById('statusDot');dot.className='status-dot';if(type==='active')dot.classList.add('active');else if(type==='loading')dot.classList.add('loading');document.getElementById('statusText').textContent=msg;}
 
-/* ── GELİŞTİRİLMİŞ ADRES FONKSİYONU ── */
+/* ── ADRES FONKSİYONU (BigDataCloud) ── */
 async function fetchAddress(){
   if(!state.lat)return;
   try{
-    var r=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+state.lat+'&lon='+state.lng+'&format=json&accept-language=tr&addressdetails=1&zoom=18');
-    var d=await r.json();var a=d.address||{};
-    var sokak=a.road||a.pedestrian||a.footway||a.path||a.street||'';
-    var mahalle=a.quarter||a.suburb||a.neighbourhood||a.hamlet||a.village_district||'';
-    var ilce=a.district||a.county||a.borough||a.municipality||'';
-    var sehir=a.city||a.town||a.village||a.municipality||'';
-    var il=a.state||a.province||'';
-    var short=[sokak,mahalle,ilce||sehir].filter(Boolean).join(', ');
-    state.addressCity=[mahalle,sehir||ilce].filter(Boolean).join(', ');
-    document.getElementById('addressPreview').textContent=short||d.display_name||'Adres alındı';
+    var r=await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+state.lat+'&longitude='+state.lng+'&localityLanguage=tr');
+    var d=await r.json();
+    var adm=d.localityInfo&&d.localityInfo.administrative?d.localityInfo.administrative:[];
+    var getAdm=function(lvl){var f=adm.filter(function(x){return x.adminLevel===lvl;});return f.length?f[0].name:'';};
+    var mahalle=d.locality||getAdm(9)||getAdm(8)||'';
+    var ilce=getAdm(6)||getAdm(7)||'';
+    var sehir=d.city||getAdm(4)||getAdm(5)||d.principalSubdivision||'';
+    var il=d.principalSubdivision||'';
+    var ulke=d.countryName||'';
+    var short=[mahalle,ilce||sehir].filter(Boolean).join(', ');
+    state.addressCity=[mahalle,sehir].filter(Boolean).join(', ');
+    document.getElementById('addressPreview').textContent=short||'Adres alındı';
     document.getElementById('iCompassLocation').textContent=state.addressCity||'';
     document.getElementById('addressRows').innerHTML=buildRows([
-      ['Tam Adres',d.display_name||'-'],
-      ['Sokak / Cadde',sokak||'-'],
-      ['Mahalle',mahalle||'-'],
+      ['Mahalle / Bölge',mahalle||'-'],
       ['İlçe',ilce||'-'],
-      ['Şehir',sehir||'-'],
+      ['Şehir / İl',sehir||'-'],
       ['İl',il||'-'],
-      ['Ülke',a.country||'-'],
-      ['Posta Kodu',a.postcode||'-']
+      ['Ülke',ulke||'-'],
+      ['Ülke Kodu',d.countryCode||'-'],
+      ['Enlem',d.latitude?d.latitude.toFixed(6)+' °':'-'],
+      ['Boylam',d.longitude?d.longitude.toFixed(6)+' °':'-']
     ]);
   }catch(e){document.getElementById('addressPreview').textContent='Adres alınamadı';}
 }
