@@ -1,11 +1,6 @@
-```html
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GPS Konum</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GPS Konum</title><link rel="preconnect" href="https://fonts.googleapis.com">
+
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -219,31 +214,21 @@ display:flex;flex-direction:column;align-items:center;gap:4px;
 .day-detail-minmax{font-size:14px;opacity:0.8}
 .day-detail-chips{display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:1}
 .day-chip{background:rgba(255,255,255,0.18);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:600;backdrop-filter:blur(4px)}
-/* Saatlik şerit - DÜZELTME: yatay kaydırma için */
+/* Saatlik şerit */
 .hourly-section-label{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px;padding:0 16px 8px}
 .hourly-scroll{
-  display:block;
-  white-space:nowrap;
-  overflow-x:auto;
-  overflow-y:hidden;
+  display:flex;gap:6px;
+  overflow-x:auto;overflow-y:hidden;
   padding:0 16px 16px;
-  scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
 }
 .hourly-scroll::-webkit-scrollbar{display:none}
 .hourly-item{
-  display:inline-flex;
-  flex-direction:column;
-  align-items:center;
-  gap:3px;
-  width:58px;
-  background:var(--bg);
-  border-radius:14px;
+  flex-shrink:0;width:58px;
+  background:var(--bg);border-radius:14px;
   padding:10px 4px;
-  margin-right:6px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
   position:relative;
-  vertical-align:top;
-  flex-shrink:0;
 }
 .hourly-item.now{background:var(--blue);color:white}
 .hourly-time{font-size:11px;font-weight:600;opacity:0.65}
@@ -329,6 +314,7 @@ user-select: none;
 -webkit-user-select: none;
 }
 </style>
+
 </head>
 <body>
 <div class="app">
@@ -1453,6 +1439,6 @@ window.addEventListener('DOMContentLoaded',function(){
   }
 });
 </script>
+
 </body>
 </html>
-```
