@@ -1,83 +1,138 @@
-<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>GPS Konum</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<!DOCTYPE html>
+
+<html lang="tr" class="theme-light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GPS Konum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--blue:#1a73e8;--bg:#f2f2f7;--card:#ffffff;--text:#1c1c1e;--sub:#8e8e93;--border:#e5e5ea;--green:#34c759;--orange:#ff9500;--red:#ff3b30}
+
+/* ── THEME VARIABLES ── */
+:root{
+–blue:#1a73e8;–bg:#f2f2f7;–card:#ffffff;–text:#1c1c1e;
+–sub:#8e8e93;–border:#e5e5ea;–green:#34c759;–orange:#ff9500;–red:#ff3b30;
+–shadow:rgba(0,0,0,0.08);–shadow2:rgba(0,0,0,0.12);
+}
+html.theme-dark{
+–blue:#0a84ff;–bg:#1c1c1e;–card:#2c2c2e;–text:#ffffff;
+–sub:#8e8e93;–border:#3a3a3c;–green:#30d158;–orange:#ff9f0a;–red:#ff453a;
+–shadow:rgba(0,0,0,0.3);–shadow2:rgba(0,0,0,0.45);
+color-scheme:dark;
+}
+
 html,body{height:100%;overflow-x:hidden}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+body{font-family:‘DM Sans’,sans-serif;background:var(–bg);color:var(–text);-webkit-font-smoothing:antialiased;transition:background 0.25s,color 0.25s}
+
 .app{max-width:430px;margin:0 auto;padding:16px 16px 60px}
-.header{display:flex;align-items:center;justify-content:space-between;padding:12px 0 20px}
+
+/* ── HEADER ── */
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 0 14px}
 .header h1{font-size:17px;font-weight:600}
-.header-btn{width:36px;height:36px;border-radius:50%;background:var(--card);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.1);-webkit-tap-highlight-color:transparent}
-.gps-card{background:var(--card);border-radius:20px;padding:20px 22px;border:2.5px solid var(--blue);margin-bottom:10px;box-shadow:0 2px 16px rgba(26,115,232,0.10)}
+.header-btn{width:36px;height:36px;border-radius:50%;background:var(–card);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 4px var(–shadow2);-webkit-tap-highlight-color:transparent;transition:background 0.25s}
+
+/* ── THEME SEGMENTED CONTROL ── */
+.theme-bar{margin-bottom:16px}
+.theme-seg{display:flex;background:var(–card);border-radius:14px;padding:4px;gap:3px;box-shadow:0 1px 4px var(–shadow2);transition:background 0.25s}
+.ts-btn{flex:1;padding:8px 6px;border:none;background:transparent;border-radius:10px;cursor:pointer;font-family:‘DM Sans’,sans-serif;font-size:12px;font-weight:500;color:var(–sub);display:flex;align-items:center;justify-content:center;gap:5px;transition:all 0.22s;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.ts-btn svg{flex-shrink:0;width:15px;height:15px}
+.ts-btn.active{background:var(–blue);color:#fff;box-shadow:0 2px 8px rgba(26,115,232,0.35)}
+html.theme-dark .ts-btn.active{box-shadow:0 2px 8px rgba(10,132,255,0.35)}
+.ts-btn:not(.active):active{opacity:0.7}
+
+/* ── GPS CARD ── */
+.gps-card{background:var(–card);border-radius:20px;padding:20px 22px;border:2.5px solid var(–blue);margin-bottom:10px;box-shadow:0 2px 16px rgba(26,115,232,0.10);transition:background 0.25s}
 .coord-row{display:flex;align-items:center;gap:12px;margin-bottom:6px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .coord-icon{width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .coord-icon svg{width:28px;height:28px;display:block}
-.coord-value{font-family:'Space Mono',monospace;font-size:30px;font-weight:700;color:var(--text);letter-spacing:-1px;line-height:1}
-.gps-meta{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:14px;margin-top:10px}
-.meta-item{display:flex;align-items:center;gap:6px;color:var(--sub);font-size:14px;font-weight:500}
-.status-bar{background:var(--card);border-radius:12px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);box-shadow:0 1px 4px rgba(0,0,0,0.05)}
-.status-dot{width:8px;height:8px;border-radius:50%;background:var(--sub);flex-shrink:0;transition:background 0.3s}
-.status-dot.active{background:var(--green);box-shadow:0 0 0 3px rgba(52,199,89,0.2)}
-.status-dot.loading{background:var(--orange);animation:pulse 1s infinite}
+.coord-value{font-family:‘Space Mono’,monospace;font-size:30px;font-weight:700;color:var(–text);letter-spacing:-1px;line-height:1}
+.gps-meta{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(–border);padding-top:14px;margin-top:10px}
+.meta-item{display:flex;align-items:center;gap:6px;color:var(–sub);font-size:14px;font-weight:500}
+
+/* ── STATUS BAR ── */
+.status-bar{background:var(–card);border-radius:12px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(–sub);box-shadow:0 1px 4px var(–shadow);transition:background 0.25s}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(–sub);flex-shrink:0;transition:background 0.3s}
+.status-dot.active{background:var(–green);box-shadow:0 0 0 3px rgba(52,199,89,0.2)}
+.status-dot.loading{background:var(–orange);animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.section-label{font-size:13px;font-weight:500;color:var(--sub);margin:8px 0 6px 4px;text-transform:uppercase;letter-spacing:0.5px}
-.list-card{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
-.list-item{display:flex;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border);cursor:pointer;color:inherit;-webkit-tap-highlight-color:transparent}
+
+/* ── LIST ── */
+.section-label{font-size:13px;font-weight:500;color:var(–sub);margin:8px 0 6px 4px;text-transform:uppercase;letter-spacing:0.5px}
+.list-card{background:var(–card);border-radius:16px;overflow:hidden;margin-bottom:16px;box-shadow:0 1px 4px var(–shadow);transition:background 0.25s}
+.list-item{display:flex;align-items:center;padding:16px 18px;border-bottom:1px solid var(–border);cursor:pointer;color:inherit;-webkit-tap-highlight-color:transparent}
 .list-item:last-child{border-bottom:none}
-.list-item:active{background:rgba(0,0,0,0.04)}
+.list-item:active{background:rgba(128,128,128,0.08)}
 .item-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin-right:14px;flex-shrink:0}
-.item-icon svg{width:22px;height:22px;color:var(--sub)}
+.item-icon svg{width:22px;height:22px;color:var(–sub)}
 .item-content{flex:1}
-.item-title{font-size:16px;font-weight:400;color:var(--text)}
-.item-subtitle{font-size:12px;color:var(--sub);margin-top:1px}
-.item-right{display:flex;align-items:center;gap:6px;color:var(--sub);font-size:15px}
+.item-title{font-size:16px;font-weight:400;color:var(–text)}
+.item-subtitle{font-size:12px;color:var(–sub);margin-top:1px}
+.item-right{display:flex;align-items:center;gap:6px;color:var(–sub);font-size:15px}
 .item-right svg{width:16px;height:16px;opacity:0.4}
 .weather-icon{font-size:18px}
-.get-location-btn{width:100%;padding:16px;background:var(--blue);color:white;border:none;border-radius:16px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(26,115,232,0.3);-webkit-tap-highlight-color:transparent}
+
+/* ── BUTTON ── */
+.get-location-btn{width:100%;padding:16px;background:var(–blue);color:white;border:none;border-radius:16px;font-family:‘DM Sans’,sans-serif;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(26,115,232,0.3);-webkit-tap-highlight-color:transparent}
 .get-location-btn:active{opacity:0.85}
-.get-location-btn:disabled{background:var(--sub);box-shadow:none}
-.map-placeholder{border-radius:16px;height:180px;margin-bottom:16px;cursor:pointer;border:2px solid rgba(26,115,232,0.15);position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;background:#dde8fb;display:block}
+.get-location-btn:disabled{background:var(–sub);box-shadow:none}
+
+/* ── MAP ── */
+.map-placeholder{border-radius:16px;height:180px;margin-bottom:16px;cursor:pointer;border:2px solid rgba(26,115,232,0.15);position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;display:block}
 .map-img{width:100%;height:100%;object-fit:cover;display:block}
-.map-label{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--blue);font-weight:500;background:white;padding:6px 14px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,0.14);white-space:nowrap;z-index:2;pointer-events:none}
+.map-label{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:13px;color:var(–blue);font-weight:500;background:var(–card);padding:6px 14px;border-radius:20px;box-shadow:0 2px 10px var(–shadow2);white-space:nowrap;z-index:2;pointer-events:none}
 .map-pin-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);z-index:3;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(26,115,232,0.4));display:none}
 .map-placeholder-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e8f0fe,#d2e3fc);background-image:linear-gradient(rgba(26,115,232,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(26,115,232,0.08) 1px,transparent 1px);background-size:28px 28px}
-/* OVERLAY */
+html.theme-dark .map-placeholder-empty{background:linear-gradient(135deg,#1a2744,#0d1b35);background-image:linear-gradient(rgba(10,132,255,0.12) 1px,transparent 1px),linear-gradient(90deg,rgba(10,132,255,0.12) 1px,transparent 1px);background-size:28px 28px}
+
+/* ── MODAL OVERLAY ── */
 .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0);z-index:99999;align-items:flex-end}
-/* SHEET — height set by JS once, transform-only movement */
-.modal,.compass-modal-inner{width:100%;border-radius:24px 24px 0 0;position:relative;will-change:transform;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;overflow-y:hidden}
-.modal{background:#fff;padding:20px 0 60px}
+
+/* ── SHEET — height set once by JS, only translateY changes ── */
+.modal,.compass-modal-inner{
+width:100%;border-radius:24px 24px 0 0;position:relative;
+will-change:transform;-webkit-overflow-scrolling:touch;
+overscroll-behavior:contain;overflow-y:hidden;
+}
+.modal{background:var(–card);padding:20px 0 60px;transition:background 0.25s}
 .compass-modal-inner{background:#000;padding:0 0 60px}
-.modal-handle{width:36px;height:4px;background:#d1d1d6;border-radius:3px;margin:0 auto 16px;pointer-events:none}
+
+.modal-handle{width:36px;height:4px;background:var(–border);border-radius:3px;margin:0 auto 16px;pointer-events:none}
 .compass-modal-handle{width:36px;height:4px;background:#444;border-radius:3px;margin:12px auto 0;pointer-events:none}
-.modal-title{font-size:18px;font-weight:600;padding:0 20px 16px;border-bottom:1px solid var(--border);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
-.modal-close-btn{width:40px;height:40px;border-radius:50%;background:#e5e5ea;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;padding:0}
-.modal-close-btn:active{background:#d1d1d6}
-.modal-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border)}
+
+.modal-title{font-size:18px;font-weight:600;padding:0 20px 16px;border-bottom:1px solid var(–border);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;background:transparent}
+.modal-close-btn{width:40px;height:40px;border-radius:50%;background:var(–border);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;padding:0}
+.modal-close-btn:active{opacity:0.7}
+.modal-close-btn svg line{stroke:var(–text)}
+
+.modal-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(–border)}
 .modal-row:last-child{border-bottom:none}
-.modal-row-label{font-size:14px;color:var(--sub);flex-shrink:0;margin-right:12px}
-.modal-row-value{font-size:15px;font-weight:500;color:var(--text);text-align:right;max-width:65%;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:4px 8px;border-radius:8px;transition:background 0.15s,color 0.15s;word-break:break-all;display:inline-flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap}
-.modal-row-value:active{background:rgba(26,115,232,0.12);color:var(--blue)}
-.modal-row-value.copied{background:rgba(52,199,89,0.15);color:var(--green)}
+.modal-row-label{font-size:14px;color:var(–sub);flex-shrink:0;margin-right:12px}
+.modal-row-value{font-size:15px;font-weight:500;color:var(–text);text-align:right;max-width:65%;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:4px 8px;border-radius:8px;transition:background 0.15s,color 0.15s;word-break:break-all;display:inline-flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap}
+.modal-row-value:active{background:rgba(26,115,232,0.12);color:var(–blue)}
+.modal-row-value.copied{background:rgba(52,199,89,0.15);color:var(–green)}
 .copy-icon{flex-shrink:0;width:13px;height:13px;opacity:0.35;display:inline-block}
 .copy-icon svg{width:13px;height:13px;display:block}
 .modal-row-value.copied .copy-icon{opacity:0.85}
 .modal-row-value.copied .copy-icon .icon-copy{display:none}
 .modal-row-value.copied .copy-icon .icon-check{display:block}
 .copy-icon .icon-check{display:none}
-.copy-icon .icon-copy{display:block}
+
 .share-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 20px}
-.share-opt{background:var(--bg);border:none;border-radius:14px;padding:14px 12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent}
+.share-opt{background:var(–bg);border:none;border-radius:14px;padding:14px 12px;font-family:‘DM Sans’,sans-serif;font-size:14px;font-weight:500;color:var(–text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent;transition:background 0.25s}
 .share-opt:active{opacity:0.7}
 .share-opt-icon{font-size:24px}
+
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(0,0,0,0.85);color:white;padding:10px 20px;border-radius:20px;font-size:14px;z-index:999999;transition:transform 0.3s;white-space:nowrap;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* compass */
+
+/* ── COMPASS ── */
 .compass-modal-close{position:absolute;top:20px;right:20px;width:28px;height:28px;border-radius:50%;background:#1c1c1e;border:none;color:#8e8e93;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
 .iphone-compass-heading{font-size:72px;font-weight:200;letter-spacing:-3px;color:#fff;text-align:center;padding:32px 0 4px;line-height:1}
-.iphone-compass-dir{font-size:17px;font-weight:400;color:#8e8e93;text-align:center;margin-bottom:24px;letter-spacing:0.5px}
+.iphone-compass-dir{font-size:17px;color:#8e8e93;text-align:center;margin-bottom:24px;letter-spacing:0.5px}
 .iphone-compass-wrap{display:flex;justify-content:center;align-items:center;padding:0 24px 28px}
 .iphone-compass-svg-wrap{position:relative;width:300px;height:300px;flex-shrink:0}
 .iphone-compass-pointer{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:14px solid #ff3b30;z-index:10;filter:drop-shadow(0 0 4px rgba(255,59,48,0.7))}
@@ -85,85 +140,135 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
 .iphone-compass-coords{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 20px}
 .iphone-compass-dms{font-size:17px;color:#fff;text-align:center}
 .iphone-compass-location,.iphone-compass-alt{font-size:14px;color:#8e8e93;text-align:center;margin-top:2px}
-.compass-permission-btn{width:calc(100% - 40px);margin:16px 20px;padding:13px;background:#1a73e8;color:white;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.compass-permission-btn{width:calc(100% - 40px);margin:16px 20px;padding:13px;background:#1a73e8;color:white;border:none;border-radius:14px;font-family:‘DM Sans’,sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
 #compassPermissionArea{display:none;padding-bottom:10px}
 .compass-status-text{font-size:12px;color:#8e8e93;text-align:center;padding:0 20px 10px}
-/* weather */
-.forecast-scroll{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;padding:0 16px 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+
+/* ── WEATHER ── */
+.forecast-scroll{
+display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;
+overscroll-behavior-x:contain;
+padding:4px 20px 16px 20px;   /* more breathing room on sides */
+scrollbar-width:none;-webkit-overflow-scrolling:touch;
+touch-action:pan-x;
+scroll-snap-type:x proximity;
+}
 .forecast-scroll::-webkit-scrollbar{display:none}
-.forecast-day{flex-shrink:0;width:72px;background:var(--bg);border-radius:14px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.forecast-day{
+flex-shrink:0;width:72px;background:var(–bg);border-radius:14px;
+padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;
+cursor:pointer;scroll-snap-align:start;transition:background 0.25s;
+}
 .forecast-day.today{background:#5a9ef5}
 .forecast-day-name{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;opacity:0.7}
 .forecast-day.today .forecast-day-name{opacity:0.9;color:white}
 .forecast-day-icon{font-size:26px;line-height:1;margin:2px 0}
 .forecast-day-max{font-size:15px;font-weight:700}
 .forecast-day-min{font-size:12px;opacity:0.55}
-.forecast-day.today .forecast-day-min{opacity:0.75;color:white}
-.forecast-day.today .forecast-day-max{color:white}
-.forecast-day.today .forecast-rain{color:white}
+.forecast-day.today .forecast-day-min,.forecast-day.today .forecast-rain{opacity:0.75;color:white}
+.forecast-day.today .forecast-day-max{color:white;font-weight:800}
 .forecast-rain{font-size:10px;opacity:0.6;display:flex;align-items:center;gap:2px}
+.forecast-day.today .forecast-rain{color:white}
+
 .weather-detail-section{padding-bottom:8px}
+
+/* ── DAY DETAIL ── */
 .day-detail-hero{margin:0 16px 16px;border-radius:20px;padding:20px;color:white;position:relative;overflow:hidden}
-.day-detail-hero::before{content:'';position:absolute;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,0.08)}
-.day-detail-hero::after{content:'';position:absolute;bottom:-20px;left:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.06)}
-.day-detail-date{font-size:13px;opacity:0.8;margin-bottom:4px;font-weight:500}
-.day-detail-desc{font-size:15px;opacity:0.9;margin-bottom:10px}
-.day-detail-temp-row{display:flex;align-items:flex-end;gap:14px;margin-bottom:14px}
+.day-detail-hero::before{content:’’;position:absolute;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,0.08)}
+.day-detail-hero::after{content:’’;position:absolute;bottom:-20px;left:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.06)}
+.day-detail-date{font-size:13px;opacity:0.8;margin-bottom:4px;font-weight:500;position:relative;z-index:1}
+.day-detail-desc{font-size:15px;opacity:0.9;margin-bottom:10px;position:relative;z-index:1}
+.day-detail-temp-row{display:flex;align-items:flex-end;gap:14px;margin-bottom:14px;position:relative;z-index:1}
 .day-detail-icon{font-size:52px;line-height:1}
 .day-detail-temps{display:flex;flex-direction:column;gap:2px}
 .day-detail-max{font-size:44px;font-weight:200;letter-spacing:-2px;line-height:1}
 .day-detail-minmax{font-size:14px;opacity:0.8}
 .day-detail-chips{display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:1}
 .day-chip{background:rgba(255,255,255,0.18);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:600;backdrop-filter:blur(4px)}
-.hourly-section-label{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px;padding:0 16px 8px}
-.hourly-scroll{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding:0 16px 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+
+.hourly-section-label{font-size:12px;font-weight:600;color:var(–sub);text-transform:uppercase;letter-spacing:0.5px;padding:0 16px 8px}
+.hourly-scroll{
+display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;
+padding:4px 20px 16px 20px;scrollbar-width:none;
+-webkit-overflow-scrolling:touch;touch-action:pan-x;
+scroll-snap-type:x proximity;
+}
 .hourly-scroll::-webkit-scrollbar{display:none}
-.hourly-item{flex-shrink:0;width:58px;background:var(--bg);border-radius:14px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:3px}
-.hourly-item.now{background:var(--blue);color:white}
+.hourly-item{flex-shrink:0;width:58px;background:var(–bg);border-radius:14px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;scroll-snap-align:start}
+.hourly-item.now{background:var(–blue);color:white}
 .hourly-time{font-size:11px;font-weight:600;opacity:0.65}
 .hourly-item.now .hourly-time,.hourly-item.now .hourly-temp,.hourly-item.now .hourly-rain{color:white;opacity:0.9}
 .hourly-icon{font-size:20px;line-height:1}
 .hourly-temp{font-size:14px;font-weight:700}
 .hourly-rain{font-size:9px;opacity:0.55;margin-top:1px}
+
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 16px}
-.detail-cell{background:var(--bg);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
-.detail-cell-label{font-size:11px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:0.4px}
-.detail-cell-value{font-size:18px;font-weight:700;color:var(--text)}
-.detail-cell-sub{font-size:11px;color:var(--sub)}
+.detail-cell{background:var(–bg);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;transition:background 0.25s}
+.detail-cell-label{font-size:11px;color:var(–sub);font-weight:600;text-transform:uppercase;letter-spacing:0.4px}
+.detail-cell-value{font-size:18px;font-weight:700;color:var(–text)}
+.detail-cell-sub{font-size:11px;color:var(–sub)}
+
 .sun-bar-wrap{padding:0 16px 16px}
-.sun-bar-card{background:var(--bg);border-radius:14px;padding:14px 16px}
-.sun-bar-title{font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px}
+.sun-bar-card{background:var(–bg);border-radius:14px;padding:14px 16px;transition:background 0.25s}
+.sun-bar-title{font-size:11px;font-weight:600;color:var(–sub);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px}
 .sun-bar-row{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500}
-.sun-bar-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.sun-bar-track{flex:1;height:6px;background:var(–border);border-radius:3px;overflow:hidden}
 .sun-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#ff9500,#ffcc00)}
-.sun-times-row{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--sub)}
+.sun-times-row{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(–sub)}
+
 .day-detail-nav{display:flex;align-items:center;justify-content:space-between;padding:0 16px 16px;gap:8px}
-.day-nav-btn{width:36px;height:36px;border-radius:50%;background:var(--bg);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.day-nav-btn{width:36px;height:36px;border-radius:50%;background:var(–bg);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:background 0.25s}
 .day-nav-btn:disabled{opacity:0.25;cursor:default}
 .day-nav-dots{display:flex;gap:5px;align-items:center;flex:1;justify-content:center;flex-wrap:wrap}
-.day-nav-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all 0.2s;cursor:pointer}
-.day-nav-dot.active{width:18px;border-radius:3px;background:var(--blue)}
+.day-nav-dot{width:6px;height:6px;border-radius:50%;background:var(–border);transition:all 0.2s;cursor:pointer}
+.day-nav-dot.active{width:18px;border-radius:3px;background:var(–blue)}
+
 #dayDetailContent{transition:opacity 0.18s ease,transform 0.18s ease}
 #dayDetailContent.so-l{opacity:0;transform:translateX(-40px)}
 #dayDetailContent.so-r{opacity:0;transform:translateX(40px)}
 #dayDetailContent.si-l{opacity:0;transform:translateX(40px)}
 #dayDetailContent.si-r{opacity:0;transform:translateX(-40px)}
 </style>
+
 </head>
 <body>
 <div class="app">
   <div class="header">
-    <button class="header-btn" onclick="refreshLocation()"><svg viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+    <button class="header-btn" onclick="refreshLocation()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+    </button>
     <h1>GPS Konum</h1>
-    <button class="header-btn" onclick="openModal('shareModal')"><svg viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+    <button class="header-btn" onclick="openModal('shareModal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    </button>
   </div>
+
+  <!-- THEME TOGGLE -->
+
+  <div class="theme-bar">
+    <div class="theme-seg">
+      <button class="ts-btn" id="ts-light" onclick="setTheme('light')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        Gündüz
+      </button>
+      <button class="ts-btn" id="ts-dark" onclick="setTheme('dark')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        Gece
+      </button>
+      <button class="ts-btn" id="ts-system" onclick="setTheme('system')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Sistem
+      </button>
+    </div>
+  </div>
+
   <div class="gps-card">
     <div class="coord-row" onclick="copyCoord('lat')">
-      <div class="coord-icon"><svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#1a73e8" stroke-width="2"/><ellipse cx="14" cy="14" rx="12" ry="6" stroke="#1a73e8" stroke-width="1.5"/><line x1="2" y1="14" x2="26" y2="14" stroke="#1a73e8" stroke-width="1.5"/><line x1="14" y1="2" x2="14" y2="26" stroke="#1a73e8" stroke-width="1.5"/></svg></div>
+      <div class="coord-icon"><svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="var(--blue)" stroke-width="2"/><ellipse cx="14" cy="14" rx="12" ry="6" stroke="var(--blue)" stroke-width="1.5"/><line x1="2" y1="14" x2="26" y2="14" stroke="var(--blue)" stroke-width="1.5"/><line x1="14" y1="2" x2="14" y2="26" stroke="var(--blue)" stroke-width="1.5"/></svg></div>
       <div class="coord-value" id="latDisplay">---.------</div>
     </div>
     <div class="coord-row" onclick="copyCoord('lng')">
-      <div class="coord-icon"><svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#1a73e8" stroke-width="2"/><ellipse cx="14" cy="14" rx="6" ry="12" stroke="#1a73e8" stroke-width="1.5"/><line x1="2" y1="14" x2="26" y2="14" stroke="#1a73e8" stroke-width="1.5"/><line x1="14" y1="2" x2="14" y2="26" stroke="#1a73e8" stroke-width="1.5"/></svg></div>
+      <div class="coord-icon"><svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="var(--blue)" stroke-width="2"/><ellipse cx="14" cy="14" rx="6" ry="12" stroke="var(--blue)" stroke-width="1.5"/><line x1="2" y1="14" x2="26" y2="14" stroke="var(--blue)" stroke-width="1.5"/><line x1="14" y1="2" x2="14" y2="26" stroke="var(--blue)" stroke-width="1.5"/></svg></div>
       <div class="coord-value" id="lngDisplay">---.------</div>
     </div>
     <div class="gps-meta">
@@ -171,14 +276,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
       <div class="meta-item" id="altDisplay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M3 17l4-8 4 4 4-6 4 10"/></svg><span>0.00 m</span></div>
     </div>
   </div>
+
   <div class="status-bar"><div class="status-dot" id="statusDot"></div><span id="statusText">Konum almak için butona basın</span></div>
-  <button class="get-location-btn" id="getLocBtn" onclick="getLocation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>Konum Al</button>
+  <button class="get-location-btn" id="getLocBtn" onclick="getLocation()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>Konum Al
+  </button>
+
   <div class="map-placeholder" id="mapPlaceholder" onclick="openMaps()">
-    <div class="map-placeholder-empty" id="mapEmpty"><span style="font-size:13px;color:var(--blue);font-weight:500;background:white;padding:6px 14px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1)">📍 Konum alındığında harita açılır</span></div>
+    <div class="map-placeholder-empty" id="mapEmpty"><span style="font-size:13px;color:var(--blue);font-weight:500;background:var(--card);padding:6px 14px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1)">📍 Konum alındığında harita açılır</span></div>
     <img id="mapImg" class="map-img" style="display:none" alt="Harita"/>
     <div class="map-pin-overlay" id="mapPinOverlay"><svg width="32" height="42" viewBox="0 0 32 42" fill="none"><circle cx="16" cy="16" r="16" fill="#1a73e8"/><circle cx="16" cy="16" r="7" fill="white"/><path d="M16 32C16 32 4 22 4 14C4 7.4 9.4 2 16 2C22.6 2 28 7.4 28 14C28 22 16 32 16 32Z" fill="#1a73e8" opacity="0.25"/><polygon points="11,28 21,28 16,42" fill="#1a73e8"/></svg></div>
     <div class="map-label" id="mapLabel" style="display:none">📍 Haritada Aç</div>
   </div>
+
   <div class="section-label">Yer Detayları</div>
   <div class="list-card">
     <div class="list-item" onclick="openModal('addressModal')"><div class="item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div><div class="item-content"><div class="item-title">Adres</div><div class="item-subtitle" id="addressPreview">Konum alınmadı</div></div><div class="item-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div></div>
@@ -191,40 +301,103 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
   </div>
 </div>
 
-<!-- MODALS -->
-<div class="modal-overlay" id="addressModal" onclick="hoc(event,'addressModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">📍 Adres<button class="modal-close-btn" onclick="closeModal('addressModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div id="addressRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum alınmadı</span></div></div></div></div>
-<div class="modal-overlay" id="timeModal" onclick="hoc(event,'timeModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">🕐 Saat &amp; Tarih<button class="modal-close-btn" onclick="closeModal('timeModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div id="timeRows"></div></div></div>
-<div class="modal-overlay" id="sunModal" onclick="hoc(event,'sunModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">☀️ Gün Doğumu / Batımı<button class="modal-close-btn" onclick="closeModal('sunModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div id="sunRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div></div>
-<div class="modal-overlay" id="weatherModal" onclick="hoc(event,'weatherModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">⛅ Hava Durumu<button class="modal-close-btn" onclick="closeModal('weatherModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div id="weatherCurrentBlock"></div><div style="padding:0 16px 8px"><span style="font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">10 Günlük Tahmin</span></div><div id="weatherForecastBlock"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div></div>
-<div class="modal-overlay" id="extModal" onclick="hoc(event,'extModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">📊 Genişletilmiş Veri<button class="modal-close-btn" onclick="closeModal('extModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div id="extRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div></div>
-<div class="modal-overlay" id="compassModal" onclick="hoc(event,'compassModal')"><div class="compass-modal-inner" onclick="event.stopPropagation()"><div class="compass-modal-handle"></div><button class="compass-modal-close" onclick="closeModal('compassModal')">✕</button><div id="compassPermissionArea"><p class="compass-status-text">iOS cihazlarda pusula için izin gereklidir.</p><button class="compass-permission-btn" onclick="requestCompassPermission()">🧭 Pusula İznini Ver</button></div><div class="iphone-compass-heading" id="iCompassDeg">---°</div><div class="iphone-compass-dir" id="iCompassDir">Pusula bekleniyor</div><div class="iphone-compass-wrap"><div class="iphone-compass-svg-wrap"><div class="iphone-compass-pointer"></div><canvas class="iphone-compass-canvas" id="compassCanvas" width="300" height="300"></canvas></div></div><div class="iphone-compass-coords"><div class="iphone-compass-dms" id="iCompassLatDMS">--°--'--" K  --°--'--" D</div><div class="iphone-compass-location" id="iCompassLocation">Şişli, İstanbul</div><div class="iphone-compass-alt" id="iCompassAlt">Yükseklik: -- m</div></div></div></div>
-<div class="modal-overlay" id="shareModal" onclick="hoc(event,'shareModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">Konumu Paylaş<button class="modal-close-btn" onclick="closeModal('shareModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div class="share-grid"><button class="share-opt" onclick="shareAs('coords')"><span class="share-opt-icon">📋</span>Koordinat Kopyala</button><button class="share-opt" onclick="shareAs('maps')"><span class="share-opt-icon">🗺️</span>Google Maps</button><button class="share-opt" onclick="shareAs('native')"><span class="share-opt-icon">📤</span>Paylaş</button><button class="share-opt" onclick="shareAs('waze')"><span class="share-opt-icon">🚗</span>Waze</button></div><div style="height:16px"></div></div></div>
+<!-- MODALS — peek/full system -->
+
+<div class="modal-overlay" id="addressModal" onclick="hoc(event,'addressModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">📍 Adres<button class="modal-close-btn" onclick="closeModal('addressModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div id="addressRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum alınmadı</span></div></div></div></div>
+
+<div class="modal-overlay" id="timeModal" onclick="hoc(event,'timeModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">🕐 Saat &amp; Tarih<button class="modal-close-btn" onclick="closeModal('timeModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div id="timeRows"></div></div></div>
+
+<div class="modal-overlay" id="sunModal" onclick="hoc(event,'sunModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">☀️ Gün Doğumu / Batımı<button class="modal-close-btn" onclick="closeModal('sunModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div id="sunRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div></div>
+
+<div class="modal-overlay" id="weatherModal" onclick="hoc(event,'weatherModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">⛅ Hava Durumu<button class="modal-close-btn" onclick="closeModal('weatherModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div id="weatherCurrentBlock"></div><div style="padding:0 16px 8px"><span style="font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">10 Günlük Tahmin</span></div><div id="weatherForecastBlock"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div></div>
+
+<div class="modal-overlay" id="extModal" onclick="hoc(event,'extModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">📊 Genişletilmiş Veri<button class="modal-close-btn" onclick="closeModal('extModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div id="extRows"><div class="modal-row"><span class="modal-row-label">Durum</span><span class="modal-row-value">Konum gerekli</span></div></div></div></div>
+
+<!-- COMPASS — cover mode (100% screen) -->
+
+<div class="modal-overlay" id="compassModal" onclick="hoc(event,'compassModal')">
+  <div class="compass-modal-inner" onclick="event.stopPropagation()">
+    <div class="compass-modal-handle"></div>
+    <button class="compass-modal-close" onclick="closeModal('compassModal')">✕</button>
+    <div id="compassPermissionArea"><p class="compass-status-text">iOS cihazlarda pusula için izin gereklidir.</p><button class="compass-permission-btn" onclick="requestCompassPermission()">🧭 Pusula İznini Ver</button></div>
+    <div class="iphone-compass-heading" id="iCompassDeg">---°</div>
+    <div class="iphone-compass-dir" id="iCompassDir">Pusula bekleniyor</div>
+    <div class="iphone-compass-wrap"><div class="iphone-compass-svg-wrap"><div class="iphone-compass-pointer"></div><canvas class="iphone-compass-canvas" id="compassCanvas" width="300" height="300"></canvas></div></div>
+    <div class="iphone-compass-coords">
+      <div class="iphone-compass-dms" id="iCompassLatDMS">--°--'--" K  --°--'--" D</div>
+      <div class="iphone-compass-location" id="iCompassLocation">Şişli, İstanbul</div>
+      <div class="iphone-compass-alt" id="iCompassAlt">Yükseklik: -- m</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="shareModal" onclick="hoc(event,'shareModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">Konumu Paylaş<button class="modal-close-btn" onclick="closeModal('shareModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div class="share-grid"><button class="share-opt" onclick="shareAs('coords')"><span class="share-opt-icon">📋</span>Koordinat Kopyala</button><button class="share-opt" onclick="shareAs('maps')"><span class="share-opt-icon">🗺️</span>Google Maps</button><button class="share-opt" onclick="shareAs('native')"><span class="share-opt-icon">📤</span>Paylaş</button><button class="share-opt" onclick="shareAs('waze')"><span class="share-opt-icon">🚗</span>Waze</button></div><div style="height:16px"></div></div></div>
+
 <div class="toast" id="toast"></div>
-<div class="modal-overlay" id="dayDetailModal" onclick="hoc(event,'dayDetailModal')"><div class="modal" id="dayDetailSheet" onclick="event.stopPropagation()" style="background:var(--bg)"><div class="modal-handle"></div><div class="modal-title" style="background:var(--bg)"><span id="dayDetailTitle">Gün Detayı</span><button class="modal-close-btn" onclick="closeModal('dayDetailModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="#000" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div class="day-detail-nav" id="dayDetailNav"><button class="day-nav-btn" id="dayNavPrev" onclick="navigateDayDetail(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><div class="day-nav-dots" id="dayNavDots"></div><button class="day-nav-btn" id="dayNavNext" onclick="navigateDayDetail(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="9 18 15 12 9 6"/></svg></button></div><div id="dayDetailContent"></div></div></div>
+
+<!-- DAY DETAIL — full mode (91%) -->
+
+<div class="modal-overlay" id="dayDetailModal" onclick="hoc(event,'dayDetailModal')">
+  <div class="modal" id="dayDetailSheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">
+      <span id="dayDetailTitle">Gün Detayı</span>
+      <button class="modal-close-btn" onclick="closeModal('dayDetailModal')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><line x1="1" y1="1" x2="12" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="1" x2="1" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="day-detail-nav" id="dayDetailNav">
+      <button class="day-nav-btn" id="dayNavPrev" onclick="navDay(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="day-nav-dots" id="dayNavDots"></div>
+      <button class="day-nav-btn" id="dayNavNext" onclick="navDay(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="9 18 15 12 9 6"/></svg></button>
+    </div>
+    <div id="dayDetailContent"></div>
+  </div>
+</div>
 
 <script>
-/* ─────────────────────────────────────────
-   STATE
-───────────────────────────────────────── */
+/* ═══════════ STATE ═══════════ */
 var S={lat:null,lng:null,alt:null,accuracy:null,heading:null,speed:null,watchId:null,compassHeading:null,compassActive:false,compassListener:null,addressCity:'',weatherData:null};
 var dayIdx=0,dayTotal=0;
 
-/* ─────────────────────────────────────────
-   MODAL ENGINE
-   Sheet height = FULL_H (set once on open, never changes).
-   Position = translateY only → pure GPU, zero layout.
-   peek  = translateY(FULL_H - PEEK_H)
-   full  = translateY(0)
-   close = translateY(FULL_H)
-───────────────────────────────────────── */
-var PF=0.52, FF=0.91;
-var _ms={};      // id → {s:'peek'|'full'}
-var _ma={};      // id → attached
+/* ═══════════ THEME ═══════════ */
+var _userTheme='system';
+var _mq=window.matchMedia('(prefers-color-scheme: dark)');
+
+function setTheme(t){
+  _userTheme=t;
+  try{localStorage.setItem('gpsTheme',t);}catch(e){}
+  _applyTheme(t);
+}
+
+function _applyTheme(t){
+  var dark;
+  if(t==='system') dark=_mq.matches;
+  else dark=(t==='dark');
+  document.documentElement.className=dark?'theme-dark':'theme-light';
+  ['light','dark','system'].forEach(function(k){
+    var b=document.getElementById('ts-'+k);
+    if(b) b.classList.toggle('active',k===t);
+  });
+}
+
+_mq.addEventListener('change',function(){
+  if(_userTheme==='system') _applyTheme('system');
+});
+
+/* ═══════════ MODAL ENGINE ═══════════
+   MODAL_MODE:
+   'peek'  → opens at 52%vh, swipe up → 91%, swipe down from peek → close, from full → back to peek
+   'full'  → opens directly at 91%vh, swipe down → close directly
+   'cover' → opens directly at 100%vh, swipe down → close directly
+═══════════════════════════════════════ */
+var MM={ dayDetailModal:'full', compassModal:'cover' };
+var _ms={}, _ma={};
 
 function vH(){ return window.innerHeight; }
-function pH(){ return Math.round(vH()*PF); }
-function fH(){ return Math.round(vH()*FF); }
+function fH(){ return Math.round(vH()*0.91); }
+function pH(){ return Math.round(vH()*0.52); }
 function pOff(){ return fH()-pH(); }
+function mH(id){ var m=MM[id]; return m==='cover'?vH():fH(); }
+function mMode(id){ return MM[id]||'peek'; }
 
 function gs(id){
   var o=document.getElementById(id);
@@ -241,24 +414,30 @@ function _bg(ov,a,anim){
 }
 
 function openModal(id){
-  if(id==='timeModal')    fillTimeModal();
+  if(id==='timeModal') fillTimeModal();
   if(id==='compassModal') startCompass();
 
   var ov=document.getElementById(id), sh=gs(id);
-  var fh=fH(), po=pOff();
+  var mode=mMode(id), h=mH(id);
+  var isPeek=mode==='peek';
+  var targetY=isPeek?pOff():0;
 
-  sh.style.height=fh+'px';
+  sh.style.height=h+'px';
   sh.style.overflowY='hidden';
   sh.style.transition='none';
-  sh.style.transform='translateY('+fh+'px)';
+  sh.style.transform='translateY('+h+'px)';
   ov.style.cssText='display:flex;background:rgba(0,0,0,0)';
-  _ms[id]={s:'peek'};
+  _ms[id]={s:isPeek?'peek':'full'};
   document.body.style.overflow='hidden';
 
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
-      _tr(sh,po,true);
-      _bg(ov,0.45,true);
+      _tr(sh,targetY,true);
+      _bg(ov,isPeek?0.45:0.55,true);
+      /* enable scroll for full/cover right away */
+      if(!isPeek){
+        setTimeout(function(){ sh.style.overflowY='auto'; },120);
+      }
     });
   });
 
@@ -268,7 +447,7 @@ function openModal(id){
 function closeModal(id){
   var ov=document.getElementById(id), sh=gs(id);
   sh.style.overflowY='hidden';
-  _tr(sh,fH(),true);
+  _tr(sh,mH(id),true);
   _bg(ov,0,true);
   setTimeout(function(){
     ov.style.cssText='display:none';
@@ -298,92 +477,87 @@ function _attachSwipe(id){
     d.sx=e.touches[0].clientX; d.sy=e.touches[0].clientY;
     d.t=Date.now(); d.pt=d.t; d.dy=0; d.vel=0; d.dir=null;
     d.inH=inHS(e.target); d.on=true;
-    /* kill transition so finger is instant */
     sh.style.transition='none';
     ov.style.transition='none';
   }
 
   function onMove(e){
     if(!d.on||d.inH) return;
-    var dy=e.touches[0].clientY-d.sy;
-    var dx=e.touches[0].clientX-d.sx;
+    var dy=e.touches[0].clientY-d.sy, dx=e.touches[0].clientX-d.sx;
 
     if(!d.dir){
-      var ax=Math.abs(dx),ay=Math.abs(dy);
-      if(ax>ay+6){ d.dir='h'; return; }
-      if(ay>6)   { d.dir='v'; }
+      if(Math.abs(dx)>Math.abs(dy)+6){ d.dir='h'; return; }
+      if(Math.abs(dy)>6) d.dir='v';
       else return;
     }
     if(d.dir==='h') return;
 
-    /* velocity */
-    var now=Date.now(),dt=now-d.pt;
+    var now=Date.now(), dt=now-d.pt;
     if(dt>0){ d.vel=(dy-d.dy)/dt; d.pt=now; }
     d.dy=dy;
 
-    var st=(_ms[id]||{}).s||'peek';
+    var mode=mMode(id), st=(_ms[id]||{}).s||'peek';
     var po=pOff();
 
-    if(st==='full'){
-      if(sh.scrollTop>1) return;   /* let scroll handle it */
-      if(dy<=0) return;            /* up → scroll will handle */
-      var clamped=Math.max(0,dy);
-      sh.style.transform='translateY('+clamped+'px)';
-      ov.style.background='rgba(0,0,0,'+Math.max(0,0.55*(1-clamped/260))+')';
+    if(mode!=='peek'){
+      /* full/cover: only drag down, and only when scroll is at top */
+      if(sh.scrollTop>1) return;
+      if(dy<=0) return;
+      sh.style.transform='translateY('+Math.max(0,dy)+'px)';
+      ov.style.background='rgba(0,0,0,'+Math.max(0,0.55*(1-dy/260))+')';
     } else {
-      /* peek */
-      if(dy<0){
-        /* dragging up: towards full */
-        var cur=Math.max(0,po+dy);
-        sh.style.transform='translateY('+cur+'px)';
-        var prog=Math.min(1,-dy/po);
-        ov.style.background='rgba(0,0,0,'+(0.45+0.1*prog)+')';
+      if(st==='full'){
+        if(sh.scrollTop>1) return;
+        if(dy<=0) return;
+        sh.style.transform='translateY('+Math.max(0,dy)+'px)';
+        ov.style.background='rgba(0,0,0,'+Math.max(0,0.55*(1-dy/260))+')';
       } else {
-        /* dragging down: towards dismiss */
-        sh.style.transform='translateY('+(po+dy)+'px)';
-        ov.style.background='rgba(0,0,0,'+Math.max(0,0.45*(1-dy/180))+')';
+        /* peek */
+        if(dy<0){
+          sh.style.transform='translateY('+Math.max(0,po+dy)+'px)';
+          var prog=Math.min(1,-dy/po);
+          ov.style.background='rgba(0,0,0,'+(0.45+0.1*prog)+')';
+        } else {
+          sh.style.transform='translateY('+(po+dy)+'px)';
+          ov.style.background='rgba(0,0,0,'+Math.max(0,0.45*(1-dy/180))+')';
+        }
       }
     }
     e.preventDefault();
   }
 
   function onEnd(){
-    if(!d.on){ return; }
+    if(!d.on) return;
     d.on=false;
 
     if(d.dir==='h'||d.inH||!d.dir){
-      /* restore without motion */
-      var st2=(_ms[id]||{}).s||'peek';
-      _tr(sh,st2==='full'?0:pOff(),true);
-      _bg(ov,st2==='full'?0.55:0.45,true);
-      return;
+      _restore(id,sh,ov); return;
     }
 
-    var st=(_ms[id]||{}).s||'peek';
-    var dy=d.dy, vel=d.vel;
-    var po=pOff();
+    var mode=mMode(id), st=(_ms[id]||{}).s||'peek';
+    var dy=d.dy, vel=d.vel, po=pOff();
 
-    if(st==='peek'){
-      if(dy<-55||vel<-0.45){
-        /* expand → full */
-        _ms[id].s='full';
-        _tr(sh,0,true);
-        _bg(ov,0.55,true);
-        setTimeout(function(){ if(_ms[id]&&_ms[id].s==='full') sh.style.overflowY='auto'; },440);
-      } else if(dy>70||vel>0.45){
-        closeModal(id);
-      } else {
-        _tr(sh,po,true); _bg(ov,0.45,true);
-      }
+    if(mode!=='peek'){
+      /* full/cover: drag down → close directly */
+      if(dy>90||vel>0.42) closeModal(id);
+      else _restore(id,sh,ov);
     } else {
-      /* full */
-      if(dy>100||vel>0.45){
-        /* collapse to peek */
-        sh.style.overflowY='hidden'; sh.scrollTop=0;
-        _ms[id].s='peek';
-        _tr(sh,po,true); _bg(ov,0.45,true);
+      if(st==='full'){
+        if(dy>100||vel>0.45){
+          /* collapse to peek */
+          sh.style.overflowY='hidden'; sh.scrollTop=0;
+          _ms[id].s='peek';
+          _tr(sh,po,true); _bg(ov,0.45,true);
+        } else _restore(id,sh,ov);
       } else {
-        _tr(sh,0,true); _bg(ov,0.55,true);
+        /* peek */
+        if(dy<-55||vel<-0.45){
+          _ms[id].s='full';
+          _tr(sh,0,true); _bg(ov,0.55,true);
+          setTimeout(function(){ if(_ms[id]&&_ms[id].s==='full') sh.style.overflowY='auto'; },440);
+        } else if(dy>70||vel>0.45){
+          closeModal(id);
+        } else _restore(id,sh,ov);
       }
     }
   }
@@ -394,10 +568,14 @@ function _attachSwipe(id){
   sh.addEventListener('touchcancel',onEnd, {passive:true});
 }
 
-/* ─────────────────────────────────────────
-   DAY LEFT/RIGHT SWIPE
-───────────────────────────────────────── */
-var _dsOn=false,_dsSX=0,_dsSY=0,_dsDir=null,_DS=50;
+function _restore(id,sh,ov){
+  var st=(_ms[id]||{}).s||'peek', mode=mMode(id);
+  if(mode!=='peek'||st==='full'){ _tr(sh,0,true); _bg(ov,0.55,true); }
+  else { _tr(sh,pOff(),true); _bg(ov,0.45,true); }
+}
+
+/* ═══════════ DAY SWIPE (L/R) ═══════════ */
+var _dsOn=false,_dsSX=0,_dsSY=0,_dsDir=null;
 function attachDaySwipe(){
   var el=document.getElementById('dayDetailContent');
   if(!el||el._ds) return; el._ds=1;
@@ -410,7 +588,7 @@ function attachDaySwipe(){
     var dx=e.touches[0].clientX-_dsSX,dy=e.touches[0].clientY-_dsSY;
     if(!_dsDir){
       if(Math.abs(dx)>Math.abs(dy)+5)       _dsDir='h';
-      else if(Math.abs(dy)>Math.abs(dx)+5){_dsDir='v';_dsOn=false;return;}
+      else if(Math.abs(dy)>Math.abs(dx)+5){ _dsDir='v';_dsOn=false;return; }
       else return;
     }
     if(_dsDir==='h') e.preventDefault();
@@ -419,12 +597,11 @@ function attachDaySwipe(){
     if(!_dsOn||_dsDir!=='h'){_dsOn=false;return;}
     _dsOn=false;
     var dx=e.changedTouches[0].clientX-_dsSX;
-    if(dx<-_DS) navigateDayDetail(1);
-    else if(dx>_DS) navigateDayDetail(-1);
+    if(dx<-50) navDay(1); else if(dx>50) navDay(-1);
   },{passive:true});
 }
 
-function navigateDayDetail(dir){
+function navDay(dir){
   var ni=dayIdx+dir; if(ni<0||ni>=dayTotal) return;
   var el=document.getElementById('dayDetailContent');
   var oc=dir>0?'so-l':'so-r', ic=dir>0?'si-l':'si-r';
@@ -441,8 +618,8 @@ function updateDayUI(){
   document.getElementById('dayNavPrev').disabled=(dayIdx===0);
   document.getElementById('dayNavNext').disabled=(dayIdx===dayTotal-1);
   if(S.weatherData){
-    var d=S.weatherData,tr=['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'],ay=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
-    var dd=new Date(d.daily.time[dayIdx]+'T12:00:00'),dn=dayIdx===0?'Bugün':(dayIdx===1?'Yarın':tr[dd.getDay()]);
+    var tr=['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'],ay=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+    var dd=new Date(S.weatherData.daily.time[dayIdx]+'T12:00:00'),dn=dayIdx===0?'Bugün':(dayIdx===1?'Yarın':tr[dd.getDay()]);
     document.getElementById('dayDetailTitle').textContent=dn+' · '+dd.getDate()+' '+ay[dd.getMonth()];
   }
   document.getElementById('dayNavDots').querySelectorAll('.day-nav-dot').forEach(function(dot,i){ dot.classList.toggle('active',i===dayIdx); });
@@ -455,8 +632,7 @@ function buildDots(n,a){
 
 function jumpDay(idx){
   if(idx===dayIdx) return;
-  var dir=idx>dayIdx?1:-1;
-  var el=document.getElementById('dayDetailContent');
+  var dir=idx>dayIdx?1:-1, el=document.getElementById('dayDetailContent');
   var oc=dir>0?'so-l':'so-r', ic=dir>0?'si-l':'si-r';
   el.classList.add(oc);
   setTimeout(function(){
@@ -467,15 +643,11 @@ function jumpDay(idx){
   },180);
 }
 
-/* ─────────────────────────────────────────
-   CLOCK
-───────────────────────────────────────── */
+/* ═══════════ CLOCK ═══════════ */
 function upClock(){ document.getElementById('clockDisplay').textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}); }
 setInterval(upClock,1000); upClock();
 
-/* ─────────────────────────────────────────
-   COMPASS
-───────────────────────────────────────── */
+/* ═══════════ COMPASS ═══════════ */
 var cRot=0,cTgt=0,cRAF=null;
 function drawCompass(h){
   var cv=document.getElementById('compassCanvas'); if(!cv) return;
@@ -488,8 +660,7 @@ function drawCompass(h){
   ctx.save();ctx.translate(cx,cy);ctx.rotate(-h*Math.PI/180);ctx.translate(-cx,-cy);
   var to=R-2;
   for(var i=0;i<360;i+=5){
-    var a=(i-90)*Math.PI/180,m3=i%30===0,m1=i%10===0;
-    var tl=m3?14:m1?9:5,tw=m3?2:1;
+    var a=(i-90)*Math.PI/180,m3=i%30===0,m1=i%10===0,tl=m3?14:m1?9:5,tw=m3?2:1;
     ctx.beginPath();ctx.moveTo(cx+to*Math.cos(a),cy+to*Math.sin(a));ctx.lineTo(cx+(to-tl)*Math.cos(a),cy+(to-tl)*Math.sin(a));
     ctx.strokeStyle=m3?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.45)';ctx.lineWidth=tw;ctx.stroke();
   }
@@ -501,14 +672,15 @@ function drawCompass(h){
     ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,0,0);ctx.restore();
   }
   ctx.restore();
-  [[cx-22,cy,cx-38,cy],[cx+22,cy,cx+38,cy],[cx,cy-22,cx,cy-38],[cx,cy+22,cx,cy+38]].forEach(function(l){ctx.beginPath();ctx.moveTo(l[0],l[1]);ctx.lineTo(l[2],l[3]);ctx.strokeStyle='rgba(255,255,255,0.55)';ctx.lineWidth=1;ctx.stroke();});
+  [[cx-22,cy,cx-38,cy],[cx+22,cy,cx+38,cy],[cx,cy-22,cx,cy-38],[cx,cy+22,cx,cy+38]].forEach(function(l){
+    ctx.beginPath();ctx.moveTo(l[0],l[1]);ctx.lineTo(l[2],l[3]);ctx.strokeStyle='rgba(255,255,255,0.55)';ctx.lineWidth=1;ctx.stroke();
+  });
   ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.2)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=1;ctx.stroke();
 }
 function animCompass(){ var d=cTgt-cRot;if(d>180)d-=360;if(d<-180)d+=360;cRot+=d*0.15;drawCompass(cRot);cRAF=requestAnimationFrame(animCompass); }
 function setHead(h){ cTgt=h; upHead(h); }
 function upHead(h){
-  if(h==null)return; S.compassHeading=h;
-  var deg=Math.round(h);
+  if(h==null)return; S.compassHeading=h; var deg=Math.round(h);
   document.getElementById('iCompassDeg').textContent=deg+'°';
   document.getElementById('iCompassDir').textContent=h2d(h);
   document.getElementById('directionDisplay').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="transform:rotate('+h+'deg)"><polygon points="12 2 4 20 12 16 20 20"/></svg> '+deg+'° '+h2d(h);
@@ -532,9 +704,7 @@ function requestCompassPermission(){
   }).catch(function(err){showToast('İzin hatası: '+err.message);});
 }
 
-/* ─────────────────────────────────────────
-   GPS
-───────────────────────────────────────── */
+/* ═══════════ GPS ═══════════ */
 function getLocation(){
   var btn=document.getElementById('getLocBtn'); btn.disabled=true; btn.innerHTML='<div class="spinner"></div> Konum Alınıyor…';
   setStatus('loading','GPS sinyali bekleniyor…');
@@ -556,9 +726,7 @@ function refreshLocation(){ if(S.watchId) navigator.geolocation.clearWatch(S.wat
 function resetBtn(){ var b=document.getElementById('getLocBtn');b.disabled=false;b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg> Konumu Güncelle'; }
 function setStatus(type,msg){ var dot=document.getElementById('statusDot');dot.className='status-dot';if(type==='active')dot.classList.add('active');else if(type==='loading')dot.classList.add('loading');document.getElementById('statusText').textContent=msg; }
 
-/* ─────────────────────────────────────────
-   ADDRESS
-───────────────────────────────────────── */
+/* ═══════════ ADDRESS ═══════════ */
 async function fetchAddr(){
   if(!S.lat)return;
   try{
@@ -574,9 +742,7 @@ async function fetchAddr(){
   }catch(e){document.getElementById('addressPreview').textContent='Adres alınamadı';}
 }
 
-/* ─────────────────────────────────────────
-   WEATHER
-───────────────────────────────────────── */
+/* ═══════════ WEATHER ═══════════ */
 async function fetchWeather(){
   if(!S.lat)return;
   try{
@@ -585,24 +751,25 @@ async function fetchWeather(){
     var c=d.current,temp=c.temperature_2m!=null?parseFloat(c.temperature_2m).toFixed(1):'–',icon=wI(c.weather_code||0),desc=wD(c.weather_code||0),hum=c.relative_humidity_2m!=null?c.relative_humidity_2m:'–',wind=c.wind_speed_10m!=null?c.wind_speed_10m:'–',uv=c.uv_index!=null?parseFloat(c.uv_index).toFixed(1):'-',app=c.apparent_temperature!=null?parseFloat(c.apparent_temperature).toFixed(1)+'°C':'-';
     document.getElementById('weatherPreview').textContent=temp+'°C';document.getElementById('weatherIcon').textContent=icon;
     document.getElementById('weatherCurrentBlock').innerHTML='<div style="padding:0 16px 14px"><div style="background:linear-gradient(135deg,#1a73e8,#0d5cb8);border-radius:16px;padding:16px 20px;color:white"><div style="font-size:13px;opacity:0.85;margin-bottom:4px">Şu an · '+desc+'</div><div style="font-size:52px;font-weight:200;line-height:1.1">'+icon+' '+temp+'°</div><div style="display:flex;gap:16px;margin-top:10px;font-size:13px;opacity:0.9"><span>💧 %'+hum+'</span><span>💨 '+wind+' km/s</span><span>☀️ UV '+uv+'</span></div></div></div>';
-    var days=d.daily,tr=['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'],s='<div class="forecast-scroll">';
+    var days=d.daily,tr=['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'];
+    /* spacer at start & end for scroll breathing room */
+    var s='<div class="forecast-scroll"><div style="flex-shrink:0;width:4px"></div>';
     for(var i=0;i<days.time.length;i++){
       var dd2=new Date(days.time[i]+'T12:00:00'),dn=i===0?'Bugün':tr[dd2.getDay()],isT=i===0,rain=days.precipitation_probability_max[i]||0,mx=Math.round(days.temperature_2m_max[i]),mn=Math.round(days.temperature_2m_min[i]);
-      s+='<div class="forecast-day'+(isT?' today':'')+'" onclick="openDayDetail('+i+')" style="cursor:pointer"><div class="forecast-day-name"'+(isT?' style="color:#000;opacity:1;font-weight:700"':'')+'>'+dn+'</div><div class="forecast-day-icon">'+wI(days.weather_code[i])+'</div><div class="forecast-day-max"'+(isT?' style="color:#000;font-weight:800"':'')+'>'+mx+'°</div><div class="forecast-day-min"'+(isT?' style="color:rgba(0,0,0,0.6)"':'')+'>'+mn+'°</div>'+(rain>10?'<div class="forecast-rain"'+(isT?' style="color:rgba(0,0,0,0.7)"':'')+'>💧'+rain+'%</div>':'')+'</div>';
+      s+='<div class="forecast-day'+(isT?' today':'')+'" onclick="openDayDetail('+i+')"><div class="forecast-day-name"'+(isT?' style="color:#000;opacity:1;font-weight:700"':'')+'>'+dn+'</div><div class="forecast-day-icon">'+wI(days.weather_code[i])+'</div><div class="forecast-day-max"'+(isT?' style="color:#000;font-weight:800"':'')+'>'+mx+'°</div><div class="forecast-day-min"'+(isT?' style="color:rgba(0,0,0,0.6)"':'')+'>'+mn+'°</div>'+(rain>10?'<div class="forecast-rain"'+(isT?' style="color:rgba(0,0,0,0.7)"':'')+'>💧'+rain+'%</div>':'')+'</div>';
     }
-    document.getElementById('weatherForecastBlock').innerHTML=s+'</div><div class="weather-detail-section">'+bR([['Hissedilen',app],['Yağış (bugün)',days.precipitation_sum[0]+' mm'],['Rüzgar',wind+' km/s · '+h2d(c.wind_direction_10m)],['Nem','%'+hum],['UV İndeksi',uv]])+'</div>';
+    s+='<div style="flex-shrink:0;width:4px"></div></div>';
+    document.getElementById('weatherForecastBlock').innerHTML=s+'<div class="weather-detail-section">'+bR([['Hissedilen',app],['Yağış (bugün)',days.precipitation_sum[0]+' mm'],['Rüzgar',wind+' km/s · '+h2d(c.wind_direction_10m)],['Nem','%'+hum],['UV İndeksi',uv]])+'</div>';
   }catch(e){document.getElementById('weatherForecastBlock').innerHTML=bR([['Hata','Alınamadı']]);}
 }
 
-/* ─────────────────────────────────────────
-   DAY DETAIL
-───────────────────────────────────────── */
+/* ═══════════ DAY DETAIL ═══════════ */
 function openDayDetail(idx){
   var d=S.weatherData; if(!d){showToast('Hava verisi yok');return;}
   dayIdx=idx; dayTotal=d.daily.time.length;
   buildDots(dayTotal,dayIdx); renderDay(dayIdx); updateDayUI();
   openModal('dayDetailModal');
-  setTimeout(attachDaySwipe,120);
+  setTimeout(attachDaySwipe,150);
 }
 
 function renderDay(idx){
@@ -617,7 +784,7 @@ function renderDay(idx){
   var uvM=days.uv_index_max?parseFloat(days.uv_index_max[idx]).toFixed(1):'-';
   var srS=days.sunrise?days.sunrise[idx]:null,ssS=days.sunset?days.sunset[idx]:null;
   var dlS=days.daylight_duration?days.daylight_duration[idx]:null,shS=days.sunshine_duration?days.sunshine_duration[idx]:null;
-  var pH=days.precipitation_hours?parseFloat(days.precipitation_hours[idx]).toFixed(0):'-',evap=days.et0_fao_evapotranspiration?parseFloat(days.et0_fao_evapotranspiration[idx]).toFixed(1):'-',rad=days.shortwave_radiation_sum?parseFloat(days.shortwave_radiation_sum[idx]).toFixed(1):'-';
+  var pH2=days.precipitation_hours?parseFloat(days.precipitation_hours[idx]).toFixed(0):'-',evap=days.et0_fao_evapotranspiration?parseFloat(days.et0_fao_evapotranspiration[idx]).toFixed(1):'-',rad=days.shortwave_radiation_sum?parseFloat(days.shortwave_radiation_sum[idx]).toFixed(1):'-';
   var gm={0:'linear-gradient(135deg,#1a73e8,#0d5cb8)',1:'linear-gradient(135deg,#2196f3,#1565c0)',2:'linear-gradient(135deg,#607d8b,#455a64)',3:'linear-gradient(135deg,#546e7a,#37474f)',45:'linear-gradient(135deg,#78909c,#546e7a)',51:'linear-gradient(135deg,#29b6f6,#0277bd)',61:'linear-gradient(135deg,#1e88e5,#1565c0)',63:'linear-gradient(135deg,#1565c0,#0d47a1)',65:'linear-gradient(135deg,#0d47a1,#01579b)',71:'linear-gradient(135deg,#80cbc4,#4db6ac)',73:'linear-gradient(135deg,#80deea,#26c6da)',80:'linear-gradient(135deg,#42a5f5,#1976d2)',95:'linear-gradient(135deg,#616161,#212121)'};
   var srT='-',ssT='-';
   if(srS){var sr=new Date(srS);srT=sr.getHours().toString().padStart(2,'0')+':'+sr.getMinutes().toString().padStart(2,'0');}
@@ -629,42 +796,39 @@ function renderDay(idx){
   /* hourly */
   var hH='';
   if(h&&h.time){
-    var ds=days.time[idx],nH2=new Date().getHours(),items=[];
+    var ds=days.time[idx],nHr=new Date().getHours(),items=[];
     for(var i=0;i<h.time.length;i++){
       if(!h.time[i].startsWith(ds))continue;
       var hd=new Date(h.time[i]),hHr=hd.getHours();
-      items.push({h:hHr,t:h.temperature_2m?Math.round(h.temperature_2m[i]):'-',c:h.weather_code?h.weather_code[i]:0,r:h.precipitation_probability?h.precipitation_probability[i]:0,now:idx===0&&hHr===nH2});
+      items.push({h:hHr,t:h.temperature_2m?Math.round(h.temperature_2m[i]):'-',c:h.weather_code?h.weather_code[i]:0,r:h.precipitation_probability?h.precipitation_probability[i]:0,now:idx===0&&hHr===nHr});
     }
     if(items.length){
-      hH='<div class="hourly-section-label">Saatlik</div><div class="hourly-scroll">';
+      hH='<div class="hourly-section-label">Saatlik</div><div class="hourly-scroll"><div style="flex-shrink:0;width:4px"></div>';
       items.forEach(function(it){hH+='<div class="hourly-item'+(it.now?' now':'')+'"><div class="hourly-time">'+(it.now?'Şimdi':it.h.toString().padStart(2,'0')+':00')+'</div><div class="hourly-icon">'+wI(it.c)+'</div><div class="hourly-temp">'+it.t+'°</div>'+(it.r>10?'<div class="hourly-rain">💧'+it.r+'%</div>':'')+'</div>';});
-      hH+='</div>';
+      hH+='<div style="flex-shrink:0;width:4px"></div></div>';
     }
   }
   function uvL(v){var n=parseFloat(v);if(isNaN(n))return'';if(n<3)return'Düşük';if(n<6)return'Orta';if(n<8)return'Yüksek';if(n<11)return'Çok Yüksek';return'Aşırı';}
-  var grid='<div class="detail-grid">'+dC('🌡️','Max / Min',mx+'° / '+mn+'°',desc)+dC('🌧️','Yağış',rain+' mm','Olasılık %'+rainP)+dC('💨','Max Rüzgar',wndM+' km/s',wndD!=null?h2d(wndD)+' ('+wndD+'°)':'')+dC('☀️','UV Maks.',uvM,uvL(uvM))+dC('💧','Yağış Süresi',pH+' saat','Toplam yağışlı')+dC('🌞','Güneşlenme',shSt,'Gündüz: '+dlSt)+dC('🔆','Radyasyon',rad+' MJ/m²','Kısa dalga')+dC('💦','Evapotransp.',evap+' mm','FAO-56 ref.')+'</div>';
+  var grid='<div class="detail-grid">'+dC('🌡️','Max / Min',mx+'° / '+mn+'°',desc)+dC('🌧️','Yağış',rain+' mm','Olasılık %'+rainP)+dC('💨','Max Rüzgar',wndM+' km/s',wndD!=null?h2d(wndD)+' ('+wndD+'°)':'')+dC('☀️','UV Maks.',uvM,uvL(uvM))+dC('💧','Yağış Süresi',pH2+' saat','Toplam yağışlı')+dC('🌞','Güneşlenme',shSt,'Gündüz: '+dlSt)+dC('🔆','Radyasyon',rad+' MJ/m²','Kısa dalga')+dC('💦','Evapotransp.',evap+' mm','FAO-56 ref.')+'</div>';
   var aH='-',aV='-',aD='-',aP='-';
   if(h){var hA=[],vA=[],dA=[],pA=[];for(var j=0;j<h.time.length;j++){if(!h.time[j].startsWith(days.time[idx]))continue;if(h.relative_humidity_2m)hA.push(h.relative_humidity_2m[j]);if(h.visibility)vA.push(h.visibility[j]);if(h.dew_point_2m)dA.push(h.dew_point_2m[j]);if(h.surface_pressure)pA.push(h.surface_pressure[j]);}function avg(a){return a.length?a.reduce(function(s,v){return s+v;},0)/a.length:null;}var ah=avg(hA),av=avg(vA),ad=avg(dA),ap=avg(pA);if(ah!=null)aH='%'+Math.round(ah);if(av!=null)aV=(av/1000).toFixed(1)+' km';if(ad!=null)aD=ad.toFixed(1)+'°C';if(ap!=null)aP=ap.toFixed(0)+' hPa';}
   var eg='<div class="detail-grid">'+dC('💧','Ort. Nem',aH,'Günlük ortalama')+dC('👁️','Görüş',aV,'Ort. görüş mesafesi')+dC('🌡️','Çiğ Noktası',aD,'Ort. çiğ noktası')+dC('🔵','Basınç',aP,'Yüzey basıncı')+'</div>';
   var sbH='<div class="sun-bar-wrap"><div class="sun-bar-card"><div class="sun-bar-title">🌅 Gün Işığı</div><div class="sun-bar-row"><span style="font-size:14px">🌄</span><div class="sun-bar-track"><div class="sun-bar-fill" style="width:'+Math.round(sbP)+'%"></div></div><span style="font-size:14px">🌇</span></div><div class="sun-times-row"><span>Doğuş: '+srT+'</span><span>Batış: '+ssT+'</span></div></div></div>';
-  var hero='<div class="day-detail-hero" style="background:'+(gm[wc]||gm[0])+'"><div class="day-detail-date" style="position:relative;z-index:1">'+fd+'</div><div class="day-detail-desc" style="position:relative;z-index:1">'+desc+'</div><div class="day-detail-temp-row" style="position:relative;z-index:1"><div class="day-detail-icon">'+icon+'</div><div class="day-detail-temps"><div class="day-detail-max">'+Math.round(parseFloat(mx))+'°</div><div class="day-detail-minmax">En yüksek '+mx+'° / En düşük '+mn+'°</div></div></div><div class="day-detail-chips" style="position:relative;z-index:1"><div class="day-chip">💧 '+rain+' mm</div><div class="day-chip">💨 '+wndM+' km/s</div><div class="day-chip">☀️ UV '+uvM+'</div>'+(rainP>10?'<div class="day-chip">🌧️ %'+rainP+'</div>':'')+'</div></div>';
+  var hero='<div class="day-detail-hero" style="background:'+(gm[wc]||gm[0])+'"><div class="day-detail-date">'+fd+'</div><div class="day-detail-desc">'+desc+'</div><div class="day-detail-temp-row"><div class="day-detail-icon">'+icon+'</div><div class="day-detail-temps"><div class="day-detail-max">'+Math.round(parseFloat(mx))+'°</div><div class="day-detail-minmax">En yüksek '+mx+'° / En düşük '+mn+'°</div></div></div><div class="day-detail-chips"><div class="day-chip">💧 '+rain+' mm</div><div class="day-chip">💨 '+wndM+' km/s</div><div class="day-chip">☀️ UV '+uvM+'</div>'+(rainP>10?'<div class="day-chip">🌧️ %'+rainP+'</div>':'')+'</div></div>';
   document.getElementById('dayDetailContent').innerHTML=hero+sbH+hH+'<div style="padding:0 16px 8px"><span style="font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">Hava Detayları</span></div>'+grid+'<div style="padding:0 16px 8px"><span style="font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px">Atmosfer</span></div>'+eg;
-  var el=document.getElementById('dayDetailContent');el._ds=0;attachDaySwipe();
+  var el=document.getElementById('dayDetailContent'); el._ds=0; attachDaySwipe();
   setTimeout(function(){var n=document.querySelector('.hourly-scroll .hourly-item.now');if(n){var sc=n.closest('.hourly-scroll');if(sc)sc.scrollLeft=n.offsetLeft-sc.offsetWidth/2+n.offsetWidth/2;}},80);
 }
 function dC(e,l,v,s){return'<div class="detail-cell"><div class="detail-cell-label">'+e+' '+l+'</div><div class="detail-cell-value">'+v+'</div>'+(s?'<div class="detail-cell-sub">'+s+'</div>':'')+'</div>';}
 
-/* ─────────────────────────────────────────
-   SUN / EXT / TIME
-───────────────────────────────────────── */
+/* ═══════════ SUN / EXT / TIME ═══════════ */
 function upSun(){
   if(!S.lat)return;
   var s=sunTimes(S.lat,S.lng,new Date());
   document.getElementById('sunRows').innerHTML=bR([['Gün Doğumu',fT(s.sunrise)],['Öğle',fT(s.solarNoon)],['Gün Batımı',fT(s.sunset)],['Gün Uzunluğu',Math.floor(s.dayLength/60)+'s '+s.dayLength%60+'dk'],['Enlem',S.lat.toFixed(4)+'°']]);
 }
 function upExt(){
-  if(!S.lat)return;
-  var now=new Date();
+  if(!S.lat)return; var now=new Date();
   document.getElementById('extRows').innerHTML=bR([['Enlem',S.lat.toFixed(6)+'°'],['Boylam',S.lng.toFixed(6)+'°'],['İrtifa',(S.alt||0).toFixed(2)+' m'],['Doğruluk','±'+Math.round(S.accuracy||0)+' m'],['Yön (GPS)',S.heading!=null?Math.round(S.heading)+'° '+h2d(S.heading):'-'],['Pusula',S.compassActive&&S.compassHeading!=null?Math.round(S.compassHeading)+'° '+h2d(S.compassHeading):'Aktif değil'],['Hız',S.speed?(S.speed*3.6).toFixed(1)+' km/s':'Durağan'],['DMS (Enlem)',dms(S.lat,'lat')],['DMS (Boylam)',dms(S.lng,'lng')],['Zaman Dilimi',Intl.DateTimeFormat().resolvedOptions().timeZone],['UTC Ofseti',utc()],['Timestamp',now.toISOString()]]);
 }
 function fillTimeModal(){
@@ -680,9 +844,7 @@ function sunTimes(lat,lng,date){
   return{sunrise:new Date(base+noon-H*4*60000),sunset:new Date(base+noon+H*4*60000),solarNoon:new Date(base+noon),dayLength:Math.round(H*8)};
 }
 
-/* ─────────────────────────────────────────
-   MAP
-───────────────────────────────────────── */
+/* ═══════════ MAP ═══════════ */
 function drawMap(){
   var lat=S.lat,lng=S.lng,zoom=15,n=Math.pow(2,zoom),xt=Math.floor((lng+180)/360*n),yt=Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n);
   var ph=document.getElementById('mapPlaceholder'),w=ph.offsetWidth||358,h=180,tS=256,cv=document.createElement('canvas');cv.width=w;cv.height=h;
@@ -691,13 +853,11 @@ function drawMap(){
   function fin(){tD++;if(tD>=tL){var img=document.getElementById('mapImg');img.src=cv.toDataURL();img.style.display='block';document.getElementById('mapEmpty').style.display='none';document.getElementById('mapPinOverlay').style.display='block';var ml=document.getElementById('mapLabel');ml.style.display='block';ml.textContent='📍 Haritada Aç — '+lat.toFixed(4)+', '+lng.toFixed(4);}}
   for(var dx=-2;dx<=2;dx++)for(var dy=-2;dy<=2;dy++){var tx=sX+dx*tS,ty=sY+dy*tS;if(tx+tS<0||tx>w||ty+tS<0||ty>h)continue;tL++;}
   if(!tL)tL=1;
-  for(var dx=-2;dx<=2;dx++)for(var dy=-2;dy<=2;dy++){(function(ddx,ddy){var cx=sX+ddx*tS,cy=sY+ddy*tS;if(cx+tS<0||cx>w||cy+tS<0||cy>h)return;var ti=new Image();ti.crossOrigin='anonymous';ti.onload=function(){ctx.drawImage(ti,cx,cy,tS,tS);fin();};ti.onerror=fin;ti.src='https://'+['a','b','c'][Math.abs(xt+ddx+yt+ddy)%3]+'.tile.openstreetmap.org/'+zoom+'/'+(xt+ddx)+'/'+(yt+ddy)+'.png';})(dx,dy);}
+  for(var dx=-2;dx<=2;dx++)for(var dy=-2;dy<=2;dy++){(function(ddx,ddy){var cx2=sX+ddx*tS,cy2=sY+ddy*tS;if(cx2+tS<0||cx2>w||cy2+tS<0||cy2>h)return;var ti=new Image();ti.crossOrigin='anonymous';ti.onload=function(){ctx.drawImage(ti,cx2,cy2,tS,tS);fin();};ti.onerror=fin;ti.src='https://'+['a','b','c'][Math.abs(xt+ddx+yt+ddy)%3]+'.tile.openstreetmap.org/'+zoom+'/'+(xt+ddx)+'/'+(yt+ddy)+'.png';})(dx,dy);}
 }
 function openMaps(){if(S.lat)window.open('https://maps.google.com/?q='+S.lat+','+S.lng,'_blank');}
 
-/* ─────────────────────────────────────────
-   SHARE / COPY / HELPERS
-───────────────────────────────────────── */
+/* ═══════════ SHARE / COPY ═══════════ */
 function shareAs(type){
   if(!S.lat&&type!=='native'){showToast('Önce konum alın');return;}
   if(type==='coords') navigator.clipboard&&navigator.clipboard.writeText(S.lat.toFixed(6)+', '+S.lng.toFixed(6)).then(function(){showToast('Koordinatlar kopyalandı ✓');});
@@ -719,17 +879,20 @@ function utc(){var o=-new Date().getTimezoneOffset(),h=Math.floor(Math.abs(o)/60
 function fT(d){return d?d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'-';}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
 
-/* ─────────────────────────────────────────
-   KEYBOARD + INIT
-───────────────────────────────────────── */
+/* ═══════════ KEYBOARD + INIT ═══════════ */
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape') document.querySelectorAll('.modal-overlay').forEach(function(m){if(m.style.display==='flex')closeModal(m.id);});
-  if(e.key==='ArrowRight'&&document.getElementById('dayDetailModal').style.display==='flex') navigateDayDetail(1);
-  if(e.key==='ArrowLeft'&&document.getElementById('dayDetailModal').style.display==='flex')  navigateDayDetail(-1);
+  if(e.key==='ArrowRight'&&document.getElementById('dayDetailModal').style.display==='flex') navDay(1);
+  if(e.key==='ArrowLeft'&&document.getElementById('dayDetailModal').style.display==='flex')  navDay(-1);
 });
 
 window.addEventListener('DOMContentLoaded',function(){
+  /* load saved theme */
+  try{ var saved=localStorage.getItem('gpsTheme'); if(saved) _userTheme=saved; }catch(e){}
+  _applyTheme(_userTheme);
+
   drawCompass(0);
+
   if(navigator.geolocation){
     setStatus('loading','Konum izni bekleniyor…');
     var btn=document.getElementById('getLocBtn'); btn.disabled=true; btn.innerHTML='<div class="spinner"></div> Konum Alınıyor…';
@@ -740,5 +903,6 @@ window.addEventListener('DOMContentLoaded',function(){
   }else if(typeof DeviceOrientationEvent!=='undefined'){S.compassListener=onDO;window.addEventListener('deviceorientation',S.compassListener,true);}
 });
 </script>
+
 </body>
 </html>
