@@ -614,7 +614,48 @@ function resetBtn(){var b=document.getElementById('getLocBtn');b.disabled=false;
 function setStatus(type,msg){var dot=document.getElementById('statusDot');dot.className='status-dot';if(type==='active')dot.classList.add('active');else if(type==='loading')dot.classList.add('loading');document.getElementById('statusText').textContent=msg;}
 
 /* ══ ADDRESS (Nominatim) ══ */
-async function fetchAddr(){if(!S.lat)return;try{var r=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+S.lat+'&lon='+S.lng+'&format=json&addressdetails=1',{headers:{'Accept-Language':'tr,en'}});var d=await r.json();var a=d.address||{},hn=a.house_number||'',road=a.road||a.pedestrian||a.footway||a.path||'',sub=a.suburb||a.neighbourhood||a.quarter||'',dist=a.district||a.city_district||a.county||'',city=a.city||a.town||a.village||'',state=a.state||'',post=a.postcode||'',country=a.country||'',cc=(a.country_code||'').toUpperCase();S.addressCity=[sub||dist,city].filter(Boolean).join(', ');var prev=road+(hn?' No:'+hn:'');document.getElementById('addressPreview').textContent=(prev||S.addressCity||'Adres alındı').trim();document.getElementById('iCompassLocation').textContent=S.addressCity||'';document.getElementById('addressRows').innerHTML=bR([['Cadde / Sokak',road||'-'],['Kapı No',hn||'-'],['Mahalle',sub||'-'],['İlçe / Semt',dist||'-'],['Şehir',city||'-'],['İl',state||'-'],['Posta Kodu',post||'-'],['Ülke',country||'-'],['Ülke Kodu',cc||'-'],['Enlem',S.lat.toFixed(6)+' °'],['Boylam',S.lng.toFixed(6)+' °']]);}catch(e){document.getElementById('addressPreview').textContent='Adres alınamadı';}}
+async function fetchAddr(){
+  if(!S.lat)return;
+  try{
+    var url='https://geocode-maps.yandex.ru/1.x/?apikey=234675d0-0c69-4827-a343-21dcf035de80&geocode='+S.lng+','+S.lat+'&format=json&lang=tr_TR&results=1';
+    var r=await fetch(url);
+    var json=await r.json();
+    var geo=json.response&&json.response.GeoObjectCollection&&json.response.GeoObjectCollection.featureMember&&json.response.GeoObjectCollection.featureMember[0]&&json.response.GeoObjectCollection.featureMember[0].GeoObject;
+    if(!geo)throw new Error('no result');
+    var comps=(geo.metaDataProperty&&geo.metaDataProperty.GeocoderMetaData&&geo.metaDataProperty.GeocoderMetaData.Address&&geo.metaDataProperty.GeocoderMetaData.Address.Components)||[];
+    /* kind values: country, province, area, locality, district, street, house, entrance, route */
+    function gc(kind){var f=comps.filter(function(c){return c.kind===kind;});return f.length?f[f.length-1].name:'';}
+    var house=gc('house');
+    var street=gc('street');
+    var locality=gc('locality');
+    var district=gc('district');
+    var area=gc('area');      /* il/eyalet */
+    var province=gc('province'); /* bölge */
+    var country=gc('country');
+    /* formatted full address from API */
+    var formatted=(geo.metaDataProperty&&geo.metaDataProperty.GeocoderMetaData&&geo.metaDataProperty.GeocoderMetaData.Address&&geo.metaDataProperty.GeocoderMetaData.Address.formatted)||'';
+    var streetLine=street+(house?' No:'+house:'');
+    S.addressCity=[district||area,locality].filter(Boolean).join(', ');
+    var preview=streetLine||S.addressCity||formatted||'Adres alındı';
+    document.getElementById('addressPreview').textContent=preview.trim();
+    document.getElementById('iCompassLocation').textContent=S.addressCity||'';
+    document.getElementById('addressRows').innerHTML=bR([
+      ['Cadde / Sokak',street||'-'],
+      ['Bina No',house||'-'],
+      ['Mahalle / Semt',district||'-'],
+      ['İlçe / Alan',area||'-'],
+      ['Şehir',locality||'-'],
+      ['İl / Bölge',province||area||'-'],
+      ['Ülke',country||'-'],
+      ['Tam Adres',formatted||'-'],
+      ['Enlem',S.lat.toFixed(6)+' °'],
+      ['Boylam',S.lng.toFixed(6)+' °']
+    ]);
+  }catch(e){
+    document.getElementById('addressPreview').textContent='Adres alınamadı';
+    document.getElementById('addressRows').innerHTML=bR([['Hata','Adres servisi yanıt vermedi']]);
+  }
+}
 
 /* ══ WEATHER ══ */
 async function fetchWeather(){if(!S.lat)return;try{var r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+S.lat+'&longitude='+S.lng+'&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,relative_humidity_2m,apparent_temperature,uv_index,visibility,dew_point_2m,surface_pressure&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,uv_index_max,sunrise,sunset,daylight_duration,sunshine_duration,precipitation_hours,et0_fao_evapotranspiration,shortwave_radiation_sum&wind_speed_unit=kmh&timezone=auto&forecast_days=10');var d=await r.json();S.weatherData=d;dayTotal=d.daily.time.length;var c=d.current,temp=c.temperature_2m!=null?parseFloat(c.temperature_2m).toFixed(1):'–',icon=wI(c.weather_code||0),desc=wD(c.weather_code||0),hum=c.relative_humidity_2m!=null?c.relative_humidity_2m:'–',wind=c.wind_speed_10m!=null?c.wind_speed_10m:'–',uv=c.uv_index!=null?parseFloat(c.uv_index).toFixed(1):'-',app=c.apparent_temperature!=null?parseFloat(c.apparent_temperature).toFixed(1)+'°C':'-';document.getElementById('weatherPreview').textContent=temp+'°C';document.getElementById('weatherIcon').textContent=icon;document.getElementById('weatherCurrentBlock').innerHTML='<div style="padding:0 16px 14px"><div style="background:linear-gradient(135deg,#1a73e8,#0d5cb8);border-radius:16px;padding:16px 20px;color:#fff"><div style="font-size:13px;opacity:.85;margin-bottom:4px">Şu an · '+desc+'</div><div style="font-size:52px;font-weight:200;line-height:1.1">'+icon+' '+temp+'°</div><div style="display:flex;gap:16px;margin-top:10px;font-size:13px;opacity:.9"><span>💧 %'+hum+'</span><span>💨 '+wind+' km/s</span><span>☀️ UV '+uv+'</span></div></div></div>';var days=d.daily,tr=['Pzr','Pzt','Sal','Çar','Per','Cum','Cmt'],s='<div class="forecast-scroll"><div style="flex-shrink:0;width:4px"></div>';for(var i=0;i<days.time.length;i++){var dd2=new Date(days.time[i]+'T12:00:00'),dn=i===0?'Bugün':tr[dd2.getDay()],isT=i===0,rain=days.precipitation_probability_max[i]||0,mx=Math.round(days.temperature_2m_max[i]),mn=Math.round(days.temperature_2m_min[i]);s+='<div class="forecast-day'+(isT?' today':'')+'" onclick="openDayDetail('+i+')"><div class="forecast-day-name">'+dn+'</div><div class="forecast-day-icon">'+wI(days.weather_code[i])+'</div><div class="forecast-day-max">'+mx+'°</div><div class="forecast-day-min">'+mn+'°</div>'+(rain>10?'<div class="forecast-rain">💧'+rain+'%</div>':'')+'</div>';}s+='<div style="flex-shrink:0;width:4px"></div></div>';document.getElementById('weatherForecastBlock').innerHTML=s+'<div class="weather-detail-section">'+bR([['Hissedilen',app],['Yağış (bugün)',days.precipitation_sum[0]+' mm'],['Rüzgar',wind+' km/s · '+h2d(c.wind_direction_10m)],['Nem','%'+hum],['UV İndeksi',uv]])+'</div>';}catch(e){document.getElementById('weatherForecastBlock').innerHTML=bR([['Hata','Alınamadı']]);}}
