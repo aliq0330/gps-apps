@@ -2,10 +2,9 @@
 
 ## Project Overview
 
-This repository contains a standalone mobile GPS/weather web application built as single HTML files with embedded CSS and JavaScript. No build system, no dependencies, no frameworks — just open the file in a browser.
+This repository contains a standalone mobile GPS/weather web application built as a single HTML file with embedded CSS and JavaScript. No build system, no dependencies, no frameworks — just open the file in a browser.
 
-**Two variants exist:**
-- `gps.html` — Uses OpenStreetMap Nominatim for reverse geocoding (free, no API key)
+**Single application:**
 - `gpss.html` — Uses Yandex Maps API for reverse geocoding (requires API key)
 
 **Target audience:** Turkish-speaking mobile users (`tr-TR` locale, labels in Turkish)
@@ -16,8 +15,7 @@ This repository contains a standalone mobile GPS/weather web application built a
 
 ```
 gps-apps/
-├── gps.html       # Main app — OpenStreetMap geocoding variant
-├── gpss.html      # Alternative app — Yandex geocoding variant
+├── gpss.html      # Main app — Yandex Maps geocoding variant
 └── README.md      # Minimal placeholder
 ```
 
@@ -27,7 +25,7 @@ No `package.json`, no `node_modules`, no build config, no test files, no CI/CD.
 
 ## Architecture
 
-Each file is a self-contained single-page application:
+The file is a self-contained single-page application:
 
 ```
 <html>
@@ -36,7 +34,7 @@ Each file is a self-contained single-page application:
   </head>
   <body>
     HTML structure — ~100 lines
-    JavaScript (embedded <script>) — ~430 lines, 66–67 functions
+    JavaScript (embedded <script>) — ~430 lines, 67 functions
   </body>
 </html>
 ```
@@ -64,8 +62,7 @@ S = {
 | Service | API | Auth |
 |---|---|---|
 | Geolocation | Browser native `navigator.geolocation` | User permission |
-| Reverse geocoding (gps.html) | OpenStreetMap Nominatim | None required |
-| Reverse geocoding (gpss.html) | Yandex Maps `geocode-maps.yandex.ru/1.x/` | API key embedded in code |
+| Reverse geocoding | Yandex Maps `geocode-maps.yandex.ru/1.x/` | API key embedded in code |
 | Weather | Open-Meteo `api.open-meteo.com/v1/forecast` | None required |
 | Map tiles | OpenStreetMap `tile.openstreetmap.org` | None required |
 | Fonts | Google Fonts (DM Sans, Space Mono) | None required |
@@ -94,7 +91,7 @@ S = {
 | Category | Functions |
 |---|---|
 | Location | `getLocation()`, `onPos(pos)`, `onErr(err)`, `refreshLocation()`, `resetBtn()` |
-| Geocoding | `fetchAddr()` |
+| Geocoding | `fetchAddr()` — Yandex hierarchical `kind` component system |
 | Weather | `fetchWeather()`, `openDayDetail(idx)`, `renderDay(idx)`, `wI(code)`, `wD(code)` |
 | Map | `drawMap()`, `openMaps()` |
 | Compass | `startCompass()`, `drawCompass(h)`, `animC()`, `onDO(event)` |
@@ -107,7 +104,7 @@ S = {
 ## Features
 
 - **Real-time GPS tracking** via `navigator.geolocation.watchPosition()` (high accuracy, 15s timeout)
-- **Reverse geocoding** — converts coordinates to human-readable address
+- **Reverse geocoding** — Yandex Maps API converts coordinates to human-readable address
 - **10-day weather forecast** — Open-Meteo API with Turkish weather descriptions
 - **Compass** — uses `DeviceOrientationEvent`, requires iOS 13+ permission prompt
 - **OSM map canvas** — renders OpenStreetMap tiles on an HTML `<canvas>`
@@ -119,33 +116,19 @@ S = {
 
 ---
 
-## Differences Between `gps.html` and `gpss.html`
-
-| Aspect | `gps.html` | `gpss.html` |
-|---|---|---|
-| Geocoding provider | OpenStreetMap Nominatim | Yandex Maps |
-| API key required | No | Yes (embedded in source) |
-| Address parsing | Simple field mapping | Hierarchical `kind` component system |
-| Function count | 66 | 67 |
-| File size | ~76 KB | ~76 KB |
-
-The files are identical except for the `fetchAddr()` function and the Yandex API key constant.
-
----
-
 ## Development Workflow
 
 ### Making Changes
 
-Since there is no build step, edit the HTML files directly and open in a browser to test:
+Since there is no build step, edit `gpss.html` directly and open in a browser to test:
 
 ```bash
 # Open in browser (Linux)
-xdg-open gps.html
+xdg-open gpss.html
 
 # Or serve locally for HTTPS (required for geolocation on some browsers)
 python3 -m http.server 8080
-# Then visit http://localhost:8080/gps.html
+# Then visit http://localhost:8080/gpss.html
 ```
 
 > **Note:** GPS geolocation and DeviceOrientation require HTTPS in production. Use a local server or `localhost` during development.
@@ -165,7 +148,7 @@ No automated tests exist. Manual testing checklist:
 
 ### Branching
 
-Development branch for documentation: `claude/add-claude-documentation-w7fWn`
+Development branch: `claude/add-claude-documentation-w7fWn`
 
 ---
 
