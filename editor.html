@@ -32,11 +32,10 @@
             line-height: 1.6;
         }
         
-        .editor-wrapper {
+        .editor-container {
             position: relative;
-            height: calc(100vh - 140px);
+            height: calc(100vh - 180px);
             overflow: hidden;
-            background: #282c34;
         }
         
         .line-numbers {
@@ -57,55 +56,30 @@
             z-index: 10;
         }
         
-        .code-layer {
+        .code-area {
             position: absolute;
             left: 50px;
             top: 0;
             right: 0;
             bottom: 0;
+            background: #282c34;
             overflow: auto;
             -webkit-overflow-scrolling: touch;
         }
         
-        .code-highlight {
-            position: absolute;
-            top: 0;
-            left: 0;
-            min-width: 100%;
+        .code-input {
+            width: 100%;
             min-height: 100%;
             padding: 16px;
-            margin: 0;
-            background: #282c34;
-            color: #abb2bf;
-            white-space: pre;
-            overflow-wrap: normal;
-            word-wrap: normal;
-            tab-size: 2;
-            pointer-events: none;
-            z-index: 1;
-        }
-        
-        .code-input {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            padding: 16px;
             background: transparent;
-            color: transparent;
-            caret-color: #528bff;
+            color: #abb2bf;
             border: none;
             resize: none;
             outline: none;
             white-space: pre;
             overflow-wrap: normal;
-            word-wrap: normal;
             tab-size: 2;
-            z-index: 2;
-            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            line-height: 1.6;
+            caret-color: #528bff;
         }
         
         .tab-active {
@@ -132,7 +106,7 @@
         }
         
         .glass-panel {
-            background: rgba(31, 41, 55, 0.98);
+            background: rgba(31, 41, 55, 0.95);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
@@ -160,6 +134,13 @@
             border-radius: 3px;
         }
         
+        .context-menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
         .context-menu {
             position: fixed;
             top: 50%;
@@ -172,13 +153,6 @@
             z-index: 1000;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
             min-width: 200px;
-        }
-        
-        .context-menu-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
         }
         
         .context-menu-item {
@@ -248,7 +222,7 @@
         }
         
         @media (max-width: 640px) {
-            .editor-font, .code-highlight, .code-input {
+            .editor-font {
                 font-size: 13px;
             }
             .line-numbers {
@@ -256,40 +230,24 @@
                 padding: 12px 8px;
                 font-size: 13px;
             }
-            .code-layer {
+            .code-area {
                 left: 40px;
-            }
-            .code-highlight, .code-input {
-                padding: 12px;
             }
         }
         
         .hidden { display: none !important; }
-        
-        /* Syntax highlighting colors */
-        .hljs-tag { color: #e06c75; }
-        .hljs-name { color: #e06c75; }
-        .hljs-attr { color: #d19a66; }
-        .hljs-string { color: #98c379; }
-        .hljs-number { color: #d19a66; }
-        .hljs-keyword { color: #c678dd; }
-        .hljs-selector-tag { color: #e06c75; }
-        .hljs-property { color: #d19a66; }
-        .hljs-comment { color: #5c6370; font-style: italic; }
-        .hljs-function { color: #61afef; }
-        .hljs-params { color: #d19a66; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 flex flex-col">
+<body class="bg-gray-900 text-gray-100 h-screen overflow-hidden flex flex-col">
 
-    <!-- Fixed Header -->
+    <!-- Top Bar -->
     <header class="glass-panel border-b border-gray-700 p-3 flex flex-col gap-3 shrink-0 z-20">
         <div class="flex items-center gap-2 flex-wrap">
             <div class="flex items-center gap-2 flex-1 min-w-0">
                 <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <input type="text" id="filename" placeholder="Dosya adı gir" 
+                <input type="text" id="filename" placeholder="Dosya adı gir (örn: index)" 
                        class="filename-input flex-1 min-w-0" value="">
             </div>
             
@@ -370,12 +328,11 @@
     </header>
 
     <!-- Editor Area -->
-    <main class="flex-1 relative overflow-hidden">
-        <div class="editor-wrapper" id="editorWrapper">
+    <main class="flex-1 relative overflow-hidden" id="mainContainer">
+        <div class="editor-container" id="editorContainer">
             <div class="line-numbers editor-font" id="lineNumbers">1</div>
-            <div class="code-layer custom-scrollbar" id="codeLayer">
-                <pre class="code-highlight editor-font"><code id="highlightCode" class="language-html"></code></pre>
-                <textarea id="editor" class="code-input" spellcheck="false" 
+            <div class="code-area custom-scrollbar">
+                <textarea id="editor" class="code-input editor-font" spellcheck="false" 
                           oninput="updateCode()" onscroll="syncScroll()" 
                           onkeydown="handleKeydown(event)"
                           oncontextmenu="showContextMenu(event)"></textarea>
@@ -439,7 +396,6 @@
     </div>
 
     <script>
-        // State
         let currentTab = 'html';
         const code = {
             html: '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>',
@@ -447,20 +403,18 @@
             js: '// JavaScript kodunuzu buraya yazın\nconsole.log("Merhaba Dünya!");\n\ndocument.querySelector("h1").addEventListener("click", function() {\n  alert("Tıklandı!");\n});'
         };
 
-        // Initialize
+        let initialHeight = window.innerHeight;
+
         document.addEventListener('DOMContentLoaded', () => {
             updateEditor();
-            applyHighlight();
             updateLineNumbers();
             
-            // Close menus on click outside
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.relative')) {
                     document.getElementById('runMenu').classList.add('hidden');
                 }
             });
 
-            // Handle long press for context menu
             let pressTimer;
             const editor = document.getElementById('editor');
             
@@ -478,23 +432,21 @@
                 clearTimeout(pressTimer);
             });
 
-            // Handle keyboard visibility changes
-            const editorWrapper = document.getElementById('editorWrapper');
-            const originalHeight = window.innerHeight;
-            
-            window.addEventListener('resize', () => {
-                const currentHeight = window.innerHeight;
-                if (currentHeight < originalHeight * 0.8) {
-                    // Keyboard opened
-                    editorWrapper.style.height = (currentHeight - 140) + 'px';
-                } else {
-                    // Keyboard closed
-                    editorWrapper.style.height = 'calc(100vh - 140px)';
-                }
-            });
+            window.addEventListener('resize', handleResize);
         });
 
-        // Tab Switching
+        function handleResize() {
+            const currentHeight = window.innerHeight;
+            const editorContainer = document.getElementById('editorContainer');
+            const diff = initialHeight - currentHeight;
+            
+            if (diff > 100) {
+                editorContainer.style.height = (currentHeight - 140) + 'px';
+            } else {
+                editorContainer.style.height = 'calc(100vh - 180px)';
+            }
+        }
+
         function switchTab(tab) {
             code[currentTab] = document.getElementById('editor').value;
             
@@ -507,7 +459,6 @@
             document.getElementById(`tab-${currentTab}`).classList.add('tab-active');
             
             updateEditor();
-            applyHighlight();
         }
 
         function updateEditor() {
@@ -517,46 +468,21 @@
 
         function updateCode() {
             code[currentTab] = document.getElementById('editor').value;
-            applyHighlight();
             updateLineNumbers();
         }
 
-        // Syntax Highlighting
-        function applyHighlight() {
-            const highlightCode = document.getElementById('highlightCode');
-            const content = code[currentTab];
-            
-            // Escape HTML entities
-            let escaped = content
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
-            
-            highlightCode.innerHTML = escaped;
-            
-            // Apply highlighting based on current tab
-            highlightCode.className = 'language-' + (currentTab === 'html' ? 'xml' : currentTab);
-            hljs.highlightElement(highlightCode);
-        }
-
-        // Line Numbers
         function updateLineNumbers() {
             const lines = document.getElementById('editor').value.split('\n').length;
-            const numbers = Array.from({length: Math.max(lines, 1)}, (_, i) => i + 1).join('\n');
+            const numbers = Array.from({length: lines}, (_, i) => i + 1).join('\n');
             document.getElementById('lineNumbers').textContent = numbers;
         }
 
         function syncScroll() {
             const editor = document.getElementById('editor');
             const lineNumbers = document.getElementById('lineNumbers');
-            const highlightCode = document.getElementById('highlightCode');
-            
             lineNumbers.scrollTop = editor.scrollTop;
-            highlightCode.parentElement.scrollTop = editor.scrollTop;
-            highlightCode.parentElement.scrollLeft = editor.scrollLeft;
         }
 
-        // Key handling
         function handleKeydown(e) {
             if (e.key === 'Tab') {
                 e.preventDefault();
@@ -569,7 +495,6 @@
             }
         }
 
-        // Run Menu
         function toggleRunMenu() {
             const menu = document.getElementById('runMenu');
             menu.classList.toggle('hidden');
@@ -612,7 +537,6 @@
             document.getElementById('previewModal').classList.add('hidden');
         }
 
-        // File Operations
         function saveFile() {
             let filename = document.getElementById('filename').value.trim();
             if (!filename) filename = 'deneme';
@@ -670,7 +594,6 @@ ${code.js}
                 document.getElementById('filename').value = file.name.replace('.html', '');
                 
                 updateEditor();
-                applyHighlight();
                 showToast(`${file.name} yüklendi`);
             };
             reader.readAsText(file);
@@ -682,12 +605,10 @@ ${code.js}
                 code.css = '';
                 code.js = '';
                 updateEditor();
-                applyHighlight();
                 showToast('Kodlar temizlendi');
             }
         }
 
-        // Context Menu - Centered
         function showContextMenu(e) {
             e.preventDefault();
             document.getElementById('contextMenuOverlay').classList.remove('hidden');
@@ -726,7 +647,6 @@ ${code.js}
             hideContextMenu();
         }
 
-        // Toast
         function showToast(message) {
             const toast = document.getElementById('toast');
             document.getElementById('toastMessage').textContent = message;
