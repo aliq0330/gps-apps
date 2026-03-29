@@ -3,49 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimate HTML Editor</title>
+<title>Ultimate Editor V2</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link id="themeStylesheet" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
 
 <style>
-body {
-    margin:0;
-    font-family: Arial;
-    display:flex;
-    flex-direction:column;
-    height:100vh;
-}
+body { margin:0; font-family:Arial; display:flex; flex-direction:column; height:100vh; }
 
-header {
-    background:#111;
-    color:white;
-    padding:10px;
-    text-align:center;
-}
+header { background:#111; color:white; padding:10px; text-align:center; }
 
-.toolbar {
-    display:flex;
-    gap:5px;
-    padding:10px;
-    background:#222;
-    flex-wrap:wrap;
-}
+.toolbar { display:flex; flex-wrap:wrap; gap:5px; padding:10px; background:#222; }
 
-button {
-    padding:10px;
-    border:none;
-    border-radius:5px;
-    background:#007bff;
-    color:white;
-}
+button { padding:10px; border:none; border-radius:5px; background:#007bff; color:white; }
 
 .tabs {
     display:flex;
+    overflow-x:auto;
 }
 
 .tab {
-    flex:1;
+    min-width:80px;
     padding:10px;
     text-align:center;
     background:#333;
@@ -53,48 +31,83 @@ button {
     cursor:pointer;
 }
 
-.tab.active {
-    background:#007bff;
+.tab.active { background:#007bff; }
+
+.editor { flex:1; }
+
+.CodeMirror { height:100%; }
+
+/* alternating line colors */
+.cm-s-dracula .CodeMirror-line:nth-child(odd) {
+    background: rgba(255,255,0,0.1);
+}
+.cm-s-dracula .CodeMirror-line:nth-child(even) {
+    background: rgba(0,200,255,0.1);
 }
 
-.editor {
-    flex:1;
-}
-
-.CodeMirror {
+/* popup preview */
+#popupPreview {
+    position:fixed;
+    top:0; left:0;
+    width:100%;
     height:100%;
+    background:white;
+    z-index:9999;
+    display:none;
+    flex-direction:column;
 }
 
-input[type="file"] {
-    display:none;
+#popupHeader {
+    background:black;
+    color:white;
+    padding:10px;
+    display:flex;
+    justify-content:space-between;
+}
+
+#popupFrame {
+    flex:1;
+    border:none;
+}
+
+.closeBtn {
+    cursor:pointer;
+    font-size:18px;
 }
 </style>
 </head>
 
 <body>
 
-<header>Ultimate HTML Editor 🚀</header>
+<header>Ultimate Editor V2 🚀</header>
 
 <div class="toolbar">
-    <button onclick="runCode()">ÇALIŞTIR</button>
-    <button onclick="saveFile()">KAYDET</button>
-    <button onclick="document.getElementById('fileInput').click()">DOSYA AÇ</button>
-    <button onclick="toggleTheme()">TEMA</button>
+    <button onclick="runNewTab()">Yeni Sekme</button>
+    <button onclick="runPopup()">Popup</button>
+    <button onclick="saveFile()">Kaydet</button>
+    <button onclick="toggleTheme()">Tema</button>
 </div>
 
 <div class="tabs">
-    <div class="tab active" onclick="switchTab('html')">HTML</div>
-    <div class="tab" onclick="switchTab('css')">CSS</div>
-    <div class="tab" onclick="switchTab('js')">JS</div>
+    <div class="tab active" onclick="switchTab('html',event)">HTML</div>
+    <div class="tab" onclick="switchTab('css',event)">CSS</div>
+    <div class="tab" onclick="switchTab('js',event)">JS</div>
 </div>
 
 <div class="editor">
     <textarea id="htmlCode"><h1>Merhaba</h1></textarea>
     <textarea id="cssCode">body { font-family: Arial; }</textarea>
-    <textarea id="jsCode">console.log("Çalışıyor");</textarea>
+    <textarea id="jsCode">console.log("çalışıyor");</textarea>
 </div>
 
-<input type="file" id="fileInput" accept=".html">
+<!-- popup -->
+<div id="popupPreview">
+    <div id="popupHeader">
+        <span>Önizleme</span>
+        <span class="closeBtn" onclick="closePopup()">✖</span>
+    </div>
+    <iframe id="popupFrame"></iframe>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
@@ -102,104 +115,74 @@ input[type="file"] {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
 
 <script>
-let currentTab = "html";
+const htmlEditor = CodeMirror.fromTextArea(document.getElementById("htmlCode"), {mode:"htmlmixed", lineNumbers:true, theme:"dracula"});
+const cssEditor = CodeMirror.fromTextArea(document.getElementById("cssCode"), {mode:"css", lineNumbers:true, theme:"dracula"});
+const jsEditor = CodeMirror.fromTextArea(document.getElementById("jsCode"), {mode:"javascript", lineNumbers:true, theme:"dracula"});
 
-const htmlEditor = CodeMirror.fromTextArea(document.getElementById("htmlCode"), {
-    mode: "htmlmixed",
-    lineNumbers: true,
-    theme: "dracula"
-});
+cssEditor.getWrapperElement().style.display="none";
+jsEditor.getWrapperElement().style.display="none";
 
-const cssEditor = CodeMirror.fromTextArea(document.getElementById("cssCode"), {
-    mode: "css",
-    lineNumbers: true,
-    theme: "dracula"
-});
+function switchTab(tab,e){
+    htmlEditor.getWrapperElement().style.display="none";
+    cssEditor.getWrapperElement().style.display="none";
+    jsEditor.getWrapperElement().style.display="none";
 
-const jsEditor = CodeMirror.fromTextArea(document.getElementById("jsCode"), {
-    mode: "javascript",
-    lineNumbers: true,
-    theme: "dracula"
-});
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
 
-cssEditor.getWrapperElement().style.display = "none";
-jsEditor.getWrapperElement().style.display = "none";
+    if(tab==="html") htmlEditor.getWrapperElement().style.display="block";
+    if(tab==="css") cssEditor.getWrapperElement().style.display="block";
+    if(tab==="js") jsEditor.getWrapperElement().style.display="block";
 
-function switchTab(tab) {
-    currentTab = tab;
-
-    htmlEditor.getWrapperElement().style.display = "none";
-    cssEditor.getWrapperElement().style.display = "none";
-    jsEditor.getWrapperElement().style.display = "none";
-
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-
-    if(tab === "html") {
-        htmlEditor.getWrapperElement().style.display = "block";
-    }
-    if(tab === "css") {
-        cssEditor.getWrapperElement().style.display = "block";
-    }
-    if(tab === "js") {
-        jsEditor.getWrapperElement().style.display = "block";
-    }
-
-    event.target.classList.add("active");
+    e.target.classList.add("active");
 }
 
-function runCode() {
-    const html = htmlEditor.getValue();
-    const css = "<style>" + cssEditor.getValue() + "</style>";
-    const js = "<script>" + jsEditor.getValue() + "<\/script>";
-
-    const newWindow = window.open();
-    newWindow.document.write(html + css + js);
-    newWindow.document.close();
+function buildCode(){
+    return htmlEditor.getValue()
+        + "<style>"+cssEditor.getValue()+"</style>"
+        + "<script>"+jsEditor.getValue()+"<\/script>";
 }
 
-function saveFile() {
-    const html = htmlEditor.getValue();
-    const css = "<style>" + cssEditor.getValue() + "</style>";
-    const js = "<script>" + jsEditor.getValue() + "<\/script>";
+function runNewTab(){
+    const w = window.open();
+    w.document.write(buildCode());
+    w.document.close();
+}
 
-    const blob = new Blob([html + css + js], { type: "text/html" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "pro_kod.html";
+function runPopup(){
+    const popup = document.getElementById("popupPreview");
+    const frame = document.getElementById("popupFrame");
+    popup.style.display="flex";
+    frame.srcdoc = buildCode();
+}
+
+function closePopup(){
+    document.getElementById("popupPreview").style.display="none";
+}
+
+function saveFile(){
+    const blob=new Blob([buildCode()],{type:"text/html"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="kod.html";
     a.click();
 }
 
-function toggleTheme() {
-    const theme = document.getElementById("themeStylesheet");
-    if(theme.href.includes("dracula")) {
-        theme.href = "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css";
-    } else {
-        theme.href = "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css";
-    }
+function toggleTheme(){
+    const t=document.getElementById("themeStylesheet");
+    t.href = t.href.includes("dracula")
+        ? "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css"
+        : "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css";
 }
 
-// Auto save
-setInterval(() => {
-    localStorage.setItem("html", htmlEditor.getValue());
-    localStorage.setItem("css", cssEditor.getValue());
-    localStorage.setItem("js", jsEditor.getValue());
-}, 1000);
-
-// Load saved
-window.onload = () => {
-    if(localStorage.getItem("html")) htmlEditor.setValue(localStorage.getItem("html"));
-    if(localStorage.getItem("css")) cssEditor.setValue(localStorage.getItem("css"));
-    if(localStorage.getItem("js")) jsEditor.setValue(localStorage.getItem("js"));
-};
-
-// File open
-document.getElementById("fileInput").addEventListener("change", function(e){
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-        htmlEditor.setValue(evt.target.result);
-    };
-    reader.readAsText(file);
+/* SELECT ALL FIX (mobil dahil) */
+document.addEventListener("keydown", e=>{
+    if((e.ctrlKey || e.metaKey) && e.key==="a"){
+        e.preventDefault();
+        const active = document.querySelector(".CodeMirror:not([style*='display: none'])");
+        if(active && active.CodeMirror){
+            active.CodeMirror.execCommand("selectAll");
+        }
+    }
 });
 </script>
 
