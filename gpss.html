@@ -352,7 +352,7 @@ _mq.addEventListener('change',function(){if(_theme==='system')_applyTheme('syste
      scrollTop = end → nothing happens (already at bottom)
 ══ */
 var MM={dayDetailModal:'full',compassModal:'cover',weatherModal:'full'};
-var _ms={},_ma={},_openCount=0,_savedSY=0;
+var _ms={},_ma={},_openCount=0;
 
 var PEEK_W=100,FULL_W=100;   /* % */
 var PEEK_R=20,FULL_R=24;    /* px top radius */
@@ -411,8 +411,9 @@ function openModal(id){
   sh.style.transform='translateY('+h+'px)';
   ov.style.cssText='display:flex;background:rgba(0,0,0,0)';
   _ms[id]={s:isPeek?'peek':'full'};
-  if(_openCount===0){_savedSY=window.scrollY||window.pageYOffset||0;document.body.style.overflow='hidden';document.body.style.position='fixed';document.body.style.top='-'+_savedSY+'px';document.body.style.width='100%';}
   _openCount++;
+  document.body.style.overflow='hidden';
+  document.body.style.overscrollBehaviorY='none';
 
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
@@ -435,7 +436,7 @@ function closeModal(id){
   setTimeout(function(){
     ov.style.cssText='display:none';sh.style.cssText='';_ms[id]=null;
     _openCount=Math.max(0,_openCount-1);
-    if(_openCount===0){document.body.style.position='';document.body.style.top='';document.body.style.width='';document.body.style.overflow='';window.scrollTo(0,_savedSY);}
+    if(_openCount===0){document.body.style.overflow='';document.body.style.overscrollBehaviorY='';}
     if(id==='compassModal'&&cRAF){cancelAnimationFrame(cRAF);cRAF=null;}
   },450);
 }
