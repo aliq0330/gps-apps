@@ -395,9 +395,10 @@ function openModal(id){
   sh.style.cssText='';
   sh.style.height=h+'px';
   sh.style.overflowY='hidden';
+  sh.style.overflowX='hidden';
   sh.style.willChange='transform,width';
   sh.style.webkitOverflowScrolling='touch';
-  sh.style.overscrollBehavior='contain';
+  sh.style.overscrollBehaviorY='contain';
   sh.style.transition='none';
 
   if(mode==='cover'){sh.style.width='100%';sh.style.borderRadius='0';}
