@@ -18,9 +18,12 @@
             -webkit-touch-callout: none;
         }
         
-        body {
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            overscroll-behavior: none;
         }
         
         .editor-font {
@@ -29,10 +32,11 @@
             line-height: 1.6;
         }
         
-        .editor-container {
+        .editor-wrapper {
             position: relative;
-            height: calc(100vh - 180px);
+            height: calc(100vh - 140px);
             overflow: hidden;
+            background: #282c34;
         }
         
         .line-numbers {
@@ -53,42 +57,55 @@
             z-index: 10;
         }
         
-        .code-area {
+        .code-layer {
             position: absolute;
             left: 50px;
             top: 0;
             right: 0;
             bottom: 0;
-            background: #282c34;
             overflow: auto;
             -webkit-overflow-scrolling: touch;
-        }
-        
-        .code-input {
-            width: 100%;
-            min-height: 100%;
-            padding: 16px;
-            background: transparent;
-            color: #abb2bf;
-            border: none;
-            resize: none;
-            outline: none;
-            white-space: pre;
-            overflow-wrap: normal;
-            tab-size: 2;
-            caret-color: #528bff;
         }
         
         .code-highlight {
             position: absolute;
             top: 0;
             left: 0;
+            min-width: 100%;
+            min-height: 100%;
+            padding: 16px;
+            margin: 0;
+            background: #282c34;
+            color: #abb2bf;
+            white-space: pre;
+            overflow-wrap: normal;
+            word-wrap: normal;
+            tab-size: 2;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .code-input {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             padding: 16px;
-            pointer-events: none;
-            z-index: 1;
-            overflow: hidden;
+            background: transparent;
+            color: transparent;
+            caret-color: #528bff;
+            border: none;
+            resize: none;
+            outline: none;
+            white-space: pre;
+            overflow-wrap: normal;
+            word-wrap: normal;
+            tab-size: 2;
+            z-index: 2;
+            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
         }
         
         .tab-active {
@@ -115,7 +132,7 @@
         }
         
         .glass-panel {
-            background: rgba(31, 41, 55, 0.95);
+            background: rgba(31, 41, 55, 0.98);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
@@ -145,23 +162,34 @@
         
         .context-menu {
             position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background: #374151;
             border: 1px solid #4b5563;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 8px 0;
             z-index: 1000;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            min-width: 160px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
+            min-width: 200px;
+        }
+        
+        .context-menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
         }
         
         .context-menu-item {
-            padding: 10px 16px;
+            padding: 14px 20px;
             color: #e5e7eb;
             cursor: pointer;
             transition: background 0.2s;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            font-size: 16px;
         }
         
         .context-menu-item:hover {
@@ -219,9 +247,8 @@
             border-color: #3b82f6;
         }
         
-        /* Mobile optimizations */
         @media (max-width: 640px) {
-            .editor-font {
+            .editor-font, .code-highlight, .code-input {
                 font-size: 13px;
             }
             .line-numbers {
@@ -229,25 +256,40 @@
                 padding: 12px 8px;
                 font-size: 13px;
             }
-            .code-area {
+            .code-layer {
                 left: 40px;
+            }
+            .code-highlight, .code-input {
+                padding: 12px;
             }
         }
         
         .hidden { display: none !important; }
+        
+        /* Syntax highlighting colors */
+        .hljs-tag { color: #e06c75; }
+        .hljs-name { color: #e06c75; }
+        .hljs-attr { color: #d19a66; }
+        .hljs-string { color: #98c379; }
+        .hljs-number { color: #d19a66; }
+        .hljs-keyword { color: #c678dd; }
+        .hljs-selector-tag { color: #e06c75; }
+        .hljs-property { color: #d19a66; }
+        .hljs-comment { color: #5c6370; font-style: italic; }
+        .hljs-function { color: #61afef; }
+        .hljs-params { color: #d19a66; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 h-screen overflow-hidden flex flex-col">
+<body class="bg-gray-900 text-gray-100 flex flex-col">
 
-    <!-- Top Bar -->
+    <!-- Fixed Header -->
     <header class="glass-panel border-b border-gray-700 p-3 flex flex-col gap-3 shrink-0 z-20">
-        <!-- File Name & Actions Row -->
         <div class="flex items-center gap-2 flex-wrap">
             <div class="flex items-center gap-2 flex-1 min-w-0">
                 <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <input type="text" id="filename" placeholder="Dosya adı gir (örn: index)" 
+                <input type="text" id="filename" placeholder="Dosya adı gir" 
                        class="filename-input flex-1 min-w-0" value="">
             </div>
             
@@ -269,7 +311,6 @@
             </div>
         </div>
 
-        <!-- Tabs & Run Button Row -->
         <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-1">
                 <button onclick="switchTab('html')" id="tab-html" class="tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
@@ -330,10 +371,11 @@
 
     <!-- Editor Area -->
     <main class="flex-1 relative overflow-hidden">
-        <div class="editor-container relative">
+        <div class="editor-wrapper" id="editorWrapper">
             <div class="line-numbers editor-font" id="lineNumbers">1</div>
-            <div class="code-area custom-scrollbar">
-                <textarea id="editor" class="code-input editor-font" spellcheck="false" 
+            <div class="code-layer custom-scrollbar" id="codeLayer">
+                <pre class="code-highlight editor-font"><code id="highlightCode" class="language-html"></code></pre>
+                <textarea id="editor" class="code-input" spellcheck="false" 
                           oninput="updateCode()" onscroll="syncScroll()" 
                           onkeydown="handleKeydown(event)"
                           oncontextmenu="showContextMenu(event)"></textarea>
@@ -362,23 +404,26 @@
         </div>
     </div>
 
+    <!-- Context Menu Overlay -->
+    <div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
+    
     <!-- Context Menu -->
     <div id="contextMenu" class="context-menu hidden">
         <div class="context-menu-item" onclick="copyAll()">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
             </svg>
             Tümünü Kopyala
         </div>
         <div class="context-menu-item" onclick="pasteCode()">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
             </svg>
             Yapıştır
         </div>
         <div class="border-t border-gray-600 my-1"></div>
         <div class="context-menu-item" onclick="selectAll()">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
             </svg>
             Tümünü Seç
@@ -405,15 +450,13 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             updateEditor();
+            applyHighlight();
             updateLineNumbers();
             
             // Close menus on click outside
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.relative')) {
                     document.getElementById('runMenu').classList.add('hidden');
-                }
-                if (!e.target.closest('#contextMenu')) {
-                    document.getElementById('contextMenu').classList.add('hidden');
                 }
             });
 
@@ -434,14 +477,27 @@
             editor.addEventListener('touchmove', () => {
                 clearTimeout(pressTimer);
             });
+
+            // Handle keyboard visibility changes
+            const editorWrapper = document.getElementById('editorWrapper');
+            const originalHeight = window.innerHeight;
+            
+            window.addEventListener('resize', () => {
+                const currentHeight = window.innerHeight;
+                if (currentHeight < originalHeight * 0.8) {
+                    // Keyboard opened
+                    editorWrapper.style.height = (currentHeight - 140) + 'px';
+                } else {
+                    // Keyboard closed
+                    editorWrapper.style.height = 'calc(100vh - 140px)';
+                }
+            });
         });
 
         // Tab Switching
         function switchTab(tab) {
-            // Save current content
             code[currentTab] = document.getElementById('editor').value;
             
-            // Update UI
             document.getElementById(`tab-${currentTab}`).classList.remove('tab-active');
             document.getElementById(`tab-${currentTab}`).classList.add('tab-inactive');
             
@@ -451,30 +507,53 @@
             document.getElementById(`tab-${currentTab}`).classList.add('tab-active');
             
             updateEditor();
+            applyHighlight();
         }
 
         function updateEditor() {
-            const editor = document.getElementById('editor');
-            editor.value = code[currentTab];
+            document.getElementById('editor').value = code[currentTab];
             updateLineNumbers();
         }
 
         function updateCode() {
             code[currentTab] = document.getElementById('editor').value;
+            applyHighlight();
             updateLineNumbers();
+        }
+
+        // Syntax Highlighting
+        function applyHighlight() {
+            const highlightCode = document.getElementById('highlightCode');
+            const content = code[currentTab];
+            
+            // Escape HTML entities
+            let escaped = content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            
+            highlightCode.innerHTML = escaped;
+            
+            // Apply highlighting based on current tab
+            highlightCode.className = 'language-' + (currentTab === 'html' ? 'xml' : currentTab);
+            hljs.highlightElement(highlightCode);
         }
 
         // Line Numbers
         function updateLineNumbers() {
             const lines = document.getElementById('editor').value.split('\n').length;
-            const numbers = Array.from({length: lines}, (_, i) => i + 1).join('\n');
+            const numbers = Array.from({length: Math.max(lines, 1)}, (_, i) => i + 1).join('\n');
             document.getElementById('lineNumbers').textContent = numbers;
         }
 
         function syncScroll() {
             const editor = document.getElementById('editor');
             const lineNumbers = document.getElementById('lineNumbers');
+            const highlightCode = document.getElementById('highlightCode');
+            
             lineNumbers.scrollTop = editor.scrollTop;
+            highlightCode.parentElement.scrollTop = editor.scrollTop;
+            highlightCode.parentElement.scrollLeft = editor.scrollLeft;
         }
 
         // Key handling
@@ -499,25 +578,22 @@
         function runCode(mode) {
             document.getElementById('runMenu').classList.add('hidden');
             
-            // Get current code
             const html = code.html;
             const css = code.css;
             const js = code.js;
             
-            const fullCode = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>${css}</style>
-                </head>
-                <body>
-                    ${html}
-                    <script>${js}<\/script>
-                </body>
-                </html>
-            `;
+            const fullCode = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>${css}</style>
+</head>
+<body>
+    ${html}
+    <script>${js}<\/script>
+</body>
+</html>`;
             
             if (mode === 'newtab') {
                 const blob = new Blob([fullCode], {type: 'text/html'});
@@ -583,7 +659,6 @@ ${code.js}
             reader.onload = (e) => {
                 const content = e.target.result;
                 
-                // Simple parsing - extract HTML, CSS, JS from file
                 const htmlMatch = content.match(/<body>([\s\S]*?)<\/body>/i);
                 const cssMatch = content.match(/<style>([\s\S]*?)<\/style>/i);
                 const jsMatch = content.match(/<script>([\s\S]*?)<\/script>/i);
@@ -592,10 +667,10 @@ ${code.js}
                 if (cssMatch) code.css = cssMatch[1].trim();
                 if (jsMatch) code.js = jsMatch[1].trim();
                 
-                // Update filename
                 document.getElementById('filename').value = file.name.replace('.html', '');
                 
                 updateEditor();
+                applyHighlight();
                 showToast(`${file.name} yüklendi`);
             };
             reader.readAsText(file);
@@ -607,39 +682,28 @@ ${code.js}
                 code.css = '';
                 code.js = '';
                 updateEditor();
+                applyHighlight();
                 showToast('Kodlar temizlendi');
             }
         }
 
-        // Context Menu
+        // Context Menu - Centered
         function showContextMenu(e) {
             e.preventDefault();
-            const menu = document.getElementById('contextMenu');
-            
-            let x, y;
-            if (e.type === 'touchstart') {
-                x = e.touches[0].clientX;
-                y = e.touches[0].clientY;
-            } else {
-                x = e.clientX;
-                y = e.clientY;
-            }
-            
-            // Boundary check
-            const rect = menu.getBoundingClientRect();
-            if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width;
-            if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height;
-            
-            menu.style.left = x + 'px';
-            menu.style.top = y + 'px';
-            menu.classList.remove('hidden');
+            document.getElementById('contextMenuOverlay').classList.remove('hidden');
+            document.getElementById('contextMenu').classList.remove('hidden');
+        }
+
+        function hideContextMenu() {
+            document.getElementById('contextMenuOverlay').classList.add('hidden');
+            document.getElementById('contextMenu').classList.add('hidden');
         }
 
         function copyAll() {
             const editor = document.getElementById('editor');
             editor.select();
             document.execCommand('copy');
-            document.getElementById('contextMenu').classList.add('hidden');
+            hideContextMenu();
             showToast('Kopyalandı');
         }
 
@@ -650,7 +714,7 @@ ${code.js}
                 editor.value = editor.value.substring(0, start) + text + editor.value.substring(editor.selectionEnd);
                 editor.selectionStart = editor.selectionEnd = start + text.length;
                 updateCode();
-                document.getElementById('contextMenu').classList.add('hidden');
+                hideContextMenu();
                 showToast('Yapıştırıldı');
             }).catch(() => {
                 showToast('Yapıştırma başarısız');
@@ -659,7 +723,7 @@ ${code.js}
 
         function selectAll() {
             document.getElementById('editor').select();
-            document.getElementById('contextMenu').classList.add('hidden');
+            hideContextMenu();
         }
 
         // Toast
