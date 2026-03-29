@@ -275,7 +275,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
     <div id="compassPermissionArea"><p class="compass-status-text">iOS cihazlarda pusula için izin gereklidir.</p><button class="compass-permission-btn" onclick="requestCompassPermission()">🧭 Pusula İznini Ver</button></div>
     <div class="iphone-compass-heading" id="iCompassDeg">---°</div>
     <div class="iphone-compass-dir" id="iCompassDir">Pusula bekleniyor</div>
-    <div class="iphone-compass-wrap"><div class="iphone-compass-svg-wrap"><div class="iphone-compass-pointer"></div><canvas class="iphone-compass-canvas" id="compassCanvas" width="300" height="300"></canvas></div></div>
+    <div class="iphone-compass-wrap"><div class="iphone-compass-svg-wrap"><canvas class="iphone-compass-canvas" id="compassCanvas" width="300" height="300"></canvas></div></div>
     <div class="iphone-compass-coords"><div class="iphone-compass-dms" id="iCompassLatDMS">--°--'--" K  --°--'--" D</div><div class="iphone-compass-location" id="iCompassLocation">Şişli, İstanbul</div><div class="iphone-compass-alt" id="iCompassAlt">Yükseklik: -- m</div></div>
   </div>
 </div>
@@ -586,7 +586,72 @@ setInterval(upClock,1000);upClock();
 
 /* ══ COMPASS ══ */
 var cRot=0,cTgt=0,cRAF=null;
-function drawCompass(h){var cv=document.getElementById('compassCanvas');if(!cv)return;var ctx=cv.getContext('2d'),W=cv.width,H=cv.height,cx=W/2,cy=H/2,R=W/2-2;ctx.clearRect(0,0,W,H);ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fillStyle='#1c1c1e';ctx.fill();var g=ctx.createRadialGradient(cx,cy-20,10,cx,cy,R);g.addColorStop(0,'rgba(60,60,65,.6)');g.addColorStop(1,'rgba(10,10,12,.9)');ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();ctx.save();ctx.translate(cx,cy);ctx.rotate(-h*Math.PI/180);ctx.translate(-cx,-cy);var to=R-2;for(var i=0;i<360;i+=5){var a=(i-90)*Math.PI/180,m3=i%30===0,m1=i%10===0,tl=m3?14:m1?9:5,tw=m3?2:1;ctx.beginPath();ctx.moveTo(cx+to*Math.cos(a),cy+to*Math.sin(a));ctx.lineTo(cx+(to-tl)*Math.cos(a),cy+(to-tl)*Math.sin(a));ctx.strokeStyle=m3?'rgba(255,255,255,.9)':'rgba(255,255,255,.45)';ctx.lineWidth=tw;ctx.stroke();}var lb={0:'K',30:'30',60:'60',90:'D',120:'120',150:'150',180:'G',210:'210',240:'240',270:'B',300:'300',330:'330'},lr=to-26;for(var deg in lb){var a2=(parseInt(deg)-90)*Math.PI/180,lx=cx+lr*Math.cos(a2),ly=cy+lr*Math.sin(a2),t=lb[deg],isD='KDGB'.indexOf(t)>=0;ctx.save();ctx.translate(lx,ly);ctx.font=isD?'bold 15px -apple-system,sans-serif':'11px -apple-system,sans-serif';ctx.fillStyle=isD?(t==='K'?'#ff3b30':'rgba(255,255,255,.95)'):'rgba(255,255,255,.55)';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,0,0);ctx.restore();}ctx.restore();[[cx-22,cy,cx-38,cy],[cx+22,cy,cx+38,cy],[cx,cy-22,cx,cy-38],[cx,cy+22,cx,cy+38]].forEach(function(l){ctx.beginPath();ctx.moveTo(l[0],l[1]);ctx.lineTo(l[2],l[3]);ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=1;ctx.stroke();});ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.2)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1;ctx.stroke();}
+function drawCompass(h){
+  var cv=document.getElementById('compassCanvas');if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height,cx=W/2,cy=H/2,R=W/2-2;
+  ctx.clearRect(0,0,W,H);
+
+  /* black background circle */
+  ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fillStyle='#000';ctx.fill();
+
+  /* ── rotating ring ── */
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(-h*Math.PI/180);ctx.translate(-cx,-cy);
+  var to=R-3;
+  /* tick marks */
+  for(var i=0;i<360;i+=5){
+    var a=(i-90)*Math.PI/180;
+    var maj=i%30===0,med=i%10===0;
+    var tl=maj?22:med?13:7,tw=maj?2.5:med?1.2:0.8;
+    var col=maj?'rgba(255,255,255,.95)':med?'rgba(255,255,255,.6)':'rgba(255,255,255,.3)';
+    ctx.beginPath();ctx.moveTo(cx+to*Math.cos(a),cy+to*Math.sin(a));
+    ctx.lineTo(cx+(to-tl)*Math.cos(a),cy+(to-tl)*Math.sin(a));
+    ctx.strokeStyle=col;ctx.lineWidth=tw;ctx.stroke();
+  }
+  /* degree numbers at every 30° — inside tick ring */
+  var nr=to-36;
+  [0,30,60,90,120,150,180,210,240,270,300,330].forEach(function(deg){
+    var a=(deg-90)*Math.PI/180;
+    ctx.save();ctx.translate(cx+nr*Math.cos(a),cy+nr*Math.sin(a));
+    ctx.font='12px -apple-system,sans-serif';
+    ctx.fillStyle='rgba(255,255,255,.75)';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(deg===0?'0':String(deg),0,0);ctx.restore();
+  });
+  /* cardinal letters K D G B — large, white */
+  var cr=to-88;
+  [{d:0,t:'K'},{d:90,t:'D'},{d:180,t:'G'},{d:270,t:'B'}].forEach(function(c){
+    var a=(c.d-90)*Math.PI/180;
+    ctx.save();ctx.translate(cx+cr*Math.cos(a),cy+cr*Math.sin(a));
+    ctx.font='bold 30px -apple-system,sans-serif';
+    ctx.fillStyle='rgba(255,255,255,.95)';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(c.t,0,0);ctx.restore();
+  });
+  ctx.restore();
+
+  /* ── fixed elements ── */
+  /* white heading line: center → top (stops just inside tick ring) */
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx,to-22);
+  ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1.5;ctx.stroke();
+
+  /* red triangle pointer at top edge, pointing down */
+  ctx.beginPath();ctx.moveTo(cx,to-18);ctx.lineTo(cx-9,to-34);ctx.lineTo(cx+9,to-34);
+  ctx.closePath();ctx.fillStyle='#ff3b30';
+  ctx.shadowColor='rgba(255,59,48,.7)';ctx.shadowBlur=6;ctx.fill();ctx.shadowBlur=0;
+
+  /* center dark circle */
+  var cR=R*0.30;
+  ctx.beginPath();ctx.arc(cx,cy,cR,0,Math.PI*2);
+  ctx.fillStyle='#111';ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=1;ctx.stroke();
+
+  /* crosshair */
+  var cl=cR*0.62;
+  [[cx-cl,cy,cx+cl,cy],[cx,cy-cl,cx,cy+cl]].forEach(function(l){
+    ctx.beginPath();ctx.moveTo(l[0],l[1]);ctx.lineTo(l[2],l[3]);
+    ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1;ctx.stroke();
+  });
+}
 function animC(){var d=cTgt-cRot;if(d>180)d-=360;if(d<-180)d+=360;cRot+=d*.15;drawCompass(cRot);cRAF=requestAnimationFrame(animC);}
 function setHead(h){cTgt=h;upHead(h);}
 function upHead(h){if(h==null)return;S.compassHeading=h;var deg=Math.round(h);document.getElementById('iCompassDeg').textContent=deg+'°';document.getElementById('iCompassDir').textContent=h2dFull(h);document.getElementById('directionDisplay').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="transform:rotate('+h+'deg)"><polygon points="12 2 4 20 12 16 20 20"/></svg> '+deg+'° '+h2d(h);}
