@@ -435,33 +435,27 @@ function closeModal(id){
 
 function hoc(e,id){if(e.target===document.getElementById(id))closeModal(id);}
 
-function inHS(el){while(el&&el.nodeType===1){if(el.classList&&el.classList.contains('hourly-scroll'))return true;if(el.id==='dayCarousel')return true;el=el.parentElement;}return false;}
+function inHS(el){while(el&&el.nodeType===1){if(el.classList&&el.classList.contains('hourly-scroll'))return true;el=el.parentElement;}return false;}
 
 function _attachSwipe(id){
   var ov=document.getElementById(id),sh=gs(id);
-  var d={on:false,sY:0,sX:0,dir:null,inH:false,dy:0,vel:0,prevDy:0,prevT:0,moved:false};
-  var _passive=true;
+  var d={on:false,sY:0,sX:0,dir:null,dy:0,vel:0,prevDy:0,prevT:0,moved:false};
 
   function start(e){
     d.sY=e.touches[0].clientY;d.sX=e.touches[0].clientX;
-    d.dir=null;d.inH=inHS(e.target);d.on=true;
+    d.dir=null;d.on=true;
     d.dy=0;d.vel=0;d.prevDy=0;d.prevT=Date.now();d.moved=false;
-    if(d.inH!==_passive){
-      sh.removeEventListener('touchmove',move);
-      _passive=d.inH;
-      sh.addEventListener('touchmove',move,{passive:_passive});
-    }
-    if(!d.inH){sh.style.transition='none';ov.style.transition='none';}
+    sh.style.transition='none';ov.style.transition='none';
   }
 
   function move(e){
-    if(!d.on||d.inH)return;
+    if(!d.on)return;
     var dy=e.touches[0].clientY-d.sY,dx=e.touches[0].clientX-d.sX;
     if(!d.dir){
-      if(Math.abs(dx)>Math.abs(dy)+6){d.dir='h';e.preventDefault();return;}
+      if(Math.abs(dx)>Math.abs(dy)+6){d.dir='h';return;}
       if(Math.abs(dy)>6)d.dir='v';else return;
     }
-    if(d.dir==='h'){e.preventDefault();return;}
+    if(d.dir==='h'){return;}
 
     var now=Date.now(),dt=now-d.prevT;
     if(dt>0){d.vel=(dy-d.prevDy)/dt;d.prevT=now;}
@@ -472,52 +466,42 @@ function _attachSwipe(id){
     /* ── COVER ── */
     if(mode==='cover'){
       if(dy>0){d.moved=true;sh.style.transform='translateY('+Math.max(0,dy)+'px)';ov.style.background='rgba(0,0,0,'+Math.max(0,.55*(1-dy/260))+')';}
-      e.preventDefault();return;
+      return;
     }
 
     /* ── FULL mode (scroll rules) ── */
     if(st==='full'){
       if(dy>0){
-        var sT=sh.scrollTop,sMax=sh.scrollHeight-sh.clientHeight,atTop=sT<=2,atBottom=sMax<=2||sT>=sMax-2;
+        var sT=sh.scrollTop,atTop=sT<=2;
         if(atTop){
-          /* drag down from top → toward peek, interpolate width */
           d.moved=true;
           var raw=Math.max(0,dy);
           sh.style.transform='translateY('+raw+'px)';
-          /* how far toward peek: prog goes 0→1 as dy→pO() */
           var prog=Math.max(0,Math.min(1,1-raw/pO()));
           _lerpGeom(sh,prog);
           ov.style.background='rgba(0,0,0,'+Math.max(0,.55*(1-raw/260))+')';
-          e.preventDefault();
         }
-        /* atBottom or middle → let native scroll handle, no preventDefault */
       }
-      /* drag up in full → let scroll handle */
       return;
     }
 
     /* ── PEEK mode ── */
     d.moved=true;
-    var prog2;
     if(dy<0){
-      /* swipe up → toward full, interpolate width 94→100 */
       var cur=Math.max(0,pO()+dy);
       sh.style.transform='translateY('+cur+'px)';
-      prog2=Math.min(1,-dy/pO()); /* 0 at peek, 1 at full */
+      var prog2=Math.min(1,-dy/pO());
       _lerpGeom(sh,prog2);
       ov.style.background='rgba(0,0,0,'+(.45+.1*prog2)+')';
     } else {
-      /* swipe down → dismiss direction, shrink back toward peek geometry */
       sh.style.transform='translateY('+(pO()+dy)+'px)';
-      _lerpGeom(sh,0); /* stay at peek width */
+      _lerpGeom(sh,0);
       ov.style.background='rgba(0,0,0,'+Math.max(0,.45*(1-dy/180))+')';
     }
-    e.preventDefault();
   }
 
   function end(){
     if(!d.on)return;d.on=false;
-    if(d.inH)return;
     if(d.dir==='h'||!d.dir||!d.moved){_snapBack(id,sh,ov);return;}
 
     var st=(_ms[id]||{}).s||'peek',mode=mMode(id),dy=d.dy,vel=d.vel;
