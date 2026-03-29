@@ -3,117 +3,119 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HTML Editör</title>
+<title>Pro HTML Editör</title>
+
+<!-- CodeMirror CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
 
 <style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-    }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
 
-    header {
-        background: #111;
-        color: white;
-        padding: 10px;
-        text-align: center;
-        font-size: 18px;
-    }
+header {
+    background: #111;
+    color: white;
+    padding: 12px;
+    text-align: center;
+    font-size: 18px;
+}
 
-    .container {
-        display: flex;
-        flex: 1;
-        flex-direction: row;
-    }
+.buttons {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    background: #222;
+}
 
-    textarea {
-        width: 50%;
-        height: 100%;
-        border: none;
-        padding: 10px;
-        font-family: monospace;
-        font-size: 14px;
-        resize: none;
-        outline: none;
-    }
+button {
+    flex: 1;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    background: #007bff;
+    color: white;
+    border-radius: 6px;
+}
 
-    iframe {
-        width: 50%;
-        height: 100%;
-        border: none;
-        background: white;
-    }
+button:active {
+    background: #0056b3;
+}
 
-    .buttons {
-        display: flex;
-        gap: 10px;
-        padding: 10px;
-        background: #f0f0f0;
-    }
+.editor-container {
+    flex: 1;
+}
 
+/* CodeMirror tam ekran */
+.CodeMirror {
+    height: 100%;
+    font-size: 14px;
+}
+
+/* Mobil */
+@media (max-width: 768px) {
     button {
-        flex: 1;
+        font-size: 14px;
         padding: 10px;
-        font-size: 16px;
-        border: none;
-        background: #007bff;
-        color: white;
-        border-radius: 5px;
     }
-
-    button:active {
-        background: #0056b3;
-    }
-
-    /* Mobil uyum */
-    @media (max-width: 768px) {
-        .container {
-            flex-direction: column;
-        }
-
-        textarea, iframe {
-            width: 100%;
-            height: 50%;
-        }
-    }
+}
 </style>
 </head>
 
 <body>
 
-<header>HTML Editör</header>
+<header>Pro HTML Editör</header>
 
 <div class="buttons">
-    <button onclick="calistir()">Çalıştır</button>
-    <button onclick="kaydet()">Kaydet (HTML)</button>
+    <button onclick="calistir()">ÇALIŞTIR</button>
+    <button onclick="kaydet()">KAYDET</button>
 </div>
 
-<div class="container">
-    <textarea id="editor"><!DOCTYPE html>
+<div class="editor-container">
+    <textarea id="editor">
+<!DOCTYPE html>
 <html>
 <head>
-<title>Örnek</title>
+<title>Test</title>
 </head>
 <body>
 <h1>Merhaba Dünya</h1>
-<p>Buraya HTML yaz...</p>
+<p>Profesyonel editör hazır 🚀</p>
 </body>
-</html></textarea>
-
-    <iframe id="preview"></iframe>
+</html>
+    </textarea>
 </div>
 
+<!-- CodeMirror -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+
 <script>
+const editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+    mode: "htmlmixed",
+    theme: "dracula",
+    lineNumbers: true,
+    lineWrapping: true
+});
+
 function calistir() {
-    const kod = document.getElementById("editor").value;
-    const iframe = document.getElementById("preview");
-    iframe.srcdoc = kod;
+    const kod = editor.getValue();
+    const yeniSekme = window.open();
+    yeniSekme.document.open();
+    yeniSekme.document.write(kod);
+    yeniSekme.document.close();
 }
 
 function kaydet() {
-    const kod = document.getElementById("editor").value;
+    const kod = editor.getValue();
     const blob = new Blob([kod], { type: "text/html" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
