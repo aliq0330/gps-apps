@@ -95,13 +95,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
 .modal{
   background:var(--card);padding:20px 0 60px;
   will-change:transform,width;
-  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;overflow-y:hidden;overscroll-behavior-y:none;
   transition:background .25s;
 }
 .compass-modal-inner{
   background:#000;padding:0 0 60px;
   will-change:transform;
-  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;overflow-y:hidden;overscroll-behavior-y:none;
   width:100%;border-radius:0;
 }
 
@@ -352,7 +352,7 @@ _mq.addEventListener('change',function(){if(_theme==='system')_applyTheme('syste
      scrollTop = end → nothing happens (already at bottom)
 ══ */
 var MM={dayDetailModal:'full',compassModal:'cover',weatherModal:'full'};
-var _ms={},_ma={};
+var _ms={},_ma={},_openCount=0,_savedSY=0;
 
 var PEEK_W=100,FULL_W=100;   /* % */
 var PEEK_R=20,FULL_R=24;    /* px top radius */
@@ -411,7 +411,8 @@ function openModal(id){
   sh.style.transform='translateY('+h+'px)';
   ov.style.cssText='display:flex;background:rgba(0,0,0,0)';
   _ms[id]={s:isPeek?'peek':'full'};
-  document.body.style.overflow='hidden';
+  if(_openCount===0){_savedSY=window.scrollY||window.pageYOffset||0;document.body.style.overflow='hidden';document.body.style.position='fixed';document.body.style.top='-'+_savedSY+'px';document.body.style.width='100%';}
+  _openCount++;
 
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
@@ -433,7 +434,8 @@ function closeModal(id){
   _bg(ov,0,true);
   setTimeout(function(){
     ov.style.cssText='display:none';sh.style.cssText='';_ms[id]=null;
-    document.body.style.overflow='';
+    _openCount=Math.max(0,_openCount-1);
+    if(_openCount===0){document.body.style.position='';document.body.style.top='';document.body.style.width='';document.body.style.overflow='';window.scrollTo(0,_savedSY);}
     if(id==='compassModal'&&cRAF){cancelAnimationFrame(cRAF);cRAF=null;}
   },450);
 }
