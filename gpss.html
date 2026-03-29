@@ -446,7 +446,7 @@ function _attachSwipe(id){
     d.sY=e.touches[0].clientY;d.sX=e.touches[0].clientX;
     d.dir=null;d.inH=inHS(e.target);d.on=true;
     d.dy=0;d.vel=0;d.prevDy=0;d.prevT=Date.now();d.moved=false;
-    sh.style.transition='none';ov.style.transition='none';
+    if(!d.inH){sh.style.transition='none';ov.style.transition='none';}
   }
 
   function move(e){
@@ -512,7 +512,8 @@ function _attachSwipe(id){
 
   function end(){
     if(!d.on)return;d.on=false;
-    if(d.dir==='h'||d.inH||!d.dir||!d.moved){_snapBack(id,sh,ov);return;}
+    if(d.inH)return;
+    if(d.dir==='h'||!d.dir||!d.moved){_snapBack(id,sh,ov);return;}
 
     var st=(_ms[id]||{}).s||'peek',mode=mMode(id),dy=d.dy,vel=d.vel;
 
