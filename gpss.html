@@ -214,24 +214,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
     </button>
     <h1>GPS Konum</h1>
-    <button class="header-btn" onclick="openModal('shareModal')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    <button class="header-btn" onclick="openModal('themeModal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </button>
   </div>
 
-  <div class="theme-bar">
-    <div class="theme-seg">
-      <button class="ts-btn" id="ts-light" onclick="setTheme('light')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>Gündüz
-      </button>
-      <button class="ts-btn" id="ts-dark" onclick="setTheme('dark')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>Gece
-      </button>
-      <button class="ts-btn" id="ts-system" onclick="setTheme('system')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Sistem
-      </button>
-    </div>
-  </div>
 
   <div class="gps-card">
     <div class="coord-row" onclick="copyCoord('lat')">
@@ -289,7 +276,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-we
     <div class="iphone-compass-coords"><div class="iphone-compass-dms" id="iCompassLatDMS">--°--'--" K  --°--'--" D</div><div class="iphone-compass-location" id="iCompassLocation">Şişli, İstanbul</div><div class="iphone-compass-alt" id="iCompassAlt">Yükseklik: -- m</div></div>
   </div>
 </div>
-<div class="modal-overlay" id="shareModal" onclick="hoc(event,'shareModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">Konumu Paylaş<button class="modal-close-btn" onclick="closeModal('shareModal')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div class="share-grid"><button class="share-opt" onclick="shareAs('coords')"><span class="share-opt-icon">📋</span>Koordinat Kopyala</button><button class="share-opt" onclick="shareAs('maps')"><span class="share-opt-icon">🗺️</span>Google Maps</button><button class="share-opt" onclick="shareAs('native')"><span class="share-opt-icon">📤</span>Paylaş</button><button class="share-opt" onclick="shareAs('waze')"><span class="share-opt-icon">🚗</span>Waze</button></div><div style="height:16px"></div></div></div>
+<div class="modal-overlay" id="shareModal" onclick="hoc(event,'shareModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">Konumu Paylaş<button class="modal-close-btn" onclick="closeModal('shareModal')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div class="share-grid"><button class="share-opt" onclick="shareAs('coords')"><span class="share-opt-icon">📋</span>Koordinat Kopyala</button><button class="share-opt" onclick="shareAs('maps')"><span class="share-opt-icon">🗺️</span>Google Maps</button><button class="share-opt" onclick="shareAs('native')"><span class="share-opt-icon">📤</span>Paylaş</button><button class="share-opt" onclick="shareAs('apple')"><span class="share-opt-icon">🍎</span>Apple Haritalar</button></div><div style="height:16px"></div></div></div>
+<div class="modal-overlay" id="themeModal" onclick="hoc(event,'themeModal')"><div class="modal" onclick="event.stopPropagation()"><div class="modal-handle"></div><div class="modal-title">Tema<button class="modal-close-btn" onclick="closeModal('themeModal')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div style="padding:4px 20px 24px"><div class="theme-seg"><button class="ts-btn" id="ts-light" onclick="setTheme('light')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>Gündüz</button><button class="ts-btn" id="ts-dark" onclick="setTheme('dark')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>Gece</button><button class="ts-btn" id="ts-system" onclick="setTheme('system')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Sistem</button></div></div></div></div>
 <div class="toast" id="toast"></div>
 <div class="modal-overlay" id="dayDetailModal" onclick="hoc(event,'dayDetailModal')">
   <div class="modal" id="dayDetailSheet" onclick="event.stopPropagation()">
@@ -325,6 +313,8 @@ function setTheme(t){
   _theme=t;
   try{localStorage.setItem('gpsTheme',t);}catch(e){}
   _applyTheme(t);
+  var tm=document.getElementById('themeModal');
+  if(tm&&tm.style.display==='flex')closeModal('themeModal');
 }
 function _applyTheme(t){
   var dark=(t==='system')?_mq.matches:(t==='dark');
@@ -534,18 +524,13 @@ function _attachSwipe(id){
 
     if(st==='full'){
       if(dy>80||vel>.45){
-        /* → peek */
-        sh.style.overflowY='hidden';sh.scrollTop=0;
-        _ms[id].s='peek';
-        sh.style.transition=SPRING;
-        sh.style.transform='translateY('+pO()+'px)';
-        _setGeom(sh,PEEK_W,PEEK_R,false);
-        _bg(ov,.45,true);
+        /* → close directly */
+        closeModal(id);
       } else {
         /* snap back to full */
         sh.style.transition=SPRING;
         sh.style.transform='translateY(0)';
-        _setGeom(sh,FULL_W,FULL_R,false);
+        if(mMode(id)!=='cover')_setGeom(sh,FULL_W,FULL_R,false);
         _bg(ov,.55,true);
       }
     } else {
@@ -676,7 +661,7 @@ function drawMap(){var lat=S.lat,lng=S.lng,zoom=15,n=Math.pow(2,zoom),xt=Math.fl
 function openMaps(){if(S.lat)window.open('https://maps.google.com/?q='+S.lat+','+S.lng,'_blank');}
 
 /* ══ SHARE / COPY ══ */
-function shareAs(type){if(!S.lat&&type!=='native'){showToast('Önce konum alın');return;}if(type==='coords')navigator.clipboard&&navigator.clipboard.writeText(S.lat.toFixed(6)+', '+S.lng.toFixed(6)).then(function(){showToast('Koordinatlar kopyalandı ✓');});else if(type==='maps')window.open('https://maps.google.com/?q='+S.lat+','+S.lng,'_blank');else if(type==='waze')window.open('https://waze.com/ul?ll='+S.lat+','+S.lng+'&navigate=yes','_blank');else if(type==='native'){var t=S.lat?'Konumum: '+S.lat.toFixed(6)+', '+S.lng.toFixed(6)+'\nhttps://maps.google.com/?q='+S.lat+','+S.lng:'Konum alınmadı';if(navigator.share)navigator.share({title:'GPS Konumum',text:t});else if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){showToast('Kopyalandı');});}}
+function shareAs(type){if(!S.lat&&type!=='native'){showToast('Önce konum alın');return;}if(type==='coords')navigator.clipboard&&navigator.clipboard.writeText(S.lat.toFixed(6)+', '+S.lng.toFixed(6)).then(function(){showToast('Koordinatlar kopyalandı ✓');});else if(type==='maps')window.open('https://maps.google.com/?q='+S.lat+','+S.lng,'_blank');else if(type==='apple')window.open('https://maps.apple.com/?q='+S.lat+','+S.lng,'_blank');else if(type==='native'){var t=S.lat?'Konumum: '+S.lat.toFixed(6)+', '+S.lng.toFixed(6)+'\nhttps://maps.google.com/?q='+S.lat+','+S.lng:'Konum alınmadı';if(navigator.share)navigator.share({title:'GPS Konumum',text:t});else if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){showToast('Kopyalandı');});}}
 function copyCoord(type){var v=type==='lat'?S.lat:S.lng;if(!v)return;navigator.clipboard&&navigator.clipboard.writeText(v.toFixed(6)).then(function(){showToast((type==='lat'?'Enlem':'Boylam')+' kopyalandı');});}
 function copyRowValue(el,text){if(!text||text==='-')return;var p=text.replace(/[\u{1F300}-\u{1FAFF}]/gu,'').trim()||text;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(p).then(function(){flash(el,p);}).catch(function(){fb(el,p);});}else fb(el,p);}
 function fb(el,t){var ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');flash(el,t);}catch(e){}document.body.removeChild(ta);}
