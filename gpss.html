@@ -353,7 +353,7 @@ var PEEK_W=100,FULL_W=100;   /* % */
 var PEEK_R=20,FULL_R=24;    /* px top radius */
 
 function vH(){return window.innerHeight;}
-function fH(){return Math.round(vH()*.91);}
+function fH(){return vH();}
 function pH(){return Math.round(vH()*.52);}
 function pO(){return fH()-pH();}
 function mH(id){return MM[id]==='cover'?vH():fH();}
