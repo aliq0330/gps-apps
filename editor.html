@@ -3,61 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimate Editor V2</title>
+<title>Editor Pro V3</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-<link id="themeStylesheet" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css">
 
 <style>
-body { margin:0; font-family:Arial; display:flex; flex-direction:column; height:100vh; }
+body { margin:0; font-family:Arial; height:100vh; display:flex; flex-direction:column; }
 
-header { background:#111; color:white; padding:10px; text-align:center; }
-
-.toolbar { display:flex; flex-wrap:wrap; gap:5px; padding:10px; background:#222; }
-
-button { padding:10px; border:none; border-radius:5px; background:#007bff; color:white; }
-
-.tabs {
+/* TOP BAR */
+.topbar {
     display:flex;
-    overflow-x:auto;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px;
+    background:#f5f5f5;
+    border-bottom:1px solid #ddd;
 }
 
-.tab {
-    min-width:80px;
-    padding:10px;
-    text-align:center;
-    background:#333;
-    color:white;
+.title { font-weight:bold; font-size:18px; }
+
+.icons { display:flex; gap:10px; }
+
+.icon {
+    font-size:18px;
     cursor:pointer;
 }
 
-.tab.active { background:#007bff; }
+/* FILE TABS */
+.tabs {
+    display:flex;
+    overflow-x:auto;
+    background:#eee;
+}
 
+.tab {
+    padding:10px 15px;
+    cursor:pointer;
+    color:#666;
+}
+
+.tab.active {
+    background:white;
+    color:black;
+    border-bottom:2px solid black;
+}
+
+/* EDITOR */
 .editor { flex:1; }
 
-.CodeMirror { height:100%; }
+.CodeMirror { height:100%; font-size:14px; }
 
-/* alternating line colors */
-.cm-s-dracula .CodeMirror-line:nth-child(odd) {
-    background: rgba(255,255,0,0.1);
+/* alternating lines */
+.CodeMirror-line:nth-child(odd) {
+    background: rgba(255,255,0,0.15);
 }
-.cm-s-dracula .CodeMirror-line:nth-child(even) {
-    background: rgba(0,200,255,0.1);
+.CodeMirror-line:nth-child(even) {
+    background: rgba(0,150,255,0.15);
 }
 
 /* popup preview */
-#popupPreview {
+#previewPopup {
     position:fixed;
     top:0; left:0;
-    width:100%;
-    height:100%;
+    width:100%; height:100%;
     background:white;
-    z-index:9999;
     display:none;
     flex-direction:column;
+    z-index:999;
 }
 
-#popupHeader {
+#previewHeader {
     background:black;
     color:white;
     padding:10px;
@@ -65,48 +81,77 @@ button { padding:10px; border:none; border-radius:5px; background:#007bff; color
     justify-content:space-between;
 }
 
-#popupFrame {
-    flex:1;
-    border:none;
+#previewFrame { flex:1; border:none; }
+
+/* run options modal */
+#runOptions {
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    background:white;
+    border-top:1px solid #ccc;
+    display:none;
+    padding:10px;
 }
 
-.closeBtn {
-    cursor:pointer;
-    font-size:18px;
+.runBtn {
+    width:100%;
+    margin:5px 0;
+    padding:12px;
+    background:#007bff;
+    color:white;
+    border:none;
 }
 </style>
 </head>
 
 <body>
 
-<header>Ultimate Editor V2 🚀</header>
-
-<div class="toolbar">
-    <button onclick="runNewTab()">Yeni Sekme</button>
-    <button onclick="runPopup()">Popup</button>
-    <button onclick="saveFile()">Kaydet</button>
-    <button onclick="toggleTheme()">Tema</button>
+<div class="topbar">
+    <div class="title">New project</div>
+    <div class="icons">
+        <div class="icon" onclick="saveFile()">💾</div>
+        <div class="icon" onclick="openRunOptions()">▶️</div>
+        <div class="icon" onclick="clearAll()">🧹</div>
+    </div>
 </div>
 
 <div class="tabs">
-    <div class="tab active" onclick="switchTab('html',event)">HTML</div>
-    <div class="tab" onclick="switchTab('css',event)">CSS</div>
-    <div class="tab" onclick="switchTab('js',event)">JS</div>
+    <div class="tab active" onclick="switchTab('html',event)">index.html</div>
+    <div class="tab" onclick="switchTab('css',event)">style.css</div>
+    <div class="tab" onclick="switchTab('js',event)">app.js</div>
 </div>
 
 <div class="editor">
-    <textarea id="htmlCode"><h1>Merhaba</h1></textarea>
-    <textarea id="cssCode">body { font-family: Arial; }</textarea>
-    <textarea id="jsCode">console.log("çalışıyor");</textarea>
+<textarea id="htmlCode"><!DOCTYPE html>
+<html>
+<head>
+<title>Title</title>
+</head>
+<body>
+<h1>This is a Heading</h1>
+<p>This is a paragraph.</p>
+</body>
+</html></textarea>
+
+<textarea id="cssCode">body { font-family: Arial; }</textarea>
+<textarea id="jsCode">console.log("çalışıyor");</textarea>
 </div>
 
-<!-- popup -->
-<div id="popupPreview">
-    <div id="popupHeader">
-        <span>Önizleme</span>
-        <span class="closeBtn" onclick="closePopup()">✖</span>
+<!-- popup preview -->
+<div id="previewPopup">
+    <div id="previewHeader">
+        <span>Preview</span>
+        <span onclick="closePreview()">✖</span>
     </div>
-    <iframe id="popupFrame"></iframe>
+    <iframe id="previewFrame"></iframe>
+</div>
+
+<!-- run options -->
+<div id="runOptions">
+    <button class="runBtn" onclick="runNewTab()">Yeni Sekmede Aç</button>
+    <button class="runBtn" onclick="runPopup()">Pop-up Aç</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
@@ -115,9 +160,9 @@ button { padding:10px; border:none; border-radius:5px; background:#007bff; color
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
 
 <script>
-const htmlEditor = CodeMirror.fromTextArea(document.getElementById("htmlCode"), {mode:"htmlmixed", lineNumbers:true, theme:"dracula"});
-const cssEditor = CodeMirror.fromTextArea(document.getElementById("cssCode"), {mode:"css", lineNumbers:true, theme:"dracula"});
-const jsEditor = CodeMirror.fromTextArea(document.getElementById("jsCode"), {mode:"javascript", lineNumbers:true, theme:"dracula"});
+const htmlEditor = CodeMirror.fromTextArea(document.getElementById("htmlCode"), {mode:"htmlmixed", lineNumbers:true});
+const cssEditor = CodeMirror.fromTextArea(document.getElementById("cssCode"), {mode:"css", lineNumbers:true});
+const jsEditor = CodeMirror.fromTextArea(document.getElementById("jsCode"), {mode:"javascript", lineNumbers:true});
 
 cssEditor.getWrapperElement().style.display="none";
 jsEditor.getWrapperElement().style.display="none";
@@ -138,52 +183,45 @@ function switchTab(tab,e){
 
 function buildCode(){
     return htmlEditor.getValue()
-        + "<style>"+cssEditor.getValue()+"</style>"
-        + "<script>"+jsEditor.getValue()+"<\/script>";
+    + "<style>"+cssEditor.getValue()+"</style>"
+    + "<script>"+jsEditor.getValue()+"<\/script>";
+}
+
+function openRunOptions(){
+    document.getElementById("runOptions").style.display="block";
 }
 
 function runNewTab(){
+    document.getElementById("runOptions").style.display="none";
     const w = window.open();
     w.document.write(buildCode());
-    w.document.close();
 }
 
 function runPopup(){
-    const popup = document.getElementById("popupPreview");
-    const frame = document.getElementById("popupFrame");
-    popup.style.display="flex";
-    frame.srcdoc = buildCode();
+    document.getElementById("runOptions").style.display="none";
+    document.getElementById("previewPopup").style.display="flex";
+    document.getElementById("previewFrame").srcdoc = buildCode();
 }
 
-function closePopup(){
-    document.getElementById("popupPreview").style.display="none";
+function closePreview(){
+    document.getElementById("previewPopup").style.display="none";
 }
 
 function saveFile(){
     const blob=new Blob([buildCode()],{type:"text/html"});
     const a=document.createElement("a");
     a.href=URL.createObjectURL(blob);
-    a.download="kod.html";
+    a.download="project.html";
     a.click();
 }
 
-function toggleTheme(){
-    const t=document.getElementById("themeStylesheet");
-    t.href = t.href.includes("dracula")
-        ? "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css"
-        : "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css";
-}
-
-/* SELECT ALL FIX (mobil dahil) */
-document.addEventListener("keydown", e=>{
-    if((e.ctrlKey || e.metaKey) && e.key==="a"){
-        e.preventDefault();
-        const active = document.querySelector(".CodeMirror:not([style*='display: none'])");
-        if(active && active.CodeMirror){
-            active.CodeMirror.execCommand("selectAll");
-        }
+function clearAll(){
+    if(confirm("Her şeyi silmek istiyor musun?")){
+        htmlEditor.setValue("");
+        cssEditor.setValue("");
+        jsEditor.setValue("");
     }
-});
+}
 </script>
 
 </body>
