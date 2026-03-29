@@ -1,215 +1,164 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KodEdit</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobil Kod Editörü</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+    
+    <style>
+        :root { --bg: #282a36; --text: #f8f8f2; --accent: #6272a4; --active: #50fa7b; }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Üst Panel */
+        .toolbar { display: flex; align-items: center; gap: 8px; padding: 10px; background: #1e1f29; border-bottom: 1px solid #44475a; }
+        #fileNameInput { flex-grow: 1; background: #44475a; border: none; color: white; padding: 8px; border-radius: 4px; font-size: 14px; }
+        .btn { background: var(--accent); border: none; color: white; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn-run { background: var(--active); color: #282a36; font-weight: bold; }
 
-<!-- Prism.js -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet"/>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet"/>
+        /* Sekmeler */
+        .tabs { display: flex; background: #1e1f29; }
+        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; border-bottom: 2px solid transparent; opacity: 0.6; transition: 0.3s; }
+        .tab.active { border-bottom: 2px solid var(--active); opacity: 1; background: var(--bg); }
 
-<style>
-body {
-  margin:0;
-  font-family: monospace;
-  background:#1e1e1e;
-  color:white;
-}
+        /* Editör Alanı */
+        #editor-wrapper { flex-grow: 1; position: relative; font-size: 16px; overflow: hidden; }
+        .CodeMirror { height: 100% !important; width: 100% !important; }
 
-.topbar {
-  display:flex;
-  flex-wrap:wrap;
-  padding:8px;
-  background:#111;
-  gap:5px;
-}
-
-button, input {
-  padding:6px;
-  border:none;
-  border-radius:5px;
-  font-size:12px;
-}
-
-button {
-  background:#333;
-  color:white;
-}
-
-.tabs {
-  display:flex;
-}
-
-.tab {
-  flex:1;
-  padding:10px;
-  text-align:center;
-  background:#222;
-  cursor:pointer;
-}
-
-.active {
-  background:#444;
-}
-
-.editor {
-  height:70vh;
-  overflow:auto;
-}
-
-textarea {
-  width:100%;
-  height:100%;
-  background:transparent;
-  color:white;
-  border:none;
-  outline:none;
-  font-family: monospace;
-  font-size:14px;
-  resize:none;
-}
-
-pre {
-  margin:0;
-}
-</style>
+        /* Pop-up Overlay */
+        #preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; }
+        #preview-modal iframe { width: 100%; height: calc(100% - 40px); border: none; }
+        .close-modal { height: 40px; background: #ff5555; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
+    </style>
 </head>
-
 <body>
 
-<div class="topbar">
-  <input id="filename" placeholder="dosya adı">
-  <button onclick="saveFile()">Kaydet</button>
-  <input type="file" onchange="loadFile(event)">
-  <button onclick="clearCode()">Temizle</button>
-  <button onclick="runCode()">Çalıştır</button>
+<div class="toolbar">
+    <input type="text" id="fileNameInput" placeholder="Dosya adı (varsayılan: deneme)">
+    <input type="file" id="fileLoader" style="display:none" onchange="processFile(this)">
+    <button class="btn" onclick="document.getElementById('fileLoader').click()">📂</button>
+    <button class="btn" onclick="downloadFile()">💾</button>
+    <button class="btn" onclick="clearCode()">🧹</button>
+    <button class="btn btn-run" onclick="showRunMenu()">▶️</button>
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('html')">HTML</div>
-  <div class="tab" onclick="switchTab('css')">CSS</div>
-  <div class="tab" onclick="switchTab('js')">JS</div>
+    <div class="tab active" id="tab-html" onclick="switchTab('html')">HTML</div>
+    <div class="tab" id="tab-css" onclick="switchTab('css')">CSS</div>
+    <div class="tab" id="tab-js" onclick="switchTab('js')">JS</div>
 </div>
 
-<div class="editor">
-  <pre class="line-numbers"><code id="highlight" class="language-html"></code></pre>
-  <textarea id="code"></textarea>
+<div id="editor-wrapper" oncontextmenu="handleLongPress(event)">
+    <textarea id="real-editor"></textarea>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<div id="preview-modal">
+    <div class="close-modal" onclick="closeModal()">KAPAT</div>
+    <iframe id="preview-frame"></iframe>
+</div>
 
 <script>
-let currentTab = "html";
+    let currentTab = 'html';
+    const codes = {
+        html: '<!DOCTYPE html>\n<html>\n<body>\n  <h1>Merhaba Dünya</h1>\n</body>\n</html>',
+        css: 'body { background: #f0f0f0; color: #333; text-align: center; }',
+        js: 'console.log("Kod çalıştı!");'
+    };
 
-let codes = {
-  html: "<h1>Merhaba</h1>",
-  css: "body { background:black; color:white; }",
-  js: "console.log('Hello');"
-};
+    // CodeMirror Kurulumu
+    const editor = CodeMirror.fromTextArea(document.getElementById("real-editor"), {
+        lineNumbers: true,
+        theme: "dracula",
+        mode: "xml",
+        htmlMode: true,
+        lineWrapping: true,
+        tabSize: 2,
+        extraKeys: {"Ctrl-Space": "autocomplete"}
+    });
 
-const textarea = document.getElementById("code");
-const highlight = document.getElementById("highlight");
+    editor.setValue(codes.html);
 
-function updateHighlight() {
-  highlight.textContent = textarea.value;
-  highlight.className = "language-" + currentTab;
-  Prism.highlightElement(highlight);
-}
+    // Sekme Değiştirme
+    function switchTab(tab) {
+        codes[currentTab] = editor.getValue();
+        currentTab = tab;
+        
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(`tab-${tab}`).classList.add('active');
 
-textarea.addEventListener("input", () => {
-  codes[currentTab] = textarea.value;
-  updateHighlight();
-});
+        const modeMap = { html: 'xml', css: 'css', js: 'javascript' };
+        editor.setOption("mode", modeMap[tab]);
+        editor.setValue(codes[tab]);
+    }
 
-function switchTab(tab) {
-  currentTab = tab;
-  textarea.value = codes[tab];
-  updateHighlight();
+    // Kod Temizleme
+    function clearCode() {
+        if(confirm("Tüm kodları temizlemek istediğinize emin misiniz?")) {
+            editor.setValue("");
+            codes[currentTab] = "";
+        }
+    }
 
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  event.target.classList.add("active");
-}
+    // Dosya İndirme
+    function downloadFile() {
+        codes[currentTab] = editor.getValue();
+        const fileName = (document.getElementById('fileNameInput').value || 'deneme') + ".html";
+        const content = `
+            ${codes.html}
+            <style>${codes.css}</style>
+            <script>${codes.js}<\/script>
+        `;
+        const blob = new Blob([content], {type: "text/html"});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = fileName;
+        a.click();
+    }
 
-function saveFile() {
-  let name = document.getElementById("filename").value || "deneme";
+    // Dosya Yükleme (Basit içerik aktarımı)
+    function processFile(input) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            editor.setValue(e.target.result);
+        };
+        reader.readAsText(file);
+    }
 
-  let fullCode = `
-<!DOCTYPE html>
-<html>
-<head>
-<style>${codes.css}</style>
-</head>
-<body>
-${codes.html}
-<script>${codes.js}<\/script>
-</body>
-</html>`;
+    // Çalıştır Menüsü
+    function showRunMenu() {
+        const choice = confirm("Tamam: Yeni Sekmede Aç\nİptal: Pop-up Görüntüle");
+        const content = `<html><style>${codes.css}</style><body>${codes.html}<script>${codes.js}<\/script></body></html>`;
+        const blob = new Blob([content], {type: "text/html"});
+        const url = URL.createObjectURL(blob);
 
-  let blob = new Blob([fullCode], {type:"text/html"});
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = name + ".html";
-  a.click();
-}
+        if (choice) {
+            window.open(url, '_blank');
+        } else {
+            document.getElementById('preview-frame').src = url;
+            document.getElementById('preview-modal').style.display = 'block';
+        }
+    }
 
-function loadFile(e) {
-  let file = e.target.files[0];
-  let reader = new FileReader();
+    function closeModal() {
+        document.getElementById('preview-modal').style.display = 'none';
+        document.getElementById('preview-frame').src = '';
+    }
 
-  reader.onload = function() {
-    codes.html = reader.result;
-    switchTab("html");
-  };
-
-  reader.readAsText(file);
-}
-
-function clearCode() {
-  textarea.value = "";
-  codes[currentTab] = "";
-  updateHighlight();
-}
-
-function runCode() {
-  let option = confirm("Tamam = Yeni Sekme\nİptal = Popup");
-
-  let fullCode = `
-<!DOCTYPE html>
-<html>
-<head>
-<style>${codes.css}</style>
-</head>
-<body>
-${codes.html}
-<script>${codes.js}<\/script>
-</body>
-</html>`;
-
-  if(option) {
-    let win = window.open();
-    win.document.write(fullCode);
-  } else {
-    let popup = window.open("", "popup", "width=400,height=600");
-    popup.document.write(fullCode);
-  }
-}
-
-// uzun bas -> kopyala
-textarea.addEventListener("touchstart", function(e) {
-  this.timer = setTimeout(() => {
-    navigator.clipboard.writeText(textarea.value);
-    alert("Kod kopyalandı!");
-  }, 800);
-});
-
-textarea.addEventListener("touchend", function() {
-  clearTimeout(this.timer);
-});
-
-// ilk yükleme
-switchTab("html");
+    // Uzun Basınca Kopyala (Mobil İçin)
+    function handleLongPress(e) {
+        // Not: Mobil tarayıcılarda 'contextmenu' genellikle uzun basınca tetiklenir.
+        e.preventDefault();
+        const allText = editor.getValue();
+        navigator.clipboard.writeText(allText).then(() => {
+            alert("Tüm kod kopyalandı!");
+        });
+    }
 </script>
 
 </body>
