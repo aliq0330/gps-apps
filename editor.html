@@ -3,19 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobil Kod Editörü - CodeMirror</title>
+    <title>Mobil Kod Editörü - Monaco</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- CodeMirror 6 -->
-    <script type="module">
-        import { EditorView, basicSetup } from "https://cdn.jsdelivr.net/npm/codemirror@6.0.1/+esm";
-        import { html } from "https://cdn.jsdelivr.net/npm/@codemirror/lang-html@6.4.9/+esm";
-        import { css } from "https://cdn.jsdelivr.net/npm/@codemirror/lang-css@6.3.0/+esm";
-        import { javascript } from "https://cdn.jsdelivr.net/npm/@codemirror/lang-javascript@6.2.2/+esm";
-        import { oneDark } from "https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6.1.2/+esm";
-        
-        window.CodeMirror = { EditorView, basicSetup, html, css, javascript, oneDark };
-    </script>
+    <!-- Monaco Editor Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -23,6 +15,9 @@
         * {
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         html, body {
@@ -31,49 +26,6 @@
             position: fixed;
             width: 100%;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        .editor-font {
-            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
-        }
-        
-        /* CodeMirror Custom Styles */
-        .cm-editor {
-            height: 100%;
-            background: #282c34 !important;
-        }
-        
-        .cm-editor .cm-scroller {
-            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        
-        .cm-editor.cm-focused {
-            outline: none;
-        }
-        
-        .cm-gutters {
-            background: #1e1e1e !important;
-            border-right: 1px solid #333 !important;
-            color: #858585 !important;
-        }
-        
-        .cm-activeLineGutter {
-            background: #2c313a !important;
-            color: #abb2bf !important;
-        }
-        
-        .cm-activeLine {
-            background: #2c313a !important;
-        }
-        
-        .cm-selectionBackground {
-            background: #3e4451 !important;
-        }
-        
-        .cm-cursor {
-            border-left: 2px solid #528bff !important;
         }
         
         .tab-active {
@@ -194,6 +146,7 @@
             color: #e5e7eb;
             font-size: 14px;
             transition: border-color 0.2s;
+            width: 100%;
         }
         
         .filename-input:focus {
@@ -201,34 +154,32 @@
             border-color: #3b82f6;
         }
         
-        .editor-wrapper {
+        #editor-container {
             height: calc(100vh - 140px);
+            width: 100%;
             overflow: hidden;
         }
         
         @media (max-width: 640px) {
-            .cm-editor .cm-scroller {
-                font-size: 13px;
-            }
-            .cm-gutters {
-                font-size: 13px;
+            #editor-container {
+                height: calc(100vh - 130px);
             }
         }
         
         .hidden { display: none !important; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 flex flex-col">
+<body class="bg-gray-900 text-gray-100 flex flex-col h-screen">
 
     <!-- Top Bar -->
     <header class="glass-panel border-b border-gray-700 p-3 flex flex-col gap-3 shrink-0 z-20">
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-2">
             <div class="flex items-center gap-2 flex-1 min-w-0">
                 <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
                 <input type="text" id="filename" placeholder="Dosya adı gir" 
-                       class="filename-input flex-1 min-w-0" value="">
+                       class="filename-input" value="">
             </div>
             
             <div class="flex items-center gap-2 shrink-0">
@@ -307,12 +258,8 @@
         </div>
     </header>
 
-    <!-- Editor Area -->
-    <main class="flex-1 relative overflow-hidden" id="mainContainer">
-        <div class="editor-wrapper" id="editorWrapper">
-            <div id="editor" class="w-full h-full"></div>
-        </div>
-    </main>
+    <!-- Monaco Editor Container -->
+    <div id="editor-container"></div>
 
     <!-- Preview Popup -->
     <div id="previewModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
@@ -369,11 +316,10 @@
         <span id="toastMessage">İşlem başarılı</span>
     </div>
 
-    <script type="module">
-        const { EditorView, basicSetup, html, css, javascript, oneDark } = window.CodeMirror;
-        
+    <script>
+        // State
         let currentTab = 'html';
-        let editorView = null;
+        let editor = null;
         
         const code = {
             html: '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>',
@@ -381,33 +327,119 @@
             js: '// JavaScript kodunuzu buraya yazın\nconsole.log("Merhaba Dünya!");\n\ndocument.querySelector("h1").addEventListener("click", function() {\n  alert("Tıklandı!");\n});'
         };
 
-        const extensions = {
-            html: [basicSetup, html(), oneDark, EditorView.lineWrapping],
-            css: [basicSetup, css(), oneDark, EditorView.lineWrapping],
-            js: [basicSetup, javascript(), oneDark, EditorView.lineWrapping]
+        const langMap = {
+            html: 'html',
+            css: 'css',
+            js: 'javascript'
         };
 
-        function createEditor() {
-            if (editorView) {
-                editorView.destroy();
+        let initialHeight = window.innerHeight;
+
+        // Initialize Monaco
+        require.config({ 
+            paths: { 
+                'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' 
             }
-            
-            editorView = new EditorView({
-                doc: code[currentTab],
-                extensions: extensions[currentTab],
-                parent: document.getElementById('editor'),
-                dispatch: (tr) => {
-                    editorView.update([tr]);
-                    if (tr.docChanged) {
-                        code[currentTab] = editorView.state.doc.toString();
-                    }
+        });
+
+        require(['vs/editor/editor.main'], function() {
+            // Define custom theme matching dark mode
+            monaco.editor.defineTheme('customDark', {
+                base: 'vs-dark',
+                inherit: true,
+                rules: [],
+                colors: {
+                    'editor.background': '#282c34',
+                    'editor.lineHighlightBackground': '#2c313a',
+                    'editorLineNumber.foreground': '#858585',
+                    'editorLineNumber.activeForeground': '#abb2bf',
                 }
+            });
+
+            createEditor();
+            
+            // Handle resize
+            window.addEventListener('resize', handleResize);
+        });
+
+        function createEditor() {
+            const container = document.getElementById('editor-container');
+            
+            if (editor) {
+                editor.dispose();
+            }
+
+            editor = monaco.editor.create(container, {
+                value: code[currentTab],
+                language: langMap[currentTab],
+                theme: 'customDark',
+                fontSize: 14,
+                fontFamily: 'JetBrains Mono, Consolas, Monaco, monospace',
+                lineNumbers: 'on',
+                roundedSelection: false,
+                scrollBeyondLastLine: false,
+                minimap: { enabled: false },
+                automaticLayout: true,
+                padding: { top: 16 },
+                lineHeight: 22,
+                renderLineHighlight: 'line',
+                selectOnLineNumbers: true,
+                wordWrap: 'on',
+                wrappingStrategy: 'advanced',
+                overviewRulerLanes: 0,
+                hideCursorInOverviewRuler: true,
+                scrollbar: {
+                    useShadows: false,
+                    verticalHasArrows: false,
+                    horizontalHasArrows: false,
+                    vertical: 'auto',
+                    horizontal: 'auto'
+                }
+            });
+
+            // Update code on change
+            editor.onDidChangeModelContent(() => {
+                code[currentTab] = editor.getValue();
+            });
+
+            // Context menu on long press
+            let pressTimer;
+            const editorDom = editor.getDomNode();
+            
+            editorDom.addEventListener('touchstart', (e) => {
+                pressTimer = setTimeout(() => {
+                    showContextMenu(e);
+                }, 800);
+            });
+            
+            editorDom.addEventListener('touchend', () => {
+                clearTimeout(pressTimer);
+            });
+            
+            editorDom.addEventListener('touchmove', () => {
+                clearTimeout(pressTimer);
             });
         }
 
-        window.switchTab = function(tab) {
-            if (editorView) {
-                code[currentTab] = editorView.state.doc.toString();
+        function handleResize() {
+            const currentHeight = window.innerHeight;
+            const container = document.getElementById('editor-container');
+            const diff = initialHeight - currentHeight;
+            
+            if (diff > 100) {
+                container.style.height = (currentHeight - 140) + 'px';
+            } else {
+                container.style.height = 'calc(100vh - 140px)';
+            }
+            
+            if (editor) {
+                editor.layout();
+            }
+        }
+
+        function switchTab(tab) {
+            if (editor) {
+                code[currentTab] = editor.getValue();
             }
             
             document.getElementById(`tab-${currentTab}`).classList.remove('tab-active');
@@ -418,29 +450,34 @@
             document.getElementById(`tab-${currentTab}`).classList.remove('tab-inactive');
             document.getElementById(`tab-${currentTab}`).classList.add('tab-active');
             
-            createEditor();
-        };
+            // Update editor model
+            if (editor) {
+                monaco.editor.setModelLanguage(editor.getModel(), langMap[currentTab]);
+                editor.setValue(code[currentTab]);
+            }
+        }
 
-        window.toggleRunMenu = function() {
+        function toggleRunMenu() {
             document.getElementById('runMenu').classList.toggle('hidden');
-        };
+        }
 
-        window.runCode = function(mode) {
+        function runCode(mode) {
             document.getElementById('runMenu').classList.add('hidden');
             
-            const currentCode = editorView ? editorView.state.doc.toString() : code[currentTab];
-            code[currentTab] = currentCode;
+            const html = code.html;
+            const css = code.css;
+            const js = code.js;
             
             const fullCode = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>${code.css}</style>
+    <style>${css}</style>
 </head>
 <body>
-    ${code.html}
-    <script>${code.js}<\/script>
+    ${html}
+    <script>${js}<\/script>
 </body>
 </html>`;
             
@@ -453,19 +490,16 @@
                 document.getElementById('previewModal').classList.remove('hidden');
                 document.getElementById('previewFrame').srcdoc = fullCode;
             }
-        };
+        }
 
-        window.closePreview = function() {
+        function closePreview() {
             document.getElementById('previewModal').classList.add('hidden');
-        };
+        }
 
-        window.saveFile = function() {
+        function saveFile() {
             let filename = document.getElementById('filename').value.trim();
             if (!filename) filename = 'deneme';
             if (!filename.endsWith('.html')) filename += '.html';
-            
-            const currentCode = editorView ? editorView.state.doc.toString() : code[currentTab];
-            code[currentTab] = currentCode;
             
             const fullCode = `<!DOCTYPE html>
 <html>
@@ -494,13 +528,13 @@ ${code.js}
             URL.revokeObjectURL(url);
             
             showToast(`${filename} kaydedildi`);
-        };
+        }
 
-        window.loadFile = function() {
+        function loadFile() {
             document.getElementById('fileInput').click();
-        };
+        }
 
-        window.handleFileLoad = function(event) {
+        function handleFileLoad(event) {
             const file = event.target.files[0];
             if (!file) return;
             
@@ -518,66 +552,69 @@ ${code.js}
                 
                 document.getElementById('filename').value = file.name.replace('.html', '');
                 
-                createEditor();
+                if (editor) {
+                    editor.setValue(code[currentTab]);
+                }
                 showToast(`${file.name} yüklendi`);
             };
             reader.readAsText(file);
-        };
+        }
 
-        window.clearCode = function() {
+        function clearCode() {
             if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
                 code.html = '';
                 code.css = '';
                 code.js = '';
-                createEditor();
+                if (editor) {
+                    editor.setValue('');
+                }
                 showToast('Kodlar temizlendi');
             }
-        };
+        }
 
-        window.showContextMenu = function(e) {
+        function showContextMenu(e) {
             e.preventDefault();
             document.getElementById('contextMenuOverlay').classList.remove('hidden');
             document.getElementById('contextMenu').classList.remove('hidden');
-        };
+        }
 
-        window.hideContextMenu = function() {
+        function hideContextMenu() {
             document.getElementById('contextMenuOverlay').classList.add('hidden');
             document.getElementById('contextMenu').classList.add('hidden');
-        };
+        }
 
-        window.copyAll = function() {
-            if (editorView) {
-                const content = editorView.state.doc.toString();
+        function copyAll() {
+            if (editor) {
+                const content = editor.getValue();
                 navigator.clipboard.writeText(content).then(() => {
                     hideContextMenu();
                     showToast('Kopyalandı');
                 });
             }
-        };
+        }
 
-        window.pasteCode = function() {
+        function pasteCode() {
             navigator.clipboard.readText().then(text => {
-                if (editorView) {
-                    const transaction = editorView.state.update({
-                        changes: {from: editorView.state.selection.main.from, to: editorView.state.selection.main.to, insert: text}
-                    });
-                    editorView.dispatch(transaction);
+                if (editor) {
+                    const selection = editor.getSelection();
+                    editor.executeEdits('paste', [{
+                        range: selection,
+                        text: text
+                    }]);
                 }
                 hideContextMenu();
                 showToast('Yapıştırıldı');
             }).catch(() => {
                 showToast('Yapıştırma başarısız');
             });
-        };
+        }
 
-        window.selectAll = function() {
-            if (editorView) {
-                editorView.dispatch({
-                    selection: {anchor: 0, head: editorView.state.doc.length}
-                });
+        function selectAll() {
+            if (editor) {
+                editor.setSelection(editor.getModel().getFullModelRange());
             }
             hideContextMenu();
-        };
+        }
 
         function showToast(message) {
             const toast = document.getElementById('toast');
@@ -590,24 +627,6 @@ ${code.js}
                 toast.classList.remove('flex');
             }, 2000);
         }
-        window.showToast = showToast;
-
-        // Initialize
-        createEditor();
-
-        // Handle resize for keyboard
-        let initialHeight = window.innerHeight;
-        window.addEventListener('resize', () => {
-            const currentHeight = window.innerHeight;
-            const editorWrapper = document.getElementById('editorWrapper');
-            const diff = initialHeight - currentHeight;
-            
-            if (diff > 100) {
-                editorWrapper.style.height = (currentHeight - 140) + 'px';
-            } else {
-                editorWrapper.style.height = 'calc(100vh - 140px)';
-            }
-        });
 
         // Close menus on outside click
         document.addEventListener('click', (e) => {
