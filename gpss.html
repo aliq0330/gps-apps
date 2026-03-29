@@ -442,11 +442,17 @@ function inHS(el){while(el&&el.nodeType===1){if(el.classList&&el.classList.conta
 function _attachSwipe(id){
   var ov=document.getElementById(id),sh=gs(id);
   var d={on:false,sY:0,sX:0,dir:null,inH:false,dy:0,vel:0,prevDy:0,prevT:0,moved:false};
+  var _passive=false;
 
   function start(e){
     d.sY=e.touches[0].clientY;d.sX=e.touches[0].clientX;
     d.dir=null;d.inH=inHS(e.target);d.on=true;
     d.dy=0;d.vel=0;d.prevDy=0;d.prevT=Date.now();d.moved=false;
+    if(d.inH!==_passive){
+      sh.removeEventListener('touchmove',move);
+      _passive=d.inH;
+      sh.addEventListener('touchmove',move,{passive:_passive});
+    }
     if(!d.inH){sh.style.transition='none';ov.style.transition='none';}
   }
 
