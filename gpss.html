@@ -465,11 +465,20 @@ function _attachSwipe(id){
     }
     if(d.dir==='h'){return;}
 
+    var st=(_ms[id]||{}).s||'peek',mode=mMode(id);
+
+    /* prevent pull-to-refresh:
+       - peek/cover: no native scroll, always safe
+       - full at top dragging down: would trigger PTR  */
+    if(mode==='cover'||st==='peek'){
+      e.preventDefault();
+    }else if(st==='full'&&dy>0&&sh.scrollTop<=2){
+      e.preventDefault();
+    }
+
     var now=Date.now(),dt=now-d.prevT;
     if(dt>0){d.vel=(dy-d.prevDy)/dt;d.prevT=now;}
     d.prevDy=dy;d.dy=dy;
-
-    var st=(_ms[id]||{}).s||'peek',mode=mMode(id);
 
     /* ── COVER ── */
     if(mode==='cover'){
@@ -553,7 +562,7 @@ function _attachSwipe(id){
   }
 
   sh.addEventListener('touchstart',start,{passive:true});
-  sh.addEventListener('touchmove',move,{passive:true});
+  sh.addEventListener('touchmove',move,{passive:false});
   sh.addEventListener('touchend',end,{passive:true});
   sh.addEventListener('touchcancel',end,{passive:true});
 }
