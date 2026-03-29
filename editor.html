@@ -3,13 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobil Kod Editörü</title>
+    <title>Mobil Kod Editörü - CodeMirror</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    
+    <!-- CodeMirror 6 -->
+    <script type="module">
+        import { EditorView, basicSetup } from "https://cdn.jsdelivr.net/npm/codemirror@6.0.1/+esm";
+        import { html } from "https://cdn.jsdelivr.net/npm/@codemirror/lang-html@6.4.9/+esm";
+        import { css } from "https://cdn.jsdelivr.net/npm/@codemirror/lang-css@6.3.0/+esm";
+        import { javascript } from "https://cdn.jsdelivr.net/npm/@codemirror/lang-javascript@6.2.2/+esm";
+        import { oneDark } from "https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6.1.2/+esm";
+        
+        window.CodeMirror = { EditorView, basicSetup, html, css, javascript, oneDark };
+    </script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
         
@@ -28,58 +35,45 @@
         
         .editor-font {
             font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            line-height: 1.6;
         }
         
-        .editor-container {
-            position: relative;
-            height: calc(100vh - 180px);
-            overflow: hidden;
-        }
-        
-        .line-numbers {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 50px;
+        /* CodeMirror Custom Styles */
+        .cm-editor {
             height: 100%;
-            background: #1e1e1e;
-            color: #858585;
-            text-align: right;
-            padding: 16px 10px;
+            background: #282c34 !important;
+        }
+        
+        .cm-editor .cm-scroller {
+            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
             font-size: 14px;
             line-height: 1.6;
-            overflow: hidden;
-            user-select: none;
-            border-right: 1px solid #333;
-            z-index: 10;
         }
         
-        .code-area {
-            position: absolute;
-            left: 50px;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            background: #282c34;
-            overflow: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        .code-input {
-            width: 100%;
-            min-height: 100%;
-            padding: 16px;
-            background: transparent;
-            color: #abb2bf;
-            border: none;
-            resize: none;
+        .cm-editor.cm-focused {
             outline: none;
-            white-space: pre;
-            overflow-wrap: normal;
-            tab-size: 2;
-            caret-color: #528bff;
+        }
+        
+        .cm-gutters {
+            background: #1e1e1e !important;
+            border-right: 1px solid #333 !important;
+            color: #858585 !important;
+        }
+        
+        .cm-activeLineGutter {
+            background: #2c313a !important;
+            color: #abb2bf !important;
+        }
+        
+        .cm-activeLine {
+            background: #2c313a !important;
+        }
+        
+        .cm-selectionBackground {
+            background: #3e4451 !important;
+        }
+        
+        .cm-cursor {
+            border-left: 2px solid #528bff !important;
         }
         
         .tab-active {
@@ -106,7 +100,7 @@
         }
         
         .glass-panel {
-            background: rgba(31, 41, 55, 0.95);
+            background: rgba(31, 41, 55, 0.98);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
@@ -118,20 +112,6 @@
         
         .animate-slide-down {
             animation: slideDown 0.2s ease-out;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #1e1e1e;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #4b5563;
-            border-radius: 3px;
         }
         
         .context-menu-overlay {
@@ -221,24 +201,24 @@
             border-color: #3b82f6;
         }
         
+        .editor-wrapper {
+            height: calc(100vh - 140px);
+            overflow: hidden;
+        }
+        
         @media (max-width: 640px) {
-            .editor-font {
+            .cm-editor .cm-scroller {
                 font-size: 13px;
             }
-            .line-numbers {
-                width: 40px;
-                padding: 12px 8px;
+            .cm-gutters {
                 font-size: 13px;
-            }
-            .code-area {
-                left: 40px;
             }
         }
         
         .hidden { display: none !important; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 h-screen overflow-hidden flex flex-col">
+<body class="bg-gray-900 text-gray-100 flex flex-col">
 
     <!-- Top Bar -->
     <header class="glass-panel border-b border-gray-700 p-3 flex flex-col gap-3 shrink-0 z-20">
@@ -247,7 +227,7 @@
                 <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <input type="text" id="filename" placeholder="Dosya adı gir (örn: index)" 
+                <input type="text" id="filename" placeholder="Dosya adı gir" 
                        class="filename-input flex-1 min-w-0" value="">
             </div>
             
@@ -270,7 +250,7 @@
         </div>
 
         <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-1">
+            <div class="flex items-center gap-1 overflow-x-auto flex-1">
                 <button onclick="switchTab('html')" id="tab-html" class="tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-orange-500"></span>
                     HTML
@@ -329,14 +309,8 @@
 
     <!-- Editor Area -->
     <main class="flex-1 relative overflow-hidden" id="mainContainer">
-        <div class="editor-container" id="editorContainer">
-            <div class="line-numbers editor-font" id="lineNumbers">1</div>
-            <div class="code-area custom-scrollbar">
-                <textarea id="editor" class="code-input editor-font" spellcheck="false" 
-                          oninput="updateCode()" onscroll="syncScroll()" 
-                          onkeydown="handleKeydown(event)"
-                          oncontextmenu="showContextMenu(event)"></textarea>
-            </div>
+        <div class="editor-wrapper" id="editorWrapper">
+            <div id="editor" class="w-full h-full"></div>
         </div>
     </main>
 
@@ -395,60 +369,46 @@
         <span id="toastMessage">İşlem başarılı</span>
     </div>
 
-    <script>
+    <script type="module">
+        const { EditorView, basicSetup, html, css, javascript, oneDark } = window.CodeMirror;
+        
         let currentTab = 'html';
+        let editorView = null;
+        
         const code = {
             html: '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>',
             css: '/* CSS kodunuzu buraya yazın */\n.container {\n  text-align: center;\n  padding: 20px;\n  font-family: Arial, sans-serif;\n}\n\nh1 {\n  color: #3b82f6;\n}',
             js: '// JavaScript kodunuzu buraya yazın\nconsole.log("Merhaba Dünya!");\n\ndocument.querySelector("h1").addEventListener("click", function() {\n  alert("Tıklandı!");\n});'
         };
 
-        let initialHeight = window.innerHeight;
+        const extensions = {
+            html: [basicSetup, html(), oneDark, EditorView.lineWrapping],
+            css: [basicSetup, css(), oneDark, EditorView.lineWrapping],
+            js: [basicSetup, javascript(), oneDark, EditorView.lineWrapping]
+        };
 
-        document.addEventListener('DOMContentLoaded', () => {
-            updateEditor();
-            updateLineNumbers();
+        function createEditor() {
+            if (editorView) {
+                editorView.destroy();
+            }
             
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.relative')) {
-                    document.getElementById('runMenu').classList.add('hidden');
+            editorView = new EditorView({
+                doc: code[currentTab],
+                extensions: extensions[currentTab],
+                parent: document.getElementById('editor'),
+                dispatch: (tr) => {
+                    editorView.update([tr]);
+                    if (tr.docChanged) {
+                        code[currentTab] = editorView.state.doc.toString();
+                    }
                 }
             });
-
-            let pressTimer;
-            const editor = document.getElementById('editor');
-            
-            editor.addEventListener('touchstart', (e) => {
-                pressTimer = setTimeout(() => {
-                    showContextMenu(e);
-                }, 800);
-            });
-            
-            editor.addEventListener('touchend', () => {
-                clearTimeout(pressTimer);
-            });
-            
-            editor.addEventListener('touchmove', () => {
-                clearTimeout(pressTimer);
-            });
-
-            window.addEventListener('resize', handleResize);
-        });
-
-        function handleResize() {
-            const currentHeight = window.innerHeight;
-            const editorContainer = document.getElementById('editorContainer');
-            const diff = initialHeight - currentHeight;
-            
-            if (diff > 100) {
-                editorContainer.style.height = (currentHeight - 140) + 'px';
-            } else {
-                editorContainer.style.height = 'calc(100vh - 180px)';
-            }
         }
 
-        function switchTab(tab) {
-            code[currentTab] = document.getElementById('editor').value;
+        window.switchTab = function(tab) {
+            if (editorView) {
+                code[currentTab] = editorView.state.doc.toString();
+            }
             
             document.getElementById(`tab-${currentTab}`).classList.remove('tab-active');
             document.getElementById(`tab-${currentTab}`).classList.add('tab-inactive');
@@ -458,65 +418,29 @@
             document.getElementById(`tab-${currentTab}`).classList.remove('tab-inactive');
             document.getElementById(`tab-${currentTab}`).classList.add('tab-active');
             
-            updateEditor();
-        }
+            createEditor();
+        };
 
-        function updateEditor() {
-            document.getElementById('editor').value = code[currentTab];
-            updateLineNumbers();
-        }
+        window.toggleRunMenu = function() {
+            document.getElementById('runMenu').classList.toggle('hidden');
+        };
 
-        function updateCode() {
-            code[currentTab] = document.getElementById('editor').value;
-            updateLineNumbers();
-        }
-
-        function updateLineNumbers() {
-            const lines = document.getElementById('editor').value.split('\n').length;
-            const numbers = Array.from({length: lines}, (_, i) => i + 1).join('\n');
-            document.getElementById('lineNumbers').textContent = numbers;
-        }
-
-        function syncScroll() {
-            const editor = document.getElementById('editor');
-            const lineNumbers = document.getElementById('lineNumbers');
-            lineNumbers.scrollTop = editor.scrollTop;
-        }
-
-        function handleKeydown(e) {
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const editor = e.target;
-                const start = editor.selectionStart;
-                const end = editor.selectionEnd;
-                editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
-                editor.selectionStart = editor.selectionEnd = start + 2;
-                updateCode();
-            }
-        }
-
-        function toggleRunMenu() {
-            const menu = document.getElementById('runMenu');
-            menu.classList.toggle('hidden');
-        }
-
-        function runCode(mode) {
+        window.runCode = function(mode) {
             document.getElementById('runMenu').classList.add('hidden');
             
-            const html = code.html;
-            const css = code.css;
-            const js = code.js;
+            const currentCode = editorView ? editorView.state.doc.toString() : code[currentTab];
+            code[currentTab] = currentCode;
             
             const fullCode = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>${css}</style>
+    <style>${code.css}</style>
 </head>
 <body>
-    ${html}
-    <script>${js}<\/script>
+    ${code.html}
+    <script>${code.js}<\/script>
 </body>
 </html>`;
             
@@ -526,21 +450,22 @@
                 window.open(url, '_blank');
                 showToast('Yeni sekmede açıldı');
             } else {
-                const modal = document.getElementById('previewModal');
-                const frame = document.getElementById('previewFrame');
-                frame.srcdoc = fullCode;
-                modal.classList.remove('hidden');
+                document.getElementById('previewModal').classList.remove('hidden');
+                document.getElementById('previewFrame').srcdoc = fullCode;
             }
-        }
+        };
 
-        function closePreview() {
+        window.closePreview = function() {
             document.getElementById('previewModal').classList.add('hidden');
-        }
+        };
 
-        function saveFile() {
+        window.saveFile = function() {
             let filename = document.getElementById('filename').value.trim();
             if (!filename) filename = 'deneme';
             if (!filename.endsWith('.html')) filename += '.html';
+            
+            const currentCode = editorView ? editorView.state.doc.toString() : code[currentTab];
+            code[currentTab] = currentCode;
             
             const fullCode = `<!DOCTYPE html>
 <html>
@@ -569,13 +494,13 @@ ${code.js}
             URL.revokeObjectURL(url);
             
             showToast(`${filename} kaydedildi`);
-        }
+        };
 
-        function loadFile() {
+        window.loadFile = function() {
             document.getElementById('fileInput').click();
-        }
+        };
 
-        function handleFileLoad(event) {
+        window.handleFileLoad = function(event) {
             const file = event.target.files[0];
             if (!file) return;
             
@@ -593,59 +518,66 @@ ${code.js}
                 
                 document.getElementById('filename').value = file.name.replace('.html', '');
                 
-                updateEditor();
+                createEditor();
                 showToast(`${file.name} yüklendi`);
             };
             reader.readAsText(file);
-        }
+        };
 
-        function clearCode() {
+        window.clearCode = function() {
             if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
                 code.html = '';
                 code.css = '';
                 code.js = '';
-                updateEditor();
+                createEditor();
                 showToast('Kodlar temizlendi');
             }
-        }
+        };
 
-        function showContextMenu(e) {
+        window.showContextMenu = function(e) {
             e.preventDefault();
             document.getElementById('contextMenuOverlay').classList.remove('hidden');
             document.getElementById('contextMenu').classList.remove('hidden');
-        }
+        };
 
-        function hideContextMenu() {
+        window.hideContextMenu = function() {
             document.getElementById('contextMenuOverlay').classList.add('hidden');
             document.getElementById('contextMenu').classList.add('hidden');
-        }
+        };
 
-        function copyAll() {
-            const editor = document.getElementById('editor');
-            editor.select();
-            document.execCommand('copy');
-            hideContextMenu();
-            showToast('Kopyalandı');
-        }
+        window.copyAll = function() {
+            if (editorView) {
+                const content = editorView.state.doc.toString();
+                navigator.clipboard.writeText(content).then(() => {
+                    hideContextMenu();
+                    showToast('Kopyalandı');
+                });
+            }
+        };
 
-        function pasteCode() {
+        window.pasteCode = function() {
             navigator.clipboard.readText().then(text => {
-                const editor = document.getElementById('editor');
-                const start = editor.selectionStart;
-                editor.value = editor.value.substring(0, start) + text + editor.value.substring(editor.selectionEnd);
-                editor.selectionStart = editor.selectionEnd = start + text.length;
-                updateCode();
+                if (editorView) {
+                    const transaction = editorView.state.update({
+                        changes: {from: editorView.state.selection.main.from, to: editorView.state.selection.main.to, insert: text}
+                    });
+                    editorView.dispatch(transaction);
+                }
                 hideContextMenu();
                 showToast('Yapıştırıldı');
             }).catch(() => {
                 showToast('Yapıştırma başarısız');
             });
-        }
+        };
 
-        function selectAll() {
-            document.getElementById('editor').select();
+        window.selectAll = function() {
+            if (editorView) {
+                editorView.dispatch({
+                    selection: {anchor: 0, head: editorView.state.doc.length}
+                });
+            }
             hideContextMenu();
-        }
+        };
 
         function showToast(message) {
             const toast = document.getElementById('toast');
@@ -658,6 +590,31 @@ ${code.js}
                 toast.classList.remove('flex');
             }, 2000);
         }
+        window.showToast = showToast;
+
+        // Initialize
+        createEditor();
+
+        // Handle resize for keyboard
+        let initialHeight = window.innerHeight;
+        window.addEventListener('resize', () => {
+            const currentHeight = window.innerHeight;
+            const editorWrapper = document.getElementById('editorWrapper');
+            const diff = initialHeight - currentHeight;
+            
+            if (diff > 100) {
+                editorWrapper.style.height = (currentHeight - 140) + 'px';
+            } else {
+                editorWrapper.style.height = 'calc(100vh - 140px)';
+            }
+        });
+
+        // Close menus on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.relative')) {
+                document.getElementById('runMenu').classList.add('hidden');
+            }
+        });
     </script>
 </body>
 </html>
