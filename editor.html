@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="tr">
+<!DOCTYPE html><html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,750 +7,740 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
-        
-        * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            box-sizing: border-box;
-        }
-        
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0d1117;
-            overflow: hidden;
-        }
-        
-        .editor-font {
-            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            line-height: 1.7;
-        }
-        
-        .code-area {
-            background: #161b22;
-            width: 100%;
-            height: calc(100vh - 140px);
-        }
-        
-        .code-input {
-            width: 100%;
-            height: 100%;
-            padding: 16px;
-            background: #161b22;
-            color: #c9d1d9;
-            border: none;
-            resize: none;
-            outline: none;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            overflow-x: hidden;
-            overflow-y: auto;
-            tab-size: 2;
-            caret-color: #58a6ff;
-        }
-        
-        .tab-active {
-            background: #238636;
-            color: white;
-            box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
-        }
-        
-        .tab-inactive {
-            background: #21262d;
-            color: #8b949e;
-            border: 1px solid #30363d;
-        }
-        
-        .tab-inactive:hover {
-            background: #30363d;
-            color: #c9d1d9;
-        }
-        
-        .btn-primary {
-            background: #1f6feb;
-            box-shadow: 0 2px 8px rgba(31, 111, 235, 0.3);
-        }
-        
-        .btn-primary:hover {
-            background: #388bfd;
-        }
-        
-        .btn-success {
-            background: #238636;
-            box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
-        }
-        
-        .btn-success:hover {
-            background: #2ea043;
-        }
-        
-        .btn-secondary {
-            background: #21262d;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
-        }
-        
-        .btn-secondary:hover {
-            background: #30363d;
-        }
-        
-        .btn-danger {
-            background: #da3633;
-            box-shadow: 0 2px 8px rgba(218, 54, 51, 0.3);
-        }
-        
-        .btn-danger:hover {
-            background: #f85149;
-        }
-        
-        .glass-panel {
-            background: rgba(13, 17, 23, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid #30363d;
-        }
-        
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        .animate-slide-down {
-            animation: slideDown 0.2s ease-out;
-        }
-        
-        .animate-fade-in {
-            animation: fadeIn 0.2s ease-out;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #161b22;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #30363d;
-            border-radius: 4px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #484f58;
-        }
-        
-        .context-menu-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            z-index: 999;
-        }
-        
-        .context-menu {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #21262d;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 8px 0;
-            z-index: 1000;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
-            min-width: 200px;
-        }
-        
-        .context-menu-item {
-            padding: 14px 20px;
-            color: #c9d1d9;
-            cursor: pointer;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 15px;
-        }
-        
-        .context-menu-item:hover {
-            background: #30363d;
-            color: #fff;
-        }
-        
-        .context-menu-item:active {
-            background: #1f6feb;
-        }
-        
-        .run-menu {
-            position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            background: #21262d;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            min-width: 200px;
-            z-index: 50;
-        }
-        
-        .run-menu-item {
-            padding: 14px 18px;
-            color: #c9d1d9;
-            cursor: pointer;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .run-menu-item:hover {
-            background: #30363d;
-            color: #fff;
-        }
-        
-        .run-menu-item:active {
-            background: #1f6feb;
-        }
-        
-        .modal-input {
-            background: #0d1117;
-            border: 2px solid #30363d;
-            border-radius: 10px;
-            padding: 14px 18px;
-            color: #fff;
-            font-size: 16px;
-            transition: all 0.2s;
-            width: 100%;
-        }
-        
-        .modal-input:focus {
-            outline: none;
-            border-color: #238636;
-            box-shadow: 0 0 0 3px rgba(35, 134, 54, 0.15);
-        }
-        
-        @media (max-width: 640px) {
-            .editor-font {
-                font-size: 13px;
-            }
-            .code-input {
-                padding: 12px;
-            }
-            .code-area {
-                height: calc(100vh - 130px);
-            }
-        }
-        
-        .hidden { display: none !important; }
-        
-        .accent-html { color: #ff7b72; }
-    </style>
-</head>
-<body class="bg-[#0d1117] text-[#c9d1d9]">
 
-    <!-- Top Bar - Minimal -->
-    <header class="glass-panel sticky top-0 z-40 px-4 py-3">
-        <div class="flex items-center justify-between gap-3">
-            <!-- Left: HTML Tab Only -->
-            <div class="flex items-center gap-2">
-                <button id="tab-html" class="tab-active px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-[#ff7b72]"></span>
-                    HTML
-                </button>
-            </div>
+```
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0d1117;
+    overflow: hidden;
+}
+
+.editor-font {
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* ✅ DÜZELTİLDİ: Sabit calc() kaldırıldı, height: 100% yapıldı */
+.code-area {
+    background: #161b22;
+    width: 100%;
+    height: 100%;
+}
+
+.code-input {
+    width: 100%;
+    height: 100%;
+    padding: 16px;
+    background: #161b22;
+    color: #c9d1d9;
+    border: none;
+    resize: none;
+    outline: none;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: hidden;
+    overflow-y: auto;
+    tab-size: 2;
+    caret-color: #58a6ff;
+}
+
+.tab-active {
+    background: #238636;
+    color: white;
+    box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
+}
+
+.tab-inactive {
+    background: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
+}
+
+.tab-inactive:hover {
+    background: #30363d;
+    color: #c9d1d9;
+}
+
+.btn-primary {
+    background: #1f6feb;
+    box-shadow: 0 2px 8px rgba(31, 111, 235, 0.3);
+}
+
+.btn-primary:hover {
+    background: #388bfd;
+}
+
+.btn-success {
+    background: #238636;
+    box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
+}
+
+.btn-success:hover {
+    background: #2ea043;
+}
+
+.btn-secondary {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+}
+
+.btn-secondary:hover {
+    background: #30363d;
+}
+
+.btn-danger {
+    background: #da3633;
+    box-shadow: 0 2px 8px rgba(218, 54, 51, 0.3);
+}
+
+.btn-danger:hover {
+    background: #f85149;
+}
+
+.glass-panel {
+    background: rgba(13, 17, 23, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid #30363d;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.animate-slide-down {
+    animation: slideDown 0.2s ease-out;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #161b22;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #30363d;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #484f58;
+}
+
+.context-menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 999;
+}
+
+.context-menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 8px 0;
+    z-index: 1000;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+    min-width: 200px;
+}
+
+.context-menu-item {
+    padding: 14px 20px;
+    color: #c9d1d9;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+}
+
+.context-menu-item:hover {
+    background: #30363d;
+    color: #fff;
+}
+
+.context-menu-item:active {
+    background: #1f6feb;
+}
+
+.run-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    min-width: 200px;
+    z-index: 50;
+}
+
+.run-menu-item {
+    padding: 14px 18px;
+    color: #c9d1d9;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.run-menu-item:hover {
+    background: #30363d;
+    color: #fff;
+}
+
+.run-menu-item:active {
+    background: #1f6feb;
+}
+
+.modal-input {
+    background: #0d1117;
+    border: 2px solid #30363d;
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: #fff;
+    font-size: 16px;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.modal-input:focus {
+    outline: none;
+    border-color: #238636;
+    box-shadow: 0 0 0 3px rgba(35, 134, 54, 0.15);
+}
+
+@media (max-width: 640px) {
+    .editor-font {
+        font-size: 13px;
+    }
+    .code-input {
+        padding: 12px;
+    }
+}
+
+.hidden { display: none !important; }
+
+.accent-html { color: #ff7b72; }
+```
+
+</style>
+
+</head>
+
+<!-- ✅ DÜZELTİLDİ: body'ye flex flex-col h-screen eklendi -->
+
+<body class="bg-[#0d1117] text-[#c9d1d9] flex flex-col h-screen overflow-hidden">
+
+<!-- Top Bar - Minimal -->
+
+<header class="glass-panel z-40 px-4 py-3 shrink-0">
+    <div class="flex items-center justify-between gap-3">
+        <!-- Left: HTML Tab Only -->
+        <div class="flex items-center gap-2">
+            <button id="tab-html" class="tab-active px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-[#ff7b72]"></span>
+                HTML
+            </button>
+        </div>
+
+```
+    <!-- Right: Actions - Visible Text -->
+    <div class="flex items-center gap-2 shrink-0">
+        <!-- Temizle - Visible Text -->
+        <button onclick="clearCode()" class="btn-secondary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-all flex items-center gap-2" title="Temizle">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            Temizle
+        </button>
+        
+        <!-- Çalıştır Dropdown - Visible Text -->
+        <div class="relative">
+            <button onclick="toggleRunMenu()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold active:scale-95 transition-all flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Çalıştır
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
             
-            <!-- Right: Actions - Visible Text -->
-            <div class="flex items-center gap-2 shrink-0">
-                <!-- Temizle - Visible Text -->
-                <button onclick="clearCode()" class="btn-secondary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-all flex items-center gap-2" title="Temizle">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            <div id="runMenu" class="run-menu hidden animate-slide-down">
+                <div class="run-menu-item" onclick="runCode('popup')">
+                    <svg class="w-5 h-5 text-[#a371f7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
                     </svg>
-                    Temizle
-                </button>
-                
-                <!-- Çalıştır Dropdown - Visible Text -->
-                <div class="relative">
-                    <button onclick="toggleRunMenu()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold active:scale-95 transition-all flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Çalıştır
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </button>
-                    
-                    <div id="runMenu" class="run-menu hidden animate-slide-down">
-                        <div class="run-menu-item" onclick="runCode('popup')">
-                            <svg class="w-5 h-5 text-[#a371f7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                            </svg>
-                            <div>
-                                <div class="font-medium text-sm">Popup Görüntüle</div>
-                                <div class="text-xs text-[#8b949e]">Tam ekranda önizle</div>
-                            </div>
-                        </div>
-                        <div class="run-menu-item" onclick="runCode('newtab')">
-                            <svg class="w-5 h-5 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                            </svg>
-                            <div>
-                                <div class="font-medium text-sm">Yeni Sekme</div>
-                                <div class="text-xs text-[#8b949e]">Yeni sekmede aç</div>
-                            </div>
-                        </div>
+                    <div>
+                        <div class="font-medium text-sm">Popup Görüntüle</div>
+                        <div class="text-xs text-[#8b949e]">Tam ekranda önizle</div>
+                    </div>
+                </div>
+                <div class="run-menu-item" onclick="runCode('newtab')">
+                    <svg class="w-5 h-5 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                    <div>
+                        <div class="font-medium text-sm">Yeni Sekme</div>
+                        <div class="text-xs text-[#8b949e]">Yeni sekmede aç</div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Secondary Bar: File Operations -->
+<div class="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-[#30363d]">
+    <div class="flex items-center gap-2 flex-1 min-w-0">
+        <span id="editorTitle" class="text-[#8b949e] text-xs sm:text-sm truncate font-mono">Yeni Dosya</span>
+    </div>
+    
+    <div class="flex items-center gap-2 shrink-0">
+        <button onclick="openSaveModal()" class="btn-success text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium active:scale-95 transition-all flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+            </svg>
+            Kaydet
+        </button>
         
-        <!-- Secondary Bar: File Operations -->
-        <div class="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-[#30363d]">
-            <div class="flex items-center gap-2 flex-1 min-w-0">
-                <span id="editorTitle" class="text-[#8b949e] text-xs sm:text-sm truncate font-mono">Yeni Dosya</span>
-            </div>
-            
-            <div class="flex items-center gap-2 shrink-0">
-                <button onclick="openSaveModal()" class="btn-success text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium active:scale-95 transition-all flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-                    </svg>
-                    Kaydet
-                </button>
-                
-                <button onclick="loadFile()" class="btn-secondary text-[#c9d1d9] px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium active:scale-95 transition-all flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                    </svg>
-                    Yükle
-                </button>
-                <input type="file" id="fileInput" accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md" class="hidden" onchange="handleFileLoad(event)">
-            </div>
-        </div>
-    </header>
+        <button onclick="loadFile()" class="btn-secondary text-[#c9d1d9] px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium active:scale-95 transition-all flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+            </svg>
+            Yükle
+        </button>
+        <input type="file" id="fileInput" accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md" class="hidden" onchange="handleFileLoad(event)">
+    </div>
+</div>
+```
 
-    <!-- Editor Area - Full Height to Bottom -->
-    <main>
-        <div class="code-area">
-            <textarea id="editor" class="code-input editor-font custom-scrollbar" spellcheck="false" 
-                      oninput="updateCode()" 
-                      onkeydown="handleKeydown(event)"
-                      oncontextmenu="showContextMenu(event)"></textarea>
-        </div>
-    </main>
+</header>
 
-    <!-- Preview Popup -->
-    <div id="previewModal" class="fixed inset-0 bg-[#0d1117] z-50 hidden flex flex-col">
-        <div class="flex items-center justify-between p-4 border-b border-[#30363d] bg-[#161b22]">
-            <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                <svg class="w-5 h-5 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+<!-- ✅ DÜZELTİLDİ: main flex-1 min-h-0 yapıldı — header ne kadar yer alırsa alsın geri kalanı doldurur -->
+
+<main class="flex-1 min-h-0 flex flex-col">
+    <div class="code-area flex-1">
+        <textarea id="editor" class="code-input editor-font custom-scrollbar" spellcheck="false" 
+                  oninput="updateCode()" 
+                  onkeydown="handleKeydown(event)"
+                  oncontextmenu="showContextMenu(event)"></textarea>
+    </div>
+</main>
+
+<!-- Preview Popup -->
+
+<div id="previewModal" class="fixed inset-0 bg-[#0d1117] z-50 hidden flex flex-col">
+    <div class="flex items-center justify-between p-4 border-b border-[#30363d] bg-[#161b22]">
+        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+            <svg class="w-5 h-5 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+            Önizleme
+        </h3>
+        <button onclick="closePreview()" class="text-[#8b949e] hover:text-white transition-colors p-2 hover:bg-[#30363d] rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+    <iframe id="previewFrame" class="flex-1 w-full bg-white"></iframe>
+</div>
+
+<!-- Save Modal -->
+
+<div id="saveModalOverlay" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center backdrop-blur-sm animate-fade-in">
+    <div class="bg-[#161b22] rounded-2xl p-6 w-11/12 max-w-sm shadow-2xl border border-[#30363d] animate-slide-down mx-4">
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-14 h-14 bg-[#238636]/20 rounded-full mb-4">
+                <svg class="w-7 h-7 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                 </svg>
-                Önizleme
-            </h3>
-            <button onclick="closePreview()" class="text-[#8b949e] hover:text-white transition-colors p-2 hover:bg-[#30363d] rounded-lg">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-1">Dosyayı Kaydet</h3>
+            <p class="text-sm text-[#8b949e]">HTML dosyası olarak indirin</p>
         </div>
-        <iframe id="previewFrame" class="flex-1 w-full bg-white"></iframe>
-    </div>
 
-    <!-- Save Modal -->
-    <div id="saveModalOverlay" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center backdrop-blur-sm animate-fade-in">
-        <div class="bg-[#161b22] rounded-2xl p-6 w-11/12 max-w-sm shadow-2xl border border-[#30363d] animate-slide-down mx-4">
-            <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center w-14 h-14 bg-[#238636]/20 rounded-full mb-4">
-                    <svg class="w-7 h-7 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-1">Dosyayı Kaydet</h3>
-                <p class="text-sm text-[#8b949e]">HTML dosyası olarak indirin</p>
-            </div>
-            
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-[#c9d1d9] mb-2 ml-1">Dosya Adı</label>
-                <div class="relative">
-                    <input type="text" id="saveFilename" placeholder="dosya-30.03.2026-20.29" 
-                           class="modal-input pr-16"
-                           onkeypress="if(event.key==='Enter') confirmSaveFromModal()">
-                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b949e] font-medium">.html</span>
-                </div>
-            </div>
-            
-            <div class="flex gap-3">
-                <button onclick="closeSaveModal()" 
-                        class="flex-1 bg-[#21262d] hover:bg-[#30363d] text-white py-3.5 rounded-xl font-semibold transition-all active:scale-95 border border-[#30363d]">
-                    İptal
-                </button>
-                <button onclick="confirmSaveFromModal()" 
-                        class="flex-1 btn-success text-white py-3.5 rounded-xl font-semibold transition-all active:scale-95 flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>
-                    İndir
-                </button>
-            </div>
+```
+    <div class="mb-6">
+        <label class="block text-sm font-medium text-[#c9d1d9] mb-2 ml-1">Dosya Adı</label>
+        <div class="relative">
+            <input type="text" id="saveFilename" placeholder="dosya-30.03.2026-20.29" 
+                   class="modal-input pr-16"
+                   onkeypress="if(event.key==='Enter') confirmSaveFromModal()">
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b949e] font-medium">.html</span>
         </div>
     </div>
-
-    <!-- Context Menu -->
-    <div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
-    <div id="contextMenu" class="context-menu hidden">
-        <div class="context-menu-item" onclick="copyAll()">
+    
+    <div class="flex gap-3">
+        <button onclick="closeSaveModal()" 
+                class="flex-1 bg-[#21262d] hover:bg-[#30363d] text-white py-3.5 rounded-xl font-semibold transition-all active:scale-95 border border-[#30363d]">
+            İptal
+        </button>
+        <button onclick="confirmSaveFromModal()" 
+                class="flex-1 btn-success text-white py-3.5 rounded-xl font-semibold transition-all active:scale-95 flex items-center justify-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
-            Tümünü Kopyala
-        </div>
-        <div class="context-menu-item" onclick="pasteCode()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-            </svg>
-            Yapıştır
-        </div>
-        <div class="border-t border-[#30363d] my-1"></div>
-        <div class="context-menu-item" onclick="selectAll()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-            </svg>
-            Tümünü Seç
-        </div>
+            İndir
+        </button>
     </div>
+</div>
+```
 
-    <!-- Toast -->
-    <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-[#21262d] text-white px-6 py-3 rounded-full shadow-2xl border border-[#30363d] hidden items-center gap-2 z-50">
-        <svg class="w-5 h-5 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+</div>
+
+<!-- Context Menu -->
+
+<div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
+<div id="contextMenu" class="context-menu hidden">
+    <div class="context-menu-item" onclick="copyAll()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
         </svg>
-        <span id="toastMessage">İşlem başarılı</span>
+        Tümünü Kopyala
     </div>
+    <div class="context-menu-item" onclick="pasteCode()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+        </svg>
+        Yapıştır
+    </div>
+    <div class="border-t border-[#30363d] my-1"></div>
+    <div class="context-menu-item" onclick="selectAll()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+        </svg>
+        Tümünü Seç
+    </div>
+</div>
 
-    <script>
-        let loadedFilename = '';
-        let code = '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>';
+<!-- Toast -->
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadFromStorage();
-            updateEditor();
-            updateFilenameDisplay();
-            
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.relative')) {
-                    document.getElementById('runMenu').classList.add('hidden');
-                }
-            });
+<div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-[#21262d] text-white px-6 py-3 rounded-full shadow-2xl border border-[#30363d] hidden items-center gap-2 z-50">
+    <svg class="w-5 h-5 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span id="toastMessage">İşlem başarılı</span>
+</div>
 
-            let pressTimer;
-            const editor = document.getElementById('editor');
-            
-            editor.addEventListener('touchstart', (e) => {
-                pressTimer = setTimeout(() => {
-                    showContextMenu(e);
-                }, 800);
-            });
-            
-            editor.addEventListener('touchend', () => {
-                clearTimeout(pressTimer);
-            });
-            
-            editor.addEventListener('touchmove', () => {
-                clearTimeout(pressTimer);
-            });
+<script>
+    let loadedFilename = '';
+    let code = '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>';
 
-            window.addEventListener('beforeunload', saveToStorage);
-            
-            document.getElementById('saveModalOverlay').addEventListener('click', (e) => {
-                if (e.target.id === 'saveModalOverlay') {
-                    closeSaveModal();
-                }
-            });
+    document.addEventListener('DOMContentLoaded', () => {
+        loadFromStorage();
+        updateEditor();
+        updateFilenameDisplay();
+        
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.relative')) {
+                document.getElementById('runMenu').classList.add('hidden');
+            }
         });
 
-        function saveToStorage() {
-            const data = {
-                code: code,
-                filename: loadedFilename,
-                timestamp: new Date().toISOString()
-            };
-            localStorage.setItem('mobilKodEditor', JSON.stringify(data));
-        }
+        let pressTimer;
+        const editor = document.getElementById('editor');
+        
+        editor.addEventListener('touchstart', (e) => {
+            pressTimer = setTimeout(() => {
+                showContextMenu(e);
+            }, 800);
+        });
+        
+        editor.addEventListener('touchend', () => {
+            clearTimeout(pressTimer);
+        });
+        
+        editor.addEventListener('touchmove', () => {
+            clearTimeout(pressTimer);
+        });
 
-        function loadFromStorage() {
-            const saved = localStorage.getItem('mobilKodEditor');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    if (data.code !== undefined) code = data.code;
-                    if (data.filename !== undefined) loadedFilename = data.filename;
-                } catch (e) {
-                    console.error('Storage yükleme hatası:', e);
-                }
+        window.addEventListener('beforeunload', saveToStorage);
+        
+        document.getElementById('saveModalOverlay').addEventListener('click', (e) => {
+            if (e.target.id === 'saveModalOverlay') {
+                closeSaveModal();
+            }
+        });
+    });
+
+    function saveToStorage() {
+        const data = {
+            code: code,
+            filename: loadedFilename,
+            timestamp: new Date().toISOString()
+        };
+        localStorage.setItem('mobilKodEditor', JSON.stringify(data));
+    }
+
+    function loadFromStorage() {
+        const saved = localStorage.getItem('mobilKodEditor');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                if (data.code !== undefined) code = data.code;
+                if (data.filename !== undefined) loadedFilename = data.filename;
+            } catch (e) {
+                console.error('Storage yükleme hatası:', e);
             }
         }
+    }
 
-        // Tarih-saat formatında dosya adı oluştur: dosya-30.03.2026-20.29
-        function generateDefaultFilename() {
-            const now = new Date();
-            const day = now.getDate().toString().padStart(2, '0');
-            const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            const year = now.getFullYear();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            return `dosya-${day}.${month}.${year}-${hours}.${minutes}`;
+    function generateDefaultFilename() {
+        const now = new Date();
+        const day = now.getDate().toString().padStart(2, '0');
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const year = now.getFullYear();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        return `dosya-${day}.${month}.${year}-${hours}.${minutes}`;
+    }
+
+    function updateFilenameDisplay() {
+        const titleElement = document.getElementById('editorTitle');
+        if (loadedFilename && loadedFilename.trim() !== '') {
+            titleElement.textContent = loadedFilename + '.html';
+            titleElement.classList.remove('text-[#8b949e]');
+            titleElement.classList.add('text-[#58a6ff]');
+        } else {
+            titleElement.textContent = 'Yeni Dosya';
+            titleElement.classList.remove('text-[#58a6ff]');
+            titleElement.classList.add('text-[#8b949e]');
         }
+    }
 
-        function updateFilenameDisplay() {
-            const titleElement = document.getElementById('editorTitle');
-            if (loadedFilename && loadedFilename.trim() !== '') {
-                titleElement.textContent = loadedFilename + '.html';
-                titleElement.classList.remove('text-[#8b949e]');
-                titleElement.classList.add('text-[#58a6ff]');
-            } else {
-                titleElement.textContent = 'Yeni Dosya';
-                titleElement.classList.remove('text-[#58a6ff]');
-                titleElement.classList.add('text-[#8b949e]');
-            }
+    function updateCode() {
+        code = document.getElementById('editor').value;
+        saveToStorage();
+    }
+
+    function openSaveModal() {
+        const modal = document.getElementById('saveModalOverlay');
+        const filenameInput = document.getElementById('saveFilename');
+        
+        if (loadedFilename && loadedFilename.trim() !== '') {
+            filenameInput.value = loadedFilename;
+        } else {
+            filenameInput.value = generateDefaultFilename();
         }
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            filenameInput.focus();
+            filenameInput.select();
+        }, 100);
+    }
 
-        function updateCode() {
-            code = document.getElementById('editor').value;
-            saveToStorage();
+    function closeSaveModal() {
+        const modal = document.getElementById('saveModalOverlay');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    function confirmSaveFromModal() {
+        let filename = document.getElementById('saveFilename').value.trim();
+        
+        if (!filename) {
+            showToast('Lütfen bir dosya adı girin');
+            document.getElementById('saveFilename').focus();
+            const input = document.getElementById('saveFilename');
+            input.style.transform = 'translateX(-5px)';
+            setTimeout(() => input.style.transform = 'translateX(5px)', 50);
+            setTimeout(() => input.style.transform = 'translateX(-5px)', 100);
+            setTimeout(() => input.style.transform = 'translateX(0)', 150);
+            return;
         }
-
-        function openSaveModal() {
-            const modal = document.getElementById('saveModalOverlay');
-            const filenameInput = document.getElementById('saveFilename');
-            
-            if (loadedFilename && loadedFilename.trim() !== '') {
-                filenameInput.value = loadedFilename;
-            } else {
-                filenameInput.value = generateDefaultFilename();
-            }
-            
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => {
-                filenameInput.focus();
-                filenameInput.select();
-            }, 100);
+        
+        if (!filename.endsWith('.html')) {
+            filename += '.html';
         }
+        
+        const fullCode = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>${filename}</title>\n</head>\n<body>\n${code}\n</body>\n</html>`;
 
-        function closeSaveModal() {
-            const modal = document.getElementById('saveModalOverlay');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+        const blob = new Blob([fullCode], {type: 'text/html'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        loadedFilename = filename.replace('.html', '');
+        saveToStorage();
+        updateFilenameDisplay();
+        
+        showToast(`${filename} indirildi`);
+        closeSaveModal();
+    }
+
+    function updateEditor() {
+        document.getElementById('editor').value = code;
+    }
+
+    function handleKeydown(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const editor = e.target;
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+            editor.selectionStart = editor.selectionEnd = start + 2;
+            updateCode();
         }
+    }
 
-        function confirmSaveFromModal() {
-            let filename = document.getElementById('saveFilename').value.trim();
-            
-            if (!filename) {
-                showToast('Lütfen bir dosya adı girin');
-                document.getElementById('saveFilename').focus();
-                const input = document.getElementById('saveFilename');
-                input.style.transform = 'translateX(-5px)';
-                setTimeout(() => input.style.transform = 'translateX(5px)', 50);
-                setTimeout(() => input.style.transform = 'translateX(-5px)', 100);
-                setTimeout(() => input.style.transform = 'translateX(0)', 150);
-                return;
-            }
-            
-            if (!filename.endsWith('.html')) {
-                filename += '.html';
-            }
-            
-            const fullCode = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${filename}</title>
-</head>
-<body>
-${code}
-</body>
-</html>`;
-            
+    function toggleRunMenu() {
+        const menu = document.getElementById('runMenu');
+        menu.classList.toggle('hidden');
+    }
+
+    function runCode(mode) {
+        document.getElementById('runMenu').classList.add('hidden');
+        
+        const fullCode = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n</head>\n<body>\n    ${code}\n</body>\n</html>`;
+
+        if (mode === 'newtab') {
             const blob = new Blob([fullCode], {type: 'text/html'});
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            loadedFilename = filename.replace('.html', '');
+            window.open(url, '_blank');
+            showToast('Yeni sekmede açıldı');
+        } else {
+            const modal = document.getElementById('previewModal');
+            const frame = document.getElementById('previewFrame');
+            frame.srcdoc = fullCode;
+            modal.classList.remove('hidden');
+        }
+    }
+
+    function closePreview() {
+        document.getElementById('previewModal').classList.add('hidden');
+    }
+
+    function loadFile() {
+        document.getElementById('fileInput').click();
+    }
+
+    function handleFileLoad(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        event.target.value = '';
+        loadedFilename = file.name.replace(/\.[^/.]+$/, '');
+        
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            code = e.target.result;
             saveToStorage();
+            updateEditor();
             updateFilenameDisplay();
-            
-            showToast(`${filename} indirildi`);
-            closeSaveModal();
-        }
+            showToast(file.name + ' yüklendi');
+        };
+        
+        reader.onerror = () => {
+            showToast('Dosya okunamadı');
+        };
+        
+        reader.readAsText(file);
+    }
 
-        function updateEditor() {
-            document.getElementById('editor').value = code;
+    function clearCode() {
+        if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
+            code = '';
+            loadedFilename = '';
+            saveToStorage();
+            updateEditor();
+            updateFilenameDisplay();
+            showToast('Kodlar temizlendi');
         }
+    }
 
-        function handleKeydown(e) {
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const editor = e.target;
-                const start = editor.selectionStart;
-                const end = editor.selectionEnd;
-                editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
-                editor.selectionStart = editor.selectionEnd = start + 2;
-                updateCode();
-            }
-        }
+    function showContextMenu(e) {
+        e.preventDefault();
+        document.getElementById('contextMenuOverlay').classList.remove('hidden');
+        document.getElementById('contextMenu').classList.remove('hidden');
+    }
 
-        function toggleRunMenu() {
-            const menu = document.getElementById('runMenu');
-            menu.classList.toggle('hidden');
-        }
+    function hideContextMenu() {
+        document.getElementById('contextMenuOverlay').classList.add('hidden');
+        document.getElementById('contextMenu').classList.add('hidden');
+    }
 
-        function runCode(mode) {
-            document.getElementById('runMenu').classList.add('hidden');
-            
-            const fullCode = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-    ${code}
-</body>
-</html>`;
-            
-            if (mode === 'newtab') {
-                const blob = new Blob([fullCode], {type: 'text/html'});
-                const url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
-                showToast('Yeni sekmede açıldı');
-            } else {
-                const modal = document.getElementById('previewModal');
-                const frame = document.getElementById('previewFrame');
-                frame.srcdoc = fullCode;
-                modal.classList.remove('hidden');
-            }
-        }
+    function copyAll() {
+        const editor = document.getElementById('editor');
+        editor.select();
+        document.execCommand('copy');
+        hideContextMenu();
+        showToast('Kopyalandı');
+    }
 
-        function closePreview() {
-            document.getElementById('previewModal').classList.add('hidden');
-        }
-
-        function loadFile() {
-            document.getElementById('fileInput').click();
-        }
-
-        // DÜZELTİLMİŞ: Dosyanın tam içeriğini olduğu gibi yükle
-        function handleFileLoad(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            // Reset input to allow same file reload
-            event.target.value = '';
-            
-            // Store filename
-            loadedFilename = file.name.replace(/\.[^/.]+$/, '');
-            
-            const reader = new FileReader();
-            
-            reader.onload = (e) => {
-                // Load ENTIRE file content as plain text, no filtering
-                code = e.target.result;
-                
-                saveToStorage();
-                updateEditor();
-                updateFilenameDisplay();
-                
-                showToast(file.name + ' yüklendi');
-            };
-            
-            reader.onerror = () => {
-                showToast('Dosya okunamadı');
-            };
-            
-            // Read as plain text
-            reader.readAsText(file);
-        }
-
-        function clearCode() {
-            if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
-                code = '';
-                loadedFilename = '';
-                saveToStorage();
-                updateEditor();
-                updateFilenameDisplay();
-                showToast('Kodlar temizlendi');
-            }
-        }
-
-        function showContextMenu(e) {
-            e.preventDefault();
-            document.getElementById('contextMenuOverlay').classList.remove('hidden');
-            document.getElementById('contextMenu').classList.remove('hidden');
-        }
-
-        function hideContextMenu() {
-            document.getElementById('contextMenuOverlay').classList.add('hidden');
-            document.getElementById('contextMenu').classList.add('hidden');
-        }
-
-        function copyAll() {
+    function pasteCode() {
+        navigator.clipboard.readText().then(text => {
             const editor = document.getElementById('editor');
-            editor.select();
-            document.execCommand('copy');
+            const start = editor.selectionStart;
+            editor.value = editor.value.substring(0, start) + text + editor.value.substring(editor.selectionEnd);
+            editor.selectionStart = editor.selectionEnd = start + text.length;
+            updateCode();
             hideContextMenu();
-            showToast('Kopyalandı');
-        }
+            showToast('Yapıştırıldı');
+        }).catch(() => {
+            showToast('Yapıştırma başarısız');
+        });
+    }
 
-        function pasteCode() {
-            navigator.clipboard.readText().then(text => {
-                const editor = document.getElementById('editor');
-                const start = editor.selectionStart;
-                editor.value = editor.value.substring(0, start) + text + editor.value.substring(editor.selectionEnd);
-                editor.selectionStart = editor.selectionEnd = start + text.length;
-                updateCode();
-                hideContextMenu();
-                showToast('Yapıştırıldı');
-            }).catch(() => {
-                showToast('Yapıştırma başarısız');
-            });
-        }
+    function selectAll() {
+        document.getElementById('editor').select();
+        hideContextMenu();
+    }
 
-        function selectAll() {
-            document.getElementById('editor').select();
-            hideContextMenu();
-        }
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastMessage').textContent = message;
+        toast.classList.remove('hidden');
+        toast.classList.add('flex');
+        
+        setTimeout(() => {
+            toast.classList.add('hidden');
+            toast.classList.remove('flex');
+        }, 2000);
+    }
+</script>
 
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').textContent = message;
-            toast.classList.remove('hidden');
-            toast.classList.add('flex');
-            
-            setTimeout(() => {
-                toast.classList.add('hidden');
-                toast.classList.remove('flex');
-            }, 2000);
-        }
-    </script>
 </body>
 </html>
