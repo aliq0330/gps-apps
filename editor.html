@@ -44,8 +44,11 @@
             border: none;
             resize: vertical;
             outline: none;
-            white-space: pre;
-            overflow-wrap: normal;
+            /* YATAY SCROLL KALDIR - OTOMATİK SATIR ATLA */
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: hidden;
+            /* ----------- */
             tab-size: 2;
             caret-color: #58a6ff;
         }
@@ -346,7 +349,7 @@
         </div>
     </header>
 
-    <!-- Editor Area - Full Width, No Border, No Radius -->
+    <!-- Editor Area - Full Width, No Border, No Radius, Word Wrap -->
     <main>
         <div class="code-area">
             <textarea id="editor" class="code-input editor-font" spellcheck="false" 
