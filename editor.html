@@ -363,7 +363,16 @@
             bottom: 28px;
             right: 28px;
             z-index: 100;
-            transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        /* Önizleme açıkken FAB gizle */
+        .preview-modal.open ~ .fab-container,
+        .preview-modal.open ~ * .fab-container,
+        body:has(.preview-modal.open) .fab-container {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.8);
         }
 
         .fab-container.keyboard-open {
@@ -389,14 +398,7 @@
             z-index: 102;
         }
 
-        .fab-main::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--glass-highlight) 0%, transparent 50%);
-            pointer-events: none;
-        }
+        /* SOLDAN GELEN EFEKT KALDIRILDI - ::before pseudo-elementi silindi */
 
         .fab-main:hover {
             transform: scale(1.08);
@@ -999,6 +1001,27 @@
     <span class="keyboard-close-text">Klavyeyi Kapat</span>
 </div>
 
+<!-- ══ PREVIEW MODAL ══ -->
+<div id="previewModal" class="preview-modal">
+    <div class="preview-header">
+        <div class="preview-title">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            Önizleme
+        </div>
+        <button class="preview-close" onclick="closePreview()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+    <iframe id="previewFrame" class="preview-frame"></iframe>
+</div>
+
 <!-- ══ FLOATING ACTION BUTTON ══ -->
 <div class="fab-overlay" id="fabOverlay" onclick="toggleFabMenu()"></div>
 <div class="fab-container" id="fabContainer">
@@ -1034,27 +1057,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/>
         </svg>
     </button>
-</div>
-
-<!-- ══ PREVIEW MODAL ══ -->
-<div id="previewModal" class="preview-modal">
-    <div class="preview-header">
-        <div class="preview-title">
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-            </svg>
-            Önizleme
-        </div>
-        <button class="preview-close" onclick="closePreview()">
-            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-    </div>
-    <iframe id="previewFrame" class="preview-frame"></iframe>
 </div>
 
 <!-- ══ SAVE MODAL ══ -->
