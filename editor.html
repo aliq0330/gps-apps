@@ -16,23 +16,9 @@
             padding: 0;
         }
 
-        /* ── Theme Variables ── */
+        /* ── Theme Variables - System Auto Detect ── */
         :root {
-            --bg-primary: #0d1117;
-            --bg-secondary: #161b22;
-            --bg-tertiary: #21262d;
-            --border-color: #30363d;
-            --text-primary: #c9d1d9;
-            --text-secondary: #8b949e;
-            --accent-blue: #1f6feb;
-            --accent-green: #238636;
-            --accent-purple: #a371f7;
-            --header-bg: rgba(13, 17, 23, 0.95);
-            --shadow: 0 20px 40px rgba(0,0,0,0.6);
-            --transition: all 0.3s ease;
-        }
-
-        :root[data-theme="light"] {
+            color-scheme: light dark;
             --bg-primary: #ffffff;
             --bg-secondary: #f6f8fa;
             --bg-tertiary: #eaeef2;
@@ -44,6 +30,23 @@
             --accent-purple: #8250df;
             --header-bg: rgba(255, 255, 255, 0.95);
             --shadow: 0 20px 40px rgba(0,0,0,0.15);
+            --transition: all 0.3s ease;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0d1117;
+                --bg-secondary: #161b22;
+                --bg-tertiary: #21262d;
+                --border-color: #30363d;
+                --text-primary: #c9d1d9;
+                --text-secondary: #8b949e;
+                --accent-blue: #1f6feb;
+                --accent-green: #238636;
+                --accent-purple: #a371f7;
+                --header-bg: rgba(13, 17, 23, 0.95);
+                --shadow: 0 20px 40px rgba(0,0,0,0.6);
+            }
         }
 
         /* ── Base ── */
@@ -89,58 +92,6 @@
             border-top: 1px solid var(--border-color);
         }
 
-        /* ── Theme Toggle ── */
-        .theme-toggle {
-            position: relative;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            transition: var(--transition);
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.05);
-            border-color: var(--accent-blue);
-        }
-
-        .theme-toggle:active {
-            transform: scale(0.95);
-        }
-
-        .theme-icon {
-            position: absolute;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .sun-icon {
-            opacity: 1;
-            transform: translateY(0) rotate(0deg);
-            color: #f0883e;
-        }
-
-        .moon-icon {
-            opacity: 0;
-            transform: translateY(20px) rotate(-90deg);
-            color: #58a6ff;
-        }
-
-        [data-theme="light"] .sun-icon {
-            opacity: 0;
-            transform: translateY(-20px) rotate(90deg);
-        }
-
-        [data-theme="light"] .moon-icon {
-            opacity: 1;
-            transform: translateY(0) rotate(0deg);
-        }
-
         /* ── Tab ── */
         .tab {
             display: inline-flex;
@@ -152,7 +103,7 @@
             font-weight: 600;
             cursor: default;
             border: none;
-n            white-space: nowrap;
+            white-space: nowrap;
             font-family: inherit;
             background: var(--accent-green);
             color: white;
@@ -304,6 +255,7 @@ n            white-space: nowrap;
             flex: 1;
             min-height: 0;
             transition: background 0.3s ease;
+            position: relative;
         }
 
         .code-input {
@@ -447,7 +399,6 @@ n            white-space: nowrap;
         .fab-menu.open .fab-menu-item:nth-child(1) { transition-delay: 0.05s; }
         .fab-menu.open .fab-menu-item:nth-child(2) { transition-delay: 0.1s; }
         .fab-menu.open .fab-menu-item:nth-child(3) { transition-delay: 0.15s; }
-        .fab-menu.open .fab-menu-item:nth-child(4) { transition-delay: 0.2s; }
 
         .fab-menu-item:hover {
             background: var(--border-color);
@@ -708,7 +659,7 @@ n            white-space: nowrap;
 
 <!-- ══ HEADER ══ -->
 <header class="header">
-    <!-- Top row: tab + actions + theme toggle -->
+    <!-- Top row: tab + actions -->
     <div class="header-top">
         <div>
             <span class="tab">
@@ -718,24 +669,6 @@ n            white-space: nowrap;
         </div>
 
         <div class="actions">
-            <!-- Theme Toggle Button -->
-            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Tema Değiştir">
-                <svg class="theme-icon sun-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-                <svg class="theme-icon moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-            </button>
-
             <button onclick="clearCode()" class="btn btn-secondary">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -858,14 +791,6 @@ n            white-space: nowrap;
             </div>
             <span class="fab-menu-text">Yapıştır</span>
         </div>
-        <div class="fab-menu-item" onclick="selectAll()">
-            <div class="fab-menu-icon">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-                </svg>
-            </div>
-            <span class="fab-menu-text">Tümünü Seç</span>
-        </div>
     </div>
     
     <button class="fab-main" id="fabMain" onclick="toggleFabMenu()" aria-label="Menü">
@@ -943,12 +868,15 @@ n            white-space: nowrap;
 
 <script>
     let loadedFilename = '';
-    let code = '<!-- HTML kodunuzu buraya yazın -->\\n<div class="container">\\n  <h1>Merhaba Dünya!</h1>\\n  <p>Mobil editöre hoş geldiniz.</p>\\n</div>';
+    let code = `<!-- HTML kodunuzu buraya yazın -->
+<div class="container">
+  <h1>Merhaba Dünya!</h1>
+  <p>Mobil editöre hoş geldiniz.</p>
+</div>`;
     let isFabOpen = false;
 
     document.addEventListener('DOMContentLoaded', () => {
         loadFromStorage();
-        loadTheme();
         updateEditor();
         updateFilenameDisplay();
 
@@ -960,20 +888,6 @@ n            white-space: nowrap;
 
         window.addEventListener('beforeunload', saveToStorage);
     });
-
-    // Theme Functions
-    function loadTheme() {
-        const savedTheme = localStorage.getItem('editorTheme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    }
-
-    function toggleTheme() {
-        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('editorTheme', newTheme);
-        showToast(newTheme === 'dark' ? 'Koyu tema aktif' : 'Açık tema aktif');
-    }
 
     // FAB Functions
     function toggleFabMenu() {
@@ -1060,7 +974,16 @@ n            white-space: nowrap;
 
     function runCode(mode) {
         document.getElementById('runMenu').classList.remove('open');
-        const full = `<!DOCTYPE html>\\n<html>\\n<head>\\n    <meta charset="UTF-8">\\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\\n</head>\\n<body>\\n    ${code}\\n</body>\\n</html>`;
+        const full = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    ${code}
+</body>
+</html>`;
         if (mode === 'newtab') {
             window.open(URL.createObjectURL(new Blob([full], {type:'text/html'})), '_blank');
             showToast('Yeni sekmede açıldı');
@@ -1100,7 +1023,17 @@ n            white-space: nowrap;
             return;
         }
         if (!filename.endsWith('.html')) filename += '.html';
-        const full = `<!DOCTYPE html>\\n<html>\\n<head>\\n    <meta charset="UTF-8">\\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\\n    <title>${filename}</title>\\n</head>\\n<body>\\n${code}\\n</body>\\n</html>`;
+        const full = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${filename}</title>
+</head>
+<body>
+${code}
+</body>
+</html>`;
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([full], {type:'text/html'}));
         a.download = filename;
@@ -1141,15 +1074,6 @@ n            white-space: nowrap;
         document.execCommand('copy');
         if (isFabOpen) toggleFabMenu();
         showToast('Kopyalandı');
-    }
-
-    // Select All - Opens native context menu (focuses main editor)
-    function selectAll() { 
-        const editor = document.getElementById('editor');
-        editor.focus();
-        editor.select();
-        if (isFabOpen) toggleFabMenu();
-        // Mobil cihazlarda focus + select, yerel kopyala/yapıştır menüsünü açar
     }
 
     function pasteCode() {
