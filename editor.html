@@ -116,8 +116,17 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
         .animate-slide-down {
             animation: slideDown 0.2s ease-out;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
         }
         
         .custom-scrollbar::-webkit-scrollbar {
@@ -221,6 +230,91 @@
             border-color: #3b82f6;
         }
         
+        /* Save Modal Styles */
+        .save-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        
+        .save-modal {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+        
+        .save-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .save-modal-input {
+            width: 100%;
+            background: #111827;
+            border: 2px solid #374151;
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+        
+        .save-modal-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .save-modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .save-modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .save-modal-btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+        
+        .save-modal-btn-primary:active {
+            transform: scale(0.98);
+        }
+        
+        .save-modal-btn-secondary {
+            background: #374151;
+            color: #e5e7eb;
+        }
+        
+        .save-modal-btn-secondary:active {
+            background: #4b5563;
+        }
+        
         @media (max-width: 640px) {
             .editor-font {
                 font-size: 13px;
@@ -247,23 +341,12 @@
                 <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <!-- Dosya adı girişi başlangıçta gizli -->
-                <div id="filenameContainer" class="hidden flex-1 min-w-0 flex items-center gap-2">
-                    <input type="text" id="filename" placeholder="Dosya adı gir (örn: index)" 
-                           class="filename-input flex-1 min-w-0" value="">
-                    <button onclick="confirmSave()" class="btn-success text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
-                        Onayla
-                    </button>
-                    <button onclick="cancelSave()" class="bg-gray-600 text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
-                        İptal
-                    </button>
-                </div>
-                <span id="editorTitle" class="text-gray-300 text-sm truncate">Mobil Kod Editörü</span>
+                <span id="currentFilename" class="text-gray-300 text-sm truncate font-medium">Yeni Dosya</span>
             </div>
             
             <div class="flex items-center gap-2 shrink-0">
-                <!-- Kaydet butonu - dosya adı girişini gösterir -->
-                <button onclick="showSaveInput()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                <!-- Kaydet butonu -->
+                <button onclick="showSaveModal()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                     </svg>
@@ -372,6 +455,23 @@
         </div>
     </div>
 
+    <!-- Save Modal - Dosya Adı Girişi -->
+    <div id="saveModal" class="save-modal-overlay hidden animate-fade-in">
+        <div class="save-modal">
+            <div class="save-modal-title">
+                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                </svg>
+                Dosyayı Kaydet
+            </div>
+            <input type="text" id="saveFilename" class="save-modal-input" placeholder="Dosya adı girin (örn: index)" />
+            <div class="save-modal-buttons">
+                <button onclick="cancelSave()" class="save-modal-btn save-modal-btn-secondary">İptal</button>
+                <button onclick="confirmSave()" class="save-modal-btn save-modal-btn-primary">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Context Menu Overlay -->
     <div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
     
@@ -407,18 +507,49 @@
     </div>
 
     <script>
+        // localStorage anahtarları
+        const STORAGE_KEYS = {
+            HTML: 'editor_html_code',
+            CSS: 'editor_css_code',
+            JS: 'editor_js_code',
+            FILENAME: 'editor_filename',
+            IS_LOADED_FILE: 'editor_is_loaded_file'
+        };
+
         let currentTab = 'html';
-        const code = {
+        let loadedFilename = ''; // Yüklenen dosyanın adı
+        let isLoadedFile = false; // Dosya yüklendi mi?
+        
+        // Varsayılan kodlar
+        const defaultCode = {
             html: '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>',
             css: '/* CSS kodunuzu buraya yazın */\n.container {\n  text-align: center;\n  padding: 20px;\n  font-family: Arial, sans-serif;\n}\n\nh1 {\n  color: #3b82f6;\n}',
             js: '// JavaScript kodunuzu buraya yazın\nconsole.log("Merhaba Dünya!");\n\ndocument.querySelector("h1").addEventListener("click", function() {\n  alert("Tıklandı!");\n});'
         };
 
+        // Aktif kodlar
+        let code = { ...defaultCode };
+
         let initialHeight = window.innerHeight;
 
         document.addEventListener('DOMContentLoaded', () => {
+            // localStorage'dan verileri yükle
+            loadFromStorage();
+            
             updateEditor();
             updateLineNumbers();
+            updateFilenameDisplay();
+            
+            // Otomatik kaydetme (her 2 saniyede bir)
+            setInterval(saveToStorage, 2000);
+            
+            // Sayfa kapatılırken/kaybolurken kaydet
+            window.addEventListener('beforeunload', saveToStorage);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'hidden') {
+                    saveToStorage();
+                }
+            });
             
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.relative')) {
@@ -446,6 +577,53 @@
             window.addEventListener('resize', handleResize);
         });
 
+        // localStorage'a kaydet
+        function saveToStorage() {
+            try {
+                // Mevcut tab'deki kodu güncelle
+                code[currentTab] = document.getElementById('editor').value;
+                
+                localStorage.setItem(STORAGE_KEYS.HTML, code.html);
+                localStorage.setItem(STORAGE_KEYS.CSS, code.css);
+                localStorage.setItem(STORAGE_KEYS.JS, code.js);
+                localStorage.setItem(STORAGE_KEYS.FILENAME, loadedFilename);
+                localStorage.setItem(STORAGE_KEYS.IS_LOADED_FILE, isLoadedFile);
+            } catch (e) {
+                console.error('localStorage kaydetme hatası:', e);
+            }
+        }
+
+        // localStorage'dan yükle
+        function loadFromStorage() {
+            try {
+                const savedHTML = localStorage.getItem(STORAGE_KEYS.HTML);
+                const savedCSS = localStorage.getItem(STORAGE_KEYS.CSS);
+                const savedJS = localStorage.getItem(STORAGE_KEYS.JS);
+                const savedFilename = localStorage.getItem(STORAGE_KEYS.FILENAME);
+                const savedIsLoaded = localStorage.getItem(STORAGE_KEYS.IS_LOADED_FILE);
+                
+                if (savedHTML !== null) code.html = savedHTML;
+                if (savedCSS !== null) code.css = savedCSS;
+                if (savedJS !== null) code.js = savedJS;
+                if (savedFilename) loadedFilename = savedFilename;
+                if (savedIsLoaded !== null) isLoadedFile = savedIsLoaded === 'true';
+            } catch (e) {
+                console.error('localStorage yükleme hatası:', e);
+            }
+        }
+
+        // Dosya adı görünümünü güncelle
+        function updateFilenameDisplay() {
+            const display = document.getElementById('currentFilename');
+            if (loadedFilename) {
+                display.textContent = loadedFilename;
+                display.classList.add('text-blue-400');
+            } else {
+                display.textContent = 'Yeni Dosya';
+                display.classList.remove('text-blue-400');
+            }
+        }
+
         function handleResize() {
             const currentHeight = window.innerHeight;
             const editorContainer = document.getElementById('editorContainer');
@@ -458,23 +636,42 @@
             }
         }
 
-        // Dosya kaydetme fonksiyonları
-        function showSaveInput() {
-            document.getElementById('filenameContainer').classList.remove('hidden');
-            document.getElementById('editorTitle').classList.add('hidden');
-            document.getElementById('filename').focus();
+        // Kaydet modalını göster
+        function showSaveModal() {
+            const modal = document.getElementById('saveModal');
+            const input = document.getElementById('saveFilename');
+            
+            // Eğer dosya yüklendiyse otomatik adı doldur
+            if (isLoadedFile && loadedFilename) {
+                input.value = loadedFilename.replace('.html', '');
+            } else {
+                input.value = '';
+            }
+            
+            modal.classList.remove('hidden');
+            
+            // Input'a odaklan
+            setTimeout(() => input.focus(), 100);
         }
 
+        // Kaydetme işlemini iptal et
         function cancelSave() {
-            document.getElementById('filenameContainer').classList.add('hidden');
-            document.getElementById('editorTitle').classList.remove('hidden');
-            document.getElementById('filename').value = '';
+            document.getElementById('saveModal').classList.add('hidden');
         }
 
+        // Kaydetme işlemini onayla
         function confirmSave() {
-            let filename = document.getElementById('filename').value.trim();
-            if (!filename) filename = 'deneme';
+            let filename = document.getElementById('saveFilename').value.trim();
+            
+            if (!filename) {
+                showToast('Lütfen bir dosya adı girin');
+                return;
+            }
+            
             if (!filename.endsWith('.html')) filename += '.html';
+            
+            // Mevcut tab'deki kodu güncelle
+            code[currentTab] = document.getElementById('editor').value;
             
             const fullCode = `<!DOCTYPE html>
 <html>
@@ -502,6 +699,12 @@ ${code.js}
             a.click();
             URL.revokeObjectURL(url);
             
+            // Yüklenen dosya bilgisini güncelle
+            loadedFilename = filename;
+            isLoadedFile = true;
+            updateFilenameDisplay();
+            saveToStorage();
+            
             showToast(`${filename} kaydedildi`);
             cancelSave();
         }
@@ -528,11 +731,13 @@ ${code.js}
         function updateCode() {
             code[currentTab] = document.getElementById('editor').value;
             updateLineNumbers();
+            // Anlık kaydetme
+            saveToStorage();
         }
 
         function updateLineNumbers() {
-            const lines = document.getElementById('editor').value.split('\n').length;
-            const numbers = Array.from({length: lines}, (_, i) => i + 1).join('\n');
+            const lines = document.getElementById('editor').value.split('\\n').length;
+            const numbers = Array.from({length: lines}, (_, i) => i + 1).join('\\n');
             document.getElementById('lineNumbers').textContent = numbers;
         }
 
@@ -551,6 +756,11 @@ ${code.js}
                 editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
                 editor.selectionStart = editor.selectionEnd = start + 2;
                 updateCode();
+            }
+            // Ctrl+S veya Cmd+S ile kaydet
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                showSaveModal();
             }
         }
 
@@ -608,27 +818,44 @@ ${code.js}
             reader.onload = (e) => {
                 const content = e.target.result;
                 
-                const htmlMatch = content.match(/<body>([\s\S]*?)<\/body>/i);
-                const cssMatch = content.match(/<style>([\s\S]*?)<\/style>/i);
-                const jsMatch = content.match(/<script>([\s\S]*?)<\/script>/i);
+                const htmlMatch = content.match(/<body>([\\s\\S]*?)<\\/body>/i);
+                const cssMatch = content.match(/<style>([\\s\\S]*?)<\\/style>/i);
+                const jsMatch = content.match(/<script>([\\s\\S]*?)<\\/script>/i);
                 
                 if (htmlMatch) code.html = htmlMatch[1].trim();
                 if (cssMatch) code.css = cssMatch[1].trim();
                 if (jsMatch) code.js = jsMatch[1].trim();
                 
-                document.getElementById('filename').value = file.name.replace('.html', '');
+                // Yüklenen dosya bilgilerini kaydet
+                loadedFilename = file.name;
+                isLoadedFile = true;
                 
+                updateFilenameDisplay();
                 updateEditor();
+                saveToStorage();
+                
                 showToast(`${file.name} yüklendi`);
             };
             reader.readAsText(file);
+            
+            // Input'u resetle (aynı dosyayı tekrar seçebilmek için)
+            event.target.value = '';
         }
 
         function clearCode() {
-            if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
+            if (confirm('Tüm kodları temizlemek istediğinize emin misiniz? Bu işlem localStorage\\'ı da temizleyecektir.')) {
                 code.html = '';
                 code.css = '';
                 code.js = '';
+                loadedFilename = '';
+                isLoadedFile = false;
+                
+                // localStorage'ı temizle
+                Object.values(STORAGE_KEYS).forEach(key => {
+                    localStorage.removeItem(key);
+                });
+                
+                updateFilenameDisplay();
                 updateEditor();
                 showToast('Kodlar temizlendi');
             }
