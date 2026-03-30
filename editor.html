@@ -3,13 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobil Kod Editörü</title>
+    <title>Mobil Kod Editörü - Yerel Renklendirme</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
         
@@ -67,20 +62,37 @@
             -webkit-overflow-scrolling: touch;
         }
         
-        .code-input {
+        .code-editor {
             width: 100%;
             min-height: 100%;
             padding: 16px;
             background: transparent;
             color: #abb2bf;
             border: none;
-            resize: none;
             outline: none;
             white-space: pre;
             overflow-wrap: normal;
             tab-size: 2;
             caret-color: #528bff;
+            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
         }
+        
+        .code-editor:focus {
+            outline: none;
+        }
+        
+        .token-keyword { color: #c678dd; font-weight: 600; }
+        .token-string { color: #98c379; }
+        .token-number { color: #d19a66; }
+        .token-comment { color: #5c6370; font-style: italic; }
+        .token-tag { color: #e06c75; }
+        .token-attr { color: #d19a66; }
+        .token-selector { color: #e06c75; }
+        .token-property { color: #d19a66; }
+        .token-function { color: #61afef; }
+        .token-operator { color: #56b6c2; }
         
         .tab-active {
             background: #3b82f6;
@@ -233,14 +245,22 @@
             .code-area {
                 left: 40px;
             }
+            .code-editor {
+                font-size: 13px;
+            }
         }
         
         .hidden { display: none !important; }
+        
+        .code-editor:empty:before {
+            content: attr(data-placeholder);
+            color: #5c6370;
+            font-style: italic;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 h-screen overflow-hidden flex flex-col">
 
-    <!-- Top Bar -->
     <header class="glass-panel border-b border-gray-700 p-3 flex flex-col gap-3 shrink-0 z-20">
         <div class="flex items-center gap-2 flex-wrap">
             <div class="flex items-center gap-2 flex-1 min-w-0">
@@ -251,15 +271,14 @@
                        class="filename-input flex-1 min-w-0" value="">
             </div>
             
+            <button onclick="saveFile()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                </svg>
+                Kaydet
+            </button>
             
-                <button onclick="saveFile()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-                    </svg>
-                    Kaydet
-                </button>
-                
-                <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-2 shrink-0">
                 <button onclick="loadFile()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -267,8 +286,6 @@
                     Yükle
                 </button>
                 <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden" onchange="handleFileLoad(event)">
-                
-                
             </div>
         </div>
 
@@ -330,20 +347,20 @@
         </div>
     </header>
 
-    <!-- Editor Area -->
     <main class="flex-1 relative overflow-hidden" id="mainContainer">
         <div class="editor-container" id="editorContainer">
             <div class="line-numbers editor-font" id="lineNumbers">1</div>
-            <div class="code-area custom-scrollbar">
-                <textarea id="editor" class="code-input editor-font" spellcheck="false" 
-                          oninput="updateCode()" onscroll="syncScroll()" 
-                          onkeydown="handleKeydown(event)"
-                          oncontextmenu="showContextMenu(event)"></textarea>
+            <div class="code-area custom-scrollbar" id="codeArea">
+                <div id="editor" class="code-editor" contenteditable="true" spellcheck="false" 
+                     data-placeholder="Kodunuzu buraya yazın..."
+                     oninput="handleInput()" 
+                     onscroll="syncScroll()"
+                     onkeydown="handleKeydown(event)"
+                     oncontextmenu="showContextMenu(event)"></div>
             </div>
         </div>
     </main>
 
-    <!-- Preview Popup -->
     <div id="previewModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-800 rounded-xl w-full max-w-4xl h-[80vh] flex flex-col shadow-2xl animate-slide-down">
             <div class="flex items-center justify-between p-4 border-b border-gray-700">
@@ -364,10 +381,8 @@
         </div>
     </div>
 
-    <!-- Context Menu Overlay -->
     <div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
     
-    <!-- Context Menu -->
     <div id="contextMenu" class="context-menu hidden">
         <div class="context-menu-item" onclick="copyAll()">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -390,7 +405,6 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg border border-gray-700 hidden items-center gap-2 z-50">
         <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -406,76 +420,168 @@
             js: '// JavaScript kodunuzu buraya yazın\nconsole.log("Merhaba Dünya!");\n\ndocument.querySelector("h1").addEventListener("click", function() {\n  alert("Tıklandı!");\n});'
         };
 
+        let isHighlighting = false;
+        let highlightTimeout = null;
         let initialHeight = window.innerHeight;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            updateEditor();
-            updateLineNumbers();
+        const patterns = {
+            html: [
+                { regex: /&lt;!--[\s\S]*?--&gt;/g, class: 'token-comment' },
+                { regex: /&lt;\/?[a-zA-Z][^&>]*&gt;/g, class: 'token-tag' },
+                { regex: /\s[a-zA-Z-]+(?==)/g, class: 'token-attr' },
+                { regex: /"[^"]*"/g, class: 'token-string' },
+                { regex: /'[^']*'/g, class: 'token-string' }
+            ],
+            css: [
+                { regex: /\/\*[\s\S]*?\*\//g, class: 'token-comment' },
+                { regex: /[.#][a-zA-Z-_][a-zA-Z0-9-_]*|^[a-zA-Z][a-zA-Z0-9]*(?=\s*\{)/gm, class: 'token-selector' },
+                { regex: /[a-zA-Z-]+(?=\s*:)/g, class: 'token-property' },
+                { regex: /#[a-fA-F0-9]{3,6}/g, class: 'token-number' },
+                { regex: /\b\d+(?:px|em|rem|%|vh|vw|pt|pc|in|cm|mm|ex|ch|vmin|vmax|fr)?\b/g, class: 'token-number' },
+                { regex: /"[^"]*"/g, class: 'token-string' }
+            ],
+            js: [
+                { regex: /\/\/.*/gm, class: 'token-comment' },
+                { regex: /\/\*[\s\S]*?\*\//g, class: 'token-comment' },
+                { regex: /\b(const|let|var|function|return|if|else|for|while|class|import|export|from|async|await|try|catch|new|this|true|false|null|undefined|typeof|instanceof|in|of|break|continue|switch|case|default|throw|delete|void|yield|debugger)\b/g, class: 'token-keyword' },
+                { regex: /\b(function|=>)\b/g, class: 'token-function' },
+                { regex: /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`/g, class: 'token-string' },
+                { regex: /\b\d+(?:\.\d+)?\b/g, class: 'token-number' },
+                { regex: /[+\-*/%=<>!&|^~?:]+/g, class: 'token-operator' }
+            ]
+        };
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function highlightCode(text, language) {
+            if (!text) return '';
             
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.relative')) {
-                    document.getElementById('runMenu').classList.add('hidden');
+            let escaped = escapeHtml(text);
+            
+            const tokens = [];
+            const langPatterns = patterns[language] || [];
+            
+            langPatterns.forEach(pattern => {
+                let match;
+                const regex = new RegExp(pattern.regex.source, pattern.regex.flags);
+                while ((match = regex.exec(escaped)) !== null) {
+                    tokens.push({
+                        start: match.index,
+                        end: match.index + match[0].length,
+                        text: match[0],
+                        class: pattern.class
+                    });
                 }
             });
+            
+            tokens.sort((a, b) => a.start - b.start);
+            const filtered = [];
+            let lastEnd = 0;
+            
+            tokens.forEach(token => {
+                if (token.start >= lastEnd) {
+                    filtered.push(token);
+                    lastEnd = token.end;
+                }
+            });
+            
+            let result = '';
+            let lastIndex = 0;
+            
+            filtered.forEach(token => {
+                result += escaped.substring(lastIndex, token.start);
+                result += `<span class="${token.class}">${token.text}</span>`;
+                lastIndex = token.end;
+            });
+            result += escaped.substring(lastIndex);
+            
+            return result;
+        }
 
-            let pressTimer;
+        function scheduleHighlight() {
+            if (highlightTimeout) {
+                clearTimeout(highlightTimeout);
+            }
+            highlightTimeout = setTimeout(() => {
+                applyHighlighting();
+            }, 150);
+        }
+
+        function saveCursorPosition() {
             const editor = document.getElementById('editor');
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) return null;
             
-            editor.addEventListener('touchstart', (e) => {
-                pressTimer = setTimeout(() => {
-                    showContextMenu(e);
-                }, 800);
-            });
+            const range = selection.getRangeAt(0);
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(editor);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
             
-            editor.addEventListener('touchend', () => {
-                clearTimeout(pressTimer);
-            });
-            
-            editor.addEventListener('touchmove', () => {
-                clearTimeout(pressTimer);
-            });
+            return preCaretRange.toString().length;
+        }
 
-            window.addEventListener('resize', handleResize);
-        });
-
-        function handleResize() {
-            const currentHeight = window.innerHeight;
-            const editorContainer = document.getElementById('editorContainer');
-            const diff = initialHeight - currentHeight;
+        function restoreCursorPosition(offset) {
+            const editor = document.getElementById('editor');
+            const selection = window.getSelection();
+            let charCount = 0;
+            let nodeStack = [editor];
+            let node;
+            let stop = false;
             
-            if (diff > 100) {
-                editorContainer.style.height = (currentHeight - 140) + 'px';
-            } else {
-                editorContainer.style.height = 'calc(100vh - 180px)';
+            while (!stop && (node = nodeStack.pop())) {
+                if (node.nodeType === 3) {
+                    const nextCharCount = charCount + node.length;
+                    if (offset >= charCount && offset <= nextCharCount) {
+                        const range = document.createRange();
+                        range.setStart(node, offset - charCount);
+                        range.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                        stop = true;
+                    }
+                    charCount = nextCharCount;
+                } else {
+                    let i = node.childNodes.length;
+                    while (i--) {
+                        nodeStack.push(node.childNodes[i]);
+                    }
+                }
             }
         }
 
-        function switchTab(tab) {
-            code[currentTab] = document.getElementById('editor').value;
+        function applyHighlighting() {
+            if (isHighlighting) return;
+            isHighlighting = true;
             
-            document.getElementById(`tab-${currentTab}`).classList.remove('tab-active');
-            document.getElementById(`tab-${currentTab}`).classList.add('tab-inactive');
+            const editor = document.getElementById('editor');
+            const cursorPos = saveCursorPosition();
             
-            currentTab = tab;
+            const rawText = editor.innerText;
+            code[currentTab] = rawText;
             
-            document.getElementById(`tab-${currentTab}`).classList.remove('tab-inactive');
-            document.getElementById(`tab-${currentTab}`).classList.add('tab-active');
+            const highlighted = highlightCode(rawText, currentTab);
+            editor.innerHTML = highlighted || '<br>';
             
-            updateEditor();
+            if (cursorPos !== null) {
+                restoreCursorPosition(cursorPos);
+            }
+            
+            updateLineNumbers();
+            
+            isHighlighting = false;
         }
 
-        function updateEditor() {
-            document.getElementById('editor').value = code[currentTab];
-            updateLineNumbers();
-        }
-
-        function updateCode() {
-            code[currentTab] = document.getElementById('editor').value;
-            updateLineNumbers();
+        function handleInput() {
+            scheduleHighlight();
         }
 
         function updateLineNumbers() {
-            const lines = document.getElementById('editor').value.split('\n').length;
+            const editor = document.getElementById('editor');
+            const lines = editor.innerText.split('\n').length;
             const numbers = Array.from({length: lines}, (_, i) => i + 1).join('\n');
             document.getElementById('lineNumbers').textContent = numbers;
         }
@@ -486,15 +592,33 @@
             lineNumbers.scrollTop = editor.scrollTop;
         }
 
+        function switchTab(tab) {
+            const editor = document.getElementById('editor');
+            code[currentTab] = editor.innerText;
+            
+            document.getElementById(`tab-${currentTab}`).classList.remove('tab-active');
+            document.getElementById(`tab-${currentTab}`).classList.add('tab-inactive');
+            
+            currentTab = tab;
+            
+            document.getElementById(`tab-${currentTab}`).classList.remove('tab-inactive');
+            document.getElementById(`tab-${currentTab}`).classList.add('tab-active');
+            
+            editor.innerText = code[currentTab];
+            applyHighlighting();
+        }
+
         function handleKeydown(e) {
             if (e.key === 'Tab') {
                 e.preventDefault();
-                const editor = e.target;
-                const start = editor.selectionStart;
-                const end = editor.selectionEnd;
-                editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
-                editor.selectionStart = editor.selectionEnd = start + 2;
-                updateCode();
+                document.execCommand('insertText', false, '  ');
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const selection = window.getSelection();
+                const range = selection.getRangeAt(0);
+                const currentLine = range.startContainer.textContent.substring(0, range.startOffset);
+                const indent = currentLine.match(/^\s*/)[0];
+                document.execCommand('insertText', false, '\n' + indent);
             }
         }
 
@@ -596,7 +720,10 @@ ${code.js}
                 
                 document.getElementById('filename').value = file.name.replace('.html', '');
                 
-                updateEditor();
+                const editor = document.getElementById('editor');
+                editor.innerText = code[currentTab];
+                applyHighlighting();
+                
                 showToast(`${file.name} yüklendi`);
             };
             reader.readAsText(file);
@@ -607,7 +734,10 @@ ${code.js}
                 code.html = '';
                 code.css = '';
                 code.js = '';
-                updateEditor();
+                const editor = document.getElementById('editor');
+                editor.innerText = '';
+                editor.innerHTML = '<br>';
+                updateLineNumbers();
                 showToast('Kodlar temizlendi');
             }
         }
@@ -625,19 +755,20 @@ ${code.js}
 
         function copyAll() {
             const editor = document.getElementById('editor');
-            editor.select();
+            const range = document.createRange();
+            range.selectNodeContents(editor);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
             document.execCommand('copy');
+            selection.removeAllRanges();
             hideContextMenu();
             showToast('Kopyalandı');
         }
 
         function pasteCode() {
             navigator.clipboard.readText().then(text => {
-                const editor = document.getElementById('editor');
-                const start = editor.selectionStart;
-                editor.value = editor.value.substring(0, start) + text + editor.value.substring(editor.selectionEnd);
-                editor.selectionStart = editor.selectionEnd = start + text.length;
-                updateCode();
+                document.execCommand('insertText', false, text);
                 hideContextMenu();
                 showToast('Yapıştırıldı');
             }).catch(() => {
@@ -646,7 +777,12 @@ ${code.js}
         }
 
         function selectAll() {
-            document.getElementById('editor').select();
+            const editor = document.getElementById('editor');
+            const range = document.createRange();
+            range.selectNodeContents(editor);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
             hideContextMenu();
         }
 
@@ -660,6 +796,47 @@ ${code.js}
                 toast.classList.add('hidden');
                 toast.classList.remove('flex');
             }, 2000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const editor = document.getElementById('editor');
+            editor.innerText = code[currentTab];
+            applyHighlighting();
+            
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.relative')) {
+                    document.getElementById('runMenu').classList.add('hidden');
+                }
+            });
+
+            let pressTimer;
+            editor.addEventListener('touchstart', (e) => {
+                pressTimer = setTimeout(() => {
+                    showContextMenu(e);
+                }, 800);
+            });
+            
+            editor.addEventListener('touchend', () => {
+                clearTimeout(pressTimer);
+            });
+            
+            editor.addEventListener('touchmove', () => {
+                clearTimeout(pressTimer);
+            });
+
+            window.addEventListener('resize', handleResize);
+        });
+
+        function handleResize() {
+            const currentHeight = window.innerHeight;
+            const editorContainer = document.getElementById('editorContainer');
+            const diff = initialHeight - currentHeight;
+            
+            if (diff > 100) {
+                editorContainer.style.height = (currentHeight - 140) + 'px';
+            } else {
+                editorContainer.style.height = 'calc(100vh - 180px)';
+            }
         }
     </script>
 </body>
