@@ -32,14 +32,14 @@
         
         .code-area {
             background: #161b22;
-            min-height: 300px;
+            width: 100%;
         }
         
         .code-input {
             width: 100%;
-            min-height: 300px;
-            padding: 20px;
-            background: transparent;
+            min-height: 400px;
+            padding: 16px;
+            background: #161b22;
             color: #c9d1d9;
             border: none;
             resize: vertical;
@@ -242,13 +242,12 @@
                 font-size: 13px;
             }
             .code-input {
-                padding: 16px;
+                padding: 12px;
             }
         }
         
         .hidden { display: none !important; }
         
-        /* Modern accent colors for tabs */
         .accent-html { color: #ff7b72; }
         .accent-css { color: #79c0ff; }
         .accent-js { color: #d2a8ff; }
@@ -347,9 +346,9 @@
         </div>
     </header>
 
-    <!-- Editor Area - No Line Numbers, Auto Height -->
-    <main class="p-4">
-        <div class="code-area rounded-xl border border-[#30363d] overflow-hidden">
+    <!-- Editor Area - Full Width, No Border, No Radius -->
+    <main>
+        <div class="code-area">
             <textarea id="editor" class="code-input editor-font" spellcheck="false" 
                       oninput="updateCode()" 
                       onkeydown="handleKeydown(event)"
