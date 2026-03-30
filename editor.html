@@ -1,1034 +1,663 @@
 <!DOCTYPE html>
-
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>KodEdit</title>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
-<style>
-/* ═══════════════════════════════════════
-   VARIABLES
-═══════════════════════════════════════ */
-:root {
-  --bg:       #1a1d27;
-  --panel:    #13151e;
-  --surf:     #20232f;
-  --bdr:      #2a2e3f;
-  --bdr2:     #353a50;
-
-–blue:     #4c8ef7;
-–green:    #3ecf72;
-–red:      #f75a5a;
-–yellow:   #f7c94c;
-–purple:   #b57af7;
-–cyan:     #4cd9f7;
-–orange:   #f7934c;
-
-–text:     #c8d0eb;
-–muted:    #454d6a;
-–dim:      #6b7599;
-
-/* token colors */
-–t-tag:    #f78c8c;   /* HTML tags */
-–t-attr:   #f7c94c;   /* attributes */
-–t-val:    #7de8a0;   /* attr values */
-–t-cmt:    #454d6a;   /* comments */
-–t-str:    #7de8a0;   /* strings */
-–t-kw:     #7ab4f7;   /* keywords */
-–t-kw2:    #f7934c;   /* secondary keywords (return, throw…) */
-–t-bool:   #c97af7;   /* true/false/null */
-–t-num:    #f7c94c;   /* numbers */
-–t-fn:     #c97af7;   /* function names */
-–t-cls:    #4cd9f7;   /* class names */
-–t-op:     #f78c8c;   /* operators */
-–t-rx:     #f7934c;   /* regex */
-–t-prop:   #4cd9f7;   /* css props */
-–t-sel:    #f78c8c;   /* css selectors */
-–t-unit:   #f7c94c;   /* css units */
-–t-at:     #f7934c;   /* @rules */
-–t-var:    #7de8a0;   /* css vars */
-
-–mono: ‘Fira Code’, monospace;
-–sans: ‘Outfit’, sans-serif;
-–lh: 22px;
-–fs: 13px;
-–pt: 12px;
-–gw: 40px;
-}
-
-/* ═══════════════════════════════════════
-RESET
-═══════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; background: var(–bg); color: var(–text); -webkit-tap-highlight-color: transparent; }
-body { display: flex; flex-direction: column; height: 100dvh; font-family: var(–mono); font-size: var(–fs); }
-
-/* ═══════════════════════════════════════
-ROW 1: Dosya adı + Yükle + Kaydet
-═══════════════════════════════════════ */
-#row1 {
-display: flex; align-items: center; gap: 8px;
-padding: 8px 10px;
-background: var(–panel);
-border-bottom: 1px solid var(–bdr);
-flex-shrink: 0;
-}
-
-#file-icon {
-width: 34px; height: 34px; flex-shrink: 0;
-display: flex; align-items: center; justify-content: center;
-background: var(–surf); border: 1px solid var(–bdr2);
-border-radius: 8px; color: var(–dim);
-}
-
-#fname {
-flex: 1; min-width: 0;
-background: var(–surf);
-border: 1px solid var(–bdr2);
-border-radius: 8px;
-color: var(–text);
-font-family: var(–mono); font-size: 12px;
-padding: 7px 10px; outline: none;
-transition: border-color .2s, box-shadow .2s;
-}
-#fname::placeholder { color: var(–muted); }
-#fname:focus { border-color: var(–blue); box-shadow: 0 0 0 3px rgba(76,142,247,.12); }
-
-.r1btn {
-display: flex; align-items: center; gap: 6px;
-border: none; cursor: pointer; border-radius: 8px;
-font-family: var(–sans); font-size: 12px; font-weight: 800;
-padding: 8px 14px; white-space: nowrap; flex-shrink: 0;
-transition: transform .12s, opacity .15s;
-letter-spacing: .02em;
-}
-.r1btn:active { transform: scale(.91); opacity: .8; }
-#bload { background: var(–blue);  color: #fff; }
-#bsave { background: var(–green); color: #071a0f; }
-
-/* ═══════════════════════════════════════
-ROW 2: HTML | CSS | JS | Çalıştır | 🗑
-═══════════════════════════════════════ */
-#row2 {
-display: flex; align-items: stretch;
-height: 44px;
-background: var(–panel);
-border-bottom: 1px solid var(–bdr);
-flex-shrink: 0;
-gap: 0;
-}
-
-/* Language tabs */
-.ltab {
-display: flex; align-items: center; justify-content: center; gap: 6px;
-padding: 0 14px;
-font-family: var(–sans); font-size: 13px; font-weight: 800;
-color: var(–muted); cursor: pointer;
-border-bottom: 2px solid transparent;
-border-right: 1px solid var(–bdr);
-transition: color .18s, background .18s, border-bottom-color .18s;
--webkit-user-select: none; user-select: none;
-letter-spacing: .04em; white-space: nowrap;
-}
-.ltab .dot { width: 6px; height: 6px; border-radius: 50%; opacity: 0; transition: opacity .18s; }
-.ltab[data-l=html] .dot { background: var(–red); }
-.ltab[data-l=css]  .dot { background: var(–blue); }
-.ltab[data-l=js]   .dot { background: var(–yellow); }
-
-.ltab.on { background: var(–bg); }
-.ltab[data-l=html].on { color: var(–red);    border-bottom-color: var(–red); }
-.ltab[data-l=css].on  { color: var(–blue);   border-bottom-color: var(–blue); }
-.ltab[data-l=js].on   { color: var(–yellow); border-bottom-color: var(–yellow); }
-.ltab.on .dot { opacity: 1; }
-
-/* spacer */
-#tab-spacer { flex: 1; border-right: 1px solid var(–bdr); }
-
-/* Run button */
-#run-wrap { position: relative; display: flex; align-items: stretch; }
-#brun {
-display: flex; align-items: center; gap: 7px;
-padding: 0 16px;
-background: var(–surf); border: none;
-border-right: 1px solid var(–bdr);
-color: var(–text);
-font-family: var(–sans); font-size: 13px; font-weight: 800;
-cursor: pointer; white-space: nowrap;
-transition: background .15s;
-letter-spacing: .03em;
-}
-#brun:hover { background: var(–bdr); }
-#brun:active { opacity: .7; }
-#brun svg { color: var(–green); }
-
-#run-caret {
-display: flex; align-items: center; justify-content: center;
-padding: 0 10px;
-background: var(–surf); border: none;
-border-right: 1px solid var(–bdr);
-color: var(–dim); cursor: pointer;
-transition: background .15s;
-}
-#run-caret:hover { background: var(–bdr); }
-
-.dmenu {
-display: none; position: absolute;
-right: 0; top: calc(100% + 6px);
-background: var(–panel);
-border: 1px solid var(–bdr2);
-border-radius: 11px; min-width: 192px;
-box-shadow: 0 16px 48px rgba(0,0,0,.6);
-overflow: hidden; z-index: 300;
-}
-.dmenu.open { display: block; }
-.dmi {
-display: flex; align-items: center; gap: 10px;
-padding: 13px 16px; background: none; border: none;
-width: 100%; font-family: var(–mono); font-size: 12px;
-color: var(–text); cursor: pointer; text-align: left;
-transition: background .12s;
-}
-.dmi + .dmi { border-top: 1px solid var(–bdr); }
-.dmi:hover { background: var(–surf); }
-.dmi svg { color: var(–cyan); flex-shrink: 0; }
-
-/* Delete button */
-#bdel {
-display: flex; align-items: center; justify-content: center;
-padding: 0 14px;
-background: var(–red); border: none;
-color: #fff; cursor: pointer;
-transition: opacity .15s;
-}
-#bdel:active { opacity: .7; }
-
-#upl { display: none; }
-
-/* ═══════════════════════════════════════
-EDITOR AREA
-═══════════════════════════════════════ */
-#eds { flex: 1; overflow: hidden; position: relative; }
-
-.ep { display: none; position: absolute; inset: 0; flex-direction: row; }
-.ep.on { display: flex; }
-
-/* Gutter */
-.gut {
-width: var(–gw); flex-shrink: 0;
-background: var(–panel);
-border-right: 1px solid var(–bdr);
-overflow: hidden;
--webkit-user-select: none; user-select: none;
-pointer-events: none;
-}
-.gi { padding-top: var(–pt); }
-.ln {
-height: var(–lh); line-height: var(–lh);
-text-align: right; padding-right: 8px;
-color: var(–muted); font-size: 10.5px;
-font-family: var(–mono);
-}
-
-/* Scroll container — single overflow parent, no drift */
-.esc {
-flex: 1;
-overflow-x: hidden;
-overflow-y: auto;
--webkit-overflow-scrolling: touch;
-position: relative;
-background: var(–bg);
-}
-.esc::-webkit-scrollbar { width: 4px; }
-.esc::-webkit-scrollbar-thumb { background: var(–bdr2); border-radius: 4px; }
-
-/* Highlight layer + Textarea share IDENTICAL geometry */
-.hlp, .ta {
-position: absolute; top: 0; left: 0;
-width: 100%;
-padding: var(–pt) 12px 120px;
-font-family: var(–mono); font-size: var(–fs);
-line-height: var(–lh);
-tab-size: 2;
-white-space: pre-wrap;
-word-break: break-all;
-overflow-wrap: anywhere;
-border: none; outline: none; margin: 0;
-}
-.hlp {
-pointer-events: none;
-color: var(–text);
-z-index: 1; overflow: hidden;
-}
-.ta {
-background: transparent;
-color: transparent;
-caret-color: #c8d0eb;
-resize: none; z-index: 2;
--webkit-user-select: text; user-select: text;
-}
-.ta::selection { background: rgba(76,142,247,.2); }
-
-/* ═══════════════════════════════════════
-PREVIEW
-═══════════════════════════════════════ */
-#pov {
-display: none; position: fixed; inset: 0;
-background: rgba(0,0,0,.92); z-index: 400;
-flex-direction: column;
-}
-#pov.open { display: flex; }
-#pbar {
-display: flex; align-items: center; gap: 10px;
-padding: 10px 14px;
-background: var(–panel); border-bottom: 1px solid var(–bdr);
-flex-shrink: 0;
-}
-#ptitle { flex: 1; font-family: var(–sans); font-size: 13px; font-weight: 800; color: var(–green); }
-#pcls {
-background: var(–surf); border: 1px solid var(–bdr2);
-color: var(–dim); border-radius: 7px;
-padding: 6px 14px; cursor: pointer;
-font-family: var(–sans); font-size: 11px; font-weight: 800;
-transition: color .15s, border-color .15s;
-}
-#pcls:hover { color: var(–red); border-color: var(–red); }
-#pfr { flex: 1; border: none; background: #fff; }
-
-/* ═══════════════════════════════════════
-TOAST
-═══════════════════════════════════════ */
-#tst {
-position: fixed; bottom: 26px; left: 50%;
-transform: translateX(-50%) translateY(12px);
-background: var(–green); color: #061209;
-padding: 10px 22px; border-radius: 99px;
-font-family: var(–sans); font-size: 12px; font-weight: 800;
-opacity: 0; transition: opacity .22s, transform .22s;
-pointer-events: none; z-index: 999; white-space: nowrap;
-}
-#tst.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ═══════════════════════════════════════
-SYNTAX TOKEN SPANS
-═══════════════════════════════════════ */
-/* shared */
-.t-cmt  { color: var(–t-cmt); font-style: italic; }
-.t-str  { color: var(–t-str); }
-.t-num  { color: var(–t-num); }
-
-/* html */
-.t-dtd  { color: var(–t-cmt); }         /* <!DOCTYPE */
-.t-tag  { color: var(--t-tag); }          /* <div */
-.t-clo  { color: var(--t-tag); }          /* </ */
-.t-attr { color: var(--t-attr); }         /* href */
-.t-val  { color: var(--t-val); }          /* "..." */
-.t-ent  { color: var(--t-num); }          /* &amp; */
-.t-pun  { color: var(--t-op); }           /* < > = */
-
-/* css */
-.t-at   { color: var(–t-at); }
-.t-sel  { color: var(–t-sel); }
-.t-prop { color: var(–t-prop); }
-.t-unit { color: var(–t-unit); }
-.t-cfn  { color: var(–t-fn); }           /* rgba() calc() */
-.t-hex  { color: var(–t-val); }          /* #abc123 */
-.t-var  { color: var(–t-var); }          /* –custom-var */
-.t-imp  { color: var(–t-kw); }           /* !important */
-
-/* js */
-.t-kw   { color: var(–t-kw); }
-.t-kw2  { color: var(–t-kw2); }          /* return throw yield */
-.t-bool { color: var(–t-bool); }
-.t-fn   { color: var(–t-fn); }
-.t-cls  { color: var(–t-cls); }          /* ClassName after new/extends */
-.t-rx   { color: var(–t-rx); }           /* /regex/ */
-.t-tpl  { color: var(–t-str); }          /* `template` */
-.t-op   { color: var(–t-op); }           /* === !== && || */
-.t-punc { color: var(–dim); }            /* { } ( ) ; , */
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobil Kod Editörü</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+        
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .editor-font {
+            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .editor-container {
+            position: relative;
+            height: calc(100vh - 180px);
+            overflow: hidden;
+        }
+        
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50px;
+            height: 100%;
+            background: #1e1e1e;
+            color: #858585;
+            text-align: right;
+            padding: 16px 10px;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow: hidden;
+            user-select: none;
+            border-right: 1px solid #333;
+            z-index: 10;
+        }
+        
+        .code-area {
+            position: absolute;
+            left: 50px;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background: #282c34;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .code-input {
+            width: 100%;
+            min-height: 100%;
+            padding: 16px;
+            background: transparent;
+            color: #abb2bf;
+            border: none;
+            resize: none;
+            outline: none;
+            white-space: pre;
+            overflow-wrap: normal;
+            tab-size: 2;
+            caret-color: #528bff;
+        }
+        
+        .tab-active {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .tab-inactive {
+            background: #374151;
+            color: #9ca3af;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .glass-panel {
+            background: rgba(31, 41, 55, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-slide-down {
+            animation: slideDown 0.2s ease-out;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 3px;
+        }
+        
+        .context-menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .context-menu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 12px;
+            padding: 8px 0;
+            z-index: 1000;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
+            min-width: 200px;
+        }
+        
+        .context-menu-item {
+            padding: 14px 20px;
+            color: #e5e7eb;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+        }
+        
+        .context-menu-item:hover {
+            background: #4b5563;
+        }
+        
+        .context-menu-item:active {
+            background: #3b82f6;
+        }
+        
+        .run-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            min-width: 180px;
+            z-index: 50;
+        }
+        
+        .run-menu-item {
+            padding: 12px 16px;
+            color: #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .run-menu-item:hover {
+            background: #4b5563;
+        }
+        
+        .run-menu-item:active {
+            background: #3b82f6;
+        }
+        
+        .filename-input {
+            background: #1f2937;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #e5e7eb;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .filename-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        @media (max-width: 640px) {
+            .editor-font {
+                font-size: 13px;
+            }
+            .line-numbers {
+                width: 40px;
+                padding: 12px 8px;
+                font-size: 13px;
+            }
+            .code-area {
+                left: 40px;
+            }
+        }
+        
+        .hidden { display: none !important; }
+    </style>
 </head>
-<body>
+<body class="bg-gray-900 text-gray-100 h-screen overflow-hidden flex flex-col">
 
-<!-- ROW 1: filename + upload + save -->
+    <!-- Top Bar -->
+    <header class="glass-panel border-b border-gray-700 p-3 flex flex-col gap-3 shrink-0 z-20">
+        <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+                <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <input type="text" id="filename" placeholder="Dosya adı gir (örn: index)" 
+                       class="filename-input flex-1 min-w-0" value="">
+            </div>
+            
+            <div class="flex items-center gap-2 shrink-0">
+                <button onclick="loadFile()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                    Yükle
+                </button>
+                <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden" onchange="handleFileLoad(event)">
+                
+                <button onclick="saveFile()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                    </svg>
+                    Kaydet
+                </button>
+            </div>
+        </div>
 
-<div id="row1">
-  <div id="file-icon">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-  </div>
-  <input id="fname" type="text" placeholder="Dosya adı gir" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">
-  <button class="r1btn" id="bload" onclick="document.getElementById('upl').click()">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-    Yükle
-  </button>
-  <button class="r1btn" id="bsave" onclick="doSave()">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    Kaydet
-  </button>
-  <input type="file" id="upl" accept=".html,.css,.js,.txt" onchange="doLoad(event)">
-</div>
+        <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-1">
+                <button onclick="switchTab('html')" id="tab-html" class="tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                    HTML
+                </button>
+                <button onclick="switchTab('css')" id="tab-css" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    CSS
+                </button>
+                <button onclick="switchTab('js')" id="tab-js" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                    JS
+                </button>
+            </div>
+            
+            <div class="relative shrink-0">
+                <button onclick="toggleRunMenu()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Çalıştır
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                
+                <div id="runMenu" class="run-menu hidden animate-slide-down">
+                    <div class="run-menu-item" onclick="runCode('popup')">
+                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                        </svg>
+                        <div>
+                            <div class="font-medium">Popup Görüntüle</div>
+                            <div class="text-xs text-gray-400">Alt pencerede önizle</div>
+                        </div>
+                    </div>
+                    <div class="run-menu-item" onclick="runCode('newtab')">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                        <div>
+                            <div class="font-medium">Yeni Sekme</div>
+                            <div class="text-xs text-gray-400">Yeni sekmede aç</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="clearCode()" class="btn-danger text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform shrink-0" title="Kodu Temizle">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
 
-<!-- ROW 2: tabs + run + delete -->
+    <!-- Editor Area -->
+    <main class="flex-1 relative overflow-hidden" id="mainContainer">
+        <div class="editor-container" id="editorContainer">
+            <div class="line-numbers editor-font" id="lineNumbers">1</div>
+            <div class="code-area custom-scrollbar">
+                <textarea id="editor" class="code-input editor-font" spellcheck="false" 
+                          oninput="updateCode()" onscroll="syncScroll()" 
+                          onkeydown="handleKeydown(event)"
+                          oncontextmenu="showContextMenu(event)"></textarea>
+            </div>
+        </div>
+    </main>
 
-<div id="row2">
-  <div class="ltab on" data-l="html" onclick="switchTab('html')"><span class="dot"></span>HTML</div>
-  <div class="ltab"    data-l="css"  onclick="switchTab('css')"><span class="dot"></span>CSS</div>
-  <div class="ltab"    data-l="js"   onclick="switchTab('js')"><span class="dot"></span>JS</div>
-  <div id="tab-spacer"></div>
-  <div id="run-wrap">
-    <button id="brun" onclick="runTab()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      Çalıştır
-    </button>
-    <button id="run-caret" onclick="toggleDrop(event)">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-    </button>
-    <div class="dmenu" id="dm">
-      <button class="dmi" onclick="runTab()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        Yeni Sekmede Aç
-      </button>
-      <button class="dmi" onclick="runPop()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
-        Popup Görüntüle
-      </button>
+    <!-- Preview Popup -->
+    <div id="previewModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-xl w-full max-w-4xl h-[80vh] flex flex-col shadow-2xl animate-slide-down">
+            <div class="flex items-center justify-between p-4 border-b border-gray-700">
+                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    Önizleme
+                </h3>
+                <button onclick="closePreview()" class="text-gray-400 hover:text-white transition-colors p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <iframe id="previewFrame" class="flex-1 w-full bg-white rounded-b-xl"></iframe>
+        </div>
     </div>
-  </div>
-  <button id="bdel" onclick="doClear()">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-  </button>
-</div>
 
-<!-- EDITORS -->
-
-<div id="eds">
-  <div class="ep on" id="ep-html">
-    <div class="gut" id="g-html"><div class="gi" id="gi-html"></div></div>
-    <div class="esc" id="es-html">
-      <pre class="hlp" id="hl-html" aria-hidden="true"></pre>
-      <textarea class="ta" id="ta-html" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="<!-- HTML buraya -->"></textarea>
+    <!-- Context Menu Overlay -->
+    <div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
+    
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu hidden">
+        <div class="context-menu-item" onclick="copyAll()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            Tümünü Kopyala
+        </div>
+        <div class="context-menu-item" onclick="pasteCode()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            Yapıştır
+        </div>
+        <div class="border-t border-gray-600 my-1"></div>
+        <div class="context-menu-item" onclick="selectAll()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+            </svg>
+            Tümünü Seç
+        </div>
     </div>
-  </div>
-  <div class="ep" id="ep-css">
-    <div class="gut" id="g-css"><div class="gi" id="gi-css"></div></div>
-    <div class="esc" id="es-css">
-      <pre class="hlp" id="hl-css" aria-hidden="true"></pre>
-      <textarea class="ta" id="ta-css" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="/* CSS buraya */"></textarea>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg border border-gray-700 hidden items-center gap-2 z-50">
+        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span id="toastMessage">İşlem başarılı</span>
     </div>
-  </div>
-  <div class="ep" id="ep-js">
-    <div class="gut" id="g-js"><div class="gi" id="gi-js"></div></div>
-    <div class="esc" id="es-js">
-      <pre class="hlp" id="hl-js" aria-hidden="true"></pre>
-      <textarea class="ta" id="ta-js" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="// JS buraya"></textarea>
-    </div>
-  </div>
-</div>
 
-<!-- PREVIEW -->
+    <script>
+        let currentTab = 'html';
+        const code = {
+            html: '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>',
+            css: '/* CSS kodunuzu buraya yazın */\n.container {\n  text-align: center;\n  padding: 20px;\n  font-family: Arial, sans-serif;\n}\n\nh1 {\n  color: #3b82f6;\n}',
+            js: '// JavaScript kodunuzu buraya yazın\nconsole.log("Merhaba Dünya!");\n\ndocument.querySelector("h1").addEventListener("click", function() {\n  alert("Tıklandı!");\n});'
+        };
 
-<div id="pov">
-  <div id="pbar">
-    <span id="ptitle">▶ Önizleme</span>
-    <button id="pcls" onclick="closePrev()">✕ Kapat</button>
-  </div>
-  <iframe id="pfr" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
-</div>
+        let initialHeight = window.innerHeight;
 
-<div id="tst"></div>
+        document.addEventListener('DOMContentLoaded', () => {
+            updateEditor();
+            updateLineNumbers();
+            
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.relative')) {
+                    document.getElementById('runMenu').classList.add('hidden');
+                }
+            });
 
-<script>
-/* ═══════════════════════════════════════════════════════════════
-   TOKENIZER — Genişletilmiş Regex Tabanlı Syntax Highlighter
-   ───────────────────────────────────────────────────────────────
-   Yaklaşım: "Priority-ordered replace pipeline"
-   Her token tipi için bir regex pattern tanımlanır.
-   Replace sırası kritiktir: daha geniş/öncelikli token'lar
-   (yorumlar, string'ler) önce işlenir ki içlerindeki
-   keyword/operator'lar yanlışlıkla renklenmesid.
+            let pressTimer;
+            const editor = document.getElementById('editor');
+            
+            editor.addEventListener('touchstart', (e) => {
+                pressTimer = setTimeout(() => {
+                    showContextMenu(e);
+                }, 800);
+            });
+            
+            editor.addEventListener('touchend', () => {
+                clearTimeout(pressTimer);
+            });
+            
+            editor.addEventListener('touchmove', () => {
+                clearTimeout(pressTimer);
+            });
 
-   Her span'e data-tok attribute ekliyoruz, böylece
-   sonraki replace'ler zaten işlenmiş span içini
-   tekrar eşleştirmiyor — bunun yerine negative lookahead
-   ve already-wrapped detection kullanıyoruz.
-═══════════════════════════════════════════════════════════════ */
+            window.addEventListener('resize', handleResize);
+        });
 
-// HTML entity encode — innerHTML injection için zorunlu
-const E = s =>
-  s.replace(/&/g, '&amp;')
-   .replace(/</g, '&lt;')
-   .replace(/>/g, '&gt;');
-
-// Span yardımcısı
-const sp = (cls, txt) => `<span class="${cls}">${txt}</span>`;
-
-/* ───────────────────────────────────────────────
-   TOKENIZER 1: HTML
-   Tokenlar (öncelik sırasıyla):
-     1. <!DOCTYPE ...>
-     2. <!-- yorum -->
-     3. <tagname  ve  </tagname
-     4. attr="value"  attr='value'  attr=value
-     5. HTML entity: &amp; &#160; vb.
-     6. > < = karakterleri (punctuation)
-─────────────────────────────────────────────── */
-function tokenizeHTML(raw) {
-  // Önce escape et
-  let s = E(raw);
-
-  // 1. DOCTYPE
-  s = s.replace(
-    /(&lt;!DOCTYPE[^&]*?&gt;)/gi,
-    m => sp('t-dtd', m)
-  );
-
-  // 2. Yorumlar: <!-- ... -->  (lazy, multiline)
-  s = s.replace(
-    /(&lt;!--[\s\S]*?--&gt;)/g,
-    m => sp('t-cmt', m)
-  );
-
-  // 3. Kapanış tag'i </tagname
-  s = s.replace(
-    /(&lt;\/)([\w:-]+)/g,
-    (_, slash, name) => sp('t-pun', slash) + sp('t-tag', name)
-  );
-
-  // 4. Açılış tag'i <tagname
-  s = s.replace(
-    /(?<!\/\*[\s\S]*)(&lt;)([\w:-]+)/g,
-    (_, lt, name) => sp('t-pun', lt) + sp('t-tag', name)
-  );
-
-  // 5. Attribute = "value"  veya  = 'value'
-  s = s.replace(
-    /([\w:-]+)(=)(&quot;(?:[^&]|&(?!quot;))*?&quot;|&#39;(?:[^&]|&(?!#39;))*?&#39;|"[^"]*"|'[^']*')/g,
-    (_, attr, eq, val) => sp('t-attr', attr) + sp('t-pun', eq) + sp('t-val', val)
-  );
-
-  // 6. Standalone attribute (no value): disabled, async, defer vb.
-  s = s.replace(
-    /(?<=<span class="t-tag">[\w:-]+<\/span>[^<]*?)\b([\w:-]+)\b(?!=)/g,
-    (_, attr) => sp('t-attr', attr)
-  );
-
-  // 7. HTML entities: &amp; &lt; &#160; vb.
-  s = s.replace(
-    /(&amp;(?:#\d+|#x[\da-fA-F]+|[a-zA-Z]\w*);)/g,
-    m => sp('t-ent', m)
-  );
-
-  // 8. > ve > kapanış
-  s = s.replace(/(&gt;)/g, m => sp('t-pun', m));
-
-  return s;
-}
-
-/* ───────────────────────────────────────────────
-   TOKENIZER 2: CSS
-   Tokenlar (öncelik sırasıyla):
-     1. /* yorum * /
-     2. String "..." '...'
-     3. @-rule: @media @keyframes @import vb.
-     4. CSS değişken tanımı: --my-var
-     5. CSS değişken kullanımı: var(--x)
-     6. !important
-     7. Selector blok: { öncesi
-     8. Property: value ayrımı (: öncesi)
-     9. Sayı + birim: 12px 2.5rem 100% vb.
-    10. Renk hex: #fff #1a2b3c
-    11. Fonksiyon: rgba( calc( vb.
-    12. Sayı (birimsiz)
-─────────────────────────────────────────────── */
-function tokenizeCSS(raw) {
-  let s = E(raw);
-
-  // 1. Blok yorumlar
-  s = s.replace(
-    /(\/\*[\s\S]*?\*\/)/g,
-    m => sp('t-cmt', m)
-  );
-
-  // 2. String'ler
-  s = s.replace(
-    /(["'])(?:\\.|(?!\1)[^\\])*?\1/g,
-    m => sp('t-str', m)
-  );
-
-  // 3. @-rules
-  s = s.replace(
-    /(@(?:media|keyframes|import|charset|supports|font-face|layer|namespace|page|counter-style|property|color-profile|viewport))\b/gi,
-    m => sp('t-at', m)
-  );
-
-  // 4. CSS custom properties tanımı: --var-name:
-  s = s.replace(
-    /(--[\w-]+)(\s*:)/g,
-    (_, v, colon) => sp('t-var', v) + sp('t-pun', colon)
-  );
-
-  // 5. var(--x) kullanımı
-  s = s.replace(
-    /\b(var)\((--[\w-]+)\)/g,
-    (_, fn, v) => sp('t-cfn', fn) + '(' + sp('t-var', v) + ')'
-  );
-
-  // 6. !important
-  s = s.replace(
-    /(!important)\b/gi,
-    m => sp('t-imp', m)
-  );
-
-  // 7. Selectors: { öncesi satır/blok
-  //    Birden fazla satır olabilir (virgüllü selector'lar)
-  s = s.replace(
-    /^([^{};@\/\n][^{};@\n]*?)(\s*\{)/gm,
-    (_, sel, brace) => sp('t-sel', sel) + sp('t-pun', brace)
-  );
-
-  // 8. Property: — iki nokta öncesi kelime (pseudo :: hariç)
-  //    Zaten işlenmiş --var satırlarını atla
-  s = s.replace(
-    /(?<![-\w])([\w-]+)(\s*)(:)(?!:)/g,
-    (m, prop, sp2, colon) => {
-      // Span içinde mi? Öyleyse atla
-      if (m.includes('<span')) return m;
-      return sp('t-prop', prop) + sp2 + sp('t-pun', colon);
-    }
-  );
-
-  // 9. Sayı + birim
-  const UNITS = 'px|em|rem|%|vh|vw|vmin|vmax|dvh|dvw|svh|svw|s|ms|deg|rad|turn|fr|ch|ex|pt|pc|cm|mm|in|lh|rlh|cap|ic|vi|vb';
-  s = s.replace(
-    new RegExp(`\\b(\\d*\\.?\\d+)(${UNITS})\\b`, 'g'),
-    (_, n, u) => sp('t-num', n) + sp('t-unit', u)
-  );
-
-  // 10. Hex renk
-  s = s.replace(
-    /#([0-9a-fA-F]{3,8})\b/g,
-    m => sp('t-hex', m)
-  );
-
-  // 11. CSS fonksiyonlar: rgba( hsl( linear-gradient( vb.
-  s = s.replace(
-    /\b(rgba?|hsla?|hwb|lab|lch|oklch|oklab|color|calc|clamp|min|max|env|url|format|local|blur|brightness|contrast|drop-shadow|grayscale|hue-rotate|invert|opacity|saturate|sepia|perspective|rotate[XYZ3d]*|scale[XY3d]*|translate[XY3d]*|skew[XY]*|matrix[3d]*|cubic-bezier|steps|linear-gradient|radial-gradient|conic-gradient|repeating-[\w-]+|counter|counters|attr|element|image|cross-fade|fit-content|minmax|repeat)\s*(?=\()/gi,
-    m => sp('t-cfn', m)
-  );
-
-  // 12. Birimsiz sayılar
-  s = s.replace(
-    /(?<![#\w-])(\b\d+\.?\d*)\b(?![\w%])/g,
-    m => sp('t-num', m)
-  );
-
-  return s;
-}
-
-/* ───────────────────────────────────────────────
-   TOKENIZER 3: JavaScript
-   Tokenlar (öncelik sırasıyla):
-     1.  /* blok yorum * /
-     2.  // satır yorum
-     3.  `template literal` (basit, iç içe expression yok)
-     4.  "string" ve 'string' (escape destekli)
-     5.  /regex/ literal (dikkatli: / operatöründen ayrılmalı)
-     6.  Keyword group A — kontrol: if else for while do switch...
-     7.  Keyword group B — tanım: const let var function class...
-     8.  Keyword group C — değer döndürme: return throw yield await
-     9.  Boolean/null/undefined/özel değerler
-    10.  new ClassName  ve  extends ClassName
-    11.  Fonksiyon çağrısı: identifier(
-    12.  Sayılar: int, float, hex, binary, octal, bigint, scientific
-    13.  Operatörler: === !== >= <= => ** ?? ?. vb.
-    14.  Noktalama: { } [ ] ( ) ; , .
-─────────────────────────────────────────────── */
-
-// Keyword setleri
-const KW_CTRL = new Set([
-  'if','else','for','while','do','switch','case','default',
-  'break','continue','try','catch','finally','with','in','of',
-  'instanceof','typeof','void','delete','debugger'
-]);
-const KW_DECL = new Set([
-  'const','let','var','function','class','async','static',
-  'get','set','export','import','from','as','extends','super',
-  'this','new'
-]);
-const KW_RET = new Set([
-  'return','throw','yield','await'
-]);
-const KW_VAL = new Set([
-  'true','false','null','undefined','NaN','Infinity','arguments','globalThis'
-]);
-
-function tokenizeJS(raw) {
-  // Güvenli bir tokenize için raw string'i token listesine çevireceğiz,
-  // sonra HTML'e render edeceğiz.
-  // Bu yaklaşım span-içi re-match sorununu tamamen çözer.
-
-  const tokens = []; // {type, value}
-  let i = 0;
-  const src = raw;
-  const len = src.length;
-
-  // Önceki anlamlı token ne idi? Regex/bölü kararı için lazım.
-  let prevType = null;
-
-  while (i < len) {
-    let m;
-
-    // ── 1. Whitespace / newline (renksiz, olduğu gibi)
-    m = src.slice(i).match(/^[\s]+/);
-    if (m) {
-      tokens.push({type:'ws', v: m[0]});
-      i += m[0].length;
-      continue;
-    }
-
-    // ── 2. Blok yorum /* ... */
-    m = src.slice(i).match(/^\/\*[\s\S]*?\*\//);
-    if (m) {
-      tokens.push({type:'cmt', v: m[0]});
-      i += m[0].length; prevType='cmt'; continue;
-    }
-
-    // ── 3. Satır yorum // ...
-    m = src.slice(i).match(/^\/\/[^\n]*/);
-    if (m) {
-      tokens.push({type:'cmt', v: m[0]});
-      i += m[0].length; prevType='cmt'; continue;
-    }
-
-    // ── 4. Template literal `...` (basit, ${} içini düz bırak)
-    if (src[i] === '`') {
-      let j = i + 1, val = '`';
-      while (j < len) {
-        if (src[j] === '\\') { val += src[j] + src[j+1]; j += 2; continue; }
-        if (src[j] === '`')  { val += '`'; j++; break; }
-        val += src[j++];
-      }
-      tokens.push({type:'tpl', v: val});
-      i = j; prevType='str'; continue;
-    }
-
-    // ── 5. String "..." veya '...'
-    if (src[i] === '"' || src[i] === "'") {
-      const q = src[i];
-      let j = i + 1, val = q;
-      while (j < len) {
-        if (src[j] === '\\') { val += src[j] + src[j+1]; j += 2; continue; }
-        if (src[j] === q)    { val += q; j++; break; }
-        if (src[j] === '\n') break; // unterminated
-        val += src[j++];
-      }
-      tokens.push({type:'str', v: val});
-      i = j; prevType='str'; continue;
-    }
-
-    // ── 6. Regex literal /pattern/flags
-    //    Sadece token sınırında regex olabilir:
-    //    Önceki token identifier/number/)/] ise bölme operatörüdür.
-    if (src[i] === '/' &&
-        src[i+1] !== '/' && src[i+1] !== '*' &&
-        !['id','num','str',')','bracket-close'].includes(prevType)) {
-      m = src.slice(i).match(/^\/(?![*\/])(?:\\.|[^\\/\n])*\/[gimsuy]*/);
-      if (m && m[0].length > 2) {
-        tokens.push({type:'rx', v: m[0]});
-        i += m[0].length; prevType='rx'; continue;
-      }
-    }
-
-    // ── 7. Sayılar (önce identifier'dan önce yakala)
-    m = src.slice(i).match(/^(?:0x[\da-fA-F_]+n?|0b[01_]+n?|0o[0-7_]+n?|\d[\d_]*\.?\d*(?:[eE][+-]?\d+)?n?|\.\d+(?:[eE][+-]?\d+)?)/i);
-    if (m) {
-      tokens.push({type:'num', v: m[0]});
-      i += m[0].length; prevType='num'; continue;
-    }
-
-    // ── 8. Identifier veya keyword
-    m = src.slice(i).match(/^[A-Za-z_$][\w$]*/);
-    if (m) {
-      const word = m[0];
-      let type = 'id';
-      if      (KW_CTRL.has(word)) type = 'kw';
-      else if (KW_DECL.has(word)) type = 'kw2';
-      else if (KW_RET.has(word))  type = 'kw3';
-      else if (KW_VAL.has(word))  type = 'bool';
-      tokens.push({type, v: word});
-      i += word.length; prevType = type; continue;
-    }
-
-    // ── 9. Operatörler (çok karakterli önce)
-    m = src.slice(i).match(/^(?:===|!==|>>>|<<=|>>=|>>>=|\*\*=|\?\?=|\?\.|\.\.\.|\*\*|&&|\|\||??|=>|[+\-*/%&|^~<>!]=?|=(?!=))/);
-    if (m) {
-      tokens.push({type:'op', v: m[0]});
-      i += m[0].length; prevType='op'; continue;
-    }
-
-    // ── 10. Noktalama
-    if ('{}[]();,.:?'.includes(src[i])) {
-      const closer = src[i] === ')' || src[i] === ']';
-      tokens.push({type: closer ? 'bracket-close' : 'punc', v: src[i]});
-      if (closer) prevType = 'bracket-close';
-      else prevType = 'punc';
-      i++; continue;
-    }
-
-    // ── 11. Diğer (tek karakter, renksiz)
-    tokens.push({type:'other', v: src[i]});
-    i++; prevType='other';
-  }
-
-  // Token listesini HTML'e dönüştür
-  // "new ClassName" ve "fn(" için lookahead burada yapılır
-  let html = '';
-  for (let t = 0; t < tokens.length; t++) {
-    const tok = tokens[t];
-    const v   = E(tok.v);
-
-    // Sonraki anlamlı token ne?
-    let nextId = null;
-    for (let k = t+1; k < tokens.length; k++) {
-      if (tokens[k].type !== 'ws') { nextId = tokens[k]; break; }
-    }
-
-    switch (tok.type) {
-      case 'cmt':  html += sp('t-cmt', v); break;
-      case 'str':  html += sp('t-str', v); break;
-      case 'tpl':  html += sp('t-tpl', v); break;
-      case 'rx':   html += sp('t-rx',  v); break;
-      case 'num':  html += sp('t-num', v); break;
-      case 'kw':   html += sp('t-kw',  v); break;
-      case 'kw2':
-        // new ClassName → class adını t-cls ile renklendir
-        if (tok.v === 'new' || tok.v === 'extends') {
-          html += sp('t-kw2', v);
-          // sonraki id'yi t-cls yap
-          for (let k = t+1; k < tokens.length; k++) {
-            if (tokens[k].type === 'ws') continue;
-            if (tokens[k].type === 'id') { tokens[k].type = 'cls'; }
-            break;
-          }
-        } else {
-          html += sp('t-kw2', v);
+        function handleResize() {
+            const currentHeight = window.innerHeight;
+            const editorContainer = document.getElementById('editorContainer');
+            const diff = initialHeight - currentHeight;
+            
+            if (diff > 100) {
+                editorContainer.style.height = (currentHeight - 140) + 'px';
+            } else {
+                editorContainer.style.height = 'calc(100vh - 180px)';
+            }
         }
-        break;
-      case 'kw3':  html += sp('t-kw2', v); break; // return/throw — orange
-      case 'bool': html += sp('t-bool', v); break;
-      case 'cls':  html += sp('t-cls',  v); break;
-      case 'id':
-        // Fonksiyon çağrısı: sonraki token ( ise
-        if (nextId && nextId.v === '(') {
-          html += sp('t-fn', v);
-        } else {
-          html += v; // sıradan değişken → renksiz (okunabilirlik)
+
+        function switchTab(tab) {
+            code[currentTab] = document.getElementById('editor').value;
+            
+            document.getElementById(`tab-${currentTab}`).classList.remove('tab-active');
+            document.getElementById(`tab-${currentTab}`).classList.add('tab-inactive');
+            
+            currentTab = tab;
+            
+            document.getElementById(`tab-${currentTab}`).classList.remove('tab-inactive');
+            document.getElementById(`tab-${currentTab}`).classList.add('tab-active');
+            
+            updateEditor();
         }
-        break;
-      case 'op':   html += sp('t-op',   v); break;
-      case 'punc':
-      case 'bracket-close':
-                   html += sp('t-punc', v); break;
-      case 'ws':   html += tok.v; break; // whitespace RAW (zaten güvenli)
-      default:     html += v; break;
-    }
-  }
-  return html;
-}
 
-/* ═══════════════════════════════════════════════════════════════
-   EDITOR ENGINE
-═══════════════════════════════════════════════════════════════ */
-const LH = 22, PT = 12;
-let cur = 'html';
-const HLF = { html: tokenizeHTML, css: tokenizeCSS, js: tokenizeJS };
+        function updateEditor() {
+            document.getElementById('editor').value = code[currentTab];
+            updateLineNumbers();
+        }
 
-function update(lang, ta) {
-  const hl  = document.getElementById('hl-' + lang);
-  const gi  = document.getElementById('gi-' + lang);
-  const gut = document.getElementById('g-'  + lang);
-  const es  = document.getElementById('es-' + lang);
-  const val = ta.value;
+        function updateCode() {
+            code[currentTab] = document.getElementById('editor').value;
+            updateLineNumbers();
+        }
 
-  // Highlight
-  hl.innerHTML = HLF[lang](val) + '\n';
+        function updateLineNumbers() {
+            const lines = document.getElementById('editor').value.split('\n').length;
+            const numbers = Array.from({length: lines}, (_, i) => i + 1).join('\n');
+            document.getElementById('lineNumbers').textContent = numbers;
+        }
 
-  // Textarea height = content height (prevents scroll drift)
-  ta.style.height = '1px';
-  const lines = (val.match(/\n/g) || []).length + 1;
-  const need  = Math.max(es.clientHeight, PT + lines * LH + 120);
-  ta.style.height = need + 'px';
-  hl.style.minHeight = need + 'px';
+        function syncScroll() {
+            const editor = document.getElementById('editor');
+            const lineNumbers = document.getElementById('lineNumbers');
+            lineNumbers.scrollTop = editor.scrollTop;
+        }
 
-  // Gutter lines
-  while (gi.children.length < lines) {
-    const d = document.createElement('div');
-    d.className = 'ln';
-    d.textContent = gi.children.length + 1;
-    gi.appendChild(d);
-  }
-  while (gi.children.length > lines) gi.removeChild(gi.lastChild);
+        function handleKeydown(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const editor = e.target;
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+                editor.selectionStart = editor.selectionEnd = start + 2;
+                updateCode();
+            }
+        }
 
-  // Gutter scroll sync
-  gut.scrollTop = es.scrollTop;
-}
+        function toggleRunMenu() {
+            const menu = document.getElementById('runMenu');
+            menu.classList.toggle('hidden');
+        }
 
-['html','css','js'].forEach(lang => {
-  const ta  = document.getElementById('ta-'  + lang);
-  const es  = document.getElementById('es-'  + lang);
-  const gut = document.getElementById('g-'   + lang);
-
-  ta.addEventListener('input', () => update(lang, ta));
-
-  ta.addEventListener('keydown', e => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const s = ta.selectionStart, end = ta.selectionEnd;
-      ta.value = ta.value.slice(0, s) + '  ' + ta.value.slice(end);
-      ta.selectionStart = ta.selectionEnd = s + 2;
-      update(lang, ta);
-    }
-  });
-
-  es.addEventListener('scroll', () => { gut.scrollTop = es.scrollTop; }, {passive:true});
-
-  // Long-press → copy all
-  let lpt;
-  const sLP = () => {
-    if (!ta.value.trim()) return;
-    lpt = setTimeout(() => {
-      navigator.clipboard.writeText(ta.value)
-        .then(() => toast('📋 Tümü kopyalandı'));
-    }, 650);
-  };
-  const eLP = () => clearTimeout(lpt);
-  ta.addEventListener('touchstart', sLP, {passive:true});
-  ta.addEventListener('touchend',   eLP);
-  ta.addEventListener('touchmove',  eLP);
-  ta.addEventListener('mousedown',  sLP);
-  ta.addEventListener('mouseup',    eLP);
-  ta.addEventListener('mouseleave', eLP);
-
-  update(lang, ta);
-});
-
-window.addEventListener('resize', () => {
-  update(cur, document.getElementById('ta-' + cur));
-});
-
-/* ═══════════════════════════════════════════════════════════════
-   TAB SWITCH
-═══════════════════════════════════════════════════════════════ */
-function switchTab(lang) {
-  cur = lang;
-  document.querySelectorAll('.ltab').forEach(t => t.classList.toggle('on', t.dataset.l === lang));
-  document.querySelectorAll('.ep').forEach(p => p.classList.toggle('on', p.id === 'ep-' + lang));
-  setTimeout(() => update(lang, document.getElementById('ta-' + lang)), 10);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   BUILD / SAVE / LOAD / CLEAR
-═══════════════════════════════════════════════════════════════ */
-function buildDoc() {
-  const h = document.getElementById('ta-html').value;
-  const c = document.getElementById('ta-css').value;
-  const j = document.getElementById('ta-js').value;
-  return `<!DOCTYPE html>
-<html lang="tr">
+        function runCode(mode) {
+            document.getElementById('runMenu').classList.add('hidden');
+            
+            const html = code.html;
+            const css = code.css;
+            const js = code.js;
+            
+            const fullCode = `<!DOCTYPE html>
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<style>${c}</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>${css}</style>
 </head>
 <body>
-${h}
-<script>${j}<\/script>
+    ${html}
+    <script>${js}<\/script>
 </body>
 </html>`;
-}
+            
+            if (mode === 'newtab') {
+                const blob = new Blob([fullCode], {type: 'text/html'});
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                showToast('Yeni sekmede açıldı');
+            } else {
+                const modal = document.getElementById('previewModal');
+                const frame = document.getElementById('previewFrame');
+                frame.srcdoc = fullCode;
+                modal.classList.remove('hidden');
+            }
+        }
 
-function doSave() {
-const nm = (document.getElementById(‘fname’).value.trim() || ‘deneme’);
-const fn = nm.endsWith(’.html’) ? nm : nm + ‘.html’;
-const blob = new Blob([buildDoc()], {type:‘text/html;charset=utf-8’});
-const url  = URL.createObjectURL(blob);
-const a = Object.assign(document.createElement(‘a’), {href:url, download:fn});
-document.body.appendChild(a); a.click(); document.body.removeChild(a);
-setTimeout(() => URL.revokeObjectURL(url), 1500);
-toast(‘💾 ’ + fn + ’ kaydedildi’);
-}
+        function closePreview() {
+            document.getElementById('previewModal').classList.add('hidden');
+        }
 
-function doLoad(e) {
-const file = e.target.files[0]; if (!file) return;
-const ext  = file.name.split(’.’).pop().toLowerCase();
-const lang = ext === ‘css’ ? ‘css’ : ext === ‘js’ ? ‘js’ : ‘html’;
-new Promise((res,rej) => {
-const r = new FileReader();
-r.onload = ev => res(ev.target.result);
-r.onerror = rej;
-r.readAsText(file);
-}).then(txt => {
-const ta = document.getElementById(‘ta-’ + lang);
-ta.value = txt;
-update(lang, ta);
-switchTab(lang);
-document.getElementById(‘fname’).value = file.name.replace(/.[^.]+$/, ‘’);
-toast(‘📂 Yüklendi’);
-});
-e.target.value = ‘’;
-}
+        function saveFile() {
+            let filename = document.getElementById('filename').value.trim();
+            if (!filename) filename = 'deneme';
+            if (!filename.endsWith('.html')) filename += '.html';
+            
+            const fullCode = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${filename}</title>
+    <style>
+${code.css}
+    </style>
+</head>
+<body>
+${code.html}
+    <script>
+${code.js}
+    <\/script>
+</body>
+</html>`;
+            
+            const blob = new Blob([fullCode], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast(`${filename} kaydedildi`);
+        }
 
-function doClear() {
-if (!confirm(‘Aktif sekmedeki kodu silmek istediğine emin misin?’)) return;
-const ta = document.getElementById(‘ta-’ + cur);
-ta.value = ‘’; update(cur, ta);
-}
+        function loadFile() {
+            document.getElementById('fileInput').click();
+        }
 
-/* ═══════════════════════════════════════════════════════════════
-RUN
-═══════════════════════════════════════════════════════════════ */
-function toggleDrop(e) {
-e.stopPropagation();
-document.getElementById(‘dm’).classList.toggle(‘open’);
-}
-document.addEventListener(‘click’, () => document.getElementById(‘dm’).classList.remove(‘open’));
-document.getElementById(‘dm’).addEventListener(‘click’, e => e.stopPropagation());
+        function handleFileLoad(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                
+                const htmlMatch = content.match(/<body>([\s\S]*?)<\/body>/i);
+                const cssMatch = content.match(/<style>([\s\S]*?)<\/style>/i);
+                const jsMatch = content.match(/<script>([\s\S]*?)<\/script>/i);
+                
+                if (htmlMatch) code.html = htmlMatch[1].trim();
+                if (cssMatch) code.css = cssMatch[1].trim();
+                if (jsMatch) code.js = jsMatch[1].trim();
+                
+                document.getElementById('filename').value = file.name.replace('.html', '');
+                
+                updateEditor();
+                showToast(`${file.name} yüklendi`);
+            };
+            reader.readAsText(file);
+        }
 
-function runTab() {
-document.getElementById(‘dm’).classList.remove(‘open’);
-const blob = new Blob([buildDoc()], {type:‘text/html’});
-const url  = URL.createObjectURL(blob);
-window.open(url, ‘_blank’);
-setTimeout(() => URL.revokeObjectURL(url), 4000);
-}
+        function clearCode() {
+            if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
+                code.html = '';
+                code.css = '';
+                code.js = '';
+                updateEditor();
+                showToast('Kodlar temizlendi');
+            }
+        }
 
-function runPop() {
-document.getElementById(‘dm’).classList.remove(‘open’);
-document.getElementById(‘pfr’).srcdoc = buildDoc();
-document.getElementById(‘pov’).classList.add(‘open’);
-}
+        function showContextMenu(e) {
+            e.preventDefault();
+            document.getElementById('contextMenuOverlay').classList.remove('hidden');
+            document.getElementById('contextMenu').classList.remove('hidden');
+        }
 
-function closePrev() {
-document.getElementById(‘pov’).classList.remove(‘open’);
-document.getElementById(‘pfr’).srcdoc = ‘’;
-}
+        function hideContextMenu() {
+            document.getElementById('contextMenuOverlay').classList.add('hidden');
+            document.getElementById('contextMenu').classList.add('hidden');
+        }
 
-document.getElementById(‘pov’).addEventListener(‘click’, function(e) {
-if (e.target === this) closePrev();
-});
+        function copyAll() {
+            const editor = document.getElementById('editor');
+            editor.select();
+            document.execCommand('copy');
+            hideContextMenu();
+            showToast('Kopyalandı');
+        }
 
-/* ═══════════════════════════════════════════════════════════════
-TOAST
-═══════════════════════════════════════════════════════════════ */
-let tt;
-function toast(msg) {
-const el = document.getElementById(‘tst’);
-el.textContent = msg; el.classList.add(‘show’);
-clearTimeout(tt); tt = setTimeout(() => el.classList.remove(‘show’), 2400);
-}
-</script>
+        function pasteCode() {
+            navigator.clipboard.readText().then(text => {
+                const editor = document.getElementById('editor');
+                const start = editor.selectionStart;
+                editor.value = editor.value.substring(0, start) + text + editor.value.substring(editor.selectionEnd);
+                editor.selectionStart = editor.selectionEnd = start + text.length;
+                updateCode();
+                hideContextMenu();
+                showToast('Yapıştırıldı');
+            }).catch(() => {
+                showToast('Yapıştırma başarısız');
+            });
+        }
 
+        function selectAll() {
+            document.getElementById('editor').select();
+            hideContextMenu();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 2000);
+        }
+    </script>
 </body>
 </html>
