@@ -116,8 +116,17 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
         .animate-slide-down {
             animation: slideDown 0.2s ease-out;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.2s ease-out;
         }
         
         .custom-scrollbar::-webkit-scrollbar {
@@ -221,6 +230,24 @@
             border-color: #3b82f6;
         }
         
+        /* Modal input özel stil */
+        .modal-input {
+            background: #111827;
+            border: 2px solid #374151;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        
+        .modal-input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        
         @media (max-width: 640px) {
             .editor-font {
                 font-size: 13px;
@@ -247,23 +274,12 @@
                 <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <!-- Dosya adı girişi başlangıçta gizli -->
-                <div id="filenameContainer" class="hidden flex-1 min-w-0 flex items-center gap-2">
-                    <input type="text" id="filename" placeholder="Dosya adı gir (örn: index)" 
-                           class="filename-input flex-1 min-w-0" value="">
-                    <button onclick="confirmSave()" class="btn-success text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
-                        Onayla
-                    </button>
-                    <button onclick="cancelSave()" class="bg-gray-600 text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
-                        İptal
-                    </button>
-                </div>
                 <span id="editorTitle" class="text-gray-300 text-sm truncate">Mobil Kod Editörü</span>
             </div>
             
             <div class="flex items-center gap-2 shrink-0">
-                <!-- Kaydet butonu - dosya adı girişini gösterir -->
-                <button onclick="showSaveInput()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                <!-- Kaydet butonu - popup açar -->
+                <button onclick="openSaveModal()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                     </svg>
@@ -372,179 +388,46 @@
         </div>
     </div>
 
-    <!-- Context Menu Overlay -->
-    <div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
-    
-    <!-- Context Menu -->
-    <div id="contextMenu" class="context-menu hidden">
-        <div class="context-menu-item" onclick="copyAll()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke82f6;
-        }
-        
-        .filename-input {
-            background: #1f2937;
-            border: 2px solid #374151;
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: #e5e7eb;
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-        
-        .filename-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-        
-        @media (max-width: 640px) {
-            .editor-font {
-                font-size: 13px;
-            }
-            .line-numbers {
-                width: 40px;
-                padding: 12px 8px;
-                font-size: 13px;
-            }
-            .code-area {
-                left: 40px;
-            }
-        }
-        
-        .hidden { display: none !important; }
-    </style>
-</head>
-<body class="bg-gray-900 text-gray-100 h-screen overflow-hidden flex flex-col">
-
-    <!-- Top Bar -->
-    <header class="glass-panel border-b border-gray-700 p-3 flex flex-col gap-3 shrink-0 z-20">
-        <div class="flex items-center gap-2 flex-wrap">
-            <div class="flex items-center gap-2 flex-1 min-w-0">
-                <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                <!-- Dosya adı girişi başlangıçta gizli -->
-                <div id="filenameContainer" class="hidden flex-1 min-w-0 flex items-center gap-2">
-                    <input type="text" id="filename" placeholder="Dosya adı gir (örn: index)" 
-                           class="filename-input flex-1 min-w-0" value="">
-                    <button onclick="confirmSave()" class="btn-success text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
-                        Onayla
-                    </button>
-                    <button onclick="cancelSave()" class="bg-gray-600 text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
-                        İptal
-                    </button>
-                </div>
-                <span id="editorTitle" class="text-gray-300 text-sm truncate">Mobil Kod Editörü</span>
-            </div>
-            
-            <div class="flex items-center gap-2 shrink-0">
-                <!-- Kaydet butonu - dosya adı girişini gösterir -->
-                <button onclick="showSaveInput()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- Save Modal - Ekran Ortasında Dosya Adı Girişi -->
+    <div id="saveModalOverlay" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center backdrop-blur-sm animate-fade-in">
+        <div class="bg-gray-800 rounded-2xl p-6 w-11/12 max-w-sm shadow-2xl border border-gray-700 animate-slide-down mx-4">
+            <!-- Icon ve Başlık -->
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full mb-4">
+                    <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                     </svg>
-                    Kaydet
-                </button>
-                
-                <button onclick="loadFile()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                    </svg>
-                    Yükle
-                </button>
-                <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden" onchange="handleFileLoad(event)">
-            </div>
-        </div>
-
-        <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-1">
-                <button onclick="switchTab('html')" id="tab-html" class="tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-                    HTML
-                </button>
-                <button onclick="switchTab('css')" id="tab-css" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                    CSS
-                </button>
-                <button onclick="switchTab('js')" id="tab-js" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
-                    JS
-                </button>
-            </div>
-            
-            <div class="relative shrink-0">
-                <button onclick="toggleRunMenu()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    Çalıştır
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                </button>
-                
-                <div id="runMenu" class="run-menu hidden animate-slide-down">
-                    <div class="run-menu-item" onclick="runCode('popup')">
-                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                        </svg>
-                        <div>
-                            <div class="font-medium">Popup Görüntüle</div>
-                            <div class="text-xs text-gray-400">Tam ekranda önizle</div>
-                        </div>
-                    </div>
-                    <div class="run-menu-item" onclick="runCode('newtab')">
-                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                        </svg>
-                        <div>
-                            <div class="font-medium">Yeni Sekme</div>
-                            <div class="text-xs text-gray-400">Yeni sekmede aç</div>
-                        </div>
-                    </div>
                 </div>
+                <h3 class="text-xl font-bold text-white mb-1">Dosyayı Kaydet</h3>
+                <p class="text-sm text-gray-400">HTML dosyası olarak indirin</p>
             </div>
             
-            <button onclick="clearCode()" class="btn-danger text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform shrink-0" title="Kodu Temizle">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                </svg>
-            </button>
-        </div>
-    </header>
-
-    <!-- Editor Area -->
-    <main class="flex-1 relative overflow-hidden" id="mainContainer">
-        <div class="editor-container" id="editorContainer">
-            <div class="line-numbers editor-font" id="lineNumbers">1</div>
-            <div class="code-area custom-scrollbar">
-                <textarea id="editor" class="code-input editor-font" spellcheck="false" 
-                          oninput="updateCode()" onscroll="syncScroll()" 
-                          onkeydown="handleKeydown(event)"
-                          oncontextmenu="showContextMenu(event)"></textarea>
+            <!-- Dosya Adı Input -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-300 mb-2 ml-1">Dosya Adı</label>
+                <div class="relative">
+                    <input type="text" id="saveFilename" placeholder="ornek-sayfa" 
+                           class="modal-input pr-16"
+                           onkeypress="if(event.key==='Enter') confirmSaveFromModal()">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">.html</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 ml-1">Dosya otomatik olarak .html uzantılı kaydedilecektir</p>
             </div>
-        </div>
-    </main>
-
-    <!-- Preview Popup - TAM EKRAN -->
-    <div id="previewModal" class="fixed inset-0 bg-black z-50 hidden flex flex-col">
-        <div class="bg-gray-800 w-full h-full flex flex-col shadow-2xl">
-            <div class="flex items-center justify-between p-3 border-b border-gray-700 shrink-0">
-                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            
+            <!-- Butonlar -->
+            <div class="flex gap-3">
+                <button onclick="closeSaveModal()" 
+                        class="flex-1 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white py-3.5 rounded-xl font-semibold transition-all active:scale-95">
+                    İptal
+                </button>
+                <button onclick="confirmSaveFromModal()" 
+                        class="flex-1 btn-success text-white py-3.5 rounded-xl font-semibold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-green-500/25">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg>
-                    Önizleme - Tam Ekran
-                </h3>
-                <button onclick="closePreview()" class="text-gray-400 hover:text-white transition-colors p-2 bg-gray-700 rounded-lg">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                    İndir
                 </button>
             </div>
-            <iframe id="previewFrame" class="flex-1 w-full bg-white"></iframe>
         </div>
     </div>
 
@@ -627,6 +510,13 @@
             
             // Sayfa kapatılırken veya yenilenirken kodları kaydet
             window.addEventListener('beforeunload', saveToStorage);
+            
+            // Modal dışına tıklayınca kapatma
+            document.getElementById('saveModalOverlay').addEventListener('click', (e) => {
+                if (e.target.id === 'saveModalOverlay') {
+                    closeSaveModal();
+                }
+            });
         });
 
         function handleResize() {
@@ -676,9 +566,12 @@
             saveToStorage(); // Her değişiklikte kaydet
         }
 
-        // Dosya kaydetme fonksiyonları
-        function showSaveInput() {
-            const filenameInput = document.getElementById('filename');
+        // ===== KAYDET MODAL FONKSİYONLARI =====
+        
+        // Kaydet modalını aç
+        function openSaveModal() {
+            const modal = document.getElementById('saveModalOverlay');
+            const filenameInput = document.getElementById('saveFilename');
             
             // Eğer dosya yüklendiyse otomatik doldur, değilse boş bırak
             if (loadedFilename) {
@@ -687,22 +580,43 @@
                 filenameInput.value = '';
             }
             
-            document.getElementById('filenameContainer').classList.remove('hidden');
-            document.getElementById('editorTitle').classList.add('hidden');
-            filenameInput.focus();
-        }
-
-        function cancelSave() {
-            document.getElementById('filenameContainer').classList.add('hidden');
-            document.getElementById('editorTitle').classList.remove('hidden');
-            document.getElementById('filename').value = '';
-        }
-
-        function confirmSave() {
-            let filename = document.getElementById('filename').value.trim();
-            if (!filename) filename = 'deneme';
-            if (!filename.endsWith('.html')) filename += '.html';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
             
+            // Input'a odaklan (mobilde klavye açılır)
+            setTimeout(() => filenameInput.focus(), 100);
+        }
+
+        // Kaydet modalını kapat
+        function closeSaveModal() {
+            const modal = document.getElementById('saveModalOverlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Modal'dan kaydet ve indir
+        function confirmSaveFromModal() {
+            let filename = document.getElementById('saveFilename').value.trim();
+            
+            // Dosya adı boşsa uyarı ver
+            if (!filename) {
+                showToast('Lütfen bir dosya adı girin');
+                document.getElementById('saveFilename').focus();
+                // Input'u sallama animasyonu
+                const input = document.getElementById('saveFilename');
+                input.style.transform = 'translateX(-5px)';
+                setTimeout(() => input.style.transform = 'translateX(5px)', 50);
+                setTimeout(() => input.style.transform = 'translateX(-5px)', 100);
+                setTimeout(() => input.style.transform = 'translateX(0)', 150);
+                return;
+            }
+            
+            // .html uzantısı ekle
+            if (!filename.endsWith('.html')) {
+                filename += '.html';
+            }
+            
+            // HTML, CSS ve JS'i birleştir
             const fullCode = `<!DOCTYPE html>
 <html>
 <head>
@@ -721,6 +635,7 @@ ${code.js}
 </body>
 </html>`;
             
+            // İndirme işlemi
             const blob = new Blob([fullCode], {type: 'text/html'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -729,8 +644,12 @@ ${code.js}
             a.click();
             URL.revokeObjectURL(url);
             
-            showToast(`${filename} kaydedildi`);
-            cancelSave();
+            // Yüklenen dosya adını güncelle
+            loadedFilename = filename.replace('.html', '');
+            saveToStorage();
+            
+            showToast(`${filename} indirildi`);
+            closeSaveModal();
         }
 
         function switchTab(tab) {
