@@ -61,6 +61,14 @@
             transition: background 0.3s ease, color 0.3s ease;
         }
 
+        /* ── Klavye Açıkken Body Sabitleme ── */
+        body.keyboard-open {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
         svg { display: block; flex-shrink: 0; }
 
         /* ── Header ── */
@@ -262,6 +270,7 @@
             width: 100%;
             height: 100%;
             padding: 16px;
+            padding-bottom: 80px; /* Klavye butonu için boşluk */
             background: var(--bg-secondary);
             color: var(--text-primary);
             border: none;
@@ -284,6 +293,43 @@
         .code-input::-webkit-scrollbar-thumb  { background: var(--border-color); border-radius: 4px; }
         .code-input::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
+        /* ── Klavye Kapatma Butonu ── */
+        .keyboard-close-btn {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-color);
+            padding: 12px 16px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            z-index: 1000;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: transform 0.3s ease;
+        }
+
+        .keyboard-close-btn.visible {
+            display: flex;
+        }
+
+        .keyboard-close-btn:active {
+            background: var(--border-color);
+        }
+
+        .keyboard-close-icon {
+            color: var(--text-primary);
+        }
+
+        .keyboard-close-text {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
         /* ── Hidden Copy Textarea ── */
         .hidden-copy-area {
             position: absolute;
@@ -299,6 +345,11 @@
             bottom: 24px;
             right: 24px;
             z-index: 100;
+            transition: bottom 0.3s ease;
+        }
+
+        .fab-container.keyboard-open {
+            bottom: 80px; /* Klavye butonu yüksekliği kadar yukarı */
         }
 
         .fab-main {
@@ -633,6 +684,11 @@
 
         .toast.open { display: flex; }
 
+        /* Klavye açıkken toast yukarıda */
+        body.keyboard-open .toast {
+            bottom: 160px;
+        }
+
         /* ── Animations ── */
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-8px); }
@@ -646,11 +702,13 @@
 
         /* ── Responsive ── */
         @media (max-width: 480px) {
-            .code-input { font-size: 13px; padding: 12px; }
+            .code-input { font-size: 13px; padding: 12px; padding-bottom: 80px; }
             .btn        { font-size: 13px; padding: 7px 12px; }
             .btn-sm     { font-size: 12px; padding: 5px 10px; }
             .fab-container { bottom: 20px; right: 20px; }
+            .fab-container.keyboard-open { bottom: 76px; }
             .fab-main { width: 52px; height: 52px; }
+            .keyboard-close-btn { padding: 10px 16px; }
         }
     </style>
 </head>
@@ -756,16 +814,26 @@
     <div class="code-area">
         <textarea id="editor" class="code-input" spellcheck="false"
                   oninput="updateCode()"
-                  onkeydown="handleKeydown(event)"></textarea>
+                  onkeydown="handleKeydown(event)"
+                  onfocus="onEditorFocus()"
+                  onblur="onEditorBlur()"></textarea>
     </div>
 </main>
 
 <!-- ══ HIDDEN COPY TEXTAREA (for copy without keyboard) ══ -->
 <textarea id="hiddenCopyArea" class="hidden-copy-area" readonly></textarea>
 
+<!-- ══ KLAVYE KAPATMA BUTONU ══ -->
+<div id="keyboardCloseBtn" class="keyboard-close-btn" onclick="closeKeyboard()">
+    <svg class="keyboard-close-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+    </svg>
+    <span class="keyboard-close-text">Klavyeyi Kapat</span>
+</div>
+
 <!-- ══ FLOATING ACTION BUTTON ══ -->
 <div class="fab-overlay" id="fabOverlay" onclick="toggleFabMenu()"></div>
-<div class="fab-container">
+<div class="fab-container" id="fabContainer">
     <div class="fab-menu" id="fabMenu">
         <div class="fab-menu-item" onclick="scrollToTop()">
             <div class="fab-menu-icon">
@@ -874,11 +942,22 @@
   <p>Mobil editöre hoş geldiniz.</p>
 </div>`;
     let isFabOpen = false;
+    let isKeyboardOpen = false;
 
     document.addEventListener('DOMContentLoaded', () => {
         loadFromStorage();
         updateEditor();
         updateFilenameDisplay();
+
+        // Klavye boyut değişikliklerini dinle
+        if ('visualViewport' in window) {
+            window.visualViewport.addEventListener('resize', handleVisualViewportChange);
+        }
+
+        // Focus/blur eventleri
+        const editor = document.getElementById('editor');
+        editor.addEventListener('focus', onEditorFocus);
+        editor.addEventListener('blur', onEditorBlur);
 
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.run-wrapper')) {
@@ -888,6 +967,119 @@
 
         window.addEventListener('beforeunload', saveToStorage);
     });
+
+    // Klavye Durum Yönetimi
+    function handleVisualViewportChange() {
+        if (!window.visualViewport) return;
+        
+        const viewportHeight = window.visualViewport.height;
+        const windowHeight = window.innerHeight;
+        const keyboardHeight = windowHeight - viewportHeight;
+        
+        // Klavye açık mı kontrol et (50px'den fazla fark varsa)
+        if (keyboardHeight > 50) {
+            if (!isKeyboardOpen) {
+                isKeyboardOpen = true;
+                onKeyboardOpen();
+            }
+        } else {
+            if (isKeyboardOpen) {
+                isKeyboardOpen = false;
+                onKeyboardClose();
+            }
+        }
+    }
+
+    function onEditorFocus() {
+        // iOS'ta visualViewport hemen güncellenmeyebilir, kısa gecikme ekle
+        setTimeout(() => {
+            if (window.visualViewport && window.innerHeight - window.visualViewport.height > 50) {
+                if (!isKeyboardOpen) {
+                    isKeyboardOpen = true;
+                    onKeyboardOpen();
+                }
+            } else {
+                // Android/iOS farklı davranabilir, manuel kontrol
+                onKeyboardOpen();
+            }
+        }, 100);
+    }
+
+    function onEditorBlur() {
+        // Blur hemen gerçekleşir, kısa gecikme ile kontrol et
+        setTimeout(() => {
+            const activeElement = document.activeElement;
+            if (activeElement !== document.getElementById('editor') && 
+                activeElement !== document.getElementById('saveFilename')) {
+                if (isKeyboardOpen) {
+                    isKeyboardOpen = false;
+                    onKeyboardClose();
+                }
+            }
+        }, 100);
+    }
+
+    function onKeyboardOpen() {
+        document.body.classList.add('keyboard-open');
+        document.getElementById('keyboardCloseBtn').classList.add('visible');
+        document.getElementById('fabContainer').classList.add('keyboard-open');
+        
+        // Scroll pozisyonunu koru
+        const editor = document.getElementById('editor');
+        const scrollTop = editor.scrollTop;
+        
+        // iOS'ta body sabitle
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.height = '100%';
+            document.body.style.top = `-${scrollTop}px`;
+        }
+    }
+
+    function onKeyboardClose() {
+        document.body.classList.remove('keyboard-open');
+        document.getElementById('keyboardCloseBtn').classList.remove('visible');
+        document.getElementById('fabContainer').classList.remove('keyboard-open');
+        
+        // iOS sabitlemesini kaldır
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            const scrollTop = Math.abs(parseInt(document.body.style.top || '0'));
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.height = '';
+            document.body.style.top = '';
+            window.scrollTo(0, scrollTop);
+        }
+    }
+
+    function closeKeyboard() {
+        const editor = document.getElementById('editor');
+        const saveInput = document.getElementById('saveFilename');
+        
+        // Aktif elementi blur et
+        if (document.activeElement === editor || document.activeElement === saveInput) {
+            document.activeElement.blur();
+        }
+        
+        // iOS'ta klavyeyi kapatmak için extra önlem
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            // Gizli bir input'a focus olup hemen blur olmak iOS'ta işe yarar
+            const tempInput = document.createElement('input');
+            tempInput.style.position = 'absolute';
+            tempInput.style.opacity = '0';
+            tempInput.style.pointerEvents = 'none';
+            document.body.appendChild(tempInput);
+            tempInput.focus();
+            setTimeout(() => {
+                tempInput.blur();
+                document.body.removeChild(tempInput);
+            }, 0);
+        }
+        
+        isKeyboardOpen = false;
+        onKeyboardClose();
+    }
 
     // FAB Functions
     function toggleFabMenu() {
@@ -1006,6 +1198,10 @@
 
     function closeSaveModal() {
         document.getElementById('saveModalOverlay').classList.remove('open');
+        // Klavye açıksa kapat
+        if (isKeyboardOpen) {
+            closeKeyboard();
+        }
     }
 
     function handleOverlayClick(e) {
