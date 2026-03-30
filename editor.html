@@ -1,126 +1,688 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HTML Editör</title>
-
-<style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-    }
-
-    header {
-        background: #111;
-        color: white;
-        padding: 10px;
-        text-align: center;
-        font-size: 18px;
-    }
-
-    .container {
-        display: flex;
-        flex: 1;
-        flex-direction: row;
-    }
-
-    textarea {
-        width: 50%;
-        height: 100%;
-        border: none;
-        padding: 10px;
-        font-family: monospace;
-        font-size: 14px;
-        resize: none;
-        outline: none;
-    }
-
-    iframe {
-        width: 50%;
-        height: 100%;
-        border: none;
-        background: white;
-    }
-
-    .buttons {
-        display: flex;
-        gap: 10px;
-        padding: 10px;
-        background: #f0f0f0;
-    }
-
-    button {
-        flex: 1;
-        padding: 10px;
-        font-size: 16px;
-        border: none;
-        background: #007bff;
-        color: white;
-        border-radius: 5px;
-    }
-
-    button:active {
-        background: #0056b3;
-    }
-
-    /* Mobil uyum */
-    @media (max-width: 768px) {
-        .container {
-            flex-direction: column;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobil Kod Editörü</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
         }
-
-        textarea, iframe {
+        
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
             width: 100%;
-            height: 50%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-    }
-</style>
+        
+        .editor-font {
+            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .editor-container {
+            position: relative;
+            height: calc(100vh - 140px);
+            overflow: hidden;
+        }
+        
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50px;
+            height: 100%;
+            background: #1e1e1e;
+            color: #858585;
+            text-align: right;
+            padding: 16px 10px;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow: hidden;
+            user-select: none;
+            border-right: 1px solid #333;
+            z-index: 10;
+        }
+        
+        .code-area {
+            position: absolute;
+            left: 50px;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background: #282c34;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .code-input {
+            width: 100%;
+            min-height: 100%;
+            padding: 16px;
+            background: transparent;
+            color: #abb2bf;
+            border: none;
+            resize: none;
+            outline: none;
+            white-space: pre;
+            overflow-wrap: normal;
+            tab-size: 2;
+            caret-color: #528bff;
+        }
+        
+        .tab-active {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .tab-inactive {
+            background: #374151;
+            color: #9ca3af;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .glass-panel {
+            background: rgba(31, 41, 55, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-slide-down {
+            animation: slideDown 0.2s ease-out;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 3px;
+        }
+        
+        .context-menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .context-menu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 12px;
+            padding: 8px 0;
+            z-index: 1000;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
+            min-width: 200px;
+        }
+        
+        .context-menu-item {
+            padding: 14px 20px;
+            color: #e5e7eb;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+        }
+        
+        .context-menu-item:hover {
+            background: #4b5563;
+        }
+        
+        .context-menu-item:active {
+            background: #3b82f6;
+        }
+        
+        .run-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            min-width: 180px;
+            z-index: 50;
+        }
+        
+        .run-menu-item {
+            padding: 12px 16px;
+            color: #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .run-menu-item:hover {
+            background: #4b5563;
+        }
+        
+        .run-menu-item:active {
+            background: #3b82f6;
+        }
+        
+        .filename-input {
+            background: #1f2937;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #e5e7eb;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .filename-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        @media (max-width: 640px) {
+            .editor-font {
+                font-size: 13px;
+            }
+            .line-numbers {
+                width: 40px;
+                padding: 12px 8px;
+                font-size: 13px;
+            }
+            .code-area {
+                left: 40px;
+            }
+        }
+        
+        .hidden { display: none !important; }
+    </style>
 </head>
+<body class="bg-gray-900 text-gray-100 h-screen overflow-hidden flex flex-col">
 
-<body>
+    <!-- Top Bar -->
+    <header class="glass-panel border-b border-gray-700 p-3 flex flex-col gap-3 shrink-0 z-20">
+        <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+                <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <!-- Dosya adı girişi başlangıçta gizli -->
+                <div id="filenameContainer" class="hidden flex-1 min-w-0 flex items-center gap-2">
+                    <input type="text" id="filename" placeholder="Dosya adı gir (örn: index)" 
+                           class="filename-input flex-1 min-w-0" value="">
+                    <button onclick="confirmSave()" class="btn-success text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                        Onayla
+                    </button>
+                    <button onclick="cancelSave()" class="bg-gray-600 text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                        İptal
+                    </button>
+                </div>
+                <span id="editorTitle" class="text-gray-300 text-sm truncate">Mobil Kod Editörü</span>
+            </div>
+            
+            <div class="flex items-center gap-2 shrink-0">
+                <!-- Kaydet butonu - dosya adı girişini gösterir -->
+                <button onclick="showSaveInput()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                    </svg>
+                    Kaydet
+                </button>
+                
+                <button onclick="loadFile()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                    Yükle
+                </button>
+                <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden" onchange="handleFileLoad(event)">
+            </div>
+        </div>
 
-<header>HTML Editör</header>
+        <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-1">
+                <button onclick="switchTab('html')" id="tab-html" class="tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                    HTML
+                </button>
+                <button onclick="switchTab('css')" id="tab-css" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    CSS
+                </button>
+                <button onclick="switchTab('js')" id="tab-js" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                    JS
+                </button>
+            </div>
+            
+            <div class="relative shrink-0">
+                <button onclick="toggleRunMenu()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Çalıştır
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                
+                <div id="runMenu" class="run-menu hidden animate-slide-down">
+                    <div class="run-menu-item" onclick="runCode('popup')">
+                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                        </svg>
+                        <div>
+                            <div class="font-medium">Popup Görüntüle</div>
+                            <div class="text-xs text-gray-400">Tam ekranda önizle</div>
+                        </div>
+                    </div>
+                    <div class="run-menu-item" onclick="runCode('newtab')">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                        <div>
+                            <div class="font-medium">Yeni Sekme</div>
+                            <div class="text-xs text-gray-400">Yeni sekmede aç</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="clearCode()" class="btn-danger text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform shrink-0" title="Kodu Temizle">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
 
-<div class="buttons">
-    <button onclick="calistir()">Çalıştır</button>
-    <button onclick="kaydet()">Kaydet (HTML)</button>
-</div>
+    <!-- Editor Area -->
+    <main class="flex-1 relative overflow-hidden" id="mainContainer">
+        <div class="editor-container" id="editorContainer">
+            <div class="line-numbers editor-font" id="lineNumbers">1</div>
+            <div class="code-area custom-scrollbar">
+                <textarea id="editor" class="code-input editor-font" spellcheck="false" 
+                          oninput="updateCode()" onscroll="syncScroll()" 
+                          onkeydown="handleKeydown(event)"
+                          oncontextmenu="showContextMenu(event)"></textarea>
+            </div>
+        </div>
+    </main>
 
-<div class="container">
-    <textarea id="editor"><!DOCTYPE html>
+    <!-- Preview Popup - TAM EKRAN -->
+    <div id="previewModal" class="fixed inset-0 bg-black z-50 hidden flex flex-col">
+        <div class="bg-gray-800 w-full h-full flex flex-col shadow-2xl">
+            <div class="flex items-center justify-between p-3 border-b border-gray-700 shrink-0">
+                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    Önizleme - Tam Ekran
+                </h3>
+                <button onclick="closePreview()" class="text-gray-400 hover:text-white transition-colors p-2 bg-gray-700 rounded-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <iframe id="previewFrame" class="flex-1 w-full bg-white"></iframe>
+        </div>
+    </div>
+
+    <!-- Context Menu Overlay -->
+    <div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
+    
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu hidden">
+        <div class="context-menu-item" onclick="copyAll()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            Tümünü Kopyala
+        </div>
+        <div class="context-menu-item" onclick="pasteCode()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            Yapıştır
+        </div>
+        <div class="border-t border-gray-600 my-1"></div>
+        <div class="context-menu-item" onclick="selectAll()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+            </svg>
+            Tümünü Seç
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg border border-gray-700 hidden items-center gap-2 z-50">
+        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span id="toastMessage">İşlem başarılı</span>
+    </div>
+
+    <script>
+        let currentTab = 'html';
+        const code = {
+            html: '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>',
+            css: '/* CSS kodunuzu buraya yazın */\n.container {\n  text-align: center;\n  padding: 20px;\n  font-family: Arial, sans-serif;\n}\n\nh1 {\n  color: #3b82f6;\n}',
+            js: '// JavaScript kodunuzu buraya yazın\nconsole.log("Merhaba Dünya!");\n\ndocument.querySelector("h1").addEventListener("click", function() {\n  alert("Tıklandı!");\n});'
+        };
+
+        let initialHeight = window.innerHeight;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateEditor();
+            updateLineNumbers();
+            
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.relative')) {
+                    document.getElementById('runMenu').classList.add('hidden');
+                }
+            });
+
+            let pressTimer;
+            const editor = document.getElementById('editor');
+            
+            editor.addEventListener('touchstart', (e) => {
+                pressTimer = setTimeout(() => {
+                    showContextMenu(e);
+                }, 800);
+            });
+            
+            editor.addEventListener('touchend', () => {
+                clearTimeout(pressTimer);
+            });
+            
+            editor.addEventListener('touchmove', () => {
+                clearTimeout(pressTimer);
+            });
+
+            window.addEventListener('resize', handleResize);
+        });
+
+        function handleResize() {
+            const currentHeight = window.innerHeight;
+            const editorContainer = document.getElementById('editorContainer');
+            const diff = initialHeight - currentHeight;
+            
+            if (diff > 100) {
+                editorContainer.style.height = (currentHeight - 140) + 'px';
+            } else {
+                editorContainer.style.height = 'calc(100vh - 140px)';
+            }
+        }
+
+        // Dosya kaydetme fonksiyonları
+        function showSaveInput() {
+            document.getElementById('filenameContainer').classList.remove('hidden');
+            document.getElementById('editorTitle').classList.add('hidden');
+            document.getElementById('filename').focus();
+        }
+
+        function cancelSave() {
+            document.getElementById('filenameContainer').classList.add('hidden');
+            document.getElementById('editorTitle').classList.remove('hidden');
+            document.getElementById('filename').value = '';
+        }
+
+        function confirmSave() {
+            let filename = document.getElementById('filename').value.trim();
+            if (!filename) filename = 'deneme';
+            if (!filename.endsWith('.html')) filename += '.html';
+            
+            const fullCode = `<!DOCTYPE html>
 <html>
 <head>
-<title>Örnek</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${filename}</title>
+    <style>
+${code.css}
+    </style>
 </head>
 <body>
-<h1>Merhaba Dünya</h1>
-<p>Buraya HTML yaz...</p>
+${code.html}
+    <script>
+${code.js}
+    <\/script>
 </body>
-</html></textarea>
+</html>`;
+            
+            const blob = new Blob([fullCode], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast(`${filename} kaydedildi`);
+            cancelSave();
+        }
 
-    <iframe id="preview"></iframe>
-</div>
+        function switchTab(tab) {
+            code[currentTab] = document.getElementById('editor').value;
+            
+            document.getElementById(`tab-${currentTab}`).classList.remove('tab-active');
+            document.getElementById(`tab-${currentTab}`).classList.add('tab-inactive');
+            
+            currentTab = tab;
+            
+            document.getElementById(`tab-${currentTab}`).classList.remove('tab-inactive');
+            document.getElementById(`tab-${currentTab}`).classList.add('tab-active');
+            
+            updateEditor();
+        }
 
-<script>
-function calistir() {
-    const kod = document.getElementById("editor").value;
-    const iframe = document.getElementById("preview");
-    iframe.srcdoc = kod;
-}
+        function updateEditor() {
+            document.getElementById('editor').value = code[currentTab];
+            updateLineNumbers();
+        }
 
-function kaydet() {
-    const kod = document.getElementById("editor").value;
-    const blob = new Blob([kod], { type: "text/html" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "kodum.html";
-    a.click();
-}
-</script>
+        function updateCode() {
+            code[currentTab] = document.getElementById('editor').value;
+            updateLineNumbers();
+        }
 
+        function updateLineNumbers() {
+            const lines = document.getElementById('editor').value.split('\n').length;
+            const numbers = Array.from({length: lines}, (_, i) => i + 1).join('\n');
+            document.getElementById('lineNumbers').textContent = numbers;
+        }
+
+        function syncScroll() {
+            const editor = document.getElementById('editor');
+            const lineNumbers = document.getElementById('lineNumbers');
+            lineNumbers.scrollTop = editor.scrollTop;
+        }
+
+        function handleKeydown(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const editor = e.target;
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+                editor.selectionStart = editor.selectionEnd = start + 2;
+                updateCode();
+            }
+        }
+
+        function toggleRunMenu() {
+            const menu = document.getElementById('runMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function runCode(mode) {
+            document.getElementById('runMenu').classList.add('hidden');
+            
+            const html = code.html;
+            const css = code.css;
+            const js = code.js;
+            
+            const fullCode = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>${css}</style>
+</head>
+<body>
+    ${html}
+    <script>${js}<\/script>
+</body>
+</html>`;
+            
+            if (mode === 'newtab') {
+                const blob = new Blob([fullCode], {type: 'text/html'});
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                showToast('Yeni sekmede açıldı');
+            } else {
+                const modal = document.getElementById('previewModal');
+                const frame = document.getElementById('previewFrame');
+                frame.srcdoc = fullCode;
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.add('hidden');
+        }
+
+        function loadFile() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileLoad(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                
+                const htmlMatch = content.match(/<body>([\s\S]*?)<\/body>/i);
+                const cssMatch = content.match(/<style>([\s\S]*?)<\/style>/i);
+                const jsMatch = content.match(/<script>([\s\S]*?)<\/script>/i);
+                
+                if (htmlMatch) code.html = htmlMatch[1].trim();
+                if (cssMatch) code.css = cssMatch[1].trim();
+                if (jsMatch) code.js = jsMatch[1].trim();
+                
+                document.getElementById('filename').value = file.name.replace('.html', '');
+                
+                updateEditor();
+                showToast(`${file.name} yüklendi`);
+            };
+            reader.readAsText(file);
+        }
+
+        function clearCode() {
+            if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
+                code.html = '';
+                code.css = '';
+                code.js = '';
+                updateEditor();
+                showToast('Kodlar temizlendi');
+            }
+        }
+
+        function showContextMenu(e) {
+            e.preventDefault();
+            document.getElementById('contextMenuOverlay').classList.remove('hidden');
+            document.getElementById('contextMenu').classList.remove('hidden');
+        }
+
+        function hideContextMenu() {
+            document.getElementById('contextMenuOverlay').classList.add('hidden');
+            document.getElementById('contextMenu').classList.add('hidden');
+        }
+
+        function copyAll() {
+            const editor = document.getElementById('editor');
+            editor.select();
+            document.execCommand('copy');
+            hideContextMenu();
+            showToast('Kopyalandı');
+        }
+
+        function pasteCode() {
+            navigator.clipboard.readText().then(text => {
+                const editor = document.getElementById('editor');
+                const start = editor.selectionStart;
+                editor.value = editor.value.substring(0, start) + text + editor.value.substring(editor.selectionEnd);
+                editor.selectionStart = editor.selectionEnd = start + text.length;
+                updateCode();
+                hideContextMenu();
+                showToast('Yapıştırıldı');
+            }).catch(() => {
+                showToast('Yapıştırma başarısız');
+            });
+        }
+
+        function selectAll() {
+            document.getElementById('editor').select();
+            hideContextMenu();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 2000);
+        }
+    </script>
 </body>
 </html>
