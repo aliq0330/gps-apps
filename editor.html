@@ -33,12 +33,15 @@
             background: #161b22;
             width: 100%;
             height: calc(100vh - 140px);
+            position: relative;
+            z-index: 1;
         }
         
         .code-input {
             width: 100%;
             height: 100%;
             padding: 16px;
+            padding-top: 80px; /* Extra padding for fixed header */
             background: #161b22;
             color: #c9d1d9;
             border: none;
@@ -50,6 +53,7 @@
             overflow-y: auto;
             tab-size: 2;
             caret-color: #58a6ff;
+            scroll-padding-top: 80px;
         }
         
         .tab-active {
@@ -111,6 +115,8 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid #30363d;
+            position: relative;
+            z-index: 100;
         }
         
         @keyframes slideDown {
@@ -245,6 +251,7 @@
             }
             .code-input {
                 padding: 12px;
+                padding-top: 70px; /* Smaller padding for mobile */
             }
             .code-area {
                 height: calc(100vh - 130px);
@@ -347,7 +354,7 @@
             <textarea id="editor" class="code-input editor-font custom-scrollbar" spellcheck="false" 
                       oninput="updateCode()" 
                       onkeydown="handleKeydown(event)"
-                      oncontextmenu="showContextMenu(event)"></textarea>
+n                      oncontextmenu="showContextMenu(event)"></textarea>
         </div>
     </main>
 
