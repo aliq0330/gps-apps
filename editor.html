@@ -7,636 +7,863 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
-    /* ── Reset ── */
-    *, *::before, *::after {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-        -webkit-touch-callout: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    /* ── Base ── */
-    html, body {
-        height: 100%;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        background: #0d1117;
-        color: #c9d1d9;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-
-    svg { display: block; flex-shrink: 0; }
-
-    /* ── Header ── */
-    .header {
-        background: rgba(13, 17, 23, 0.95);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid #30363d;
-        padding: 12px 16px;
-        flex-shrink: 0;
-        z-index: 40;
-    }
-
-    .header-top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-    }
-
-    .header-bottom {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid #30363d;
-    }
-
-    /* ── Tab ── */
-    .tab {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: default;
-        border: none;
-        white-space: nowrap;
-        font-family: inherit;
-        background: #238636;
-        color: white;
-        box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
-    }
-
-    .tab-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #ff7b72;
-        flex-shrink: 0;
-    }
-
-    /* ── Buttons ── */
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border: none;
-        cursor: pointer;
-        font-family: inherit;
-        font-weight: 500;
-        border-radius: 8px;
-        transition: all 0.2s;
-        white-space: nowrap;
-        font-size: 14px;
-        padding: 8px 16px;
-        color: white;
-    }
-
-    .btn:active { transform: scale(0.95); }
-
-    .btn-primary {
-        background: #1f6feb;
-        box-shadow: 0 2px 8px rgba(31, 111, 235, 0.3);
-        font-weight: 600;
-    }
-    .btn-primary:hover { background: #388bfd; }
-
-    .btn-success {
-        background: #238636;
-        box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
-    }
-    .btn-success:hover { background: #2ea043; }
-
-    .btn-secondary {
-        background: #21262d;
-        border: 1px solid #30363d;
-        color: #c9d1d9;
-    }
-    .btn-secondary:hover { background: #30363d; color: white; }
-
-    .btn-sm {
-        padding: 6px 12px;
-        font-size: 13px;
-    }
-
-    /* ── Action group ── */
-    .actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-shrink: 0;
-    }
-
-    /* ── File info ── */
-    .file-info {
-        display: flex;
-        align-items: center;
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-    }
-
-    .editor-title {
-        color: #8b949e;
-        font-size: 12px;
-        font-family: 'JetBrains Mono', monospace;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .editor-title.loaded { color: #58a6ff; }
-
-    /* ── Run dropdown ── */
-    .run-wrapper { position: relative; }
-
-    .run-menu {
-        position: absolute;
-        top: calc(100% + 8px);
-        right: 0;
-        background: #21262d;
-        border: 1px solid #30363d;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-        min-width: 200px;
-        z-index: 50;
-        display: none;
-    }
-
-    .run-menu.open {
-        display: block;
-        animation: slideDown 0.2s ease-out;
-    }
-
-    .run-menu-item {
-        padding: 14px 18px;
-        color: #c9d1d9;
-        cursor: pointer;
-        transition: all 0.15s;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .run-menu-item:hover { background: #30363d; color: #fff; }
-    .run-menu-item:active { background: #1f6feb; }
-
-    .run-menu-label {
-        font-size: 14px;
-        font-weight: 500;
-        line-height: 1.3;
-    }
-
-    .run-menu-desc {
-        font-size: 12px;
-        color: #8b949e;
-        margin-top: 2px;
-    }
-
-    .icon-purple { color: #a371f7; }
-    .icon-green  { color: #3fb950; }
-
-    /* ── Main / Editor ── */
-    main {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .code-area {
-        background: #161b22;
-        width: 100%;
-        flex: 1;
-        min-height: 0;
-    }
-
-    .code-input {
-        width: 100%;
-        height: 100%;
-        padding: 16px;
-        background: #161b22;
-        color: #c9d1d9;
-        border: none;
-        resize: none;
-        outline: none;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        overflow-x: hidden;
-        overflow-y: auto;
-        tab-size: 2;
-        caret-color: #58a6ff;
-        font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
-        font-size: 14px;
-        line-height: 1.7;
-    }
-
-    .code-input::-webkit-scrollbar        { width: 8px; height: 8px; }
-    .code-input::-webkit-scrollbar-track  { background: #161b22; }
-    .code-input::-webkit-scrollbar-thumb  { background: #30363d; border-radius: 4px; }
-    .code-input::-webkit-scrollbar-thumb:hover { background: #484f58; }
-
-    /* ── Preview Modal ── */
-    .preview-modal {
-        position: fixed;
-        inset: 0;
-        background: #0d1117;
-        z-index: 50;
-        display: none;
-        flex-direction: column;
-    }
-
-    .preview-modal.open { display: flex; }
-
-    .preview-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px;
-        border-bottom: 1px solid #30363d;
-        background: #161b22;
-        flex-shrink: 0;
-    }
-
-    .preview-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: white;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .preview-close {
-        background: none;
-        border: none;
-        color: #8b949e;
-        cursor: pointer;
-        padding: 8px;
-        border-radius: 8px;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .preview-close:hover { color: white; background: #30363d; }
-
-    .preview-frame {
-        flex: 1;
-        width: 100%;
-        background: white;
-        border: none;
-    }
-
-    /* ── Save Modal ── */
-    .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.8);
-        z-index: 50;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-    }
-
-    .modal-overlay.open {
-        display: flex;
-        animation: fadeIn 0.2s ease-out;
-    }
-
-    .modal-box {
-        background: #161b22;
-        border-radius: 16px;
-        padding: 24px;
-        width: 92%;
-        max-width: 380px;
-        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
-        border: 1px solid #30363d;
-        animation: slideDown 0.2s ease-out;
-    }
-
-    .modal-header {
-        text-align: center;
-        margin-bottom: 24px;
-    }
-
-    .modal-icon-wrap {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 56px;
-        height: 56px;
-        background: rgba(35, 134, 54, 0.2);
-        border-radius: 50%;
-        margin-bottom: 16px;
-    }
-
-    .modal-title {
-        font-size: 20px;
-        font-weight: 700;
-        color: white;
-        margin-bottom: 4px;
-    }
-
-    .modal-subtitle {
-        font-size: 14px;
-        color: #8b949e;
-    }
-
-    .modal-field { margin-bottom: 24px; }
-
-    .modal-label {
-        display: block;
-        font-size: 14px;
-        font-weight: 500;
-        color: #c9d1d9;
-        margin-bottom: 8px;
-        margin-left: 4px;
-    }
-
-    .modal-input-wrap { position: relative; }
-
-    .modal-input {
-        background: #0d1117;
-        border: 2px solid #30363d;
-        border-radius: 10px;
-        padding: 14px 60px 14px 18px;
-        color: #fff;
-        font-size: 16px;
-        font-family: inherit;
-        transition: all 0.2s;
-        width: 100%;
-    }
-
-    .modal-input:focus {
-        outline: none;
-        border-color: #238636;
-        box-shadow: 0 0 0 3px rgba(35, 134, 54, 0.15);
-    }
-
-    .modal-input-suffix {
-        position: absolute;
-        right: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #8b949e;
-        font-weight: 500;
-        pointer-events: none;
-        font-size: 14px;
-    }
-
-    .modal-actions {
-        display: flex;
-        gap: 12px;
-    }
-
-    .modal-btn {
-        flex: 1;
-        padding: 14px;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 600;
-        font-family: inherit;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        border: none;
-        color: white;
-    }
-
-    .modal-btn:active { transform: scale(0.95); }
-
-    .modal-btn-cancel {
-        background: #21262d;
-        border: 1px solid #30363d;
-    }
-    .modal-btn-cancel:hover { background: #30363d; }
-
-    .modal-btn-save {
-        background: #238636;
-        box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
-    }
-    .modal-btn-save:hover { background: #2ea043; }
-
-    /* ── Context Menu ── */
-    .context-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.6);
-        z-index: 999;
-        display: none;
-    }
-
-    .context-overlay.open { display: block; }
-
-    .context-menu {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #21262d;
-        border: 1px solid #30363d;
-        border-radius: 12px;
-        padding: 8px 0;
-        z-index: 1000;
-        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
-        min-width: 200px;
-        display: none;
-    }
-
-    .context-menu.open { display: block; }
-
-    .context-menu-item {
-        padding: 14px 20px;
-        color: #c9d1d9;
-        cursor: pointer;
-        transition: all 0.15s;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 15px;
-    }
-
-    .context-menu-item:hover { background: #30363d; color: #fff; }
-    .context-menu-item:active { background: #1f6feb; }
-
-    .context-divider {
-        border: none;
-        border-top: 1px solid #30363d;
-        margin: 4px 0;
-    }
-
-    /* ── Toast ── */
-    .toast {
-        position: fixed;
-        bottom: 16px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #21262d;
-        color: white;
-        padding: 12px 24px;
-        border-radius: 999px;
-        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
-        border: 1px solid #30363d;
-        display: none;
-        align-items: center;
-        gap: 8px;
-        z-index: 60;
-        white-space: nowrap;
-        font-size: 14px;
-    }
-
-    .toast.open { display: flex; }
-
-    /* ── Animations ── */
-    @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-8px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to   { opacity: 1; }
-    }
-
-    /* ── Responsive ── */
-    @media (max-width: 480px) {
-        .code-input { font-size: 13px; padding: 12px; }
-        .btn        { font-size: 13px; padding: 7px 12px; }
-        .btn-sm     { font-size: 12px; padding: 5px 10px; }
-    }
-</style>
-
+        /* ── Reset ── */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ── Theme Variables ── */
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-color: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent-blue: #1f6feb;
+            --accent-green: #238636;
+            --accent-purple: #a371f7;
+            --header-bg: rgba(13, 17, 23, 0.95);
+            --shadow: 0 20px 40px rgba(0,0,0,0.6);
+            --transition: all 0.3s ease;
+        }
+
+        :root[data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f6f8fa;
+            --bg-tertiary: #eaeef2;
+            --border-color: #d0d7de;
+            --text-primary: #24292f;
+            --text-secondary: #57606a;
+            --accent-blue: #0969da;
+            --accent-green: #1a7f37;
+            --accent-purple: #8250df;
+            --header-bg: rgba(255, 255, 255, 0.95);
+            --shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        /* ── Base ── */
+        html, body {
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        svg { display: block; flex-shrink: 0; }
+
+        /* ── Header ── */
+        .header {
+            background: var(--header-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 16px;
+            flex-shrink: 0;
+            z-index: 40;
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .header-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* ── Theme Toggle ── */
+        .theme-toggle {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-blue);
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .theme-icon {
+            position: absolute;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sun-icon {
+            opacity: 1;
+            transform: translateY(0) rotate(0deg);
+            color: #f0883e;
+        }
+
+        .moon-icon {
+            opacity: 0;
+            transform: translateY(20px) rotate(-90deg);
+            color: #58a6ff;
+        }
+
+        [data-theme="light"] .sun-icon {
+            opacity: 0;
+            transform: translateY(-20px) rotate(90deg);
+        }
+
+        [data-theme="light"] .moon-icon {
+            opacity: 1;
+            transform: translateY(0) rotate(0deg);
+        }
+
+        /* ── Tab ── */
+        .tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: default;
+            border: none;
+            white-space: nowrap;
+            font-family: inherit;
+            background: var(--accent-green);
+            color: white;
+            box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
+        }
+
+        .tab-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff7b72;
+            flex-shrink: 0;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-size: 14px;
+            padding: 8px 16px;
+            color: white;
+        }
+
+        .btn:active { transform: scale(0.95); }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            box-shadow: 0 2px 8px rgba(31, 111, 235, 0.3);
+            font-weight: 600;
+        }
+        .btn-primary:hover { background: #388bfd; }
+
+        .btn-success {
+            background: var(--accent-green);
+            box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
+        }
+        .btn-success:hover { background: #2ea043; }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover { background: var(--border-color); color: var(--text-primary); }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        /* ── Action group ── */
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        /* ── File info ── */
+        .file-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .editor-title {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .editor-title.loaded { color: var(--accent-blue); }
+
+        /* ── Run dropdown ── */
+        .run-wrapper { position: relative; }
+
+        .run-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            min-width: 200px;
+            z-index: 50;
+            display: none;
+        }
+
+        .run-menu.open {
+            display: block;
+            animation: slideDown 0.2s ease-out;
+        }
+
+        .run-menu-item {
+            padding: 14px 18px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .run-menu-item:hover { background: var(--border-color); color: var(--text-primary); }
+        .run-menu-item:active { background: var(--accent-blue); }
+
+        .run-menu-label {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.3;
+        }
+
+        .run-menu-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .icon-purple { color: var(--accent-purple); }
+        .icon-green  { color: #3fb950; }
+
+        /* ── Main / Editor ── */
+        main {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .code-area {
+            background: var(--bg-secondary);
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+            transition: background 0.3s ease;
+        }
+
+        .code-input {
+            width: 100%;
+            height: 100%;
+            padding: 16px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: none;
+            resize: none;
+            outline: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: hidden;
+            overflow-y: auto;
+            tab-size: 2;
+            caret-color: var(--accent-blue);
+            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.7;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .code-input::-webkit-scrollbar        { width: 8px; height: 8px; }
+        .code-input::-webkit-scrollbar-track  { background: var(--bg-secondary); }
+        .code-input::-webkit-scrollbar-thumb  { background: var(--border-color); border-radius: 4px; }
+        .code-input::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        /* ── Floating Action Button ── */
+        .fab-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+        }
+
+        .fab-main {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(31, 111, 235, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            z-index: 102;
+        }
+
+        .fab-main:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(31, 111, 235, 0.5);
+        }
+
+        .fab-main:active {
+            transform: scale(0.95);
+        }
+
+        .fab-main.active {
+            transform: rotate(45deg);
+            background: #da3633;
+            box-shadow: 0 4px 15px rgba(218, 54, 51, 0.4);
+        }
+
+        .fab-icon {
+            color: white;
+            transition: transform 0.3s ease;
+        }
+
+        /* ── FAB Menu ── */
+        .fab-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .fab-overlay.open {
+            display: block;
+            opacity: 1;
+        }
+
+        .fab-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+            opacity: 0;
+            transform: translateY(20px) scale(0.8);
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: bottom right;
+        }
+
+        .fab-menu.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+
+        .fab-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 12px 20px;
+            color: var(--text-primary);
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            transform: translateX(20px);
+            opacity: 0;
+        }
+
+        .fab-menu.open .fab-menu-item {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .fab-menu.open .fab-menu-item:nth-child(1) { transition-delay: 0.05s; }
+        .fab-menu.open .fab-menu-item:nth-child(2) { transition-delay: 0.1s; }
+        .fab-menu.open .fab-menu-item:nth-child(3) { transition-delay: 0.15s; }
+        .fab-menu.open .fab-menu-item:nth-child(4) { transition-delay: 0.2s; }
+
+        .fab-menu-item:hover {
+            background: var(--border-color);
+            transform: scale(1.05);
+        }
+
+        .fab-menu-item:active {
+            transform: scale(0.95);
+        }
+
+        .fab-menu-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab-menu-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* ── Preview Modal ── */
+        .preview-modal {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            z-index: 50;
+            display: none;
+            flex-direction: column;
+        }
+
+        .preview-modal.open { display: flex; }
+
+        .preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+        }
+
+        .preview-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-close:hover { color: var(--text-primary); background: var(--border-color); }
+
+        .preview-frame {
+            flex: 1;
+            width: 100%;
+            background: white;
+            border: none;
+        }
+
+        /* ── Save Modal ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.open {
+            display: flex;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-box {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            width: 92%;
+            max-width: 380px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+            border: 1px solid var(--border-color);
+            animation: slideDown 0.2s ease-out;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-icon-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            background: rgba(35, 134, 54, 0.2);
+            border-radius: 50%;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .modal-field { margin-bottom: 24px; }
+
+        .modal-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            margin-left: 4px;
+        }
+
+        .modal-input-wrap { position: relative; }
+
+        .modal-input {
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 60px 14px 18px;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(35, 134, 54, 0.15);
+        }
+
+        .modal-input-suffix {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-weight: 500;
+            pointer-events: none;
+            font-size: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+            color: white;
+        }
+
+        .modal-btn:active { transform: scale(0.95); }
+
+        .modal-btn-cancel {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .modal-btn-cancel:hover { background: var(--border-color); }
+
+        .modal-btn-save {
+            background: var(--accent-green);
+            box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
+        }
+        .modal-btn-save:hover { background: #2ea043; }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 999px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 60;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        .toast.open { display: flex; }
+
+        /* ── Animations ── */
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 480px) {
+            .code-input { font-size: 13px; padding: 12px; }
+            .btn        { font-size: 13px; padding: 7px 12px; }
+            .btn-sm     { font-size: 12px; padding: 5px 10px; }
+            .fab-container { bottom: 20px; right: 20px; }
+            .fab-main { width: 52px; height: 52px; }
+        }
+    </style>
 </head>
 
 <body>
 
 <!-- ══ HEADER ══ -->
-
 <header class="header">
+    <!-- Top row: tab + actions + theme toggle -->
+    <div class="header-top">
+        <div>
+            <span class="tab">
+                <span class="tab-dot"></span>
+                HTML
+            </span>
+        </div>
 
-<!-- Top row: tab + actions -->
-<div class="header-top">
-
-    <div>
-        <span class="tab">
-            <span class="tab-dot"></span>
-            HTML
-        </span>
-    </div>
-
-    <div class="actions">
-        <button onclick="clearCode()" class="btn btn-secondary">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-            </svg>
-            Temizle
-        </button>
-
-        <div class="run-wrapper">
-            <button onclick="toggleRunMenu()" class="btn btn-primary">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        <div class="actions">
+            <!-- Theme Toggle Button -->
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Tema Değiştir">
+                <svg class="theme-icon sun-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                 </svg>
-                Çalıştır
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                <svg class="theme-icon moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                 </svg>
             </button>
 
-            <div id="runMenu" class="run-menu">
-                <div class="run-menu-item" onclick="runCode('popup')">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                         class="icon-purple">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-                    </svg>
-                    <div>
-                        <div class="run-menu-label">Popup Görüntüle</div>
-                        <div class="run-menu-desc">Tam ekranda önizle</div>
-                    </div>
-                </div>
+            <button onclick="clearCode()" class="btn btn-secondary">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Temizle
+            </button>
 
-                <div class="run-menu-item" onclick="runCode('newtab')">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                         class="icon-green">
+            <div class="run-wrapper">
+                <button onclick="toggleRunMenu()" class="btn btn-primary">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <div>
-                        <div class="run-menu-label">Yeni Sekme</div>
-                        <div class="run-menu-desc">Yeni sekmede aç</div>
+                    Çalıştır
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                <div id="runMenu" class="run-menu">
+                    <div class="run-menu-item" onclick="runCode('popup')">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                             class="icon-purple">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                        </svg>
+                        <div>
+                            <div class="run-menu-label">Popup Görüntüle</div>
+                            <div class="run-menu-desc">Tam ekranda önizle</div>
+                        </div>
+                    </div>
+
+                    <div class="run-menu-item" onclick="runCode('newtab')">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                             class="icon-green">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                        <div>
+                            <div class="run-menu-label">Yeni Sekme</div>
+                            <div class="run-menu-desc">Yeni sekmede aç</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Bottom row: filename + file ops -->
-<div class="header-bottom">
-    <div class="file-info">
-        <span id="editorTitle" class="editor-title">Yeni Dosya</span>
+    <!-- Bottom row: filename + file ops -->
+    <div class="header-bottom">
+        <div class="file-info">
+            <span id="editorTitle" class="editor-title">Yeni Dosya</span>
+        </div>
+
+        <div class="actions">
+            <button onclick="openSaveModal()" class="btn btn-success btn-sm">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                </svg>
+                Kaydet
+            </button>
+
+            <button onclick="loadFile()" class="btn btn-secondary btn-sm">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+                Yükle
+            </button>
+
+            <input type="file" id="fileInput"
+                   accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md"
+                   style="display:none"
+                   onchange="handleFileLoad(event)">
+        </div>
     </div>
-
-    <div class="actions">
-        <button onclick="openSaveModal()" class="btn btn-success btn-sm">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
-            </svg>
-            Kaydet
-        </button>
-
-        <button onclick="loadFile()" class="btn btn-secondary btn-sm">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-            </svg>
-            Yükle
-        </button>
-
-        <input type="file" id="fileInput"
-               accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md"
-               style="display:none"
-               onchange="handleFileLoad(event)">
-    </div>
-</div>
-
 </header>
 
 <!-- ══ EDITOR ══ -->
-
 <main>
     <div class="code-area">
         <textarea id="editor" class="code-input" spellcheck="false"
                   oninput="updateCode()"
-                  onkeydown="handleKeydown(event)"
-                  oncontextmenu="showContextMenu(event)"></textarea>
+                  onkeydown="handleKeydown(event)"></textarea>
     </div>
 </main>
 
-<!-- ══ PREVIEW MODAL ══ -->
+<!-- ══ FLOATING ACTION BUTTON ══ -->
+<div class="fab-overlay" id="fabOverlay" onclick="toggleFabMenu()"></div>
+<div class="fab-container">
+    <div class="fab-menu" id="fabMenu">
+        <div class="fab-menu-item" onclick="scrollToTop()">
+            <div class="fab-menu-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                </svg>
+            </div>
+            <span class="fab-menu-text">Yukarı Çık</span>
+        </div>
+        <div class="fab-menu-item" onclick="copyAll()">
+            <div class="fab-menu-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            <span class="fab-menu-text">Tümünü Kopyala</span>
+        </div>
+        <div class="fab-menu-item" onclick="pasteCode()">
+            <div class="fab-menu-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+            </div>
+            <span class="fab-menu-text">Yapıştır</span>
+        </div>
+        <div class="fab-menu-item" onclick="selectAll()">
+            <div class="fab-menu-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                </svg>
+            </div>
+            <span class="fab-menu-text">Tümünü Seç</span>
+        </div>
+    </div>
+    
+    <button class="fab-main" id="fabMain" onclick="toggleFabMenu()" aria-label="Menü">
+        <svg class="fab-icon" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/>
+        </svg>
+    </button>
+</div>
 
+<!-- ══ PREVIEW MODAL ══ -->
 <div id="previewModal" class="preview-modal">
     <div class="preview-header">
         <div class="preview-title">
@@ -658,7 +885,6 @@
 </div>
 
 <!-- ══ SAVE MODAL ══ -->
-
 <div id="saveModalOverlay" class="modal-overlay" onclick="handleOverlayClick(event)">
     <div class="modal-box">
         <div class="modal-header">
@@ -672,64 +898,30 @@
             <div class="modal-subtitle">HTML dosyası olarak indirin</div>
         </div>
 
-    <div class="modal-field">
-        <label class="modal-label" for="saveFilename">Dosya Adı</label>
-        <div class="modal-input-wrap">
-            <input type="text" id="saveFilename" class="modal-input"
-                   placeholder="dosya-30.03.2026-20.29"
-                   onkeypress="if(event.key==='Enter') confirmSaveFromModal()">
-            <span class="modal-input-suffix">.html</span>
+        <div class="modal-field">
+            <label class="modal-label" for="saveFilename">Dosya Adı</label>
+            <div class="modal-input-wrap">
+                <input type="text" id="saveFilename" class="modal-input"
+                       placeholder="dosya-30.03.2026-20.29"
+                       onkeypress="if(event.key==='Enter') confirmSaveFromModal()">
+                <span class="modal-input-suffix">.html</span>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="closeSaveModal()" class="modal-btn modal-btn-cancel">İptal</button>
+            <button onclick="confirmSaveFromModal()" class="modal-btn modal-btn-save">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                İndir
+            </button>
         </div>
     </div>
-
-    <div class="modal-actions">
-        <button onclick="closeSaveModal()" class="modal-btn modal-btn-cancel">İptal</button>
-        <button onclick="confirmSaveFromModal()" class="modal-btn modal-btn-save">
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-            </svg>
-            İndir
-        </button>
-    </div>
-</div>
-
-</div>
-
-<!-- ══ CONTEXT MENU ══ -->
-
-<div id="contextOverlay" class="context-overlay" onclick="hideContextMenu()"></div>
-<div id="contextMenu" class="context-menu">
-    <div class="context-menu-item" onclick="copyAll()">
-        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-        </svg>
-        Tümünü Kopyala
-    </div>
-
-<div class="context-menu-item" onclick="pasteCode()">
-    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-    </svg>
-    Yapıştır
-</div>
-
-<hr class="context-divider">
-
-<div class="context-menu-item" onclick="selectAll()">
-    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-    </svg>
-    Tümünü Seç
-</div>
-
 </div>
 
 <!-- ══ TOAST ══ -->
-
 <div id="toast" class="toast">
     <svg width="20" height="20" fill="none" stroke="#3fb950" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -739,10 +931,12 @@
 
 <script>
     let loadedFilename = '';
-    let code = '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>';
+    let code = '<!-- HTML kodunuzu buraya yazın -->\\n<div class="container">\\n  <h1>Merhaba Dünya!</h1>\\n  <p>Mobil editöre hoş geldiniz.</p>\\n</div>';
+    let isFabOpen = false;
 
     document.addEventListener('DOMContentLoaded', () => {
         loadFromStorage();
+        loadTheme();
         updateEditor();
         updateFilenameDisplay();
 
@@ -752,15 +946,49 @@
             }
         });
 
-        let pressTimer;
-        const editor = document.getElementById('editor');
-        editor.addEventListener('touchstart', (e) => { pressTimer = setTimeout(() => showContextMenu(e), 800); });
-        editor.addEventListener('touchend',   () => clearTimeout(pressTimer));
-        editor.addEventListener('touchmove',  () => clearTimeout(pressTimer));
-
         window.addEventListener('beforeunload', saveToStorage);
     });
 
+    // Theme Functions
+    function loadTheme() {
+        const savedTheme = localStorage.getItem('editorTheme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('editorTheme', newTheme);
+        showToast(newTheme === 'dark' ? 'Koyu tema aktif' : 'Açık tema aktif');
+    }
+
+    // FAB Functions
+    function toggleFabMenu() {
+        isFabOpen = !isFabOpen;
+        const fabMain = document.getElementById('fabMain');
+        const fabMenu = document.getElementById('fabMenu');
+        const fabOverlay = document.getElementById('fabOverlay');
+        
+        if (isFabOpen) {
+            fabMain.classList.add('active');
+            fabMenu.classList.add('open');
+            fabOverlay.classList.add('open');
+        } else {
+            fabMain.classList.remove('active');
+            fabMenu.classList.remove('open');
+            fabOverlay.classList.remove('open');
+        }
+    }
+
+    function scrollToTop() {
+        const editor = document.getElementById('editor');
+        editor.scrollTo({ top: 0, behavior: 'smooth' });
+        toggleFabMenu();
+        showToast('Yukarı çıkıldı');
+    }
+
+    // Storage Functions
     function saveToStorage() {
         localStorage.setItem('mobilKodEditor', JSON.stringify({
             code, filename: loadedFilename, timestamp: new Date().toISOString()
@@ -820,7 +1048,7 @@
 
     function runCode(mode) {
         document.getElementById('runMenu').classList.remove('open');
-        const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n</head>\n<body>\n    ${code}\n</body>\n</html>`;
+        const full = `<!DOCTYPE html>\\n<html>\\n<head>\\n    <meta charset="UTF-8">\\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\\n</head>\\n<body>\\n    ${code}\\n</body>\\n</html>`;
         if (mode === 'newtab') {
             window.open(URL.createObjectURL(new Blob([full], {type:'text/html'})), '_blank');
             showToast('Yeni sekmede açıldı');
@@ -860,7 +1088,7 @@
             return;
         }
         if (!filename.endsWith('.html')) filename += '.html';
-        const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>${filename}</title>\n</head>\n<body>\n${code}\n</body>\n</html>`;
+        const full = `<!DOCTYPE html>\\n<html>\\n<head>\\n    <meta charset="UTF-8">\\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\\n    <title>${filename}</title>\\n</head>\\n<body>\\n${code}\\n</body>\\n</html>`;
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([full], {type:'text/html'}));
         a.download = filename;
@@ -878,7 +1106,7 @@
         const file = event.target.files[0];
         if (!file) return;
         event.target.value = '';
-        loadedFilename = file.name.replace(/\.[^/.]+$/, '');
+        loadedFilename = file.name.replace(/\\.[^/.]+$/, '');
         const reader = new FileReader();
         reader.onload  = (e) => { code = e.target.result; saveToStorage(); updateEditor(); updateFilenameDisplay(); showToast(file.name + ' yüklendi'); };
         reader.onerror = () => showToast('Dosya okunamadı');
@@ -893,21 +1121,10 @@
         }
     }
 
-    function showContextMenu(e) {
-        e.preventDefault();
-        document.getElementById('contextOverlay').classList.add('open');
-        document.getElementById('contextMenu').classList.add('open');
-    }
-
-    function hideContextMenu() {
-        document.getElementById('contextOverlay').classList.remove('open');
-        document.getElementById('contextMenu').classList.remove('open');
-    }
-
     function copyAll() {
         document.getElementById('editor').select();
         document.execCommand('copy');
-        hideContextMenu();
+        if (isFabOpen) toggleFabMenu();
         showToast('Kopyalandı');
     }
 
@@ -916,11 +1133,16 @@
             const el = document.getElementById('editor'), s = el.selectionStart;
             el.value = el.value.substring(0, s) + text + el.value.substring(el.selectionEnd);
             el.selectionStart = el.selectionEnd = s + text.length;
-            updateCode(); hideContextMenu(); showToast('Yapıştırıldı');
+            updateCode(); 
+            if (isFabOpen) toggleFabMenu(); 
+            showToast('Yapıştırıldı');
         }).catch(() => showToast('Yapıştırma başarısız'));
     }
 
-    function selectAll() { document.getElementById('editor').select(); hideContextMenu(); }
+    function selectAll() { 
+        document.getElementById('editor').select(); 
+        if (isFabOpen) toggleFabMenu();
+    }
 
     let toastTimer;
     function showToast(message) {
