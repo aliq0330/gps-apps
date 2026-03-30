@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -35,7 +34,7 @@
         
         .editor-container {
             position: relative;
-            height: calc(100vh - 180px);
+            height: calc(100vh - 140px);
             overflow: hidden;
         }
         
@@ -248,19 +247,29 @@
                 <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <input type="text" id="filename" placeholder="Dosya adı gir (örn: index)" 
-                       class="filename-input flex-1 min-w-0" value="">
+                <!-- Dosya adı girişi başlangıçta gizli -->
+                <div id="filenameContainer" class="hidden flex-1 min-w-0 flex items-center gap-2">
+                    <input type="text" id="filename" placeholder="Dosya adı gir (örn: index)" 
+                           class="filename-input flex-1 min-w-0" value="">
+                    <button onclick="confirmSave()" class="btn-success text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                        Onayla
+                    </button>
+                    <button onclick="cancelSave()" class="bg-gray-600 text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                        İptal
+                    </button>
+                </div>
+                <span id="editorTitle" class="text-gray-300 text-sm truncate">Mobil Kod Editörü</span>
             </div>
             
-            
-                <button onclick="saveFile()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+            <div class="flex items-center gap-2 shrink-0">
+                <!-- Kaydet butonu - dosya adı girişini gösterir -->
+                <button onclick="showSaveInput()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                     </svg>
                     Kaydet
                 </button>
                 
-                <div class="flex items-center gap-2 shrink-0">
                 <button onclick="loadFile()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -268,8 +277,6 @@
                     Yükle
                 </button>
                 <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden" onchange="handleFileLoad(event)">
-                
-                
             </div>
         </div>
 
@@ -308,7 +315,7 @@
                         </svg>
                         <div>
                             <div class="font-medium">Popup Görüntüle</div>
-                            <div class="text-xs text-gray-400">Alt pencerede önizle</div>
+                            <div class="text-xs text-gray-400">Tam ekranda önizle</div>
                         </div>
                     </div>
                     <div class="run-menu-item" onclick="runCode('newtab')">
@@ -344,24 +351,24 @@
         </div>
     </main>
 
-    <!-- Preview Popup -->
-    <div id="previewModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-gray-800 rounded-xl w-full max-w-4xl h-[80vh] flex flex-col shadow-2xl animate-slide-down">
-            <div class="flex items-center justify-between p-4 border-b border-gray-700">
+    <!-- Preview Popup - TAM EKRAN -->
+    <div id="previewModal" class="fixed inset-0 bg-black z-50 hidden flex flex-col">
+        <div class="bg-gray-800 w-full h-full flex flex-col shadow-2xl">
+            <div class="flex items-center justify-between p-3 border-b border-gray-700 shrink-0">
                 <h3 class="text-lg font-semibold text-white flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                     </svg>
-                    Önizleme
+                    Önizleme - Tam Ekran
                 </h3>
-                <button onclick="closePreview()" class="text-gray-400 hover:text-white transition-colors p-2">
+                <button onclick="closePreview()" class="text-gray-400 hover:text-white transition-colors p-2 bg-gray-700 rounded-lg">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </div>
-            <iframe id="previewFrame" class="flex-1 w-full bg-white rounded-b-xl"></iframe>
+            <iframe id="previewFrame" class="flex-1 w-full bg-white"></iframe>
         </div>
     </div>
 
@@ -447,8 +454,56 @@
             if (diff > 100) {
                 editorContainer.style.height = (currentHeight - 140) + 'px';
             } else {
-                editorContainer.style.height = 'calc(100vh - 180px)';
+                editorContainer.style.height = 'calc(100vh - 140px)';
             }
+        }
+
+        // Dosya kaydetme fonksiyonları
+        function showSaveInput() {
+            document.getElementById('filenameContainer').classList.remove('hidden');
+            document.getElementById('editorTitle').classList.add('hidden');
+            document.getElementById('filename').focus();
+        }
+
+        function cancelSave() {
+            document.getElementById('filenameContainer').classList.add('hidden');
+            document.getElementById('editorTitle').classList.remove('hidden');
+            document.getElementById('filename').value = '';
+        }
+
+        function confirmSave() {
+            let filename = document.getElementById('filename').value.trim();
+            if (!filename) filename = 'deneme';
+            if (!filename.endsWith('.html')) filename += '.html';
+            
+            const fullCode = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${filename}</title>
+    <style>
+${code.css}
+    </style>
+</head>
+<body>
+${code.html}
+    <script>
+${code.js}
+    <\/script>
+</body>
+</html>`;
+            
+            const blob = new Blob([fullCode], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast(`${filename} kaydedildi`);
+            cancelSave();
         }
 
         function switchTab(tab) {
@@ -539,40 +594,6 @@
 
         function closePreview() {
             document.getElementById('previewModal').classList.add('hidden');
-        }
-
-        function saveFile() {
-            let filename = document.getElementById('filename').value.trim();
-            if (!filename) filename = 'deneme';
-            if (!filename.endsWith('.html')) filename += '.html';
-            
-            const fullCode = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${filename}</title>
-    <style>
-${code.css}
-    </style>
-</head>
-<body>
-${code.html}
-    <script>
-${code.js}
-    <\/script>
-</body>
-</html>`;
-            
-            const blob = new Blob([fullCode], {type: 'text/html'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            showToast(`${filename} kaydedildi`);
         }
 
         function loadFile() {
