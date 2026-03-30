@@ -3,637 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobil Kod Editörü - Monaco</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Monaco Editor Loader -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <title>Mobil Kod Editörü</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+        :root { --bg: #282a36; --text: #f8f8f2; --accent: #6272a4; --active: #50fa7b; }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
         
-        * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        html, body {
-            height: 100%;
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        .tab-active {
-            background: #3b82f6;
-            color: white;
-        }
-        
-        .tab-inactive {
-            background: #374151;
-            color: #9ca3af;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-        
-        .glass-panel {
-            background: rgba(31, 41, 55, 0.98);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-        
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .animate-slide-down {
-            animation: slideDown 0.2s ease-out;
-        }
-        
-        .context-menu-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-        }
-        
-        .context-menu {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #374151;
-            border: 1px solid #4b5563;
-            border-radius: 12px;
-            padding: 8px 0;
-            z-index: 1000;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
-            min-width: 200px;
-        }
-        
-        .context-menu-item {
-            padding: 14px 20px;
-            color: #e5e7eb;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 16px;
-        }
-        
-        .context-menu-item:hover {
-            background: #4b5563;
-        }
-        
-        .context-menu-item:active {
-            background: #3b82f6;
-        }
-        
-        .run-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 8px;
-            background: #374151;
-            border: 1px solid #4b5563;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            min-width: 180px;
-            z-index: 50;
-        }
-        
-        .run-menu-item {
-            padding: 12px 16px;
-            color: #e5e7eb;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .run-menu-item:hover {
-            background: #4b5563;
-        }
-        
-        .run-menu-item:active {
-            background: #3b82f6;
-        }
-        
-        .filename-input {
-            background: #1f2937;
-            border: 2px solid #374151;
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: #e5e7eb;
-            font-size: 14px;
-            transition: border-color 0.2s;
-            width: 100%;
-        }
-        
-        .filename-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-        
-        #editor-container {
-            height: calc(100vh - 140px);
-            width: 100%;
-            overflow: hidden;
-        }
-        
-        @media (max-width: 640px) {
-            #editor-container {
-                height: calc(100vh - 130px);
-            }
-        }
-        
-        .hidden { display: none !important; }
-    </style>
-</head>
-<body class="bg-gray-900 text-gray-100 flex flex-col h-screen">
+        /* Üst Panel */
+        .toolbar { display: flex; align-items: center; gap: 8px; padding: 10px; background: #1e1f29; border-bottom: 1px solid #44475a; }
+        #fileNameInput { flex-grow: 1; background: #44475a; border: none; color: white; padding: 8px; border-radius: 4px; font-size: 14px; }
+        .btn { background: var(--accent); border: none; color: white; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn-run { background: var(--active); color: #282a36; font-weight: bold; }
 
-    <!-- Top Bar -->
-    <header class="glass-panel border-b border-gray-700 p-3 flex flex-col gap-3 shrink-0 z-20">
-        <div class="flex items-center gap-2">
-            <div class="flex items-center gap-2 flex-1 min-w-0">
-                <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                <input type="text" id="filename" placeholder="Dosya adı gir" 
-                       class="filename-input" value="">
-            </div>
-            
-            <div class="flex items-center gap-2 shrink-0">
-                <button onclick="loadFile()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                    </svg>
-                    Yükle
-                </button>
-                <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden" onchange="handleFileLoad(event)">
-                
-                <button onclick="saveFile()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-                    </svg>
-                    Kaydet
-                </button>
-            </div>
-        </div>
+        /* Sekmeler */
+        .tabs { display: flex; background: #1e1f29; }
+        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; border-bottom: 2px solid transparent; opacity: 0.6; transition: 0.3s; }
+        .tab.active { border-bottom: 2px solid var(--active); opacity: 1; background: var(--bg); }
 
-        <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-1 overflow-x-auto flex-1">
-                <button onclick="switchTab('html')" id="tab-html" class="tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-                    HTML
-                </button>
-                <button onclick="switchTab('css')" id="tab-css" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                    CSS
-                </button>
-                <button onclick="switchTab('js')" id="tab-js" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
-                    JS
-                </button>
-            </div>
-            
-            <div class="relative shrink-0">
-                <button onclick="toggleRunMenu()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    Çalıştır
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                </button>
-                
-                <div id="runMenu" class="run-menu hidden animate-slide-down">
-                    <div class="run-menu-item" onclick="runCode('popup')">
-                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                        </svg>
-                        <div>
-                            <div class="font-medium">Popup Görüntüle</div>
-                            <div class="text-xs text-gray-400">Alt pencerede önizle</div>
-                        </div>
-                    </div>
-                    <div class="run-menu-item" onclick="runCode('newtab')">
-                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                        </svg>
-                        <div>
-                            <div class="font-medium">Yeni Sekme</div>
-                            <div class="text-xs text-gray-400">Yeni sekmede aç</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <button onclick="clearCode()" class="btn-danger text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform shrink-0" title="Kodu Temizle">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                </svg>
-            </button>
-        </div>
-    </header>
+        /* Editör Alanı */
+        #editor-wrapper { flex-grow: 1; position: relative; font-size: 16px; overflow: hidden; }
+        .CodeMirror { height: 100% !important; width: 100% !important; }
 
-    <!-- Monaco Editor Container -->
-    <div id="editor-container"></div>
-
-    <!-- Preview Popup -->
-    <div id="previewModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-gray-800 rounded-xl w-full max-w-4xl h-[80vh] flex flex-col shadow-2xl animate-slide-down">
-            <div class="flex items-center justify-between p-4 border-b border-gray-700">
-                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                    </svg>
-                    Önizleme
-                </h3>
-                <button onclick="closePreview()" class="text-gray-400 hover:text-white transition-colors p-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-            <iframe id="previewFrame" class="flex-1 w-full bg-white rounded-b-xl"></iframe>
-        </div>
-    </div>
-
-    <!-- Context Menu Overlay -->
-    <div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
-    
-    <!-- Context Menu -->
-    <div id="contextMenu" class="context-menu hidden">
-        <div class="context-menu-item" onclick="copyAll()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-            </svg>
-            Tümünü Kopyala
-        </div>
-        <div class="context-menu-item" onclick="pasteCode()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-            </svg>
-            Yapıştır
-        </div>
-        <div class="border-t border-gray-600 my-1"></div>
-        <div class="context-menu-item" onclick="selectAll()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-            </svg>
-            Tümünü Seç
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg border border-gray-700 hidden items-center gap-2 z-50">
-        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        <span id="toastMessage">İşlem başarılı</span>
-    </div>
-
-    <script>
-        // State
-        let currentTab = 'html';
-        let editor = null;
-        
-        const code = {
-            html: '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>',
-            css: '/* CSS kodunuzu buraya yazın */\n.container {\n  text-align: center;\n  padding: 20px;\n  font-family: Arial, sans-serif;\n}\n\nh1 {\n  color: #3b82f6;\n}',
-            js: '// JavaScript kodunuzu buraya yazın\nconsole.log("Merhaba Dünya!");\n\ndocument.querySelector("h1").addEventListener("click", function() {\n  alert("Tıklandı!");\n});'
-        };
-
-        const langMap = {
-            html: 'html',
-            css: 'css',
-            js: 'javascript'
-        };
-
-        let initialHeight = window.innerHeight;
-
-        // Initialize Monaco
-        require.config({ 
-            paths: { 
-                'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' 
-            }
-        });
-
-        require(['vs/editor/editor.main'], function() {
-            // Define custom theme matching dark mode
-            monaco.editor.defineTheme('customDark', {
-                base: 'vs-dark',
-                inherit: true,
-                rules: [],
-                colors: {
-                    'editor.background': '#282c34',
-                    'editor.lineHighlightBackground': '#2c313a',
-                    'editorLineNumber.foreground': '#858585',
-                    'editorLineNumber.activeForeground': '#abb2bf',
-                }
-            });
-
-            createEditor();
-            
-            // Handle resize
-            window.addEventListener('resize', handleResize);
-        });
-
-        function createEditor() {
-            const container = document.getElementById('editor-container');
-            
-            if (editor) {
-                editor.dispose();
-            }
-
-            editor = monaco.editor.create(container, {
-                value: code[currentTab],
-                language: langMap[currentTab],
-                theme: 'customDark',
-                fontSize: 14,
-                fontFamily: 'JetBrains Mono, Consolas, Monaco, monospace',
-                lineNumbers: 'on',
-                roundedSelection: false,
-                scrollBeyondLastLine: false,
-                minimap: { enabled: false },
-                automaticLayout: true,
-                padding: { top: 16 },
-                lineHeight: 22,
-                renderLineHighlight: 'line',
-                selectOnLineNumbers: true,
-                wordWrap: 'on',
-                wrappingStrategy: 'advanced',
-                overviewRulerLanes: 0,
-                hideCursorInOverviewRuler: true,
-                scrollbar: {
-                    useShadows: false,
-                    verticalHasArrows: false,
-                    horizontalHasArrows: false,
-                    vertical: 'auto',
-                    horizontal: 'auto'
-                }
-            });
-
-            // Update code on change
-            editor.onDidChangeModelContent(() => {
-                code[currentTab] = editor.getValue();
-            });
-
-            // Context menu on long press
-            let pressTimer;
-            const editorDom = editor.getDomNode();
-            
-            editorDom.addEventListener('touchstart', (e) => {
-                pressTimer = setTimeout(() => {
-                    showContextMenu(e);
-                }, 999999999800);
-            });
-            
-            editorDom.addEventListener('touchend', () => {
-                clearTimeout(pressTimer);
-            });
-            
-            editorDom.addEventListener('touchmove', () => {
-                clearTimeout(pressTimer);
-            });
-        }
-
-        function handleResize() {
-            const currentHeight = window.innerHeight;
-            const container = document.getElementById('editor-container');
-            const diff = initialHeight - currentHeight;
-            
-            if (diff > 100) {
-                container.style.height = (currentHeight - 140) + 'px';
-            } else {
-                container.style.height = 'calc(100vh - 140px)';
-            }
-            
-            if (editor) {
-                editor.layout();
-            }
-        }
-
-        function switchTab(tab) {
-            if (editor) {
-                code[currentTab] = editor.getValue();
-            }
-            
-            document.getElementById(`tab-${currentTab}`).classList.remove('tab-active');
-            document.getElementById(`tab-${currentTab}`).classList.add('tab-inactive');
-            
-            currentTab = tab;
-            
-            document.getElementById(`tab-${currentTab}`).classList.remove('tab-inactive');
-            document.getElementById(`tab-${currentTab}`).classList.add('tab-active');
-            
-            // Update editor model
-            if (editor) {
-                monaco.editor.setModelLanguage(editor.getModel(), langMap[currentTab]);
-                editor.setValue(code[currentTab]);
-            }
-        }
-
-        function toggleRunMenu() {
-            document.getElementById('runMenu').classList.toggle('hidden');
-        }
-
-        function runCode(mode) {
-            document.getElementById('runMenu').classList.add('hidden');
-            
-            const html = code.html;
-            const css = code.css;
-            const js = code.js;
-            
-            const fullCode = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>${css}</style>
-</head>
-<body>
-    ${html}
-    <script>${js}<\/script>
-</body>
-</html>`;
-            
-            if (mode === 'newtab') {
-                const blob = new Blob([fullCode], {type: 'text/html'});
-                const url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
-                showToast('Yeni sekmede açıldı');
-            } else {
-                document.getElementById('previewModal').classList.remove('hidden');
-                document.getElementById('previewFrame').srcdoc = fullCode;
-            }
-        }
-
-        function closePreview() {
-            document.getElementById('previewModal').classList.add('hidden');
-        }
-
-        function saveFile() {
-            let filename = document.getElementById('filename').value.trim();
-            if (!filename) filename = 'deneme';
-            if (!filename.endsWith('.html')) filename += '.html';
-            
-            const fullCode = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${filename}</title>
-    <style>
-${code.css}
+        /* Pop-up Overlay */
+        #preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; }
+        #preview-modal iframe { width: 100%; height: calc(100% - 40px); border: none; }
+        .close-modal { height: 40px; background: #ff5555; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-${code.html}
-    <script>
-${code.js}
-    <\/script>
-</body>
-</html>`;
-            
-            const blob = new Blob([fullCode], {type: 'text/html'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            showToast(`${filename} kaydedildi`);
-        }
 
-        function loadFile() {
-            document.getElementById('fileInput').click();
-        }
+<div class="toolbar">
+    <input type="text" id="fileNameInput" placeholder="Dosya adı (varsayılan: deneme)">
+    <input type="file" id="fileLoader" style="display:none" onchange="processFile(this)">
+    <button class="btn" onclick="document.getElementById('fileLoader').click()">📂</button>
+    <button class="btn" onclick="downloadFile()">💾</button>
+    <button class="btn" onclick="clearCode()">🧹</button>
+    <button class="btn btn-run" onclick="showRunMenu()">▶️</button>
+</div>
 
-        function handleFileLoad(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const content = e.target.result;
-                
-                const htmlMatch = content.match(/<body>([\s\S]*?)<\/body>/i);
-                const cssMatch = content.match(/<style>([\s\S]*?)<\/style>/i);
-                const jsMatch = content.match(/<script>([\s\S]*?)<\/script>/i);
-                
-                if (htmlMatch) code.html = htmlMatch[1].trim();
-                if (cssMatch) code.css = cssMatch[1].trim();
-                if (jsMatch) code.js = jsMatch[1].trim();
-                
-                document.getElementById('filename').value = file.name.replace('.html', '');
-                
-                if (editor) {
-                    editor.setValue(code[currentTab]);
-                }
-                showToast(`${file.name} yüklendi`);
-            };
-            reader.readAsText(file);
-        }
+<div class="tabs">
+    <div class="tab active" id="tab-html" onclick="switchTab('html')">HTML</div>
+    <div class="tab" id="tab-css" onclick="switchTab('css')">CSS</div>
+    <div class="tab" id="tab-js" onclick="switchTab('js')">JS</div>
+</div>
 
-        function clearCode() {
-            if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
-                code.html = '';
-                code.css = '';
-                code.js = '';
-                if (editor) {
-                    editor.setValue('');
-                }
-                showToast('Kodlar temizlendi');
-            }
-        }
+<div id="editor-wrapper" oncontextmenu="handleLongPress(event)">
+    <textarea id="real-editor"></textarea>
+</div>
 
-        function showContextMenu(e) {
-            e.preventDefault();
-            document.getElementById('contextMenuOverlay').classList.remove('hidden');
-            document.getElementById('contextMenu').classList.remove('hidden');
-        }
+<div id="preview-modal">
+    <div class="close-modal" onclick="closeModal()">KAPAT</div>
+    <iframe id="preview-frame"></iframe>
+</div>
 
-        function hideContextMenu() {
-            document.getElementById('contextMenuOverlay').classList.add('hidden');
-            document.getElementById('contextMenu').classList.add('hidden');
-        }
+<script>
+    let currentTab = 'html';
+    const codes = {
+        html: '<!DOCTYPE html>\n<html>\n<body>\n  <h1>Merhaba Dünya</h1>\n</body>\n</html>',
+        css: 'body { background: #f0f0f0; color: #333; text-align: center; }',
+        js: 'console.log("Kod çalıştı!");'
+    };
 
-        function copyAll() {
-            if (editor) {
-                const content = editor.getValue();
-                navigator.clipboard.writeText(content).then(() => {
-                    hideContextMenu();
-                    showToast('Kopyalandı');
-                });
-            }
-        }
+    // CodeMirror Kurulumu
+    const editor = CodeMirror.fromTextArea(document.getElementById("real-editor"), {
+        lineNumbers: true,
+        theme: "dracula",
+        mode: "xml",
+        htmlMode: true,
+        lineWrapping: true,
+        tabSize: 2,
+        extraKeys: {"Ctrl-Space": "autocomplete"}
+    });
 
-        function pasteCode() {
-            navigator.clipboard.readText().then(text => {
-                if (editor) {
-                    const selection = editor.getSelection();
-                    editor.executeEdits('paste', [{
-                        range: selection,
-                        text: text
-                    }]);
-                }
-                hideContextMenu();
-                showToast('Yapıştırıldı');
-            }).catch(() => {
-                showToast('Yapıştırma başarısız');
-            });
-        }
+    editor.setValue(codes.html);
 
-        function selectAll() {
-            if (editor) {
-                editor.setSelection(editor.getModel().getFullModelRange());
-            }
-            hideContextMenu();
-        }
+    // Sekme Değiştirme
+    function switchTab(tab) {
+        codes[currentTab] = editor.getValue();
+        currentTab = tab;
+        
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(`tab-${tab}`).classList.add('active');
 
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').textContent = message;
-            toast.classList.remove('hidden');
-            toast.classList.add('flex');
-            
-            setTimeout(() => {
-                toast.classList.add('hidden');
-                toast.classList.remove('flex');
-            }, 2000);
-        }
+        const modeMap = { html: 'xml', css: 'css', js: 'javascript' };
+        editor.setOption("mode", modeMap[tab]);
+        editor.setValue(codes[tab]);
+    }
 
-        // Close menus on outside click
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.relative')) {
-                document.getElementById('runMenu').classList.add('hidden');
-            }
+    // Kod Temizleme
+    function clearCode() {
+        if(confirm("Tüm kodları temizlemek istediğinize emin misiniz?")) {
+            editor.setValue("");
+            codes[currentTab] = "";
+        }
+    }
+
+    // Dosya İndirme
+    function downloadFile() {
+        codes[currentTab] = editor.getValue();
+        const fileName = (document.getElementById('fileNameInput').value || 'deneme') + ".html";
+        const content = `
+            ${codes.html}
+            <style>${codes.css}</style>
+            <script>${codes.js}<\/script>
+        `;
+        const blob = new Blob([content], {type: "text/html"});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = fileName;
+        a.click();
+    }
+
+    // Dosya Yükleme (Basit içerik aktarımı)
+    function processFile(input) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            editor.setValue(e.target.result);
+        };
+        reader.readAsText(file);
+    }
+
+    // Çalıştır Menüsü
+    function showRunMenu() {
+        const choice = confirm("Tamam: Yeni Sekmede Aç\nİptal: Pop-up Görüntüle");
+        const content = `<html><style>${codes.css}</style><body>${codes.html}<script>${codes.js}<\/script></body></html>`;
+        const blob = new Blob([content], {type: "text/html"});
+        const url = URL.createObjectURL(blob);
+
+        if (choice) {
+            window.open(url, '_blank');
+        } else {
+            document.getElementById('preview-frame').src = url;
+            document.getElementById('preview-modal').style.display = 'block';
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('preview-modal').style.display = 'none';
+        document.getElementById('preview-frame').src = '';
+    }
+
+    // Uzun Basınca Kopyala (Mobil İçin)
+    function handleLongPress(e) {
+        // Not: Mobil tarayıcılarda 'contextmenu' genellikle uzun basınca tetiklenir.
+        e.preventDefault();
+        const allText = editor.getValue();
+        navigator.clipboard.writeText(allText).then(() => {
+            alert("Tüm kod kopyalandı!");
         });
-    </script>
+    }
+</script>
+
 </body>
 </html>
