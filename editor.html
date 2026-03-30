@@ -152,7 +152,7 @@
             font-weight: 600;
             cursor: default;
             border: none;
-            white-space: nowrap;
+n            white-space: nowrap;
             font-family: inherit;
             background: var(--accent-green);
             color: white;
@@ -331,6 +331,15 @@
         .code-input::-webkit-scrollbar-track  { background: var(--bg-secondary); }
         .code-input::-webkit-scrollbar-thumb  { background: var(--border-color); border-radius: 4px; }
         .code-input::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        /* ── Hidden Copy Textarea ── */
+        .hidden-copy-area {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            opacity: 0;
+            pointer-events: none;
+        }
 
         /* ── Floating Action Button ── */
         .fab-container {
@@ -818,6 +827,9 @@
     </div>
 </main>
 
+<!-- ══ HIDDEN COPY TEXTAREA (for copy without keyboard) ══ -->
+<textarea id="hiddenCopyArea" class="hidden-copy-area" readonly></textarea>
+
 <!-- ══ FLOATING ACTION BUTTON ══ -->
 <div class="fab-overlay" id="fabOverlay" onclick="toggleFabMenu()"></div>
 <div class="fab-container">
@@ -1121,11 +1133,23 @@
         }
     }
 
+    // Copy All - Without opening keyboard (using hidden textarea)
     function copyAll() {
-        document.getElementById('editor').select();
+        const hiddenArea = document.getElementById('hiddenCopyArea');
+        hiddenArea.value = code;
+        hiddenArea.select();
         document.execCommand('copy');
         if (isFabOpen) toggleFabMenu();
         showToast('Kopyalandı');
+    }
+
+    // Select All - Opens native context menu (focuses main editor)
+    function selectAll() { 
+        const editor = document.getElementById('editor');
+        editor.focus();
+        editor.select();
+        if (isFabOpen) toggleFabMenu();
+        // Mobil cihazlarda focus + select, yerel kopyala/yapıştır menüsünü açar
     }
 
     function pasteCode() {
@@ -1137,11 +1161,6 @@
             if (isFabOpen) toggleFabMenu(); 
             showToast('Yapıştırıldı');
         }).catch(() => showToast('Yapıştırma başarısız'));
-    }
-
-    function selectAll() { 
-        document.getElementById('editor').select(); 
-        if (isFabOpen) toggleFabMenu();
     }
 
     let toastTimer;
