@@ -152,7 +152,7 @@
             font-weight: 600;
             cursor: default;
             border: none;
-            white-space: nowrap;
+n            white-space: nowrap;
             font-family: inherit;
             background: var(--accent-green);
             color: white;
@@ -304,7 +304,6 @@
             flex: 1;
             min-height: 0;
             transition: background 0.3s ease;
-            position: relative;
         }
 
         .code-input {
@@ -340,18 +339,6 @@
             top: -9999px;
             opacity: 0;
             pointer-events: none;
-        }
-
-        /* ── Context Menu Helper (for native menu) ── */
-        .context-helper {
-            position: absolute;
-            left: -9999px;
-            top: -9999px;
-            opacity: 0;
-            pointer-events: none;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
         }
 
         /* ── Floating Action Button ── */
@@ -843,9 +830,6 @@
 <!-- ══ HIDDEN COPY TEXTAREA (for copy without keyboard) ══ -->
 <textarea id="hiddenCopyArea" class="hidden-copy-area" readonly></textarea>
 
-<!-- ══ CONTEXT HELPER (for native menu) ══ -->
-<div id="contextHelper" class="context-helper" contenteditable="true"></div>
-
 <!-- ══ FLOATING ACTION BUTTON ══ -->
 <div class="fab-overlay" id="fabOverlay" onclick="toggleFabMenu()"></div>
 <div class="fab-container">
@@ -1159,51 +1143,13 @@
         showToast('Kopyalandı');
     }
 
-    // Select All - Opens native context menu using contenteditable trick
+    // Select All - Opens native context menu (focuses main editor)
     function selectAll() { 
         const editor = document.getElementById('editor');
-        const helper = document.getElementById('contextHelper');
-        
-        // FAB menüsünü kapat
+        editor.focus();
+        editor.select();
         if (isFabOpen) toggleFabMenu();
-        
-        // Contenteditable helper'a içeriği kopyala
-        helper.textContent = code;
-        
-        // Helper'a focus ol ve tümünü seç
-        helper.focus();
-        
-        // Tüm metni seç
-        const range = document.createRange();
-        range.selectNodeContents(helper);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        
-        // Mobil cihazlarda context menu'yu tetiklemek için
-        // selectionchange event'i manuel olarak tetikle
-        const event = new Event('selectionchange', { bubbles: true });
-        document.dispatchEvent(event);
-        
-        // iOS/Android'de context menu açmak için touch simulation
-        if ('ontouchstart' in window) {
-            // Touch event simulation for mobile context menu
-            const touchEvent = new TouchEvent('touchstart', {
-                bubbles: true,
-                cancelable: true,
-                view: window
-            });
-            helper.dispatchEvent(touchEvent);
-        }
-        
-        // Toast göster
-        showToast('Seçildi - Menüyü kullanın');
-        
-        // 100ms sonra ana editöre geri dön (kullanıcı menüyü kullanabilsin)
-        setTimeout(() => {
-            editor.focus();
-            editor.select();
-        }, 100);
+        // Mobil cihazlarda focus + select, yerel kopyala/yapıştır menüsünü açar
     }
 
     function pasteCode() {
