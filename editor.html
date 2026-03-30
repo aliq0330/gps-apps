@@ -178,16 +178,6 @@
             overflow: hidden;
         }
 
-        /* Işık yansıması - tüm butonlarda */
-        .btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, var(--glass-highlight) 0%, transparent 50%);
-            border-radius: inherit;
-            pointer-events: none;
-        }
-
         /* Hover - tüm butonlar aynı */
         .btn:hover {
             background: rgba(255, 255, 255, 0.35);
@@ -775,15 +765,8 @@
             color: var(--text-primary);
             box-shadow: var(--glass-shadow);
             height: 48px;
-        }
-
-        .modal-btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, var(--glass-highlight) 0%, transparent 50%);
-            border-radius: inherit;
-            pointer-events: none;
+            position: relative;
+            overflow: hidden;
         }
 
         .modal-btn:active { transform: scale(0.94); }
@@ -844,6 +827,23 @@
             to { opacity: 1; }
         }
 
+        /* ── Run Menu Overlay - Pure Glass ── */
+        .run-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.15);
+            backdrop-filter: blur(8px);
+            z-index: 45;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .run-overlay.open {
+            display: block;
+            opacity: 1;
+        }
+
         /* ── Responsive ── */
         @media (max-width: 480px) {
             .header { padding: 14px 16px; }
@@ -897,6 +897,7 @@
                 Temizle
             </button>
 
+            <div class="run-overlay" id="runOverlay" onclick="toggleRunMenu()"></div>
             <div class="run-wrapper">
                 <button onclick="toggleRunMenu()" class="btn btn-primary">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1121,6 +1122,7 @@
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.run-wrapper')) {
                 document.getElementById('runMenu').classList.remove('open');
+                document.getElementById('runOverlay').classList.remove('open');
             }
         });
 
@@ -1307,11 +1309,22 @@
     }
 
     function toggleRunMenu() {
-        document.getElementById('runMenu').classList.toggle('open');
+        const menu = document.getElementById('runMenu');
+        const overlay = document.getElementById('runOverlay');
+        const isOpen = menu.classList.contains('open');
+        
+        if (isOpen) {
+            menu.classList.remove('open');
+            overlay.classList.remove('open');
+        } else {
+            menu.classList.add('open');
+            overlay.classList.add('open');
+        }
     }
 
     function runCode(mode) {
         document.getElementById('runMenu').classList.remove('open');
+        document.getElementById('runOverlay').classList.remove('open');
         const full = `<!DOCTYPE html>
 <html>
 <head>
