@@ -3,95 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Native Code Editor</title>
+    <title>Native Code Editor Pro</title>
     <style>
         :root {
-            --bg: #1e1e1e; --text: #d4d4d4; --accent: #007acc;
-            --html-tag: #569cd6; --attr: #9cdcfe; --val: #ce9178; --comment: #6a9955;
+            --bg: #1e1e1e; --bg-dark: #252526; --border: #333; --text: #d4d4d4;
+            --accent: #007acc; --accent-hover: #005f9e;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { 
-            margin: 0; font-family: 'Courier New', monospace; 
-            background: var(--bg); color: var(--text); height: 100dvh; 
-            display: flex; flex-direction: column; overflow: hidden;
+            font-family: -apple-system, sans-serif; background: var(--bg); 
+            color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* Toolbar */
+        /* Üst Araç Çubuğu */
         .toolbar {
-            display: flex; gap: 8px; padding: 10px; background: #252526;
-            border-bottom: 1px solid #333; align-items: center;
+            display: flex; gap: 8px; padding: 10px; background: var(--bg-dark);
+            border-bottom: 1px solid var(--border); align-items: center; flex-wrap: wrap;
         }
         #fileNameInput {
-            flex: 1; background: #3c3c3c; border: 1px solid #555;
-            color: white; padding: 6px 12px; border-radius: 4px; outline: none;
+            flex: 1; min-width: 120px; background: #3c3c3c; border: 1px solid #555;
+            color: white; padding: 8px; border-radius: 6px; outline: none; font-size: 14px;
         }
+        #fileNameInput:focus { border-color: var(--accent); }
         .btn {
             background: #333; border: 1px solid #555; color: white;
-            padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+            padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;
         }
+        .btn:active { background: #444; }
         .btn-run { background: var(--accent); border: none; font-weight: bold; }
+        .btn-run:active { background: var(--accent-hover); }
 
-        /* Tabs */
+        /* Sekmeler */
         .tabs { display: flex; background: #2d2d2d; }
         .tab {
-            padding: 10px 20px; cursor: pointer; font-size: 13px;
-            border-bottom: 2px solid transparent; opacity: 0.6;
+            flex: 1; padding: 12px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 600;
+            border-bottom: 2px solid transparent; opacity: 0.6; transition: 0.2s;
         }
         .tab.active { opacity: 1; border-bottom-color: var(--accent); background: var(--bg); }
 
-        /* Editor Area */
+        /* Editör Kapsayıcısı */
         .editor-container {
-            flex: 1; position: relative; overflow: hidden;
+            flex: 1; display: flex; position: relative; overflow: hidden; background: var(--bg);
         }
         
         /* Satır Numaraları */
         .line-numbers {
-            position: absolute; left: 0; top: 0; bottom: 0; width: 40px;
-            background: #1e1e1e; color: #858585; text-align: right;
-            padding: 15px 5px; font-size: 14px; line-height: 20px;
-            user-select: none; border-right: 1px solid #333; z-index: 5;
+            padding: 10px 8px; background: var(--bg-dark); color: #858585; text-align: right;
+            font-family: 'Courier New', Courier, monospace; font-size: 15px; line-height: 22px;
+            user-select: none; border-right: 1px solid var(--border); overflow: hidden;
+            min-width: 45px; z-index: 5;
         }
 
-        /* Katmanlı Yazım Alanı */
+        /* Kod Yazım Alanları (Tam Senkronize) */
+        .code-wrapper { flex: 1; position: relative; overflow: hidden; }
+        
         #input-area, #highlight-area {
-            position: absolute; inset: 0 0 0 45px; /* Numaralar için soldan boşluk */
-            padding: 15px 10px; margin: 0; border: none;
-            font-family: inherit; font-size: 14px; line-height: 20px;
-            white-space: pre; word-wrap: normal; overflow: auto;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            padding: 10px; margin: 0; border: none;
+            font-family: 'Courier New', Courier, monospace; font-size: 15px; line-height: 22px;
+            white-space: pre; /* İmleç kaymasını önlemek için satır atlamayı (wrap) kapattık */
+            tab-size: 4;
         }
 
         #input-area {
-            background: transparent; color: transparent; caret-color: white;
-            resize: none; outline: none; z-index: 2;
+            background: transparent; color: transparent; caret-color: #fff;
+            resize: none; outline: none; z-index: 2; overflow: auto;
         }
 
         #highlight-area {
-            pointer-events: none; z-index: 1; white-space: pre-wrap;
+            pointer-events: none; z-index: 1; margin: 0; overflow: hidden;
         }
 
-        /* Renklendirme Syntax */
-        .token-tag { color: var(--html-tag); }
-        .token-attr { color: var(--attr); }
-        .token-string { color: var(--val); }
-        .token-comment { color: var(--comment); }
+        /* Gelişmiş Syntax Highlighting Renkleri (VS Code Dark+ Teması) */
+        .token-tag { color: #569cd6; } /* HTML Tag */
+        .token-attr { color: #9cdcfe; } /* Attribute / CSS Prop */
+        .token-str { color: #ce9178; } /* Strings */
+        .token-com { color: #6a9955; font-style: italic; } /* Comments */
+        .token-kw { color: #c586c0; font-weight: bold; } /* JS Keywords */
+        .token-func { color: #dcdcaa; } /* JS Functions */
+        .token-num { color: #b5cea8; } /* Numbers */
+        .token-punc { color: #d4d4d4; } /* Punctuation */
 
-        /* Modal */
-        #modal {
-            display: none; position: fixed; inset: 0; background: white; z-index: 100;
-            flex-direction: column;
-        }
-        .modal-header { background: #333; padding: 10px; display: flex; justify-content: space-between; }
+        /* Önizleme Modal */
+        #modal { display: none; position: fixed; inset: 0; background: #fff; z-index: 100; flex-direction: column; }
+        .modal-header { background: var(--bg-dark); padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #000; }
+        .modal-header span { color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
     <input type="text" id="fileNameInput" placeholder="dosya_adi">
-    <button class="btn" onclick="triggerLoad()">Yükle</button>
-    <button class="btn" onclick="saveFile()">Kaydet</button>
-    <button class="btn" onclick="clearAll()">Temizle</button>
-    <button class="btn btn-run" onclick="runCode()">Çalıştır</button>
+    <button class="btn" onclick="triggerLoad()">📂 Yükle</button>
+    <button class="btn" onclick="saveFile()">💾 Kaydet</button>
+    <button class="btn" onclick="clearAll()">🧹 Temizle</button>
+    <button class="btn btn-run" onclick="runCode()">▶️ Çalıştır</button>
     <input type="file" id="fileInp" hidden onchange="processFile(this)">
 </div>
 
@@ -103,24 +110,26 @@
 
 <div class="editor-container">
     <div class="line-numbers" id="lineNumbers">1</div>
-    <textarea id="input-area" spellcheck="false" oninput="updateEditor()" onscroll="syncScroll()"></textarea>
-    <pre id="highlight-area"><code id="code-content"></code></pre>
+    <div class="code-wrapper">
+        <textarea id="input-area" spellcheck="false" wrap="off" oninput="updateEditor()" onscroll="syncScroll()"></textarea>
+        <pre id="highlight-area"><code id="code-content"></code></pre>
+    </div>
 </div>
 
 <div id="modal">
     <div class="modal-header">
-        <span style="color:white">Önizleme</span>
-        <button onclick="closeModal()" style="background:red; color:white; border:none; padding:5px 10px;">Kapat</button>
+        <span>Önizleme</span>
+        <button onclick="closeModal()" style="background:#f44336; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold;">Kapat</button>
     </div>
-    <iframe id="preview" style="flex:1; border:none;"></iframe>
+    <iframe id="preview" style="flex:1; border:none; background:white;"></iframe>
 </div>
 
 <script>
     let currentMode = 'html';
     const codes = {
-        html: '\n<h1 class="baslik">Kod Editörü</h1>\n<p>Buraya yazabilirsin.</p>',
-        css: 'body {\n  background: #222;\n  color: gold;\n}',
-        js: 'console.log("Sistem çalışıyor...");'
+        html: '\n<div class="kutu">\n   <h1>Merhaba Dünya</h1>\n</div>',
+        css: '/* CSS Stillerini Buraya Yaz */\nbody {\n   background-color: #f0f0f0;\n   font-family: sans-serif;\n}\n\n.kutu {\n   padding: 20px;\n   color: #333;\n}',
+        js: '// JavaScript Kodlarını Buraya Yaz\nfunction selamVer() {\n   const mesaj = "Sistem çalışıyor!";\n   console.log(mesaj);\n}\n\nselamVer();'
     };
 
     const inputArea = document.getElementById('input-area');
@@ -131,37 +140,69 @@
     inputArea.value = codes.html;
     updateEditor();
 
-    function updateEditor() {
-        let text = inputArea.value;
-        codes[currentMode] = text;
-
-        // Basit Syntax Highlighting (Regex ile)
-        if (currentMode === 'html') {
-            text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            text = text.replace(/&lt;!--([\s\S]*?)--&gt;/g, '<span class="token-comment">&lt;!--$1--&gt;</span>');
-            text = text.replace(/(&lt;\/?[a-z1-6]+)/gi, '<span class="token-tag">$1</span>');
-            text = text.replace(/([a-z-]+)(?==)/gi, '<span class="token-attr">$1</span>');
-            text = text.replace(/"(.*?)"/g, '<span class="token-string">"$1"</span>');
-        } else {
-            // CSS ve JS için çok temel renklendirme
-            text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            text = text.replace(/\/\*([\s\S]*?)\*\//g, '<span class="token-comment">/*$1*/</span>');
-        }
-
-        codeContent.innerHTML = text + "\n"; // Sona boşluk ekle ki kaydırma düzgün olsun
-        updateLineNumbers();
-    }
-
-    function updateLineNumbers() {
-        const lines = inputArea.value.split('\n').length;
-        lineNumbers.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
-    }
-
+    // 1. Senkronize Kaydırma (İmleç ve satır numarası kaymasını çözer)
     function syncScroll() {
         const highlight = document.getElementById('highlight-area');
         highlight.scrollTop = inputArea.scrollTop;
         highlight.scrollLeft = inputArea.scrollLeft;
         lineNumbers.scrollTop = inputArea.scrollTop;
+    }
+
+    // 2. Editörü Güncelle ve Renklendir
+    function updateEditor() {
+        let text = inputArea.value;
+        codes[currentMode] = text;
+
+        // Satır Numaralarını Hesapla
+        const linesCount = text.split('\n').length;
+        let linesHtml = '';
+        for(let i=1; i<=linesCount; i++) linesHtml += i + '<br>';
+        lineNumbers.innerHTML = linesHtml;
+
+        // Regex ile Renklendirme
+        codeContent.innerHTML = applySyntaxHighlight(text, currentMode) + '\n';
+    }
+
+    // 3. Gelişmiş Syntax Highlighting (Regex Lexer)
+    function applySyntaxHighlight(text, mode) {
+        // Güvenlik: Önce HTML karakterlerini dönüştür (Injection ve bozulmaları önler)
+        let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        if (mode === 'html') {
+            // Yorumlar
+            html = html.replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="token-com">$1</span>');
+            // Tag İsimleri
+            html = html.replace(/(&lt;\/?[a-z0-9]+)/gi, '<span class="token-tag">$1</span>');
+            html = html.replace(/(&gt;)/g, '<span class="token-tag">$1</span>');
+            // Nitelikler (Attributes)
+            html = html.replace(/([a-zA-Z0-9-]+)(?==)/g, '<span class="token-attr">$1</span>');
+            // Metinler/Değerler (Strings)
+            html = html.replace(/(".*?"|'.*?')/g, '<span class="token-str">$1</span>');
+        } 
+        else if (mode === 'css') {
+            // Yorumlar
+            html = html.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="token-com">$1</span>');
+            // Özellikler (Properties) - İki noktadan öncekiler
+            html = html.replace(/([a-zA-Z-]+)(?=\s*:)/g, '<span class="token-attr">$1</span>');
+            // Değerler (Values) - İki nokta ile noktalı virgül arası
+            html = html.replace(/(:\s*)([^;]+)(;)/g, '$1<span class="token-str">$2</span>$3');
+            // Süslü Parantezler
+            html = html.replace(/([{}])/g, '<span class="token-punc">$1</span>');
+        } 
+        else if (mode === 'js') {
+            // Yorumlar (Tek ve Çok Satırlı)
+            html = html.replace(/(\/\/.*|\/\*[\s\S]*?\*\/)/g, '<span class="token-com">$1</span>');
+            // Metinler (Tırnaklar ve Backtickler)
+            html = html.replace(/(".*?"|'.*?'|`.*?`)/g, '<span class="token-str">$1</span>');
+            // Anahtar Kelimeler (Keywords)
+            html = html.replace(/\b(const|let|var|function|return|if|else|for|while|class|new|true|false|document|window|console|import|export)\b/g, '<span class="token-kw">$1</span>');
+            // Fonksiyonlar (Parantezden hemen önceki kelimeler)
+            html = html.replace(/\b([a-zA-Z0-9_]+)(?=\s*\()/g, '<span class="token-func">$1</span>');
+            // Sayılar
+            html = html.replace(/\b(\d+)\b/g, '<span class="token-num">$1</span>');
+        }
+
+        return html;
     }
 
     function switchTab(mode, el) {
@@ -170,15 +211,15 @@
         currentMode = mode;
         inputArea.value = codes[mode];
         updateEditor();
+        syncScroll(); // Sekme değişince kaydırmayı sıfırla/eşitle
     }
 
     function runCode() {
-        const combined = `<html><style>${codes.css}</style><body>${codes.html}<script>${codes.js}<\/script></body></html>`;
-        const blob = new Blob([combined], {type: 'text/html'});
-        const url = URL.createObjectURL(blob);
+        const combined = `<html><head><style>${codes.css}</style></head><body>${codes.html}<script>${codes.js}<\/script></body></html>`;
+        const url = URL.createObjectURL(new Blob([combined], {type: 'text/html'}));
         
-        if(confirm("Yeni sekmede açmak için TAMAM'a, burada görmek için İPTAL'e bas.")) {
-            window.open(url);
+        if(confirm("Tamam: Yeni Sekmede Aç\nİptal: Uygulama İçi (Pop-up) Göster")) {
+            window.open(url, '_blank');
         } else {
             document.getElementById('preview').src = url;
             document.getElementById('modal').style.display = 'flex';
@@ -187,28 +228,49 @@
 
     function saveFile() {
         const name = (document.getElementById('fileNameInput').value || 'deneme') + ".html";
-        const combined = `<html><style>${codes.css}</style><body>${codes.html}<script>${codes.js}<\/script></body></html>`;
+        const combined = `<html><head><style>${codes.css}</style></head><body>${codes.html}<script>${codes.js}<\/script></body></html>`;
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([combined], {type: 'text/html'}));
         a.download = name;
         a.click();
     }
 
-    function clearAll() { if(confirm("Temizle?")) { inputArea.value = ""; updateEditor(); } }
+    function clearAll() { 
+        if(confirm("Tüm kodları temizlemek istediğinize emin misiniz?")) { 
+            inputArea.value = ""; 
+            updateEditor(); 
+        } 
+    }
+    
     function triggerLoad() { document.getElementById('fileInp').click(); }
+    
     function processFile(inp) {
         const reader = new FileReader();
         reader.onload = () => { inputArea.value = reader.result; updateEditor(); };
         reader.readAsText(inp.files[0]);
     }
+    
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-    // Uzun basınca tümünü kopyala
+    // Mobil Uyumlu: Uzun basınca tümünü seç ve kopyala
     inputArea.addEventListener('contextmenu', (e) => {
         e.preventDefault();
-        inputArea.select();
-        document.execCommand('copy');
-        alert("Tüm kod kopyalandı!");
+        inputArea.select(); // Tümünü seç
+        navigator.clipboard.writeText(inputArea.value).then(() => {
+            alert("Tüm kod kopyalandı!");
+        });
+    });
+
+    // Klavyeden Tab tuşu desteği (Boşluk bırakmak için)
+    inputArea.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 4;
+            updateEditor();
+        }
     });
 </script>
 
