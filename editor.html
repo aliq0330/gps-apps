@@ -659,7 +659,7 @@ ${code}
             document.getElementById('fileInput').click();
         }
 
-        // DÜZELTİLMİŞ: Dosyaları txt formatına çevirerek yükle
+        // DÜZELTİLMİŞ: Dosyanın tam içeriğini olduğu gibi yükle
         function handleFileLoad(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -667,46 +667,28 @@ ${code}
             // Reset input to allow same file reload
             event.target.value = '';
             
-            // Get filename without extension for display
+            // Store filename
             loadedFilename = file.name.replace(/\.[^/.]+$/, '');
             
             const reader = new FileReader();
             
             reader.onload = (e) => {
-                try {
-                    let content = e.target.result;
-                    
-                    // Convert to text/plain format by treating content as raw text
-                    // Remove any null bytes or binary artifacts
-                    content = content.replace(/\x00/g, '');
-                    
-                    // Try to extract body content if it's HTML
-                    const bodyMatch = content.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-                    if (bodyMatch) {
-                        code = bodyMatch[1].trim();
-                    } else {
-                        // If no body tags, use entire content as plain text
-                        code = content;
-                    }
-                    
-                    // Save to storage immediately
-                    saveToStorage();
-                    updateEditor();
-                    updateFilenameDisplay();
-                    
-                    showToast(file.name + ' yüklendi (txt formatına çevrildi)');
-                } catch (err) {
-                    showToast('Dosya okuma hatası: ' + err.message);
-                    console.error('File load error:', err);
-                }
+                // Load ENTIRE file content as plain text, no filtering
+                code = e.target.result;
+                
+                saveToStorage();
+                updateEditor();
+                updateFilenameDisplay();
+                
+                showToast(file.name + ' yüklendi');
             };
             
             reader.onerror = () => {
                 showToast('Dosya okunamadı');
             };
             
-            // Always read as text (txt format)
-            reader.readAsText(file, 'UTF-8');
+            // Read as plain text
+            reader.readAsText(file);
         }
 
         function clearCode() {
