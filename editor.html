@@ -12,12 +12,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
-
+        
         * {
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
         }
-
+        
         html, body {
             height: 100%;
             overflow: hidden;
@@ -25,19 +25,19 @@
             width: 100%;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-
+        
         .editor-font {
             font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
             font-size: 14px;
             line-height: 1.6;
         }
-
+        
         .editor-container {
             position: relative;
             height: calc(100vh - 140px);
             overflow: hidden;
         }
-
+        
         .line-numbers {
             position: absolute;
             left: 0;
@@ -55,7 +55,7 @@
             border-right: 1px solid #333;
             z-index: 10;
         }
-
+        
         .code-area {
             position: absolute;
             left: 50px;
@@ -66,7 +66,7 @@
             overflow: auto;
             -webkit-overflow-scrolling: touch;
         }
-
+        
         .code-input {
             width: 100%;
             min-height: 100%;
@@ -81,75 +81,66 @@
             tab-size: 2;
             caret-color: #528bff;
         }
-
+        
         .tab-active {
             background: #3b82f6;
             color: white;
         }
-
+        
         .tab-inactive {
             background: #374151;
             color: #9ca3af;
         }
-
+        
         .btn-primary {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
         }
-
+        
         .btn-danger {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         }
-
+        
         .btn-success {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
-
+        
         .glass-panel {
             background: rgba(31, 41, 55, 0.95);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
-
+        
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
+        
         .animate-slide-down {
             animation: slideDown 0.2s ease-out;
         }
-
-        .animate-fade-in {
-            animation: fadeIn 0.3s ease-out;
-        }
-
+        
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
-
+        
         .custom-scrollbar::-webkit-scrollbar-track {
             background: #1e1e1e;
         }
-
+        
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #4b5563;
             border-radius: 3px;
         }
-
+        
         .context-menu-overlay {
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.5);
             z-index: 999;
         }
-
+        
         .context-menu {
             position: fixed;
             top: 50%;
@@ -163,7 +154,7 @@
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
             min-width: 200px;
         }
-
+        
         .context-menu-item {
             padding: 14px 20px;
             color: #e5e7eb;
@@ -174,15 +165,15 @@
             gap: 12px;
             font-size: 16px;
         }
-
+        
         .context-menu-item:hover {
             background: #4b5563;
         }
-
+        
         .context-menu-item:active {
             background: #3b82f6;
         }
-
+        
         .run-menu {
             position: absolute;
             top: 100%;
@@ -196,7 +187,7 @@
             min-width: 180px;
             z-index: 50;
         }
-
+        
         .run-menu-item {
             padding: 12px 16px;
             color: #e5e7eb;
@@ -206,15 +197,15 @@
             align-items: center;
             gap: 10px;
         }
-
+        
         .run-menu-item:hover {
             background: #4b5563;
         }
-
+        
         .run-menu-item:active {
             background: #3b82f6;
         }
-
+        
         .filename-input {
             background: #1f2937;
             border: 2px solid #374151;
@@ -224,97 +215,12 @@
             font-size: 14px;
             transition: border-color 0.2s;
         }
-
+        
         .filename-input:focus {
             outline: none;
             border-color: #3b82f6;
         }
-
-        /* Save Modal Styles */
-        .save-modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-
-        .save-modal {
-            background: #1f2937;
-            border: 1px solid #374151;
-            border-radius: 16px;
-            padding: 24px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-        }
-
-        .save-modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: white;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .save-modal-input {
-            width: 100%;
-            background: #111827;
-            border: 2px solid #374151;
-            border-radius: 10px;
-            padding: 12px 16px;
-            color: white;
-            font-size: 16px;
-            margin-bottom: 20px;
-            transition: all 0.2s;
-        }
-
-        .save-modal-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .save-modal-buttons {
-            display: flex;
-            gap: 12px;
-        }
-
-        .save-modal-btn {
-            flex: 1;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-        }
-
-        .save-modal-btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-        }
-
-        .save-modal-btn-primary:active {
-            transform: scale(0.98);
-        }
-
-        .save-modal-btn-secondary {
-            background: #374151;
-            color: #e5e7eb;
-        }
-
-        .save-modal-btn-secondary:active {
-            background: #4b5563;
-        }
-
+        
         @media (max-width: 640px) {
             .editor-font {
                 font-size: 13px;
@@ -328,10 +234,9 @@
                 left: 40px;
             }
         }
-
+        
         .hidden { display: none !important; }
     </style>
-<base target="_blank">
 </head>
 <body class="bg-gray-900 text-gray-100 h-screen overflow-hidden flex flex-col">
 
@@ -342,18 +247,29 @@
                 <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <span id="currentFilename" class="text-gray-300 text-sm truncate font-medium">Yeni Dosya</span>
+                <!-- Dosya adı girişi başlangıçta gizli -->
+                <div id="filenameContainer" class="hidden flex-1 min-w-0 flex items-center gap-2">
+                    <input type="text" id="filename" placeholder="Dosya adı gir (örn: index)" 
+                           class="filename-input flex-1 min-w-0" value="">
+                    <button onclick="confirmSave()" class="btn-success text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                        Onayla
+                    </button>
+                    <button onclick="cancelSave()" class="bg-gray-600 text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                        İptal
+                    </button>
+                </div>
+                <span id="editorTitle" class="text-gray-300 text-sm truncate">Mobil Kod Editörü</span>
             </div>
-
+            
             <div class="flex items-center gap-2 shrink-0">
-                <!-- Kaydet butonu -->
-                <button onclick="showSaveModal()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                <!-- Kaydet butonu - dosya adı girişini gösterir -->
+                <button onclick="showSaveInput()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                     </svg>
                     Kaydet
                 </button>
-
+                
                 <button onclick="loadFile()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -379,7 +295,7 @@
                     JS
                 </button>
             </div>
-
+            
             <div class="relative shrink-0">
                 <button onclick="toggleRunMenu()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -391,7 +307,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
-
+                
                 <div id="runMenu" class="run-menu hidden animate-slide-down">
                     <div class="run-menu-item" onclick="runCode('popup')">
                         <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -413,7 +329,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <button onclick="clearCode()" class="btn-danger text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform shrink-0" title="Kodu Temizle">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -456,26 +372,185 @@
         </div>
     </div>
 
-    <!-- Save Modal - Dosya Adı Girişi -->
-    <div id="saveModal" class="save-modal-overlay hidden animate-fade-in">
-        <div class="save-modal">
-            <div class="save-modal-title">
-                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+    <!-- Context Menu Overlay -->
+    <div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
+    
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu hidden">
+        <div class="context-menu-item" onclick="copyAll()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke82f6;
+        }
+        
+        .filename-input {
+            background: #1f2937;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #e5e7eb;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .filename-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        @media (max-width: 640px) {
+            .editor-font {
+                font-size: 13px;
+            }
+            .line-numbers {
+                width: 40px;
+                padding: 12px 8px;
+                font-size: 13px;
+            }
+            .code-area {
+                left: 40px;
+            }
+        }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 h-screen overflow-hidden flex flex-col">
+
+    <!-- Top Bar -->
+    <header class="glass-panel border-b border-gray-700 p-3 flex flex-col gap-3 shrink-0 z-20">
+        <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+                <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                Dosyayı Kaydet
+                <!-- Dosya adı girişi başlangıçta gizli -->
+                <div id="filenameContainer" class="hidden flex-1 min-w-0 flex items-center gap-2">
+                    <input type="text" id="filename" placeholder="Dosya adı gir (örn: index)" 
+                           class="filename-input flex-1 min-w-0" value="">
+                    <button onclick="confirmSave()" class="btn-success text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                        Onayla
+                    </button>
+                    <button onclick="cancelSave()" class="bg-gray-600 text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform">
+                        İptal
+                    </button>
+                </div>
+                <span id="editorTitle" class="text-gray-300 text-sm truncate">Mobil Kod Editörü</span>
             </div>
-            <input type="text" id="saveFilename" class="save-modal-input" placeholder="Dosya adı girin (örn: index)" />
-            <div class="save-modal-buttons">
-                <button onclick="cancelSave()" class="save-modal-btn save-modal-btn-secondary">İptal</button>
-                <button onclick="confirmSave()" class="save-modal-btn save-modal-btn-primary">Kaydet</button>
+            
+            <div class="flex items-center gap-2 shrink-0">
+                <!-- Kaydet butonu - dosya adı girişini gösterir -->
+                <button onclick="showSaveInput()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                    </svg>
+                    Kaydet
+                </button>
+                
+                <button onclick="loadFile()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                    Yükle
+                </button>
+                <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden" onchange="handleFileLoad(event)">
             </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-1">
+                <button onclick="switchTab('html')" id="tab-html" class="tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                    HTML
+                </button>
+                <button onclick="switchTab('css')" id="tab-css" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    CSS
+                </button>
+                <button onclick="switchTab('js')" id="tab-js" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                    JS
+                </button>
+            </div>
+            
+            <div class="relative shrink-0">
+                <button onclick="toggleRunMenu()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Çalıştır
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                
+                <div id="runMenu" class="run-menu hidden animate-slide-down">
+                    <div class="run-menu-item" onclick="runCode('popup')">
+                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                        </svg>
+                        <div>
+                            <div class="font-medium">Popup Görüntüle</div>
+                            <div class="text-xs text-gray-400">Tam ekranda önizle</div>
+                        </div>
+                    </div>
+                    <div class="run-menu-item" onclick="runCode('newtab')">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                        <div>
+                            <div class="font-medium">Yeni Sekme</div>
+                            <div class="text-xs text-gray-400">Yeni sekmede aç</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="clearCode()" class="btn-danger text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform shrink-0" title="Kodu Temizle">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Editor Area -->
+    <main class="flex-1 relative overflow-hidden" id="mainContainer">
+        <div class="editor-container" id="editorContainer">
+            <div class="line-numbers editor-font" id="lineNumbers">1</div>
+            <div class="code-area custom-scrollbar">
+                <textarea id="editor" class="code-input editor-font" spellcheck="false" 
+                          oninput="updateCode()" onscroll="syncScroll()" 
+                          onkeydown="handleKeydown(event)"
+                          oncontextmenu="showContextMenu(event)"></textarea>
+            </div>
+        </div>
+    </main>
+
+    <!-- Preview Popup - TAM EKRAN -->
+    <div id="previewModal" class="fixed inset-0 bg-black z-50 hidden flex flex-col">
+        <div class="bg-gray-800 w-full h-full flex flex-col shadow-2xl">
+            <div class="flex items-center justify-between p-3 border-b border-gray-700 shrink-0">
+                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    Önizleme - Tam Ekran
+                </h3>
+                <button onclick="closePreview()" class="text-gray-400 hover:text-white transition-colors p-2 bg-gray-700 rounded-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <iframe id="previewFrame" class="flex-1 w-full bg-white"></iframe>
         </div>
     </div>
 
     <!-- Context Menu Overlay -->
     <div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
-
+    
     <!-- Context Menu -->
     <div id="contextMenu" class="context-menu hidden">
         <div class="context-menu-item" onclick="copyAll()">
@@ -508,68 +583,23 @@
     </div>
 
     <script>
-        // localStorage anahtarları
-        const STORAGE_KEYS = {
-            HTML: 'editor_html_code',
-            CSS: 'editor_css_code',
-            JS: 'editor_js_code',
-            FILENAME: 'editor_filename',
-            IS_LOADED_FILE: 'editor_is_loaded_file'
-        };
-
         let currentTab = 'html';
-        let loadedFilename = ''; // Yüklenen dosyanın adı
-        let isLoadedFile = false; // Dosya yüklendi mi?
-
-        // Varsayılan kodlar
-        const defaultCode = {
-            html: '<!-- HTML kodunuzu buraya yazın -->
-<div class="container">
-  <h1>Merhaba Dünya!</h1>
-  <p>Mobil editöre hoş geldiniz.</p>
-</div>',
-            css: '/* CSS kodunuzu buraya yazın */
-.container {
-  text-align: center;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-}
-
-h1 {
-  color: #3b82f6;
-}',
-            js: '// JavaScript kodunuzu buraya yazın
-console.log("Merhaba Dünya!");
-
-document.querySelector("h1").addEventListener("click", function() {
-  alert("Tıklandı!");
-});'
+        let loadedFilename = ''; // Yüklenen dosya adını sakla
+        const code = {
+            html: '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>',
+            css: '/* CSS kodunuzu buraya yazın */\n.container {\n  text-align: center;\n  padding: 20px;\n  font-family: Arial, sans-serif;\n}\n\nh1 {\n  color: #3b82f6;\n}',
+            js: '// JavaScript kodunuzu buraya yazın\nconsole.log("Merhaba Dünya!");\n\ndocument.querySelector("h1").addEventListener("click", function() {\n  alert("Tıklandı!");\n});'
         };
-
-        // Aktif kodlar
-        let code = { ...defaultCode };
 
         let initialHeight = window.innerHeight;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // localStorage'dan verileri yükle
+            // localStorage'dan kodları yükle
             loadFromStorage();
-
+            
             updateEditor();
             updateLineNumbers();
-            updateFilenameDisplay();
-
-            // Otomatik kaydetme (her 2 saniyede bir)
-            setInterval(saveToStorage, 2000);
-
-            // Sayfa kapatılırken/kaybolurken kaydet
-            window.addEventListener('beforeunload', saveToStorage);
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'hidden') {
-                    saveToStorage();
-                }
-            });
-
+            
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.relative')) {
                     document.getElementById('runMenu').classList.add('hidden');
@@ -578,76 +608,32 @@ document.querySelector("h1").addEventListener("click", function() {
 
             let pressTimer;
             const editor = document.getElementById('editor');
-
+            
             editor.addEventListener('touchstart', (e) => {
                 pressTimer = setTimeout(() => {
                     showContextMenu(e);
                 }, 800);
             });
-
+            
             editor.addEventListener('touchend', () => {
                 clearTimeout(pressTimer);
             });
-
+            
             editor.addEventListener('touchmove', () => {
                 clearTimeout(pressTimer);
             });
 
             window.addEventListener('resize', handleResize);
+            
+            // Sayfa kapatılırken veya yenilenirken kodları kaydet
+            window.addEventListener('beforeunload', saveToStorage);
         });
-
-        // localStorage'a kaydet
-        function saveToStorage() {
-            try {
-                // Mevcut tab'deki kodu güncelle
-                code[currentTab] = document.getElementById('editor').value;
-
-                localStorage.setItem(STORAGE_KEYS.HTML, code.html);
-                localStorage.setItem(STORAGE_KEYS.CSS, code.css);
-                localStorage.setItem(STORAGE_KEYS.JS, code.js);
-                localStorage.setItem(STORAGE_KEYS.FILENAME, loadedFilename);
-                localStorage.setItem(STORAGE_KEYS.IS_LOADED_FILE, isLoadedFile);
-            } catch (e) {
-                console.error('localStorage kaydetme hatası:', e);
-            }
-        }
-
-        // localStorage'dan yükle
-        function loadFromStorage() {
-            try {
-                const savedHTML = localStorage.getItem(STORAGE_KEYS.HTML);
-                const savedCSS = localStorage.getItem(STORAGE_KEYS.CSS);
-                const savedJS = localStorage.getItem(STORAGE_KEYS.JS);
-                const savedFilename = localStorage.getItem(STORAGE_KEYS.FILENAME);
-                const savedIsLoaded = localStorage.getItem(STORAGE_KEYS.IS_LOADED_FILE);
-
-                if (savedHTML !== null) code.html = savedHTML;
-                if (savedCSS !== null) code.css = savedCSS;
-                if (savedJS !== null) code.js = savedJS;
-                if (savedFilename) loadedFilename = savedFilename;
-                if (savedIsLoaded !== null) isLoadedFile = savedIsLoaded === 'true';
-            } catch (e) {
-                console.error('localStorage yükleme hatası:', e);
-            }
-        }
-
-        // Dosya adı görünümünü güncelle
-        function updateFilenameDisplay() {
-            const display = document.getElementById('currentFilename');
-            if (loadedFilename) {
-                display.textContent = loadedFilename;
-                display.classList.add('text-blue-400');
-            } else {
-                display.textContent = 'Yeni Dosya';
-                display.classList.remove('text-blue-400');
-            }
-        }
 
         function handleResize() {
             const currentHeight = window.innerHeight;
             const editorContainer = document.getElementById('editorContainer');
             const diff = initialHeight - currentHeight;
-
+            
             if (diff > 100) {
                 editorContainer.style.height = (currentHeight - 140) + 'px';
             } else {
@@ -655,43 +641,68 @@ document.querySelector("h1").addEventListener("click", function() {
             }
         }
 
-        // Kaydet modalını göster
-        function showSaveModal() {
-            const modal = document.getElementById('saveModal');
-            const input = document.getElementById('saveFilename');
-
-            // Eğer dosya yüklendiyse otomatik adı doldur
-            if (isLoadedFile && loadedFilename) {
-                input.value = loadedFilename.replace('.html', '');
-            } else {
-                input.value = '';
-            }
-
-            modal.classList.remove('hidden');
-
-            // Input'a odaklan
-            setTimeout(() => input.focus(), 100);
+        // localStorage'a kaydet
+        function saveToStorage() {
+            const data = {
+                html: code.html,
+                css: code.css,
+                js: code.js,
+                filename: loadedFilename,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('mobilKodEditor', JSON.stringify(data));
         }
 
-        // Kaydetme işlemini iptal et
-        function cancelSave() {
-            document.getElementById('saveModal').classList.add('hidden');
+        // localStorage'dan yükle
+        function loadFromStorage() {
+            const saved = localStorage.getItem('mobilKodEditor');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if (data.html !== undefined) code.html = data.html;
+                    if (data.css !== undefined) code.css = data.css;
+                    if (data.js !== undefined) code.js = data.js;
+                    if (data.filename !== undefined) loadedFilename = data.filename;
+                } catch (e) {
+                    console.error('Storage yükleme hatası:', e);
+                }
+            }
         }
 
-        // Kaydetme işlemini onayla
-        function confirmSave() {
-            let filename = document.getElementById('saveFilename').value.trim();
-
-            if (!filename) {
-                showToast('Lütfen bir dosya adı girin');
-                return;
-            }
-
-            if (!filename.endsWith('.html')) filename += '.html';
-
-            // Mevcut tab'deki kodu güncelle
+        // Kod değiştiğinde otomatik kaydet
+        function updateCode() {
             code[currentTab] = document.getElementById('editor').value;
+            updateLineNumbers();
+            saveToStorage(); // Her değişiklikte kaydet
+        }
 
+        // Dosya kaydetme fonksiyonları
+        function showSaveInput() {
+            const filenameInput = document.getElementById('filename');
+            
+            // Eğer dosya yüklendiyse otomatik doldur, değilse boş bırak
+            if (loadedFilename) {
+                filenameInput.value = loadedFilename.replace('.html', '');
+            } else {
+                filenameInput.value = '';
+            }
+            
+            document.getElementById('filenameContainer').classList.remove('hidden');
+            document.getElementById('editorTitle').classList.add('hidden');
+            filenameInput.focus();
+        }
+
+        function cancelSave() {
+            document.getElementById('filenameContainer').classList.add('hidden');
+            document.getElementById('editorTitle').classList.remove('hidden');
+            document.getElementById('filename').value = '';
+        }
+
+        function confirmSave() {
+            let filename = document.getElementById('filename').value.trim();
+            if (!filename) filename = 'deneme';
+            if (!filename.endsWith('.html')) filename += '.html';
+            
             const fullCode = `<!DOCTYPE html>
 <html>
 <head>
@@ -709,7 +720,7 @@ ${code.js}
     <\/script>
 </body>
 </html>`;
-
+            
             const blob = new Blob([fullCode], {type: 'text/html'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -717,41 +728,28 @@ ${code.js}
             a.download = filename;
             a.click();
             URL.revokeObjectURL(url);
-
-            // Yüklenen dosya bilgisini güncelle
-            loadedFilename = filename;
-            isLoadedFile = true;
-            updateFilenameDisplay();
-            saveToStorage();
-
+            
             showToast(`${filename} kaydedildi`);
             cancelSave();
         }
 
         function switchTab(tab) {
             code[currentTab] = document.getElementById('editor').value;
-
+            
             document.getElementById(`tab-${currentTab}`).classList.remove('tab-active');
             document.getElementById(`tab-${currentTab}`).classList.add('tab-inactive');
-
+            
             currentTab = tab;
-
+            
             document.getElementById(`tab-${currentTab}`).classList.remove('tab-inactive');
             document.getElementById(`tab-${currentTab}`).classList.add('tab-active');
-
+            
             updateEditor();
         }
 
         function updateEditor() {
             document.getElementById('editor').value = code[currentTab];
             updateLineNumbers();
-        }
-
-        function updateCode() {
-            code[currentTab] = document.getElementById('editor').value;
-            updateLineNumbers();
-            // Anlık kaydetme
-            saveToStorage();
         }
 
         function updateLineNumbers() {
@@ -776,11 +774,6 @@ ${code.js}
                 editor.selectionStart = editor.selectionEnd = start + 2;
                 updateCode();
             }
-            // Ctrl+S veya Cmd+S ile kaydet
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-                showSaveModal();
-            }
         }
 
         function toggleRunMenu() {
@@ -790,11 +783,11 @@ ${code.js}
 
         function runCode(mode) {
             document.getElementById('runMenu').classList.add('hidden');
-
+            
             const html = code.html;
             const css = code.css;
             const js = code.js;
-
+            
             const fullCode = `<!DOCTYPE html>
 <html>
 <head>
@@ -807,7 +800,7 @@ ${code.js}
     <script>${js}<\/script>
 </body>
 </html>`;
-
+            
             if (mode === 'newtab') {
                 const blob = new Blob([fullCode], {type: 'text/html'});
                 const url = URL.createObjectURL(blob);
@@ -832,49 +825,38 @@ ${code.js}
         function handleFileLoad(event) {
             const file = event.target.files[0];
             if (!file) return;
-
+            
+            // Dosya adını sakla (.html uzantısız)
+            loadedFilename = file.name.replace('.html', '');
+            
             const reader = new FileReader();
             reader.onload = (e) => {
                 const content = e.target.result;
-
+                
                 const htmlMatch = content.match(/<body>([\s\S]*?)<\/body>/i);
                 const cssMatch = content.match(/<style>([\s\S]*?)<\/style>/i);
                 const jsMatch = content.match(/<script>([\s\S]*?)<\/script>/i);
-
+                
                 if (htmlMatch) code.html = htmlMatch[1].trim();
                 if (cssMatch) code.css = cssMatch[1].trim();
                 if (jsMatch) code.js = jsMatch[1].trim();
-
-                // Yüklenen dosya bilgilerini kaydet
-                loadedFilename = file.name;
-                isLoadedFile = true;
-
-                updateFilenameDisplay();
-                updateEditor();
+                
+                // Yeni dosya yüklendiğinde storage'a kaydet
                 saveToStorage();
-
+                
+                updateEditor();
                 showToast(`${file.name} yüklendi`);
             };
             reader.readAsText(file);
-
-            // Input'u resetle (aynı dosyayı tekrar seçebilmek için)
-            event.target.value = '';
         }
 
         function clearCode() {
-            if (confirm('Tüm kodları temizlemek istediğinize emin misiniz? Bu işlem localStorage\'ı da temizleyecektir.')) {
+            if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
                 code.html = '';
                 code.css = '';
                 code.js = '';
-                loadedFilename = '';
-                isLoadedFile = false;
-
-                // localStorage'ı temizle
-                Object.values(STORAGE_KEYS).forEach(key => {
-                    localStorage.removeItem(key);
-                });
-
-                updateFilenameDisplay();
+                loadedFilename = ''; // Dosya adını da temizle
+                saveToStorage(); // Storage'ı da temizle
                 updateEditor();
                 showToast('Kodlar temizlendi');
             }
@@ -923,7 +905,7 @@ ${code.js}
             document.getElementById('toastMessage').textContent = message;
             toast.classList.remove('hidden');
             toast.classList.add('flex');
-
+            
             setTimeout(() => {
                 toast.classList.add('hidden');
                 toast.classList.remove('flex');
