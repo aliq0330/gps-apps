@@ -3,162 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobil Kod Editörü</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/dracula.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/css/css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
-    
+    <title>Native Code Editor</title>
     <style>
-        :root { --bg: #282a36; --text: #f8f8f2; --accent: #6272a4; --active: #50fa7b; }
-        body { margin: 0; font-family: sans-serif; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        :root {
+            --bg: #1e1e1e; --text: #d4d4d4; --accent: #007acc;
+            --html-tag: #569cd6; --attr: #9cdcfe; --val: #ce9178; --comment: #6a9955;
+        }
+
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; font-family: 'Courier New', monospace; 
+            background: var(--bg); color: var(--text); height: 100dvh; 
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex; gap: 8px; padding: 10px; background: #252526;
+            border-bottom: 1px solid #333; align-items: center;
+        }
+        #fileNameInput {
+            flex: 1; background: #3c3c3c; border: 1px solid #555;
+            color: white; padding: 6px 12px; border-radius: 4px; outline: none;
+        }
+        .btn {
+            background: #333; border: 1px solid #555; color: white;
+            padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+        }
+        .btn-run { background: var(--accent); border: none; font-weight: bold; }
+
+        /* Tabs */
+        .tabs { display: flex; background: #2d2d2d; }
+        .tab {
+            padding: 10px 20px; cursor: pointer; font-size: 13px;
+            border-bottom: 2px solid transparent; opacity: 0.6;
+        }
+        .tab.active { opacity: 1; border-bottom-color: var(--accent); background: var(--bg); }
+
+        /* Editor Area */
+        .editor-container {
+            flex: 1; position: relative; overflow: hidden;
+        }
         
-        /* Üst Panel */
-        .toolbar { display: flex; align-items: center; gap: 8px; padding: 10px; background: #1e1f29; border-bottom: 1px solid #44475a; }
-        #fileNameInput { flex-grow: 1; background: #44475a; border: none; color: white; padding: 8px; border-radius: 4px; font-size: 14px; }
-        .btn { background: var(--accent); border: none; color: white; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        .btn-run { background: var(--active); color: #282a36; font-weight: bold; }
+        /* Satır Numaraları */
+        .line-numbers {
+            position: absolute; left: 0; top: 0; bottom: 0; width: 40px;
+            background: #1e1e1e; color: #858585; text-align: right;
+            padding: 15px 5px; font-size: 14px; line-height: 20px;
+            user-select: none; border-right: 1px solid #333; z-index: 5;
+        }
 
-        /* Sekmeler */
-        .tabs { display: flex; background: #1e1f29; }
-        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; border-bottom: 2px solid transparent; opacity: 0.6; transition: 0.3s; }
-        .tab.active { border-bottom: 2px solid var(--active); opacity: 1; background: var(--bg); }
+        /* Katmanlı Yazım Alanı */
+        #input-area, #highlight-area {
+            position: absolute; inset: 0 0 0 45px; /* Numaralar için soldan boşluk */
+            padding: 15px 10px; margin: 0; border: none;
+            font-family: inherit; font-size: 14px; line-height: 20px;
+            white-space: pre; word-wrap: normal; overflow: auto;
+        }
 
-        /* Editör Alanı */
-        #editor-wrapper { flex-grow: 1; position: relative; font-size: 16px; overflow: hidden; }
-        .CodeMirror { height: 100% !important; width: 100% !important; }
+        #input-area {
+            background: transparent; color: transparent; caret-color: white;
+            resize: none; outline: none; z-index: 2;
+        }
 
-        /* Pop-up Overlay */
-        #preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; }
-        #preview-modal iframe { width: 100%; height: calc(100% - 40px); border: none; }
-        .close-modal { height: 40px; background: #ff5555; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
+        #highlight-area {
+            pointer-events: none; z-index: 1; white-space: pre-wrap;
+        }
+
+        /* Renklendirme Syntax */
+        .token-tag { color: var(--html-tag); }
+        .token-attr { color: var(--attr); }
+        .token-string { color: var(--val); }
+        .token-comment { color: var(--comment); }
+
+        /* Modal */
+        #modal {
+            display: none; position: fixed; inset: 0; background: white; z-index: 100;
+            flex-direction: column;
+        }
+        .modal-header { background: #333; padding: 10px; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
-    <input type="text" id="fileNameInput" placeholder="Dosya adı (varsayılan: deneme)">
-    <input type="file" id="fileLoader" style="display:none" onchange="processFile(this)">
-    <button class="btn" onclick="document.getElementById('fileLoader').click()">📂</button>
-    <button class="btn" onclick="downloadFile()">💾</button>
-    <button class="btn" onclick="clearCode()">🧹</button>
-    <button class="btn btn-run" onclick="showRunMenu()">▶️</button>
+    <input type="text" id="fileNameInput" placeholder="dosya_adi">
+    <button class="btn" onclick="triggerLoad()">Yükle</button>
+    <button class="btn" onclick="saveFile()">Kaydet</button>
+    <button class="btn" onclick="clearAll()">Temizle</button>
+    <button class="btn btn-run" onclick="runCode()">Çalıştır</button>
+    <input type="file" id="fileInp" hidden onchange="processFile(this)">
 </div>
 
 <div class="tabs">
-    <div class="tab active" id="tab-html" onclick="switchTab('html')">HTML</div>
-    <div class="tab" id="tab-css" onclick="switchTab('css')">CSS</div>
-    <div class="tab" id="tab-js" onclick="switchTab('js')">JS</div>
+    <div class="tab active" onclick="switchTab('html', this)">HTML</div>
+    <div class="tab" onclick="switchTab('css', this)">CSS</div>
+    <div class="tab" onclick="switchTab('js', this)">JS</div>
 </div>
 
-<div id="editor-wrapper" oncontextmenu="handleLongPress(event)">
-    <textarea id="real-editor"></textarea>
+<div class="editor-container">
+    <div class="line-numbers" id="lineNumbers">1</div>
+    <textarea id="input-area" spellcheck="false" oninput="updateEditor()" onscroll="syncScroll()"></textarea>
+    <pre id="highlight-area"><code id="code-content"></code></pre>
 </div>
 
-<div id="preview-modal">
-    <div class="close-modal" onclick="closeModal()">KAPAT</div>
-    <iframe id="preview-frame"></iframe>
+<div id="modal">
+    <div class="modal-header">
+        <span style="color:white">Önizleme</span>
+        <button onclick="closeModal()" style="background:red; color:white; border:none; padding:5px 10px;">Kapat</button>
+    </div>
+    <iframe id="preview" style="flex:1; border:none;"></iframe>
 </div>
 
 <script>
-    let currentTab = 'html';
+    let currentMode = 'html';
     const codes = {
-        html: '<!DOCTYPE html>\n<html>\n<body>\n  <h1>Merhaba Dünya</h1>\n</body>\n</html>',
-        css: 'body { background: #f0f0f0; color: #333; text-align: center; }',
-        js: 'console.log("Kod çalıştı!");'
+        html: '\n<h1 class="baslik">Kod Editörü</h1>\n<p>Buraya yazabilirsin.</p>',
+        css: 'body {\n  background: #222;\n  color: gold;\n}',
+        js: 'console.log("Sistem çalışıyor...");'
     };
 
-    // CodeMirror Kurulumu
-    const editor = CodeMirror.fromTextArea(document.getElementById("real-editor"), {
-        lineNumbers: true,
-        theme: "dracula",
-        mode: "xml",
-        htmlMode: true,
-        lineWrapping: true,
-        tabSize: 2,
-        extraKeys: {"Ctrl-Space": "autocomplete"}
-    });
+    const inputArea = document.getElementById('input-area');
+    const codeContent = document.getElementById('code-content');
+    const lineNumbers = document.getElementById('lineNumbers');
 
-    editor.setValue(codes.html);
+    // Başlangıç
+    inputArea.value = codes.html;
+    updateEditor();
 
-    // Sekme Değiştirme
-    function switchTab(tab) {
-        codes[currentTab] = editor.getValue();
-        currentTab = tab;
-        
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(`tab-${tab}`).classList.add('active');
+    function updateEditor() {
+        let text = inputArea.value;
+        codes[currentMode] = text;
 
-        const modeMap = { html: 'xml', css: 'css', js: 'javascript' };
-        editor.setOption("mode", modeMap[tab]);
-        editor.setValue(codes[tab]);
+        // Basit Syntax Highlighting (Regex ile)
+        if (currentMode === 'html') {
+            text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            text = text.replace(/&lt;!--([\s\S]*?)--&gt;/g, '<span class="token-comment">&lt;!--$1--&gt;</span>');
+            text = text.replace(/(&lt;\/?[a-z1-6]+)/gi, '<span class="token-tag">$1</span>');
+            text = text.replace(/([a-z-]+)(?==)/gi, '<span class="token-attr">$1</span>');
+            text = text.replace(/"(.*?)"/g, '<span class="token-string">"$1"</span>');
+        } else {
+            // CSS ve JS için çok temel renklendirme
+            text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            text = text.replace(/\/\*([\s\S]*?)\*\//g, '<span class="token-comment">/*$1*/</span>');
+        }
+
+        codeContent.innerHTML = text + "\n"; // Sona boşluk ekle ki kaydırma düzgün olsun
+        updateLineNumbers();
     }
 
-    // Kod Temizleme
-    function clearCode() {
-        if(confirm("Tüm kodları temizlemek istediğinize emin misiniz?")) {
-            editor.setValue("");
-            codes[currentTab] = "";
+    function updateLineNumbers() {
+        const lines = inputArea.value.split('\n').length;
+        lineNumbers.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
+    }
+
+    function syncScroll() {
+        const highlight = document.getElementById('highlight-area');
+        highlight.scrollTop = inputArea.scrollTop;
+        highlight.scrollLeft = inputArea.scrollLeft;
+        lineNumbers.scrollTop = inputArea.scrollTop;
+    }
+
+    function switchTab(mode, el) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        currentMode = mode;
+        inputArea.value = codes[mode];
+        updateEditor();
+    }
+
+    function runCode() {
+        const combined = `<html><style>${codes.css}</style><body>${codes.html}<script>${codes.js}<\/script></body></html>`;
+        const blob = new Blob([combined], {type: 'text/html'});
+        const url = URL.createObjectURL(blob);
+        
+        if(confirm("Yeni sekmede açmak için TAMAM'a, burada görmek için İPTAL'e bas.")) {
+            window.open(url);
+        } else {
+            document.getElementById('preview').src = url;
+            document.getElementById('modal').style.display = 'flex';
         }
     }
 
-    // Dosya İndirme
-    function downloadFile() {
-        codes[currentTab] = editor.getValue();
-        const fileName = (document.getElementById('fileNameInput').value || 'deneme') + ".html";
-        const content = `
-            ${codes.html}
-            <style>${codes.css}</style>
-            <script>${codes.js}<\/script>
-        `;
-        const blob = new Blob([content], {type: "text/html"});
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = fileName;
+    function saveFile() {
+        const name = (document.getElementById('fileNameInput').value || 'deneme') + ".html";
+        const combined = `<html><style>${codes.css}</style><body>${codes.html}<script>${codes.js}<\/script></body></html>`;
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([combined], {type: 'text/html'}));
+        a.download = name;
         a.click();
     }
 
-    // Dosya Yükleme (Basit içerik aktarımı)
-    function processFile(input) {
-        const file = input.files[0];
+    function clearAll() { if(confirm("Temizle?")) { inputArea.value = ""; updateEditor(); } }
+    function triggerLoad() { document.getElementById('fileInp').click(); }
+    function processFile(inp) {
         const reader = new FileReader();
-        reader.onload = (e) => {
-            editor.setValue(e.target.result);
-        };
-        reader.readAsText(file);
+        reader.onload = () => { inputArea.value = reader.result; updateEditor(); };
+        reader.readAsText(inp.files[0]);
     }
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-    // Çalıştır Menüsü
-    function showRunMenu() {
-        const choice = confirm("Tamam: Yeni Sekmede Aç\nİptal: Pop-up Görüntüle");
-        const content = `<html><style>${codes.css}</style><body>${codes.html}<script>${codes.js}<\/script></body></html>`;
-        const blob = new Blob([content], {type: "text/html"});
-        const url = URL.createObjectURL(blob);
-
-        if (choice) {
-            window.open(url, '_blank');
-        } else {
-            document.getElementById('preview-frame').src = url;
-            document.getElementById('preview-modal').style.display = 'block';
-        }
-    }
-
-    function closeModal() {
-        document.getElementById('preview-modal').style.display = 'none';
-        document.getElementById('preview-frame').src = '';
-    }
-
-    // Uzun Basınca Kopyala (Mobil İçin)
-    function handleLongPress(e) {
-        // Not: Mobil tarayıcılarda 'contextmenu' genellikle uzun basınca tetiklenir.
+    // Uzun basınca tümünü kopyala
+    inputArea.addEventListener('contextmenu', (e) => {
         e.preventDefault();
-        const allText = editor.getValue();
-        navigator.clipboard.writeText(allText).then(() => {
-            alert("Tüm kod kopyalandı!");
-        });
-    }
+        inputArea.select();
+        document.execCommand('copy');
+        alert("Tüm kod kopyalandı!");
+    });
 </script>
 
 </body>
