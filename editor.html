@@ -33,9 +33,6 @@
             background: #161b22;
             width: 100%;
             height: calc(100vh - 140px);
-            margin-top: 140px; /* Fixed header height */
-            position: relative;
-            z-index: 1;
         }
         
         .code-input {
@@ -114,11 +111,6 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid #30363d;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
         }
         
         @keyframes slideDown {
@@ -256,7 +248,6 @@
             }
             .code-area {
                 height: calc(100vh - 130px);
-                margin-top: 130px; /* Smaller margin for mobile */
             }
         }
         
@@ -267,8 +258,8 @@
 </head>
 <body class="bg-[#0d1117] text-[#c9d1d9]">
 
-    <!-- Top Bar - Minimal (FIXED POSITION) -->
-    <header class="glass-panel px-4 py-3">
+    <!-- Top Bar - Minimal -->
+    <header class="glass-panel sticky top-0 z-40 px-4 py-3">
         <div class="flex items-center justify-between gap-3">
             <!-- Left: HTML Tab Only -->
             <div class="flex items-center gap-2">
@@ -544,7 +535,7 @@
 
         function openSaveModal() {
             const modal = document.getElementById('saveModalOverlay');
-n            const filenameInput = document.getElementById('saveFilename');
+            const filenameInput = document.getElementById('saveFilename');
             
             if (loadedFilename && loadedFilename.trim() !== '') {
                 filenameInput.value = loadedFilename;
