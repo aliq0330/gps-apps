@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
@@ -12,824 +13,690 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
-        
-        * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-        }
-        
-        html, body {
-            height: 100%;
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        .editor-font {
-            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        
-        .editor-container {
-            position: relative;
-            height: calc(100vh - 140px);
-            overflow: hidden;
-        }
-        
-        .line-numbers {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 50px;
-            height: 100%;
-            background: #1e1e1e;
-            color: #858585;
-            text-align: right;
-            padding: 16px 10px;
-            font-size: 14px;
-            line-height: 1.6;
-            overflow: hidden;
-            user-select: none;
-            border-right: 1px solid #333;
-            z-index: 10;
-        }
-        
-        .code-area {
-            position: absolute;
-            left: 50px;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            background: #282c34;
-            overflow: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        .code-input {
-            width: 100%;
-            min-height: 100%;
-            padding: 16px;
-            background: transparent;
-            color: #abb2bf;
-            border: none;
-            resize: none;
-            outline: none;
-            white-space: pre;
-            overflow-wrap: normal;
-            tab-size: 2;
-            caret-color: #528bff;
-        }
-        
-        .tab-active {
-            background: #3b82f6;
-            color: white;
-        }
-        
-        .tab-inactive {
-            background: #374151;
-            color: #9ca3af;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-        
-        .glass-panel {
-            background: rgba(31, 41, 55, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-        
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        .animate-slide-down {
-            animation: slideDown 0.2s ease-out;
-        }
-        
-        .animate-fade-in {
-            animation: fadeIn 0.2s ease-out;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #1e1e1e;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #4b5563;
-            border-radius: 3px;
-        }
-        
-        .context-menu-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-        }
-        
-        .context-menu {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #374151;
-            border: 1px solid #4b5563;
-            border-radius: 12px;
-            padding: 8px 0;
-            z-index: 1000;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
-            min-width: 200px;
-        }
-        
-        .context-menu-item {
-            padding: 14px 20px;
-            color: #e5e7eb;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 16px;
-        }
-        
-        .context-menu-item:hover {
-            background: #4b5563;
-        }
-        
-        .context-menu-item:active {
-            background: #3b82f6;
-        }
-        
-        .run-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 8px;
-            background: #374151;
-            border: 1px solid #4b5563;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            min-width: 180px;
-            z-index: 50;
-        }
-        
-        .run-menu-item {
-            padding: 12px 16px;
-            color: #e5e7eb;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .run-menu-item:hover {
-            background: #4b5563;
-        }
-        
-        .run-menu-item:active {
-            background: #3b82f6;
-        }
-        
-        .filename-input {
-            background: #1f2937;
-            border: 2px solid #374151;
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: #e5e7eb;
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-        
-        .filename-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-        
-        /* Modal input özel stil */
-        .modal-input {
-            background: #111827;
-            border: 2px solid #374151;
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: #fff;
-            font-size: 16px;
-            transition: all 0.2s;
-            width: 100%;
-        }
-        
-        .modal-input:focus {
-            outline: none;
-            border-color: #10b981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-        }
-        
-        @media (max-width: 640px) {
-            .editor-font {
-                font-size: 13px;
-            }
-            .line-numbers {
-                width: 40px;
-                padding: 12px 8px;
-                font-size: 13px;
-            }
-            .code-area {
-                left: 40px;
-            }
-        }
-        
-        .hidden { display: none !important; }
-    </style>
+
+```
+    * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+    }
+    
+    html, body {
+        height: 100%;
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .editor-font {
+        font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    
+    .editor-container {
+        position: relative;
+        height: calc(100vh - 140px);
+        overflow: hidden;
+    }
+
+    /* Scroll wrapper covers full width */
+    .code-area {
+        position: absolute;
+        inset: 0;
+        background: #282c34;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Highlight overlay — sits behind textarea */
+    #highlight-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        min-height: 100%;
+        padding: 16px;
+        margin: 0;
+        pointer-events: none;
+        white-space: pre-wrap;
+        word-break: break-all;
+        overflow-wrap: break-word;
+        background: transparent;
+        border: none;
+        font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        tab-size: 2;
+        box-sizing: border-box;
+        color: transparent; /* text hidden, only hljs spans show */
+        z-index: 1;
+    }
+
+    /* hljs resets that interfere */
+    #highlight-overlay.hljs {
+        background: transparent !important;
+        padding: 16px !important;
+    }
+
+    /* The actual textarea — transparent text, caret visible */
+    .code-input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        min-height: 100%;
+        padding: 16px;
+        background: transparent;
+        color: transparent;
+        caret-color: #528bff;
+        border: none;
+        resize: none;
+        outline: none;
+        white-space: pre-wrap;
+        word-break: break-all;
+        overflow-wrap: break-word;
+        overflow: hidden; /* no inner scroll; outer .code-area scrolls */
+        tab-size: 2;
+        font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        box-sizing: border-box;
+        z-index: 2;
+    }
+    
+    .tab-active {
+        background: #3b82f6;
+        color: white;
+    }
+    
+    .tab-inactive {
+        background: #374151;
+        color: #9ca3af;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .glass-panel {
+        background: rgba(31, 41, 55, 0.95);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+    
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .animate-slide-down { animation: slideDown 0.2s ease-out; }
+    .animate-fade-in    { animation: fadeIn  0.2s ease-out; }
+    
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track  { background: #1e1e1e; }
+    .custom-scrollbar::-webkit-scrollbar-thumb  { background: #4b5563; border-radius: 3px; }
+    
+    .context-menu-overlay {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+    }
+    
+    .context-menu {
+        position: fixed;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        background: #374151;
+        border: 1px solid #4b5563;
+        border-radius: 12px;
+        padding: 8px 0;
+        z-index: 1000;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
+        min-width: 200px;
+    }
+    
+    .context-menu-item {
+        padding: 14px 20px;
+        color: #e5e7eb;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex; align-items: center; gap: 12px;
+        font-size: 16px;
+    }
+    .context-menu-item:hover   { background: #4b5563; }
+    .context-menu-item:active  { background: #3b82f6; }
+    
+    .run-menu {
+        position: absolute; top: 100%; right: 0;
+        margin-top: 8px;
+        background: #374151;
+        border: 1px solid #4b5563;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        min-width: 180px;
+        z-index: 50;
+    }
+    
+    .run-menu-item {
+        padding: 12px 16px; color: #e5e7eb;
+        cursor: pointer; transition: all 0.2s;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .run-menu-item:hover  { background: #4b5563; }
+    .run-menu-item:active { background: #3b82f6; }
+    
+    .modal-input {
+        background: #111827;
+        border: 2px solid #374151;
+        border-radius: 12px;
+        padding: 12px 16px;
+        color: #fff; font-size: 16px;
+        transition: all 0.2s; width: 100%;
+    }
+    .modal-input:focus {
+        outline: none; border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+    
+    @media (max-width: 640px) {
+        .editor-font { font-size: 13px; }
+        #highlight-overlay, .code-input { font-size: 13px; }
+    }
+    
+    .hidden { display: none !important; }
+</style>
+```
+
 </head>
 <body class="bg-gray-900 text-gray-100 h-screen overflow-hidden flex flex-col">
 
-    <!-- Top Bar -->
-    <header class="glass-panel border-b border-gray-700 p-3 flex flex-col gap-3 shrink-0 z-20">
-        <div class="flex items-center gap-2 flex-wrap">
-            <div class="flex items-center gap-2 flex-1 min-w-0">
-                <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                <span id="editorTitle" class="text-gray-300 text-sm truncate">Mobil Kod Editörü</span>
-            </div>
-            
-            <div class="flex items-center gap-2 shrink-0">
-                <!-- Kaydet butonu - popup açar -->
-                <button onclick="openSaveModal()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-                    </svg>
-                    Kaydet
-                </button>
-                
-                <button onclick="loadFile()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                    </svg>
-                    Yükle
-                </button>
-                <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden" onchange="handleFileLoad(event)">
-            </div>
+```
+<!-- Top Bar -->
+<header class="glass-panel border-b border-gray-700 p-3 flex flex-col gap-3 shrink-0 z-20">
+    <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-2 flex-1 min-w-0">
+            <svg class="w-5 h-5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span id="editorTitle" class="text-gray-300 text-sm truncate">Mobil Kod Editörü</span>
         </div>
-
-        <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-1">
-                <button onclick="switchTab('html')" id="tab-html" class="tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-                    HTML
-                </button>
-                <button onclick="switchTab('css')" id="tab-css" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                    CSS
-                </button>
-                <button onclick="switchTab('js')" id="tab-js" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
-                    JS
-                </button>
-            </div>
+        
+        <div class="flex items-center gap-2 shrink-0">
+            <button onclick="openSaveModal()" class="btn-success text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                </svg>
+                Kaydet
+            </button>
             
-            <div class="relative shrink-0">
-                <button onclick="toggleRunMenu()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <button onclick="loadFile()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                </svg>
+                Yükle
+            </button>
+            <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden" onchange="handleFileLoad(event)">
+        </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-1">
+            <button onclick="switchTab('html')" id="tab-html" class="tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-orange-500"></span>HTML
+            </button>
+            <button onclick="switchTab('css')" id="tab-css" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>CSS
+            </button>
+            <button onclick="switchTab('js')" id="tab-js" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-yellow-500"></span>JS
+            </button>
+        </div>
+        
+        <div class="relative shrink-0">
+            <button onclick="toggleRunMenu()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Çalıştır
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+            
+            <div id="runMenu" class="run-menu hidden animate-slide-down">
+                <div class="run-menu-item" onclick="runCode('popup')">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
                     </svg>
-                    Çalıştır
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                </button>
-                
-                <div id="runMenu" class="run-menu hidden animate-slide-down">
-                    <div class="run-menu-item" onclick="runCode('popup')">
-                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                        </svg>
-                        <div>
-                            <div class="font-medium">Popup Görüntüle</div>
-                            <div class="text-xs text-gray-400">Tam ekranda önizle</div>
-                        </div>
+                    <div>
+                        <div class="font-medium">Popup Görüntüle</div>
+                        <div class="text-xs text-gray-400">Tam ekranda önizle</div>
                     </div>
-                    <div class="run-menu-item" onclick="runCode('newtab')">
-                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                        </svg>
-                        <div>
-                            <div class="font-medium">Yeni Sekme</div>
-                            <div class="text-xs text-gray-400">Yeni sekmede aç</div>
-                        </div>
+                </div>
+                <div class="run-menu-item" onclick="runCode('newtab')">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                    <div>
+                        <div class="font-medium">Yeni Sekme</div>
+                        <div class="text-xs text-gray-400">Yeni sekmede aç</div>
                     </div>
                 </div>
             </div>
-            
-            <button onclick="clearCode()" class="btn-danger text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform shrink-0" title="Kodu Temizle">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+        </div>
+        
+        <button onclick="clearCode()" class="btn-danger text-white px-3 py-2 rounded-lg text-sm font-medium active:scale-95 transition-transform shrink-0" title="Kodu Temizle">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+        </button>
+    </div>
+</header>
+
+<!-- Editor Area -->
+<main class="flex-1 relative overflow-hidden" id="mainContainer">
+    <div class="editor-container" id="editorContainer">
+        <div class="code-area custom-scrollbar" id="codeArea">
+            <!-- Syntax highlight overlay -->
+            <pre id="highlight-overlay" aria-hidden="true"><code id="highlight-code"></code></pre>
+            <!-- Transparent editable textarea -->
+            <textarea id="editor" class="code-input" spellcheck="false"
+                      oninput="updateCode()"
+                      onkeydown="handleKeydown(event)"
+                      oncontextmenu="showContextMenu(event)"
+                      onscroll="syncHighlightScroll()"></textarea>
+        </div>
+    </div>
+</main>
+
+<!-- Preview Popup -->
+<div id="previewModal" class="fixed inset-0 bg-black z-50 hidden flex flex-col">
+    <div class="bg-gray-800 w-full h-full flex flex-col shadow-2xl">
+        <div class="flex items-center justify-between p-3 border-b border-gray-700 shrink-0">
+            <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                Önizleme - Tam Ekran
+            </h3>
+            <button onclick="closePreview()" class="text-gray-400 hover:text-white transition-colors p-2 bg-gray-700 rounded-lg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
         </div>
-    </header>
+        <iframe id="previewFrame" class="flex-1 w-full bg-white"></iframe>
+    </div>
+</div>
 
-    <!-- Editor Area -->
-    <main class="flex-1 relative overflow-hidden" id="mainContainer">
-        <div class="editor-container" id="editorContainer">
-            <div class="line-numbers editor-font" id="lineNumbers">1</div>
-            <div class="code-area custom-scrollbar">
-                <textarea id="editor" class="code-input editor-font" spellcheck="false" 
-                          oninput="updateCode()" onscroll="syncScroll()" 
-                          onkeydown="handleKeydown(event)"
-                          oncontextmenu="showContextMenu(event)"></textarea>
+<!-- Save Modal -->
+<div id="saveModalOverlay" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center backdrop-blur-sm animate-fade-in">
+    <div class="bg-gray-800 rounded-2xl p-6 w-11/12 max-w-sm shadow-2xl border border-gray-700 animate-slide-down mx-4">
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full mb-4">
+                <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                </svg>
             </div>
+            <h3 class="text-xl font-bold text-white mb-1">Dosyayı Kaydet</h3>
+            <p class="text-sm text-gray-400">HTML dosyası olarak indirin</p>
         </div>
-    </main>
-
-    <!-- Preview Popup - TAM EKRAN -->
-    <div id="previewModal" class="fixed inset-0 bg-black z-50 hidden flex flex-col">
-        <div class="bg-gray-800 w-full h-full flex flex-col shadow-2xl">
-            <div class="flex items-center justify-between p-3 border-b border-gray-700 shrink-0">
-                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                    </svg>
-                    Önizleme - Tam Ekran
-                </h3>
-                <button onclick="closePreview()" class="text-gray-400 hover:text-white transition-colors p-2 bg-gray-700 rounded-lg">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-300 mb-2 ml-1">Dosya Adı</label>
+            <div class="relative">
+                <input type="text" id="saveFilename" placeholder="ornek-sayfa"
+                       class="modal-input pr-16"
+                       onkeypress="if(event.key==='Enter') confirmSaveFromModal()">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">.html</span>
             </div>
-            <iframe id="previewFrame" class="flex-1 w-full bg-white"></iframe>
+            <p class="text-xs text-gray-500 mt-2 ml-1">Dosya otomatik olarak .html uzantılı kaydedilecektir</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="closeSaveModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white py-3.5 rounded-xl font-semibold transition-all active:scale-95">
+                İptal
+            </button>
+            <button onclick="confirmSaveFromModal()" class="flex-1 btn-success text-white py-3.5 rounded-xl font-semibold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-green-500/25">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                İndir
+            </button>
         </div>
     </div>
+</div>
 
-    <!-- Save Modal - Ekran Ortasında Dosya Adı Girişi -->
-    <div id="saveModalOverlay" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center backdrop-blur-sm animate-fade-in">
-        <div class="bg-gray-800 rounded-2xl p-6 w-11/12 max-w-sm shadow-2xl border border-gray-700 animate-slide-down mx-4">
-            <!-- Icon ve Başlık -->
-            <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full mb-4">
-                    <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-1">Dosyayı Kaydet</h3>
-                <p class="text-sm text-gray-400">HTML dosyası olarak indirin</p>
-            </div>
-            
-            <!-- Dosya Adı Input -->
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-300 mb-2 ml-1">Dosya Adı</label>
-                <div class="relative">
-                    <input type="text" id="saveFilename" placeholder="ornek-sayfa" 
-                           class="modal-input pr-16"
-                           onkeypress="if(event.key==='Enter') confirmSaveFromModal()">
-                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">.html</span>
-                </div>
-                <p class="text-xs text-gray-500 mt-2 ml-1">Dosya otomatik olarak .html uzantılı kaydedilecektir</p>
-            </div>
-            
-            <!-- Butonlar -->
-            <div class="flex gap-3">
-                <button onclick="closeSaveModal()" 
-                        class="flex-1 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white py-3.5 rounded-xl font-semibold transition-all active:scale-95">
-                    İptal
-                </button>
-                <button onclick="confirmSaveFromModal()" 
-                        class="flex-1 btn-success text-white py-3.5 rounded-xl font-semibold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-green-500/25">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>
-                    İndir
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Context Menu Overlay -->
-    <div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
-    
-    <!-- Context Menu -->
-    <div id="contextMenu" class="context-menu hidden">
-        <div class="context-menu-item" onclick="copyAll()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-            </svg>
-            Tümünü Kopyala
-        </div>
-        <div class="context-menu-item" onclick="pasteCode()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-            </svg>
-            Yapıştır
-        </div>
-        <div class="border-t border-gray-600 my-1"></div>
-        <div class="context-menu-item" onclick="selectAll()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-            </svg>
-            Tümünü Seç
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg border border-gray-700 hidden items-center gap-2 z-50">
-        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+<!-- Context Menu -->
+<div id="contextMenuOverlay" class="context-menu-overlay hidden" onclick="hideContextMenu()"></div>
+<div id="contextMenu" class="context-menu hidden">
+    <div class="context-menu-item" onclick="copyAll()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
         </svg>
-        <span id="toastMessage">İşlem başarılı</span>
+        Tümünü Kopyala
     </div>
+    <div class="context-menu-item" onclick="pasteCode()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+        </svg>
+        Yapıştır
+    </div>
+    <div class="border-t border-gray-600 my-1"></div>
+    <div class="context-menu-item" onclick="selectAll()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+        </svg>
+        Tümünü Seç
+    </div>
+</div>
 
-    <script>
-        let currentTab = 'html';
-        let loadedFilename = ''; // Yüklenen dosya adını sakla
-        const code = {
-            html: '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>',
-            css: '/* CSS kodunuzu buraya yazın */\n.container {\n  text-align: center;\n  padding: 20px;\n  font-family: Arial, sans-serif;\n}\n\nh1 {\n  color: #3b82f6;\n}',
-            js: '// JavaScript kodunuzu buraya yazın\nconsole.log("Merhaba Dünya!");\n\ndocument.querySelector("h1").addEventListener("click", function() {\n  alert("Tıklandı!");\n});'
-        };
+<!-- Toast -->
+<div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg border border-gray-700 hidden items-center gap-2 z-50">
+    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span id="toastMessage">İşlem başarılı</span>
+</div>
 
-        let initialHeight = window.innerHeight;
+<script>
+    let currentTab = 'html';
+    let loadedFilename = '';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // localStorage'dan kodları yükle
-            loadFromStorage();
-            
+    const code = {
+        html: '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Mobil editöre hoş geldiniz.</p>\n</div>',
+        css:  '/* CSS kodunuzu buraya yazın */\n.container {\n  text-align: center;\n  padding: 20px;\n  font-family: Arial, sans-serif;\n}\n\nh1 {\n  color: #3b82f6;\n}',
+        js:   '// JavaScript kodunuzu buraya yazın\nconsole.log("Merhaba Dünya!");\n\ndocument.querySelector("h1").addEventListener("click", function() {\n  alert("Tıklandı!");\n});'
+    };
+
+    // Tab → highlight.js language map
+    const langMap = { html: 'xml', css: 'css', js: 'javascript' };
+
+    // ── Highlight ──────────────────────────────────────────────────────────
+    function refreshHighlight() {
+        const raw   = document.getElementById('editor').value;
+        const lang  = langMap[currentTab];
+        const el    = document.getElementById('highlight-code');
+
+        // Escape HTML entities so hljs doesn't mangle them
+        const escaped = raw
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        el.className = `language-${lang}`;
+        el.innerHTML = escaped;
+        hljs.highlightElement(el);
+
+        // Keep overlay same height as textarea content
+        syncOverlaySize();
+    }
+
+    function syncOverlaySize() {
+        const ta  = document.getElementById('editor');
+        const pre = document.getElementById('highlight-overlay');
+        // Match scrollWidth so word-wrap behaves identically
+        pre.style.width = ta.offsetWidth + 'px';
+    }
+
+    // Sync overlay scroll position with textarea scroll
+    function syncHighlightScroll() {
+        const ta  = document.getElementById('editor');
+        const pre = document.getElementById('highlight-overlay');
+        pre.scrollTop  = ta.scrollTop;
+        pre.scrollLeft = ta.scrollLeft;
+    }
+
+    // ── Storage ────────────────────────────────────────────────────────────
+    function saveToStorage() {
+        localStorage.setItem('mobilKodEditor', JSON.stringify({
+            html: code.html, css: code.css, js: code.js,
+            filename: loadedFilename,
+            timestamp: new Date().toISOString()
+        }));
+    }
+
+    function loadFromStorage() {
+        const saved = localStorage.getItem('mobilKodEditor');
+        if (!saved) return;
+        try {
+            const d = JSON.parse(saved);
+            if (d.html !== undefined) code.html = d.html;
+            if (d.css  !== undefined) code.css  = d.css;
+            if (d.js   !== undefined) code.js   = d.js;
+            if (d.filename !== undefined) loadedFilename = d.filename;
+        } catch(e) {}
+    }
+
+    // ── Core ───────────────────────────────────────────────────────────────
+    function updateCode() {
+        code[currentTab] = document.getElementById('editor').value;
+        refreshHighlight();
+        saveToStorage();
+    }
+
+    function updateEditor() {
+        document.getElementById('editor').value = code[currentTab];
+        refreshHighlight();
+    }
+
+    function switchTab(tab) {
+        code[currentTab] = document.getElementById('editor').value;
+        document.getElementById(`tab-${currentTab}`).className =
+            'tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2';
+        currentTab = tab;
+        document.getElementById(`tab-${currentTab}`).className =
+            'tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2';
+        updateEditor();
+    }
+
+    function handleKeydown(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const ed = e.target, s = ed.selectionStart, en = ed.selectionEnd;
+            ed.value = ed.value.substring(0, s) + '  ' + ed.value.substring(en);
+            ed.selectionStart = ed.selectionEnd = s + 2;
+            updateCode();
+        }
+    }
+
+    // ── Run ────────────────────────────────────────────────────────────────
+    function toggleRunMenu() {
+        document.getElementById('runMenu').classList.toggle('hidden');
+    }
+
+    function buildFullCode() {
+        return `<!DOCTYPE html>
+```
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>${code.css}</style>
+</head>
+<body>
+    ${code.html}
+    <script>${code.js}<\/script>
+</body>
+</html>`;
+        }
+
+```
+    function runCode(mode) {
+        document.getElementById('runMenu').classList.add('hidden');
+        const full = buildFullCode();
+        if (mode === 'newtab') {
+            const url = URL.createObjectURL(new Blob([full], {type:'text/html'}));
+            window.open(url, '_blank');
+            showToast('Yeni sekmede açıldı');
+        } else {
+            document.getElementById('previewFrame').srcdoc = full;
+            document.getElementById('previewModal').classList.remove('hidden');
+        }
+    }
+
+    function closePreview() {
+        document.getElementById('previewModal').classList.add('hidden');
+    }
+
+    // ── Save Modal ─────────────────────────────────────────────────────────
+    function openSaveModal() {
+        const fi = document.getElementById('saveFilename');
+        fi.value = loadedFilename ? loadedFilename.replace('.html','') : '';
+        const m = document.getElementById('saveModalOverlay');
+        m.classList.remove('hidden'); m.classList.add('flex');
+        setTimeout(() => fi.focus(), 100);
+    }
+
+    function closeSaveModal() {
+        const m = document.getElementById('saveModalOverlay');
+        m.classList.add('hidden'); m.classList.remove('flex');
+    }
+
+    function confirmSaveFromModal() {
+        let fn = document.getElementById('saveFilename').value.trim();
+        if (!fn) {
+            showToast('Lütfen bir dosya adı girin');
+            const inp = document.getElementById('saveFilename');
+            inp.focus();
+            ['-5px','5px','-5px','0'].forEach((v,i) =>
+                setTimeout(() => inp.style.transform = `translateX(${v})`, i*50));
+            return;
+        }
+        if (!fn.endsWith('.html')) fn += '.html';
+        const blob = new Blob([buildFullCode()], {type:'text/html'});
+        const a = Object.assign(document.createElement('a'),
+                      {href: URL.createObjectURL(blob), download: fn});
+        a.click();
+        URL.revokeObjectURL(a.href);
+        loadedFilename = fn.replace('.html','');
+        saveToStorage();
+        showToast(`${fn} indirildi`);
+        closeSaveModal();
+    }
+
+    // ── Load File ──────────────────────────────────────────────────────────
+    function loadFile() { document.getElementById('fileInput').click(); }
+
+    function handleFileLoad(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        loadedFilename = file.name.replace('.html','');
+        const reader = new FileReader();
+        reader.onload = e => {
+            const c = e.target.result;
+            const hm = c.match(/<body>([\s\S]*?)<\/body>/i);
+            const cm = c.match(/<style>([\s\S]*?)<\/style>/i);
+            const jm = c.match(/<script>([\s\S]*?)<\/script>/i);
+            if (hm) code.html = hm[1].trim();
+            if (cm) code.css  = cm[1].trim();
+            if (jm) code.js   = jm[1].trim();
+            saveToStorage();
             updateEditor();
-            updateLineNumbers();
-            
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.relative')) {
-                    document.getElementById('runMenu').classList.add('hidden');
-                }
-            });
+            showToast(`${file.name} yüklendi`);
+        };
+        reader.readAsText(file);
+    }
 
-            let pressTimer;
-            const editor = document.getElementById('editor');
-            
-            editor.addEventListener('touchstart', (e) => {
-                pressTimer = setTimeout(() => {
-                    showContextMenu(e);
-                }, 800);
-            });
-            
-            editor.addEventListener('touchend', () => {
-                clearTimeout(pressTimer);
-            });
-            
-            editor.addEventListener('touchmove', () => {
-                clearTimeout(pressTimer);
-            });
+    // ── Clear ──────────────────────────────────────────────────────────────
+    function clearCode() {
+        if (!confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) return;
+        code.html = code.css = code.js = '';
+        loadedFilename = '';
+        saveToStorage();
+        updateEditor();
+        showToast('Kodlar temizlendi');
+    }
 
-            window.addEventListener('resize', handleResize);
-            
-            // Sayfa kapatılırken veya yenilenirken kodları kaydet
-            window.addEventListener('beforeunload', saveToStorage);
-            
-            // Modal dışına tıklayınca kapatma
-            document.getElementById('saveModalOverlay').addEventListener('click', (e) => {
-                if (e.target.id === 'saveModalOverlay') {
-                    closeSaveModal();
-                }
-            });
+    // ── Context Menu ───────────────────────────────────────────────────────
+    function showContextMenu(e) {
+        e.preventDefault();
+        document.getElementById('contextMenuOverlay').classList.remove('hidden');
+        document.getElementById('contextMenu').classList.remove('hidden');
+    }
+    function hideContextMenu() {
+        document.getElementById('contextMenuOverlay').classList.add('hidden');
+        document.getElementById('contextMenu').classList.add('hidden');
+    }
+    function copyAll() {
+        document.getElementById('editor').select();
+        document.execCommand('copy');
+        hideContextMenu(); showToast('Kopyalandı');
+    }
+    function pasteCode() {
+        navigator.clipboard.readText().then(t => {
+            const ed = document.getElementById('editor'), s = ed.selectionStart;
+            ed.value = ed.value.substring(0,s) + t + ed.value.substring(ed.selectionEnd);
+            ed.selectionStart = ed.selectionEnd = s + t.length;
+            updateCode(); hideContextMenu(); showToast('Yapıştırıldı');
+        }).catch(() => showToast('Yapıştırma başarısız'));
+    }
+    function selectAll() {
+        document.getElementById('editor').select();
+        hideContextMenu();
+    }
+
+    // ── Toast ──────────────────────────────────────────────────────────────
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        document.getElementById('toastMessage').textContent = msg;
+        t.classList.remove('hidden'); t.classList.add('flex');
+        setTimeout(() => { t.classList.add('hidden'); t.classList.remove('flex'); }, 2000);
+    }
+
+    // ── Resize ─────────────────────────────────────────────────────────────
+    let initialHeight = window.innerHeight;
+    function handleResize() {
+        const h = window.innerHeight;
+        document.getElementById('editorContainer').style.height =
+            (initialHeight - h > 100) ? (h - 140) + 'px' : 'calc(100vh - 140px)';
+        syncOverlaySize();
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        loadFromStorage();
+        updateEditor();
+
+        // Close run menu on outside click
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.relative'))
+                document.getElementById('runMenu').classList.add('hidden');
         });
 
-        function handleResize() {
-            const currentHeight = window.innerHeight;
-            const editorContainer = document.getElementById('editorContainer');
-            const diff = initialHeight - currentHeight;
-            
-            if (diff > 100) {
-                editorContainer.style.height = (currentHeight - 140) + 'px';
-            } else {
-                editorContainer.style.height = 'calc(100vh - 140px)';
-            }
-        }
+        // Long-press context menu on mobile
+        let pressTimer;
+        const ed = document.getElementById('editor');
+        ed.addEventListener('touchstart',  e => { pressTimer = setTimeout(() => showContextMenu(e), 800); });
+        ed.addEventListener('touchend',    ()  => clearTimeout(pressTimer));
+        ed.addEventListener('touchmove',   ()  => clearTimeout(pressTimer));
 
-        // localStorage'a kaydet
-        function saveToStorage() {
-            const data = {
-                html: code.html,
-                css: code.css,
-                js: code.js,
-                filename: loadedFilename,
-                timestamp: new Date().toISOString()
-            };
-            localStorage.setItem('mobilKodEditor', JSON.stringify(data));
-        }
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('beforeunload', saveToStorage);
 
-        // localStorage'dan yükle
-        function loadFromStorage() {
-            const saved = localStorage.getItem('mobilKodEditor');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    if (data.html !== undefined) code.html = data.html;
-                    if (data.css !== undefined) code.css = data.css;
-                    if (data.js !== undefined) code.js = data.js;
-                    if (data.filename !== undefined) loadedFilename = data.filename;
-                } catch (e) {
-                    console.error('Storage yükleme hatası:', e);
-                }
-            }
-        }
+        document.getElementById('saveModalOverlay').addEventListener('click', e => {
+            if (e.target.id === 'saveModalOverlay') closeSaveModal();
+        });
+    });
+</script>
+```
 
-        // Kod değiştiğinde otomatik kaydet
-        function updateCode() {
-            code[currentTab] = document.getElementById('editor').value;
-            updateLineNumbers();
-            saveToStorage(); // Her değişiklikte kaydet
-        }
-
-        // ===== KAYDET MODAL FONKSİYONLARI =====
-        
-        // Kaydet modalını aç
-        function openSaveModal() {
-            const modal = document.getElementById('saveModalOverlay');
-            const filenameInput = document.getElementById('saveFilename');
-            
-            // Eğer dosya yüklendiyse otomatik doldur, değilse boş bırak
-            if (loadedFilename) {
-                filenameInput.value = loadedFilename.replace('.html', '');
-            } else {
-                filenameInput.value = '';
-            }
-            
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            
-            // Input'a odaklan (mobilde klavye açılır)
-            setTimeout(() => filenameInput.focus(), 100);
-        }
-
-        // Kaydet modalını kapat
-        function closeSaveModal() {
-            const modal = document.getElementById('saveModalOverlay');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        // Modal'dan kaydet ve indir
-        function confirmSaveFromModal() {
-            let filename = document.getElementById('saveFilename').value.trim();
-            
-            // Dosya adı boşsa uyarı ver
-            if (!filename) {
-                showToast('Lütfen bir dosya adı girin');
-                document.getElementById('saveFilename').focus();
-                // Input'u sallama animasyonu
-                const input = document.getElementById('saveFilename');
-                input.style.transform = 'translateX(-5px)';
-                setTimeout(() => input.style.transform = 'translateX(5px)', 50);
-                setTimeout(() => input.style.transform = 'translateX(-5px)', 100);
-                setTimeout(() => input.style.transform = 'translateX(0)', 150);
-                return;
-            }
-            
-            // .html uzantısı ekle
-            if (!filename.endsWith('.html')) {
-                filename += '.html';
-            }
-            
-            // HTML, CSS ve JS'i birleştir
-            const fullCode = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${filename}</title>
-    <style>
-${code.css}
-    </style>
-</head>
-<body>
-${code.html}
-    <script>
-${code.js}
-    <\/script>
-</body>
-</html>`;
-            
-            // İndirme işlemi
-            const blob = new Blob([fullCode], {type: 'text/html'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            // Yüklenen dosya adını güncelle
-            loadedFilename = filename.replace('.html', '');
-            saveToStorage();
-            
-            showToast(`${filename} indirildi`);
-            closeSaveModal();
-        }
-
-        function switchTab(tab) {
-            code[currentTab] = document.getElementById('editor').value;
-            
-            document.getElementById(`tab-${currentTab}`).classList.remove('tab-active');
-            document.getElementById(`tab-${currentTab}`).classList.add('tab-inactive');
-            
-            currentTab = tab;
-            
-            document.getElementById(`tab-${currentTab}`).classList.remove('tab-inactive');
-            document.getElementById(`tab-${currentTab}`).classList.add('tab-active');
-            
-            updateEditor();
-        }
-
-        function updateEditor() {
-            document.getElementById('editor').value = code[currentTab];
-            updateLineNumbers();
-        }
-
-        function updateLineNumbers() {
-            const lines = document.getElementById('editor').value.split('\n').length;
-            const numbers = Array.from({length: lines}, (_, i) => i + 1).join('\n');
-            document.getElementById('lineNumbers').textContent = numbers;
-        }
-
-        function syncScroll() {
-            const editor = document.getElementById('editor');
-            const lineNumbers = document.getElementById('lineNumbers');
-            lineNumbers.scrollTop = editor.scrollTop;
-        }
-
-        function handleKeydown(e) {
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const editor = e.target;
-                const start = editor.selectionStart;
-                const end = editor.selectionEnd;
-                editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
-                editor.selectionStart = editor.selectionEnd = start + 2;
-                updateCode();
-            }
-        }
-
-        function toggleRunMenu() {
-            const menu = document.getElementById('runMenu');
-            menu.classList.toggle('hidden');
-        }
-
-        function runCode(mode) {
-            document.getElementById('runMenu').classList.add('hidden');
-            
-            const html = code.html;
-            const css = code.css;
-            const js = code.js;
-            
-            const fullCode = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>${css}</style>
-</head>
-<body>
-    ${html}
-    <script>${js}<\/script>
-</body>
-</html>`;
-            
-            if (mode === 'newtab') {
-                const blob = new Blob([fullCode], {type: 'text/html'});
-                const url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
-                showToast('Yeni sekmede açıldı');
-            } else {
-                const modal = document.getElementById('previewModal');
-                const frame = document.getElementById('previewFrame');
-                frame.srcdoc = fullCode;
-                modal.classList.remove('hidden');
-            }
-        }
-
-        function closePreview() {
-            document.getElementById('previewModal').classList.add('hidden');
-        }
-
-        function loadFile() {
-            document.getElementById('fileInput').click();
-        }
-
-        function handleFileLoad(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            // Dosya adını sakla (.html uzantısız)
-            loadedFilename = file.name.replace('.html', '');
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const content = e.target.result;
-                
-                const htmlMatch = content.match(/<body>([\s\S]*?)<\/body>/i);
-                const cssMatch = content.match(/<style>([\s\S]*?)<\/style>/i);
-                const jsMatch = content.match(/<script>([\s\S]*?)<\/script>/i);
-                
-                if (htmlMatch) code.html = htmlMatch[1].trim();
-                if (cssMatch) code.css = cssMatch[1].trim();
-                if (jsMatch) code.js = jsMatch[1].trim();
-                
-                // Yeni dosya yüklendiğinde storage'a kaydet
-                saveToStorage();
-                
-                updateEditor();
-                showToast(`${file.name} yüklendi`);
-            };
-            reader.readAsText(file);
-        }
-
-        function clearCode() {
-            if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
-                code.html = '';
-                code.css = '';
-                code.js = '';
-                loadedFilename = ''; // Dosya adını da temizle
-                saveToStorage(); // Storage'ı da temizle
-                updateEditor();
-                showToast('Kodlar temizlendi');
-            }
-        }
-
-        function showContextMenu(e) {
-            e.preventDefault();
-            document.getElementById('contextMenuOverlay').classList.remove('hidden');
-            document.getElementById('contextMenu').classList.remove('hidden');
-        }
-
-        function hideContextMenu() {
-            document.getElementById('contextMenuOverlay').classList.add('hidden');
-            document.getElementById('contextMenu').classList.add('hidden');
-        }
-
-        function copyAll() {
-            const editor = document.getElementById('editor');
-            editor.select();
-            document.execCommand('copy');
-            hideContextMenu();
-            showToast('Kopyalandı');
-        }
-
-        function pasteCode() {
-            navigator.clipboard.readText().then(text => {
-                const editor = document.getElementById('editor');
-                const start = editor.selectionStart;
-                editor.value = editor.value.substring(0, start) + text + editor.value.substring(editor.selectionEnd);
-                editor.selectionStart = editor.selectionEnd = start + text.length;
-                updateCode();
-                hideContextMenu();
-                showToast('Yapıştırıldı');
-            }).catch(() => {
-                showToast('Yapıştırma başarısız');
-            });
-        }
-
-        function selectAll() {
-            document.getElementById('editor').select();
-            hideContextMenu();
-        }
-
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').textContent = message;
-            toast.classList.remove('hidden');
-            toast.classList.add('flex');
-            
-            setTimeout(() => {
-                toast.classList.add('hidden');
-                toast.classList.remove('flex');
-            }, 2000);
-        }
-    </script>
 </body>
 </html>
