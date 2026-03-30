@@ -33,68 +33,24 @@
             background: #161b22;
             width: 100%;
             height: calc(100vh - 140px);
-            position: relative;
-            overflow: hidden;
         }
         
-        /* Syntax Highlighting Editor Container */
-        .editor-container {
-            position: relative;
+        .code-input {
             width: 100%;
             height: 100%;
-            overflow: hidden;
-        }
-        
-        /* Both layers use identical styling */
-        .code-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            margin: 0;
             padding: 16px;
-            border: none;
-            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            line-height: 1.7;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            overflow: auto;
-            tab-size: 2;
-        }
-        
-        /* Highlight layer (background) */
-        .code-highlight {
             background: #161b22;
             color: #c9d1d9;
-            pointer-events: none;
-            z-index: 1;
-        }
-        
-        /* Input layer (foreground) */
-        .code-input {
-            background: transparent;
-            color: transparent;
-            caret-color: #58a6ff;
+            border: none;
             resize: none;
             outline: none;
-            z-index: 2;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: hidden;
+            overflow-y: auto;
+            tab-size: 2;
+            caret-color: #58a6ff;
         }
-        
-        .code-input::selection {
-            background: rgba(88, 166, 255, 0.3);
-            color: transparent;
-        }
-        
-        /* Syntax Colors */
-        .token-tag { color: #ff7b72; }           /* HTML Tags - Red */
-        .token-attr { color: #79c0ff; }         /* Attributes - Blue */
-        .token-string { color: #a5d6ff; }       /* Strings - Light Blue */
-        .token-comment { color: #8b949e; }       /* Comments - Gray */
-        .token-content { color: #c9d1d9; }       /* Text Content - White */
-        .token-doctype { color: #d2a8ff; }      /* DOCTYPE - Purple */
-        .token-bracket { color: #ffd700; }      /* < > Brackets - Gold */
         
         .tab-active {
             background: #238636;
@@ -284,10 +240,10 @@
         }
         
         @media (max-width: 640px) {
-            .editor-font, .code-layer {
+            .editor-font {
                 font-size: 13px;
             }
-            .code-layer {
+            .code-input {
                 padding: 12px;
             }
             .code-area {
@@ -380,24 +336,18 @@
                     </svg>
                     Yükle
                 </button>
-                <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden" onchange="handleFileLoad(event)">
+                <input type="file" id="fileInput" accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md" class="hidden" onchange="handleFileLoad(event)">
             </div>
         </div>
     </header>
 
-    <!-- Editor Area with Syntax Highlighting -->
+    <!-- Editor Area - Full Height to Bottom -->
     <main>
         <div class="code-area">
-            <div class="editor-container">
-                <!-- Highlight Layer (Background) -->
-                <pre class="code-layer code-highlight custom-scrollbar" id="highlightLayer"><code id="highlightCode"></code></pre>
-                <!-- Input Layer (Foreground) -->
-                <textarea id="editor" class="code-layer code-input custom-scrollbar" spellcheck="false" 
-                          oninput="updateCode()" 
-                          onscroll="syncScroll()"
-                          onkeydown="handleKeydown(event)"
-                          oncontextmenu="showContextMenu(event)"></textarea>
-            </div>
+            <textarea id="editor" class="code-input editor-font custom-scrollbar" spellcheck="false" 
+                      oninput="updateCode()" 
+                      onkeydown="handleKeydown(event)"
+                      oncontextmenu="showContextMenu(event)"></textarea>
         </div>
     </main>
 
@@ -498,7 +448,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadFromStorage();
             updateEditor();
-            updateHighlight();
             updateFilenameDisplay();
             
             document.addEventListener('click', (e) => {
@@ -555,50 +504,7 @@
             }
         }
 
-        // HTML Syntax Highlighting
-        function highlightHTML(html) {
-            if (!html) return '';
-            
-            // Escape HTML entities first
-            let escaped = html
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
-            
-            // Highlight comments
-            escaped = escaped.replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="token-comment">$1</span>');
-            
-            // Highlight DOCTYPE
-            escaped = escaped.replace(/(&lt;!DOCTYPE[^&]*&gt;)/gi, '<span class="token-doctype">$1</span>');
-            
-            // Highlight tags with attributes
-            // Match opening tags: <tagname attributes>
-            escaped = escaped.replace(/(&lt;\/?)([a-zA-Z][a-zA-Z0-9]*)([^&]*?)(&gt;)/g, function(match, bracket1, tagName, attrs, bracket2) {
-                // Highlight attributes in the tag
-                let highlightedAttrs = attrs.replace(/([a-zA-Z-:]+)(=)(&quot;[^&]*&quot;|&#039;[^&#]*&#039;)/g, 
-                    '<span class="token-attr">$1</span>$2<span class="token-string">$3</span>');
-                
-                return '<span class="token-bracket">' + bracket1 + '</span>' +
-                       '<span class="token-tag">' + tagName + '</span>' +
-                       highlightedAttrs +
-                       '<span class="token-bracket">' + bracket2 + '</span>';
-            });
-            
-            return escaped;
-        }
-
-        function updateHighlight() {
-            const highlightLayer = document.getElementById('highlightCode');
-            highlightLayer.innerHTML = highlightHTML(code);
-        }
-
-        function syncScroll() {
-            const editor = document.getElementById('editor');
-            const highlight = document.getElementById('highlightLayer');
-            highlight.scrollTop = editor.scrollTop;
-            highlight.scrollLeft = editor.scrollLeft;
-        }
-
+        // Tarih-saat formatında dosya adı oluştur: dosya-30.03.2026-20.29
         function generateDefaultFilename() {
             const now = new Date();
             const day = now.getDate().toString().padStart(2, '0');
@@ -624,7 +530,6 @@
 
         function updateCode() {
             code = document.getElementById('editor').value;
-            updateHighlight();
             saveToStorage();
         }
 
@@ -754,31 +659,54 @@ ${code}
             document.getElementById('fileInput').click();
         }
 
+        // DÜZELTİLMİŞ: Dosyaları txt formatına çevirerek yükle
         function handleFileLoad(event) {
             const file = event.target.files[0];
             if (!file) return;
             
-            loadedFilename = file.name.replace('.html', '').replace('.htm', '');
+            // Reset input to allow same file reload
+            event.target.value = '';
+            
+            // Get filename without extension for display
+            loadedFilename = file.name.replace(/\.[^/.]+$/, '');
             
             const reader = new FileReader();
+            
             reader.onload = (e) => {
-                const content = e.target.result;
-                
-                const bodyMatch = content.match(/<body>([\s\S]*?)<\/body>/i);
-                
-                if (bodyMatch) {
-                    code = bodyMatch[1].trim();
-                } else {
-                    code = content;
+                try {
+                    let content = e.target.result;
+                    
+                    // Convert to text/plain format by treating content as raw text
+                    // Remove any null bytes or binary artifacts
+                    content = content.replace(/\x00/g, '');
+                    
+                    // Try to extract body content if it's HTML
+                    const bodyMatch = content.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+                    if (bodyMatch) {
+                        code = bodyMatch[1].trim();
+                    } else {
+                        // If no body tags, use entire content as plain text
+                        code = content;
+                    }
+                    
+                    // Save to storage immediately
+                    saveToStorage();
+                    updateEditor();
+                    updateFilenameDisplay();
+                    
+                    showToast(file.name + ' yüklendi (txt formatına çevrildi)');
+                } catch (err) {
+                    showToast('Dosya okuma hatası: ' + err.message);
+                    console.error('File load error:', err);
                 }
-                
-                saveToStorage();
-                updateEditor();
-                updateHighlight();
-                updateFilenameDisplay();
-                showToast(`${file.name} yüklendi`);
             };
-            reader.readAsText(file);
+            
+            reader.onerror = () => {
+                showToast('Dosya okunamadı');
+            };
+            
+            // Always read as text (txt format)
+            reader.readAsText(file, 'UTF-8');
         }
 
         function clearCode() {
@@ -787,7 +715,6 @@ ${code}
                 loadedFilename = '';
                 saveToStorage();
                 updateEditor();
-                updateHighlight();
                 updateFilenameDisplay();
                 showToast('Kodlar temizlendi');
             }
