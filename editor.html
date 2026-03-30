@@ -247,9 +247,9 @@
         .run-wrapper { position: relative; }
 
         .run-menu {
-            position: absolute;
-            top: calc(100% + 12px);
-            right: 0;
+            position: fixed;
+            top: 80px;
+            right: 20px;
             background: var(--glass-bg);
             backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
             -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
@@ -258,7 +258,7 @@
             overflow: hidden;
             box-shadow: var(--glass-shadow);
             min-width: 240px;
-            z-index: 50;
+            z-index: 100;
             display: none;
             transform-origin: top right;
         }
@@ -833,7 +833,7 @@
             inset: 0;
             background: rgba(0,0,0,0.15);
             backdrop-filter: blur(8px);
-            z-index: 45;
+            z-index: 90;
             display: none;
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -872,6 +872,11 @@
             
             .modal-box { padding: 24px; border-radius: 28px; }
             .modal-btn { height: 44px; border-radius: 18px; }
+            
+            .run-menu {
+                top: 70px;
+                right: 16px;
+            }
         }
     </style>
 </head>
@@ -897,7 +902,6 @@
                 Temizle
             </button>
 
-            <div class="run-overlay" id="runOverlay" onclick="toggleRunMenu()"></div>
             <div class="run-wrapper">
                 <button onclick="toggleRunMenu()" class="btn btn-primary">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -911,32 +915,6 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                     </svg>
                 </button>
-
-                <div id="runMenu" class="run-menu">
-                    <div class="run-menu-item" onclick="runCode('popup')">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                             class="icon-purple">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-                        </svg>
-                        <div>
-                            <div class="run-menu-label">Popup Görüntüle</div>
-                            <div class="run-menu-desc">Tam ekranda önizle</div>
-                        </div>
-                    </div>
-
-                    <div class="run-menu-item" onclick="runCode('newtab')">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                             class="icon-green">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                        </svg>
-                        <div>
-                            <div class="run-menu-label">Yeni Sekme</div>
-                            <div class="run-menu-desc">Yeni sekmede aç</div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -970,6 +948,34 @@
         </div>
     </div>
 </header>
+
+<!-- ══ RUN MENU - Body'nin doğrudan child elementi olarak ══ -->
+<div class="run-overlay" id="runOverlay" onclick="toggleRunMenu()"></div>
+<div id="runMenu" class="run-menu">
+    <div class="run-menu-item" onclick="runCode('popup')">
+        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+             class="icon-purple">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+        </svg>
+        <div>
+            <div class="run-menu-label">Popup Görüntüle</div>
+            <div class="run-menu-desc">Tam ekranda önizle</div>
+        </div>
+    </div>
+
+    <div class="run-menu-item" onclick="runCode('newtab')">
+        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+             class="icon-green">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+        </svg>
+        <div>
+            <div class="run-menu-label">Yeni Sekme</div>
+            <div class="run-menu-desc">Yeni sekmede aç</div>
+        </div>
+    </div>
+</div>
 
 <!-- ══ EDITOR ══ -->
 <main>
@@ -1120,7 +1126,7 @@
         editor.addEventListener('blur', onEditorBlur);
 
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.run-wrapper')) {
+            if (!e.target.closest('.run-wrapper') && !e.target.closest('#runMenu')) {
                 document.getElementById('runMenu').classList.remove('open');
                 document.getElementById('runOverlay').classList.remove('open');
             }
