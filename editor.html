@@ -401,7 +401,7 @@
             <div class="mb-6">
                 <label class="block text-sm font-medium text-[#c9d1d9] mb-2 ml-1">Dosya Adı</label>
                 <div class="relative">
-                    <input type="text" id="saveFilename" placeholder="ornek-sayfa" 
+                    <input type="text" id="saveFilename" placeholder="dosya-30.03.2026-20.29" 
                            class="modal-input pr-16"
                            onkeypress="if(event.key==='Enter') confirmSaveFromModal()">
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b949e] font-medium">.html</span>
@@ -468,7 +468,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadFromStorage();
             updateEditor();
-            updateFilenameDisplay(); // Dosya adını göster
+            updateFilenameDisplay();
             
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.relative')) {
@@ -528,7 +528,17 @@
             }
         }
 
-        // Dosya adı gösterimini güncelle
+        // Tarih-saat formatında dosya adı oluştur: dosya-30.03.2026-20.29
+        function generateDefaultFilename() {
+            const now = new Date();
+            const day = now.getDate().toString().padStart(2, '0');
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const year = now.getFullYear();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            return `dosya-${day}.${month}.${year}-${hours}.${minutes}`;
+        }
+
         function updateFilenameDisplay() {
             const titleElement = document.getElementById('editorTitle');
             if (loadedFilename && loadedFilename.trim() !== '') {
@@ -551,17 +561,19 @@
             const modal = document.getElementById('saveModalOverlay');
             const filenameInput = document.getElementById('saveFilename');
             
-            // Yüklenen dosya varsa onun adını, yoksa boş bırak
+            // Yüklenen dosya varsa onun adını, yoksa tarih-saat formatında yeni isim
             if (loadedFilename && loadedFilename.trim() !== '') {
                 filenameInput.value = loadedFilename;
             } else {
-                filenameInput.value = '';
-                filenameInput.placeholder = 'yeni-dosya';
+                filenameInput.value = generateDefaultFilename();
             }
             
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            setTimeout(() => filenameInput.focus(), 100);
+            setTimeout(() => {
+                filenameInput.focus();
+                filenameInput.select(); // Tüm metni seç ki kullanıcı hemen yazabilir
+            }, 100);
         }
 
         function closeSaveModal() {
@@ -614,10 +626,9 @@ ${code.js}
             a.click();
             URL.revokeObjectURL(url);
             
-            // Kaydedilen dosya adını sakla (uzantısız)
             loadedFilename = filename.replace('.html', '');
             saveToStorage();
-            updateFilenameDisplay(); // Ekrandaki dosya adını güncelle
+            updateFilenameDisplay();
             
             showToast(`${filename} indirildi`);
             closeSaveModal();
@@ -703,7 +714,6 @@ ${code.js}
             const file = event.target.files[0];
             if (!file) return;
             
-            // Dosya adını sakla (.html uzantısız)
             loadedFilename = file.name.replace('.html', '').replace('.htm', '');
             
             const reader = new FileReader();
@@ -720,7 +730,7 @@ ${code.js}
                 
                 saveToStorage();
                 updateEditor();
-                updateFilenameDisplay(); // Ekrandaki dosya adını güncelle
+                updateFilenameDisplay();
                 showToast(`${file.name} yüklendi`);
             };
             reader.readAsText(file);
@@ -731,10 +741,10 @@ ${code.js}
                 code.html = '';
                 code.css = '';
                 code.js = '';
-                loadedFilename = ''; // Dosya adını da temizle
+                loadedFilename = '';
                 saveToStorage();
                 updateEditor();
-                updateFilenameDisplay(); // Ekrandaki dosya adını güncelle (Yeni Dosya yap)
+                updateFilenameDisplay();
                 showToast('Kodlar temizlendi');
             }
         }
