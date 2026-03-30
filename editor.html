@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kod Editörü</title>
+    <title>Kod Editörü - Pure Liquid Glass</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -16,161 +16,220 @@
             padding: 0;
         }
 
-        /* ── Theme Variables - System Auto Detect ── */
+        /* ── Pure Liquid Glass Theme ── */
         :root {
             color-scheme: light dark;
-            --bg-primary: #ffffff;
-            --bg-secondary: #f6f8fa;
-            --bg-tertiary: #eaeef2;
-            --border-color: #d0d7de;
-            --text-primary: #24292f;
-            --text-secondary: #57606a;
-            --accent-blue: #0969da;
-            --accent-green: #1a7f37;
-            --accent-purple: #8250df;
-            --header-bg: rgba(255, 255, 255, 0.95);
-            --shadow: 0 20px 40px rgba(0,0,0,0.15);
-            --transition: all 0.3s ease;
+            
+            /* Light - Pure Glass */
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --glass-highlight: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.02),
+                0 8px 16px rgba(0, 0, 0, 0.04),
+                0 16px 32px rgba(0, 0, 0, 0.06);
+            
+            --text-primary: #1c1c1e;
+            --text-secondary: rgba(60, 60, 67, 0.6);
+            --accent: #8e8e93;
+            
+            --blur: 24px;
+            --saturation: 200%;
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg-primary: #0d1117;
-                --bg-secondary: #161b22;
-                --bg-tertiary: #21262d;
-                --border-color: #30363d;
-                --text-primary: #c9d1d9;
-                --text-secondary: #8b949e;
-                --accent-blue: #1f6feb;
-                --accent-green: #238636;
-                --accent-purple: #a371f7;
-                --header-bg: rgba(13, 17, 23, 0.95);
-                --shadow: 0 20px 40px rgba(0,0,0,0.6);
+                /* Dark - Pure Glass */
+                --glass-bg: rgba(28, 28, 30, 0.4);
+                --glass-border: rgba(255, 255, 255, 0.1);
+                --glass-highlight: rgba(255, 255, 255, 0.15);
+                --glass-shadow: 
+                    0 2px 4px rgba(0, 0, 0, 0.2),
+                    0 8px 16px rgba(0, 0, 0, 0.3),
+                    0 16px 32px rgba(0, 0, 0, 0.4);
+                
+                --text-primary: #ffffff;
+                --text-secondary: rgba(235, 235, 245, 0.6);
+                --accent: #8e8e93;
             }
         }
 
         /* ── Base ── */
         html, body {
             height: 100%;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', sans-serif;
+            background: 
+                radial-gradient(ellipse at top left, rgba(120, 120, 128, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(120, 120, 128, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at center, rgba(255, 255, 255, 0.8) 0%, rgba(242, 242, 247, 1) 100%);
             color: var(--text-primary);
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            html, body {
+                background: 
+                    radial-gradient(ellipse at top left, rgba(120, 120, 128, 0.2) 0%, transparent 50%),
+                    radial-gradient(ellipse at bottom right, rgba(120, 120, 128, 0.15) 0%, transparent 50%),
+                    #000000;
+            }
+        }
+
+        body.keyboard-open {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
         }
 
         svg { display: block; flex-shrink: 0; }
 
-        /* ── Header ── */
+        /* ── Header - Pure Glass ── */
         .header {
-            background: var(--header-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            padding: 12px 16px;
+            background: var(--glass-bg);
+            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            border-bottom: 1px solid var(--glass-border);
+            padding: 16px 20px;
             flex-shrink: 0;
             z-index: 40;
-            transition: background 0.3s ease, border-color 0.3s ease;
+            transition: var(--transition);
         }
 
         .header-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 16px;
         }
 
         .header-bottom {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid var(--border-color);
+            gap: 16px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--glass-border);
         }
 
-        /* ── Tab ── */
+        /* ── Tab - Pure Glass ── */
         .tab {
             display: inline-flex;
             align-items: center;
             gap: 8px;
             padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 20px;
+            font-size: 13px;
             font-weight: 600;
+            letter-spacing: -0.01em;
             cursor: default;
             border: none;
             white-space: nowrap;
             font-family: inherit;
-            background: var(--accent-green);
-            color: white;
-            box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
+            background: var(--glass-bg);
+            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            box-shadow: var(--glass-shadow);
+            transition: var(--transition);
         }
 
         .tab-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #ff7b72;
+            background: #ff453a;
             flex-shrink: 0;
+            box-shadow: 0 0 6px rgba(255, 69, 58, 0.6);
         }
 
-        /* ── Buttons ── */
+        /* ── PURE LIQUID GLASS BUTTONS ── */
+        /* Tüm butonlar aynı boyut ve stil */
         .btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
             border: none;
             cursor: pointer;
             font-family: inherit;
-            font-weight: 500;
-            border-radius: 8px;
-            transition: all 0.2s;
-            white-space: nowrap;
-            font-size: 14px;
-            padding: 8px 16px;
-            color: white;
-        }
-
-        .btn:active { transform: scale(0.95); }
-
-        .btn-primary {
-            background: var(--accent-blue);
-            box-shadow: 0 2px 8px rgba(31, 111, 235, 0.3);
             font-weight: 600;
-        }
-        .btn-primary:hover { background: #388bfd; }
-
-        .btn-success {
-            background: var(--accent-green);
-            box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
-        }
-        .btn-success:hover { background: #2ea043; }
-
-        .btn-secondary {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
+            font-size: 15px;
+            letter-spacing: -0.01em;
+            border-radius: 22px;
+            transition: var(--transition);
+            white-space: nowrap;
+            /* SABİT BOYUT - Tüm butonlar aynı */
+            padding: 12px 20px;
+            min-width: 100px;
+            height: 44px;
+            /* Pure Glass Stil */
+            background: var(--glass-bg);
+            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            border: 1px solid var(--glass-border);
             color: var(--text-primary);
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            overflow: hidden;
         }
-        .btn-secondary:hover { background: var(--border-color); color: var(--text-primary); }
 
+        /* Işık yansıması - tüm butonlarda */
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--glass-highlight) 0%, transparent 50%);
+            border-radius: inherit;
+            pointer-events: none;
+        }
+
+        /* Hover - tüm butonlar aynı */
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.04),
+                0 12px 24px rgba(0, 0, 0, 0.08),
+                0 24px 48px rgba(0, 0, 0, 0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .btn:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
+        }
+
+        /* Active - tüm butonlar aynı */
+        .btn:active {
+            transform: scale(0.94);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.05),
+                0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        /* Küçük butonlar da aynı yükseklik, sadece padding farklı */
         .btn-sm {
-            padding: 6px 12px;
-            font-size: 13px;
+            padding: 10px 16px;
+            min-width: 88px;
+            height: 40px;
+            font-size: 14px;
+            border-radius: 20px;
         }
 
-        /* ── Action group ── */
+        /* ── Action Group ── */
         .actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             flex-shrink: 0;
         }
 
-        /* ── File info ── */
+        /* ── File Info ── */
         .file-info {
             display: flex;
             align-items: center;
@@ -181,64 +240,77 @@
 
         .editor-title {
             color: var(--text-secondary);
-            font-size: 12px;
+            font-size: 13px;
             font-family: 'JetBrains Mono', monospace;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            font-weight: 500;
         }
 
-        .editor-title.loaded { color: var(--accent-blue); }
+        .editor-title.loaded { 
+            color: var(--text-primary);
+            font-weight: 600;
+        }
 
-        /* ── Run dropdown ── */
+        /* ── Run Dropdown - Pure Glass ── */
         .run-wrapper { position: relative; }
 
         .run-menu {
             position: absolute;
-            top: calc(100% + 8px);
+            top: calc(100% + 12px);
             right: 0;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
             overflow: hidden;
-            box-shadow: var(--shadow);
-            min-width: 200px;
+            box-shadow: var(--glass-shadow);
+            min-width: 240px;
             z-index: 50;
             display: none;
+            transform-origin: top right;
         }
 
         .run-menu.open {
             display: block;
-            animation: slideDown 0.2s ease-out;
+            animation: glassScale 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .run-menu-item {
-            padding: 14px 18px;
+            padding: 16px 20px;
             color: var(--text-primary);
             cursor: pointer;
-            transition: all 0.15s;
+            transition: var(--transition);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .run-menu-item:last-child { border-bottom: none; }
+        .run-menu-item:hover { 
+            background: var(--glass-highlight);
+        }
+        .run-menu-item:active { 
+            background: rgba(120, 120, 128, 0.2);
         }
 
-        .run-menu-item:hover { background: var(--border-color); color: var(--text-primary); }
-        .run-menu-item:active { background: var(--accent-blue); }
-
         .run-menu-label {
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 1.3;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
         }
 
         .run-menu-desc {
             font-size: 12px;
             color: var(--text-secondary);
             margin-top: 2px;
+            font-weight: 500;
         }
 
-        .icon-purple { color: var(--accent-purple); }
-        .icon-green  { color: #3fb950; }
+        .icon-purple { color: #af52de; }
+        .icon-green  { color: #30d158; }
 
         /* ── Main / Editor ── */
         main {
@@ -250,19 +322,19 @@
         }
 
         .code-area {
-            background: var(--bg-secondary);
+            background: transparent;
             width: 100%;
             flex: 1;
             min-height: 0;
-            transition: background 0.3s ease;
             position: relative;
         }
 
         .code-input {
             width: 100%;
             height: 100%;
-            padding: 16px;
-            background: var(--bg-secondary);
+            padding: 20px;
+            padding-bottom: 100px;
+            background: transparent;
             color: var(--text-primary);
             border: none;
             resize: none;
@@ -272,19 +344,21 @@
             overflow-x: hidden;
             overflow-y: auto;
             tab-size: 2;
-            caret-color: var(--accent-blue);
-            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            line-height: 1.7;
-            transition: background 0.3s ease, color 0.3s ease;
+            caret-color: var(--accent);
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            font-size: 15px;
+            line-height: 1.6;
+            letter-spacing: -0.01em;
         }
 
-        .code-input::-webkit-scrollbar        { width: 8px; height: 8px; }
-        .code-input::-webkit-scrollbar-track  { background: var(--bg-secondary); }
-        .code-input::-webkit-scrollbar-thumb  { background: var(--border-color); border-radius: 4px; }
-        .code-input::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+        .code-input::-webkit-scrollbar { width: 8px; }
+        .code-input::-webkit-scrollbar-track { background: transparent; }
+        .code-input::-webkit-scrollbar-thumb { 
+            background: var(--glass-border); 
+            border-radius: 4px; 
+        }
 
-        /* ── Hidden Copy Textarea ── */
+        /* ── Hidden Copy Area ── */
         .hidden-copy-area {
             position: absolute;
             left: -9999px;
@@ -293,55 +367,77 @@
             pointer-events: none;
         }
 
-        /* ── Floating Action Button ── */
+        /* ── Pure Glass FAB ── */
         .fab-container {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
+            bottom: 28px;
+            right: 28px;
             z-index: 100;
+            transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .fab-container.keyboard-open {
+            bottom: 100px;
         }
 
         .fab-main {
-            width: 56px;
-            height: 56px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            background: var(--accent-blue);
-            border: none;
+            background: var(--glass-bg);
+            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 15px rgba(31, 111, 235, 0.4);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: var(--glass-shadow);
+            transition: var(--transition);
             position: relative;
             z-index: 102;
         }
 
+        .fab-main::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--glass-highlight) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
         .fab-main:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(31, 111, 235, 0.5);
+            transform: scale(1.08);
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .fab-main:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
         }
 
         .fab-main:active {
-            transform: scale(0.95);
+            transform: scale(0.88);
         }
 
         .fab-main.active {
-            transform: rotate(45deg);
-            background: #da3633;
-            box-shadow: 0 4px 15px rgba(218, 54, 51, 0.4);
+            transform: rotate(45deg) scale(0.92);
         }
 
         .fab-icon {
-            color: white;
+            color: var(--text-primary);
             transition: transform 0.3s ease;
         }
 
-        /* ── FAB Menu ── */
+        /* ── FAB Menu - Pure Glass ── */
         .fab-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.15);
+            backdrop-filter: blur(8px);
             z-index: 99;
             display: none;
             opacity: 0;
@@ -355,16 +451,16 @@
 
         .fab-menu {
             position: absolute;
-            bottom: 70px;
+            bottom: 76px;
             right: 0;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             gap: 12px;
             opacity: 0;
-            transform: translateY(20px) scale(0.8);
+            transform: translateY(20px) scale(0.9);
             pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
             transform-origin: bottom right;
         }
 
@@ -378,17 +474,22 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 50px;
-            padding: 12px 20px;
+            background: var(--glass-bg);
+            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 14px 22px;
             color: var(--text-primary);
             cursor: pointer;
-            box-shadow: var(--shadow);
-            transition: all 0.2s ease;
+            box-shadow: var(--glass-shadow);
+            transition: var(--transition);
             white-space: nowrap;
             transform: translateX(20px);
             opacity: 0;
+            font-weight: 600;
+            font-size: 15px;
+            height: 48px;
         }
 
         .fab-menu.open .fab-menu-item {
@@ -396,13 +497,19 @@
             opacity: 1;
         }
 
-        .fab-menu.open .fab-menu-item:nth-child(1) { transition-delay: 0.05s; }
-        .fab-menu.open .fab-menu-item:nth-child(2) { transition-delay: 0.1s; }
-        .fab-menu.open .fab-menu-item:nth-child(3) { transition-delay: 0.15s; }
+        .fab-menu.open .fab-menu-item:nth-child(1) { transition-delay: 0.06s; }
+        .fab-menu.open .fab-menu-item:nth-child(2) { transition-delay: 0.12s; }
+        .fab-menu.open .fab-menu-item:nth-child(3) { transition-delay: 0.18s; }
 
         .fab-menu-item:hover {
-            background: var(--border-color);
             transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .fab-menu-item:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
         }
 
         .fab-menu-item:active {
@@ -415,18 +522,56 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--text-primary);
         }
 
-        .fab-menu-text {
-            font-size: 14px;
-            font-weight: 500;
+        /* ── Keyboard Close Button - Pure Glass ── */
+        .keyboard-close-btn {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--glass-bg);
+            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            border-top: 1px solid var(--glass-border);
+            padding: 16px 24px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            z-index: 1000;
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            height: 64px;
         }
 
-        /* ── Preview Modal ── */
+        .keyboard-close-btn.visible {
+            display: flex;
+        }
+
+        .keyboard-close-btn:active {
+            background: var(--glass-highlight);
+        }
+
+        .keyboard-close-icon {
+            color: var(--text-primary);
+            width: 20px;
+            height: 20px;
+        }
+
+        .keyboard-close-text {
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        /* ── Preview Modal - Pure Glass ── */
         .preview-modal {
             position: fixed;
             inset: 0;
-            background: var(--bg-primary);
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(20px);
             z-index: 50;
             display: none;
             flex-direction: column;
@@ -438,35 +583,49 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--bg-secondary);
+            padding: 16px 20px;
+            background: var(--glass-bg);
+            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            border-bottom: 1px solid var(--glass-border);
             flex-shrink: 0;
         }
 
         .preview-title {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 17px;
+            font-weight: 700;
             color: var(--text-primary);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            letter-spacing: -0.02em;
         }
 
         .preview-close {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
             cursor: pointer;
-            padding: 8px;
-            border-radius: 8px;
-            transition: all 0.2s;
+            padding: 10px;
+            border-radius: 50%;
+            transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: var(--glass-shadow);
+            width: 36px;
+            height: 36px;
         }
 
-        .preview-close:hover { color: var(--text-primary); background: var(--border-color); }
+        .preview-close:hover { 
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .preview-close:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
+        }
 
         .preview-frame {
             flex: 1;
@@ -475,49 +634,57 @@
             border: none;
         }
 
-        /* ── Save Modal ── */
+        /* ── Save Modal - Pure Glass ── */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(20px);
             z-index: 50;
             display: none;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .modal-overlay.open {
             display: flex;
-            animation: fadeIn 0.2s ease-out;
+            opacity: 1;
+            animation: fadeIn 0.3s ease;
         }
 
         .modal-box {
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 24px;
-            width: 92%;
+            background: var(--glass-bg);
+            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 32px;
+            width: 88%;
             max-width: 380px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
-            border: 1px solid var(--border-color);
-            animation: slideDown 0.2s ease-out;
+            box-shadow: 
+                0 8px 16px rgba(0, 0, 0, 0.08),
+                0 32px 64px rgba(0, 0, 0, 0.12);
+            animation: glassScale 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .modal-header {
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
 
         .modal-icon-wrap {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 56px;
-            height: 56px;
-            background: rgba(35, 134, 54, 0.2);
+            width: 64px;
+            height: 64px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
             border-radius: 50%;
             margin-bottom: 16px;
+            box-shadow: var(--glass-shadow);
         }
 
         .modal-title {
@@ -525,53 +692,58 @@
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 4px;
+            letter-spacing: -0.02em;
         }
 
         .modal-subtitle {
-            font-size: 14px;
+            font-size: 15px;
             color: var(--text-secondary);
+            font-weight: 500;
         }
 
         .modal-field { margin-bottom: 24px; }
 
         .modal-label {
             display: block;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
             margin-bottom: 8px;
             margin-left: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
 
         .modal-input-wrap { position: relative; }
 
         .modal-input {
-            background: var(--bg-primary);
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            padding: 14px 60px 14px 18px;
+            background: rgba(120, 120, 128, 0.12);
+            border: none;
+            border-radius: 16px;
+            padding: 16px 60px 16px 18px;
             color: var(--text-primary);
-            font-size: 16px;
+            font-size: 17px;
             font-family: inherit;
-            transition: all 0.2s;
+            font-weight: 500;
+            transition: var(--transition);
             width: 100%;
+            outline: none;
         }
 
         .modal-input:focus {
-            outline: none;
-            border-color: var(--accent-green);
-            box-shadow: 0 0 0 3px rgba(35, 134, 54, 0.15);
+            background: rgba(120, 120, 128, 0.2);
+            box-shadow: 0 0 0 3px rgba(120, 120, 128, 0.15);
         }
 
         .modal-input-suffix {
             position: absolute;
-            right: 16px;
+            right: 18px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-secondary);
-            font-weight: 500;
+            font-weight: 600;
             pointer-events: none;
-            font-size: 14px;
+            font-size: 15px;
         }
 
         .modal-actions {
@@ -579,78 +751,127 @@
             gap: 12px;
         }
 
+        /* Modal butonlar da aynı pure glass stil */
         .modal-btn {
             flex: 1;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 16px;
+            padding: 14px 20px;
+            border-radius: 20px;
+            font-size: 17px;
             font-weight: 600;
             font-family: inherit;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             border: none;
-            color: white;
-        }
-
-        .modal-btn:active { transform: scale(0.95); }
-
-        .modal-btn-cancel {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
+            letter-spacing: -0.01em;
+            /* Pure Glass */
+            background: var(--glass-bg);
+            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            border: 1px solid var(--glass-border);
             color: var(--text-primary);
+            box-shadow: var(--glass-shadow);
+            height: 48px;
         }
-        .modal-btn-cancel:hover { background: var(--border-color); }
+
+        .modal-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--glass-highlight) 0%, transparent 50%);
+            border-radius: inherit;
+            pointer-events: none;
+        }
+
+        .modal-btn:active { transform: scale(0.94); }
 
         .modal-btn-save {
-            background: var(--accent-green);
-            box-shadow: 0 2px 8px rgba(35, 134, 54, 0.3);
+            background: rgba(120, 120, 128, 0.2);
         }
-        .modal-btn-save:hover { background: #2ea043; }
 
-        /* ── Toast ── */
+        /* ── Toast - Pure Glass ── */
         .toast {
             position: fixed;
-            bottom: 90px;
+            bottom: 100px;
             left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-tertiary);
+            transform: translateX(-50%) translateY(20px);
+            background: var(--glass-bg);
+            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+            border: 1px solid var(--glass-border);
             color: var(--text-primary);
-            padding: 12px 24px;
-            border-radius: 999px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
+            padding: 14px 28px;
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
             display: none;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             z-index: 60;
             white-space: nowrap;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
-        .toast.open { display: flex; }
+        .toast.open { 
+            display: flex; 
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        body.keyboard-open .toast {
+            bottom: 180px;
+        }
 
         /* ── Animations ── */
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-8px); }
-            to   { opacity: 1; transform: translateY(0); }
+        @keyframes glassScale {
+            from { 
+                opacity: 0; 
+                transform: scale(0.85) translateY(10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1) translateY(0); 
+            }
         }
 
         @keyframes fadeIn {
             from { opacity: 0; }
-            to   { opacity: 1; }
+            to { opacity: 1; }
         }
 
         /* ── Responsive ── */
         @media (max-width: 480px) {
-            .code-input { font-size: 13px; padding: 12px; }
-            .btn        { font-size: 13px; padding: 7px 12px; }
-            .btn-sm     { font-size: 12px; padding: 5px 10px; }
-            .fab-container { bottom: 20px; right: 20px; }
-            .fab-main { width: 52px; height: 52px; }
+            .header { padding: 14px 16px; }
+            .code-input { font-size: 14px; padding: 16px; padding-bottom: 100px; }
+            
+            /* Tüm butonlar mobilde de aynı yükseklik */
+            .btn { 
+                font-size: 14px; 
+                padding: 10px 16px; 
+                min-width: 88px;
+                height: 40px;
+                border-radius: 20px;
+            }
+            .btn-sm { 
+                padding: 8px 14px; 
+                min-width: 80px;
+                height: 36px;
+                font-size: 13px;
+                border-radius: 18px;
+            }
+            
+            .fab-container { bottom: 24px; right: 24px; }
+            .fab-container.keyboard-open { bottom: 90px; }
+            .fab-main { width: 56px; height: 56px; }
+            .keyboard-close-btn { padding: 14px 20px; height: 60px; }
+            
+            .modal-box { padding: 24px; border-radius: 28px; }
+            .modal-btn { height: 44px; border-radius: 18px; }
         }
     </style>
 </head>
@@ -659,7 +880,6 @@
 
 <!-- ══ HEADER ══ -->
 <header class="header">
-    <!-- Top row: tab + actions -->
     <div class="header-top">
         <div>
             <span class="tab">
@@ -671,7 +891,7 @@
         <div class="actions">
             <button onclick="clearCode()" class="btn btn-secondary">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
                 Temizle
@@ -680,20 +900,20 @@
             <div class="run-wrapper">
                 <button onclick="toggleRunMenu()" class="btn btn-primary">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
                               d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
                               d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     Çalıştır
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                     </svg>
                 </button>
 
                 <div id="runMenu" class="run-menu">
                     <div class="run-menu-item" onclick="runCode('popup')">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                              class="icon-purple">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
@@ -705,7 +925,7 @@
                     </div>
 
                     <div class="run-menu-item" onclick="runCode('newtab')">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                              class="icon-green">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -720,7 +940,6 @@
         </div>
     </div>
 
-    <!-- Bottom row: filename + file ops -->
     <div class="header-bottom">
         <div class="file-info">
             <span id="editorTitle" class="editor-title">Yeni Dosya</span>
@@ -729,7 +948,7 @@
         <div class="actions">
             <button onclick="openSaveModal()" class="btn btn-success btn-sm">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
                           d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
                 </svg>
                 Kaydet
@@ -737,7 +956,7 @@
 
             <button onclick="loadFile()" class="btn btn-secondary btn-sm">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
                           d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                 </svg>
                 Yükle
@@ -756,21 +975,31 @@
     <div class="code-area">
         <textarea id="editor" class="code-input" spellcheck="false"
                   oninput="updateCode()"
-                  onkeydown="handleKeydown(event)"></textarea>
+                  onkeydown="handleKeydown(event)"
+                  onfocus="onEditorFocus()"
+                  onblur="onEditorBlur()"></textarea>
     </div>
 </main>
 
-<!-- ══ HIDDEN COPY TEXTAREA (for copy without keyboard) ══ -->
+<!-- ══ HIDDEN COPY TEXTAREA ══ -->
 <textarea id="hiddenCopyArea" class="hidden-copy-area" readonly></textarea>
+
+<!-- ══ KEYBOARD CLOSE BUTTON ══ -->
+<div id="keyboardCloseBtn" class="keyboard-close-btn" onclick="closeKeyboard()">
+    <svg class="keyboard-close-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+    </svg>
+    <span class="keyboard-close-text">Klavyeyi Kapat</span>
+</div>
 
 <!-- ══ FLOATING ACTION BUTTON ══ -->
 <div class="fab-overlay" id="fabOverlay" onclick="toggleFabMenu()"></div>
-<div class="fab-container">
+<div class="fab-container" id="fabContainer">
     <div class="fab-menu" id="fabMenu">
         <div class="fab-menu-item" onclick="scrollToTop()">
             <div class="fab-menu-icon">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
                 </svg>
             </div>
             <span class="fab-menu-text">Yukarı Çık</span>
@@ -778,7 +1007,7 @@
         <div class="fab-menu-item" onclick="copyAll()">
             <div class="fab-menu-icon">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                 </svg>
             </div>
             <span class="fab-menu-text">Tümünü Kopyala</span>
@@ -786,7 +1015,7 @@
         <div class="fab-menu-item" onclick="pasteCode()">
             <div class="fab-menu-icon">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                 </svg>
             </div>
             <span class="fab-menu-text">Yapıştır</span>
@@ -795,7 +1024,7 @@
     
     <button class="fab-main" id="fabMain" onclick="toggleFabMenu()" aria-label="Menü">
         <svg class="fab-icon" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/>
         </svg>
     </button>
 </div>
@@ -804,17 +1033,17 @@
 <div id="previewModal" class="preview-modal">
     <div class="preview-header">
         <div class="preview-title">
-            <svg width="20" height="20" fill="none" stroke="#3fb950" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
                       d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
                       d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
             </svg>
             Önizleme
         </div>
         <button class="preview-close" onclick="closePreview()">
-            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </button>
     </div>
@@ -826,8 +1055,8 @@
     <div class="modal-box">
         <div class="modal-header">
             <div class="modal-icon-wrap">
-                <svg width="28" height="28" fill="none" stroke="#3fb950" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
                           d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
                 </svg>
             </div>
@@ -849,7 +1078,7 @@
             <button onclick="closeSaveModal()" class="modal-btn modal-btn-cancel">İptal</button>
             <button onclick="confirmSaveFromModal()" class="modal-btn modal-btn-save">
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
                           d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
                 İndir
@@ -860,8 +1089,8 @@
 
 <!-- ══ TOAST ══ -->
 <div id="toast" class="toast">
-    <svg width="20" height="20" fill="none" stroke="#3fb950" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
     </svg>
     <span id="toastMessage">İşlem başarılı</span>
 </div>
@@ -874,11 +1103,20 @@
   <p>Mobil editöre hoş geldiniz.</p>
 </div>`;
     let isFabOpen = false;
+    let isKeyboardOpen = false;
 
     document.addEventListener('DOMContentLoaded', () => {
         loadFromStorage();
         updateEditor();
         updateFilenameDisplay();
+
+        if ('visualViewport' in window) {
+            window.visualViewport.addEventListener('resize', handleVisualViewportChange);
+        }
+
+        const editor = document.getElementById('editor');
+        editor.addEventListener('focus', onEditorFocus);
+        editor.addEventListener('blur', onEditorBlur);
 
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.run-wrapper')) {
@@ -889,7 +1127,108 @@
         window.addEventListener('beforeunload', saveToStorage);
     });
 
-    // FAB Functions
+    function handleVisualViewportChange() {
+        if (!window.visualViewport) return;
+        
+        const viewportHeight = window.visualViewport.height;
+        const windowHeight = window.innerHeight;
+        const keyboardHeight = windowHeight - viewportHeight;
+        
+        if (keyboardHeight > 50) {
+            if (!isKeyboardOpen) {
+                isKeyboardOpen = true;
+                onKeyboardOpen();
+            }
+        } else {
+            if (isKeyboardOpen) {
+                isKeyboardOpen = false;
+                onKeyboardClose();
+            }
+        }
+    }
+
+    function onEditorFocus() {
+        setTimeout(() => {
+            if (window.visualViewport && window.innerHeight - window.visualViewport.height > 50) {
+                if (!isKeyboardOpen) {
+                    isKeyboardOpen = true;
+                    onKeyboardOpen();
+                }
+            } else {
+                onKeyboardOpen();
+            }
+        }, 100);
+    }
+
+    function onEditorBlur() {
+        setTimeout(() => {
+            const activeElement = document.activeElement;
+            if (activeElement !== document.getElementById('editor') && 
+                activeElement !== document.getElementById('saveFilename')) {
+                if (isKeyboardOpen) {
+                    isKeyboardOpen = false;
+                    onKeyboardClose();
+                }
+            }
+        }, 100);
+    }
+
+    function onKeyboardOpen() {
+        document.body.classList.add('keyboard-open');
+        document.getElementById('keyboardCloseBtn').classList.add('visible');
+        document.getElementById('fabContainer').classList.add('keyboard-open');
+        
+        const editor = document.getElementById('editor');
+        const scrollTop = editor.scrollTop;
+        
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.height = '100%';
+            document.body.style.top = `-${scrollTop}px`;
+        }
+    }
+
+    function onKeyboardClose() {
+        document.body.classList.remove('keyboard-open');
+        document.getElementById('keyboardCloseBtn').classList.remove('visible');
+        document.getElementById('fabContainer').classList.remove('keyboard-open');
+        
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            const scrollTop = Math.abs(parseInt(document.body.style.top || '0'));
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.height = '';
+            document.body.style.top = '';
+            window.scrollTo(0, scrollTop);
+        }
+    }
+
+    function closeKeyboard() {
+        const editor = document.getElementById('editor');
+        const saveInput = document.getElementById('saveFilename');
+        
+        if (document.activeElement === editor || document.activeElement === saveInput) {
+            document.activeElement.blur();
+        }
+        
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            const tempInput = document.createElement('input');
+            tempInput.style.position = 'absolute';
+            tempInput.style.opacity = '0';
+            tempInput.style.pointerEvents = 'none';
+            document.body.appendChild(tempInput);
+            tempInput.focus();
+            setTimeout(() => {
+                tempInput.blur();
+                document.body.removeChild(tempInput);
+            }, 0);
+        }
+        
+        isKeyboardOpen = false;
+        onKeyboardClose();
+    }
+
     function toggleFabMenu() {
         isFabOpen = !isFabOpen;
         const fabMain = document.getElementById('fabMain');
@@ -914,7 +1253,6 @@
         showToast('Yukarı çıkıldı');
     }
 
-    // Storage Functions
     function saveToStorage() {
         localStorage.setItem('mobilKodEditor', JSON.stringify({
             code, filename: loadedFilename, timestamp: new Date().toISOString()
@@ -1006,6 +1344,7 @@
 
     function closeSaveModal() {
         document.getElementById('saveModalOverlay').classList.remove('open');
+        if (isKeyboardOpen) closeKeyboard();
     }
 
     function handleOverlayClick(e) {
@@ -1066,7 +1405,6 @@ ${code}
         }
     }
 
-    // Copy All - Without opening keyboard (using hidden textarea)
     function copyAll() {
         const hiddenArea = document.getElementById('hiddenCopyArea');
         hiddenArea.value = code;
