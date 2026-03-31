@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kod Editörü - Pure Liquid Glass</title>
+    <title>Kod Editörü - Fullscreen Preview</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -116,7 +115,6 @@
         box-shadow: 0 0 6px rgba(255,69,58,0.6);
     }
 
-    /* ── Buttons ── */
     .btn {
         display: inline-flex; align-items: center;
         justify-content: center; gap: 6px;
@@ -165,9 +163,6 @@
     }
     .editor-title.loaded { color: var(--text-primary); font-weight: 600; }
 
-    /* ══════════════════════════════════════
-       LIQUID GLASS SWITCHER (Kod / Önizle)
-       ══════════════════════════════════════ */
     .view-switcher {
         position: relative;
         display: flex;
@@ -191,6 +186,12 @@
             0px 6px 16px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 8%), transparent);
         transition: background-color 400ms cubic-bezier(1,0,0.4,1),
                     box-shadow 400ms cubic-bezier(1,0,0.4,1);
+    }
+
+    body.preview-mode .header .view-switcher {
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.9);
     }
 
     .view-switcher__legend {
@@ -234,7 +235,6 @@
         transition: scale 200ms cubic-bezier(0.5,0,0,1), stroke 200ms;
     }
 
-    /* Moving toggle pill */
     .view-switcher::after {
         content: "";
         position: absolute;
@@ -257,14 +257,12 @@
             translate 400ms cubic-bezier(1,0,0.4,1);
     }
 
-    /* Kod seçili */
     .view-switcher:has(input[c-option="1"]:checked)::after {
         translate: 0 0;
         transform-origin: right;
         animation: swScale 440ms ease;
     }
 
-    /* Önizle seçili */
     .view-switcher:has(input[c-option="2"]:checked)::after {
         translate: 52px 0;
         transform-origin: left;
@@ -277,7 +275,33 @@
         100% { scale: 1 1; }
     }
 
-    /* ── Main area ── */
+    .floating-switcher {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-20px) scale(0.9);
+        transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
+    }
+
+    .floating-switcher.visible {
+        opacity: 1;
+        pointer-events: all;
+        transform: translateY(0) scale(1);
+    }
+
+    .floating-switcher .view-switcher {
+        box-shadow:
+            inset 0 0 0 1px color-mix(in srgb, white calc(var(--glass-reflex-light) * 10%), transparent),
+            inset 1.8px 3px 0px -2px color-mix(in srgb, white calc(var(--glass-reflex-light) * 90%), transparent),
+            inset -2px -2px 0px -2px color-mix(in srgb, white calc(var(--glass-reflex-light) * 80%), transparent),
+            inset -0.3px -1px 4px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 12%), transparent),
+            0px 4px 12px rgba(0,0,0,0.15),
+            0px 12px 32px rgba(0,0,0,0.2);
+    }
+
     main {
         flex: 1; min-height: 0;
         display: flex; flex-direction: column;
@@ -288,6 +312,13 @@
         background: transparent; width: 100%;
         flex: 1; min-height: 0;
         position: relative; display: flex; flex-direction: column;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    body.preview-mode .code-area {
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.98);
     }
 
     .code-input {
@@ -307,15 +338,29 @@
     .code-input::-webkit-scrollbar-track { background: transparent; }
     .code-input::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
 
-    /* ── Inline Preview ── */
     .preview-area {
-        display: none; flex: 1; min-height: 0;
-        flex-direction: column;
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        background: white;
+        opacity: 0;
+        transform: scale(1.02);
+        transition: opacity 0.4s cubic-bezier(0.25,0.8,0.25,1),
+                    transform 0.4s cubic-bezier(0.25,0.8,0.25,1);
     }
-    .preview-area.active { display: flex; }
+
+    .preview-area.active {
+        display: block;
+        opacity: 1;
+        transform: scale(1);
+    }
 
     .preview-frame-inline {
-        flex: 1; width: 100%; border: none; background: white;
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: white;
     }
 
     .hidden-copy-area {
@@ -323,11 +368,17 @@
         opacity: 0; pointer-events: none;
     }
 
-    /* ── FAB ── */
     .fab-container {
         position: fixed; bottom: 28px; right: 28px; z-index: 100;
         transition: bottom 0.4s cubic-bezier(0.25,0.8,0.25,1), opacity 0.3s ease, transform 0.3s ease;
     }
+
+    body.preview-mode .fab-container {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(20px);
+    }
+
     .fab-container.keyboard-open { bottom: 100px; }
 
     .fab-main {
@@ -384,7 +435,6 @@
     .fab-menu-item:active { transform: scale(0.95); }
     .fab-menu-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; color: var(--text-primary); }
 
-    /* ── Keyboard Close ── */
     .keyboard-close-btn {
         position: fixed; bottom: 0; left: 0; right: 0;
         background: var(--glass-bg);
@@ -400,10 +450,9 @@
     .keyboard-close-icon { color: var(--text-primary); width: 20px; height: 20px; }
     .keyboard-close-text { color: var(--text-primary); font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
 
-    /* ── Save Modal ── */
     .modal-overlay {
         position: fixed; inset: 0; background: rgba(0,0,0,0.25);
-        backdrop-filter: blur(20px); z-index: 50;
+        backdrop-filter: blur(20px); z-index: 2000;
         display: none; align-items: center; justify-content: center;
         opacity: 0; transition: opacity 0.3s ease;
     }
@@ -471,7 +520,6 @@
     .modal-btn:active { transform: scale(0.94); }
     .modal-btn-save { background: rgba(120,120,128,0.2); }
 
-    /* ── Toast ── */
     .toast {
         position: fixed; bottom: 100px; left: 50%;
         transform: translateX(-50%) translateY(20px);
@@ -480,12 +528,13 @@
         -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
         border: 1px solid var(--glass-border); color: var(--text-primary);
         padding: 14px 28px; border-radius: 24px; box-shadow: var(--glass-shadow);
-        display: none; align-items: center; gap: 10px; z-index: 60;
+        display: none; align-items: center; gap: 10px; z-index: 3000;
         white-space: nowrap; font-size: 15px; font-weight: 600;
         opacity: 0; transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
     }
     .toast.open { display: flex; opacity: 1; transform: translateX(-50%) translateY(0); }
     body.keyboard-open .toast { bottom: 180px; }
+    body.preview-mode .toast { bottom: 40px; }
 
     @keyframes glassScale {
         from { opacity: 0; transform: scale(0.85) translateY(10px); }
@@ -508,6 +557,25 @@
         .view-switcher__option { width: 42px; padding: 0 10px; }
         .view-switcher::after { width: 42px; }
         .view-switcher:has(input[c-option="2"]:checked)::after { translate: 46px 0; }
+        
+        .floating-switcher {
+            top: 12px;
+            right: 12px;
+        }
+        .floating-switcher .view-switcher {
+            width: 96px;
+            height: 40px;
+        }
+        .floating-switcher .view-switcher__option {
+            width: 42px;
+            padding: 0 10px;
+        }
+        .floating-switcher .view-switcher::after {
+            width: 42px;
+        }
+        .floating-switcher .view-switcher:has(input[c-option="2"]:checked)::after {
+            translate: 46px 0;
+        }
     }
 </style>
 
@@ -533,14 +601,12 @@
             Temizle
         </button>
 
-        <!-- ══ LIQUID GLASS SWITCHER ══ -->
         <fieldset class="view-switcher" id="viewSwitcher">
             <legend class="view-switcher__legend">Görünüm</legend>
 
             <label class="view-switcher__option" title="Kod">
                 <input class="view-switcher__input" type="radio"
                        name="view" value="code" c-option="1" checked />
-                <!-- Kod ikonu -->
                 <svg class="view-switcher__icon" viewBox="0 0 24 24">
                     <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
                 </svg>
@@ -549,7 +615,6 @@
             <label class="view-switcher__option" title="Önizle">
                 <input class="view-switcher__input" type="radio"
                        name="view" value="preview" c-option="2" />
-                <!-- Göz ikonu -->
                 <svg class="view-switcher__icon" viewBox="0 0 24 24">
                     <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -598,11 +663,42 @@
     </div>
 </div>
 
-
 </header>
 
+<div class="floating-switcher" id="floatingSwitcher">
+    <fieldset class="view-switcher" id="floatingViewSwitcher">
+        <legend class="view-switcher__legend">Görünüm</legend>
+
+        <label class="view-switcher__option" title="Kod">
+            <input class="view-switcher__input" type="radio"
+                   name="floatingView" value="code" c-option="1" />
+            <svg class="view-switcher__icon" viewBox="0 0 24 24">
+                <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            </svg>
+        </label>
+
+        <label class="view-switcher__option" title="Önizle">
+            <input class="view-switcher__input" type="radio"
+                   name="floatingView" value="preview" c-option="2" checked />
+            <svg class="view-switcher__icon" viewBox="0 0 24 24">
+                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+        </label>
+
+        <div class="view-switcher__filter">
+            <svg width="0" height="0">
+                <filter id="vsf2" primitiveUnits="objectBoundingBox">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="0.03" result="b"/>
+                    <feColorMatrix in="b" type="saturate" values="2" result="s"/>
+                    <feBlend in="SourceGraphic" in2="s" mode="normal"/>
+                </filter>
+            </svg>
+        </div>
+    </fieldset>
+</div>
+
 <main>
-    <!-- Editör -->
     <div class="code-area" id="codeArea">
         <textarea id="editor" class="code-input" spellcheck="false"
                   oninput="updateCode()"
@@ -611,8 +707,6 @@
                   onblur="onEditorBlur()"></textarea>
     </div>
 
-
-<!-- Inline Önizleme -->
 <div class="preview-area" id="previewArea">
     <iframe id="previewFrameInline" class="preview-frame-inline"></iframe>
 </div>
@@ -657,13 +751,11 @@
         </div>
     </div>
 
-
 <button class="fab-main" id="fabMain" onclick="toggleFabMenu()" aria-label="Menü">
     <svg class="fab-icon" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/>
     </svg>
 </button>
-
 
 </div>
 
@@ -679,7 +771,6 @@
             <div class="modal-title">Dosyayı Kaydet</div>
             <div class="modal-subtitle">HTML dosyası olarak indirin</div>
         </div>
-
 
     <div class="modal-field">
         <label class="modal-label" for="saveFilename">Dosya Adı</label>
@@ -703,7 +794,6 @@
     </div>
 </div>
 
-
 </div>
 
 <div id="toast" class="toast">
@@ -724,7 +814,6 @@
     let isKeyboardOpen = false;
     let currentView = 'code';
 
-    /* ── Switcher: önceki değeri izle (animasyon yönü için) ── */
     (function trackPrevious(el) {
         const radios = el.querySelectorAll('input[type="radio"]');
         let prev = null;
@@ -741,22 +830,56 @@
         });
     })(document.getElementById('viewSwitcher'));
 
+    (function trackFloatingPrevious(el) {
+        const radios = el.querySelectorAll('input[type="radio"]');
+        let prev = null;
+        const init = el.querySelector('input[type="radio"]:checked');
+        if (init) { prev = init.getAttribute('c-option'); el.setAttribute('c-previous', prev); }
+        radios.forEach(r => {
+            r.addEventListener('change', () => {
+                if (r.checked) {
+                    el.setAttribute('c-previous', prev ?? '');
+                    prev = r.getAttribute('c-option');
+                    handleViewSwitch(r.value);
+                }
+            });
+        });
+    })(document.getElementById('floatingViewSwitcher'));
+
     function handleViewSwitch(view) {
         currentView = view;
         const codeArea    = document.getElementById('codeArea');
         const previewArea = document.getElementById('previewArea');
+        const floatingSwitcher = document.getElementById('floatingSwitcher');
+        const body = document.body;
+
+        syncSwitchers(view);
 
         if (view === 'preview') {
+            body.classList.add('preview-mode');
             document.getElementById('previewFrameInline').srcdoc = buildPage();
-            codeArea.style.display = 'none';
             previewArea.classList.add('active');
+            floatingSwitcher.classList.add('visible');
             if (isKeyboardOpen) closeKeyboard();
             showToast('Önizleme');
         } else {
+            body.classList.remove('preview-mode');
             previewArea.classList.remove('active');
-            codeArea.style.display = '';
+            floatingSwitcher.classList.remove('visible');
             showToast('Kod Editörü');
         }
+    }
+
+    function syncSwitchers(view) {
+        const headerRadios = document.querySelectorAll('#viewSwitcher input[name="view"]');
+        headerRadios.forEach(r => {
+            if (r.value === view) r.checked = true;
+        });
+        
+        const floatingRadios = document.querySelectorAll('#floatingViewSwitcher input[name="floatingView"]');
+        floatingRadios.forEach(r => {
+            if (r.value === view) r.checked = true;
+        });
     }
 
     function buildPage() {
@@ -942,7 +1065,6 @@
         if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
             code = ''; loadedFilename = '';
             saveToStorage(); updateEditor(); updateFilenameDisplay();
-            // Kod görünümüne dön
             const codeRadio = document.querySelector('input[name="view"][value="code"]');
             if (codeRadio && !codeRadio.checked) { codeRadio.checked = true; handleViewSwitch('code'); }
             showToast('Kodlar temizlendi');
