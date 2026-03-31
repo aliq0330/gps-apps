@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
@@ -7,885 +8,515 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
-        /* ── Reset ── */
-        *, *::before, *::after {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            margin: 0;
-            padding: 0;
-        }
+```
+    *, *::before, *::after {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        margin: 0; padding: 0;
+    }
 
-        /* ── Pure Liquid Glass Theme ── */
+    :root {
+        color-scheme: light dark;
+        --glass-bg: rgba(255, 255, 255, 0.25);
+        --glass-border: rgba(255, 255, 255, 0.4);
+        --glass-highlight: rgba(255, 255, 255, 0.6);
+        --glass-shadow:
+            0 2px 4px rgba(0,0,0,0.02),
+            0 8px 16px rgba(0,0,0,0.04),
+            0 16px 32px rgba(0,0,0,0.06);
+        --text-primary: #1c1c1e;
+        --text-secondary: rgba(60,60,67,0.6);
+        --accent: #8e8e93;
+        --blur: 24px;
+        --saturation: 200%;
+        --transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
+        --glass-reflex-light: 1;
+        --glass-reflex-dark: 1;
+    }
+
+    @media (prefers-color-scheme: dark) {
         :root {
-            color-scheme: light dark;
-            
-            /* Light - Pure Glass */
-            --glass-bg: rgba(255, 255, 255, 0.25);
-            --glass-border: rgba(255, 255, 255, 0.4);
-            --glass-highlight: rgba(255, 255, 255, 0.6);
-            --glass-shadow: 
-                0 2px 4px rgba(0, 0, 0, 0.02),
-                0 8px 16px rgba(0, 0, 0, 0.04),
-                0 16px 32px rgba(0, 0, 0, 0.06);
-            
-            --text-primary: #1c1c1e;
-            --text-secondary: rgba(60, 60, 67, 0.6);
-            --accent: #8e8e93;
-            
-            --blur: 24px;
-            --saturation: 200%;
-            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --glass-bg: rgba(28,28,30,0.4);
+            --glass-border: rgba(255,255,255,0.1);
+            --glass-highlight: rgba(255,255,255,0.15);
+            --glass-shadow:
+                0 2px 4px rgba(0,0,0,0.2),
+                0 8px 16px rgba(0,0,0,0.3),
+                0 16px 32px rgba(0,0,0,0.4);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(235,235,245,0.6);
+            --glass-reflex-light: 0.3;
+            --glass-reflex-dark: 2;
         }
+    }
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                /* Dark - Pure Glass */
-                --glass-bg: rgba(28, 28, 30, 0.4);
-                --glass-border: rgba(255, 255, 255, 0.1);
-                --glass-highlight: rgba(255, 255, 255, 0.15);
-                --glass-shadow: 
-                    0 2px 4px rgba(0, 0, 0, 0.2),
-                    0 8px 16px rgba(0, 0, 0, 0.3),
-                    0 16px 32px rgba(0, 0, 0, 0.4);
-                
-                --text-primary: #ffffff;
-                --text-secondary: rgba(235, 235, 245, 0.6);
-                --accent: #8e8e93;
-            }
-        }
+    html, body {
+        height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', sans-serif;
+        background:
+            radial-gradient(ellipse at top left, rgba(120,120,128,0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at bottom right, rgba(120,120,128,0.1) 0%, transparent 50%),
+            radial-gradient(ellipse at center, rgba(255,255,255,0.8) 0%, rgba(242,242,247,1) 100%);
+        color: var(--text-primary);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
 
-        /* ── Base ── */
+    @media (prefers-color-scheme: dark) {
         html, body {
-            height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', sans-serif;
-            background: 
-                radial-gradient(ellipse at top left, rgba(120, 120, 128, 0.15) 0%, transparent 50%),
-                radial-gradient(ellipse at bottom right, rgba(120, 120, 128, 0.1) 0%, transparent 50%),
-                radial-gradient(ellipse at center, rgba(255, 255, 255, 0.8) 0%, rgba(242, 242, 247, 1) 100%);
-            color: var(--text-primary);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            html, body {
-                background: 
-                    radial-gradient(ellipse at top left, rgba(120, 120, 128, 0.2) 0%, transparent 50%),
-                    radial-gradient(ellipse at bottom right, rgba(120, 120, 128, 0.15) 0%, transparent 50%),
-                    #000000;
-            }
-        }
-
-        body.keyboard-open {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        svg { display: block; flex-shrink: 0; }
-
-        /* ── Header - Pure Glass ── */
-        .header {
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border-bottom: 1px solid var(--glass-border);
-            padding: 16px 20px;
-            flex-shrink: 0;
-            z-index: 40;
-            transition: var(--transition);
-        }
-
-        .header-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-        }
-
-        .header-bottom {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--glass-border);
-        }
-
-        /* ── Tab - Pure Glass ── */
-        .tab {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-            cursor: default;
-            border: none;
-            white-space: nowrap;
-            font-family: inherit;
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            box-shadow: var(--glass-shadow);
-            transition: var(--transition);
-        }
-
-        .tab-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #ff453a;
-            flex-shrink: 0;
-            box-shadow: 0 0 6px rgba(255, 69, 58, 0.6);
-        }
-
-        /* ── PURE LIQUID GLASS BUTTONS ── */
-        /* Tüm butonlar aynı boyut ve stil */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            border: none;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 600;
-            font-size: 15px;
-            letter-spacing: -0.01em;
-            border-radius: 22px;
-            transition: var(--transition);
-            white-space: nowrap;
-            /* SABİT BOYUT - Tüm butonlar aynı */
-            padding: 12px 20px;
-            min-width: 100px;
-            height: 44px;
-            /* Pure Glass Stil */
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            box-shadow: var(--glass-shadow);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Hover - tüm butonlar aynı */
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.35);
-            transform: translateY(-1px);
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.04),
-                0 12px 24px rgba(0, 0, 0, 0.08),
-                0 24px 48px rgba(0, 0, 0, 0.08);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .btn:hover {
-                background: rgba(255, 255, 255, 0.08);
-            }
-        }
-
-        /* Active - tüm butonlar aynı */
-        .btn:active {
-            transform: scale(0.94);
-            box-shadow: 
-                inset 0 2px 4px rgba(0, 0, 0, 0.05),
-                0 2px 4px rgba(0, 0, 0, 0.02);
-        }
-
-        /* Küçük butonlar da aynı yükseklik, sadece padding farklı */
-        .btn-sm {
-            padding: 10px 16px;
-            min-width: 88px;
-            height: 40px;
-            font-size: 14px;
-            border-radius: 20px;
-        }
-
-        /* ── Action Group ── */
-        .actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-
-        /* ── File Info ── */
-        .file-info {
-            display: flex;
-            align-items: center;
-            flex: 1;
-            min-width: 0;
-            overflow: hidden;
-        }
-
-        .editor-title {
-            color: var(--text-secondary);
-            font-size: 13px;
-            font-family: 'JetBrains Mono', monospace;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-weight: 500;
-        }
-
-        .editor-title.loaded { 
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        /* ── Run Dropdown - Pure Glass ── */
-        .run-wrapper { position: relative; }
-
-        .run-menu {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: var(--glass-shadow);
-            min-width: 240px;
-            z-index: 100;
-            display: none;
-            transform-origin: top right;
-        }
-
-        .run-menu.open {
-            display: block;
-            animation: glassScale 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        .run-menu-item {
-            padding: 16px 20px;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            border-bottom: 1px solid var(--glass-border);
-        }
-        .run-menu-item:last-child { border-bottom: none; }
-        .run-menu-item:hover { 
-            background: var(--glass-highlight);
-        }
-        .run-menu-item:active { 
-            background: rgba(120, 120, 128, 0.2);
-        }
-
-        .run-menu-label {
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-        }
-
-        .run-menu-desc {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 2px;
-            font-weight: 500;
-        }
-
-        .icon-purple { color: #af52de; }
-        .icon-green  { color: #30d158; }
-
-        /* ── Main / Editor ── */
-        main {
-            flex: 1;
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .code-area {
-            background: transparent;
-            width: 100%;
-            flex: 1;
-            min-height: 0;
-            position: relative;
-        }
-
-        .code-input {
-            width: 100%;
-            height: 100%;
-            padding: 20px;
-            padding-bottom: 100px;
-            background: transparent;
-            color: var(--text-primary);
-            border: none;
-            resize: none;
-            outline: none;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            overflow-x: hidden;
-            overflow-y: auto;
-            tab-size: 2;
-            caret-color: var(--accent);
-            font-family: 'JetBrains Mono', 'SF Mono', monospace;
-            font-size: 15px;
-            line-height: 1.6;
-            letter-spacing: -0.01em;
-        }
-
-        .code-input::-webkit-scrollbar { width: 8px; }
-        .code-input::-webkit-scrollbar-track { background: transparent; }
-        .code-input::-webkit-scrollbar-thumb { 
-            background: var(--glass-border); 
-            border-radius: 4px; 
-        }
-
-        /* ── Hidden Copy Area ── */
-        .hidden-copy-area {
-            position: absolute;
-            left: -9999px;
-            top: -9999px;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* ── Pure Glass FAB ── */
-        .fab-container {
-            position: fixed;
-            bottom: 28px;
-            right: 28px;
-            z-index: 100;
-            transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, transform 0.3s ease;
-        }
-
-        /* Önizleme açıkken FAB gizle */
-        .preview-modal.open ~ .fab-container,
-        .preview-modal.open ~ * .fab-container,
-        body:has(.preview-modal.open) .fab-container {
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(0.8);
-        }
-
-        .fab-container.keyboard-open {
-            bottom: 100px;
-        }
-
-        .fab-main {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--glass-shadow);
-            transition: var(--transition);
-            position: relative;
-            z-index: 102;
-        }
-
-        /* SOLDAN GELEN EFEKT KALDIRILDI - ::before pseudo-elementi silindi */
-
-        .fab-main:hover {
-            transform: scale(1.08);
-            background: rgba(255, 255, 255, 0.35);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .fab-main:hover {
-                background: rgba(255, 255, 255, 0.08);
-            }
-        }
-
-        .fab-main:active {
-            transform: scale(0.88);
-        }
-
-        .fab-main.active {
-            transform: rotate(45deg) scale(0.92);
-        }
-
-        .fab-icon {
-            color: var(--text-primary);
-            transition: transform 0.3s ease;
-        }
-
-        /* ── FAB Menu - Pure Glass ── */
-        .fab-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.15);
-            backdrop-filter: blur(8px);
-            z-index: 99;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .fab-overlay.open {
-            display: block;
-            opacity: 1;
-        }
-
-        .fab-menu {
-            position: absolute;
-            bottom: 76px;
-            right: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 12px;
-            opacity: 0;
-            transform: translateY(20px) scale(0.9);
-            pointer-events: none;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            transform-origin: bottom right;
-        }
-
-        .fab-menu.open {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: all;
-        }
-
-        .fab-menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 14px 22px;
-            color: var(--text-primary);
-            cursor: pointer;
-            box-shadow: var(--glass-shadow);
-            transition: var(--transition);
-            white-space: nowrap;
-            transform: translateX(20px);
-            opacity: 0;
-            font-weight: 600;
-            font-size: 15px;
-            height: 48px;
-        }
-
-        .fab-menu.open .fab-menu-item {
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        .fab-menu.open .fab-menu-item:nth-child(1) { transition-delay: 0.06s; }
-        .fab-menu.open .fab-menu-item:nth-child(2) { transition-delay: 0.12s; }
-        .fab-menu.open .fab-menu-item:nth-child(3) { transition-delay: 0.18s; }
-
-        .fab-menu-item:hover {
-            transform: scale(1.05);
-            background: rgba(255, 255, 255, 0.35);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .fab-menu-item:hover {
-                background: rgba(255, 255, 255, 0.08);
-            }
-        }
-
-        .fab-menu-item:active {
-            transform: scale(0.95);
-        }
-
-        .fab-menu-icon {
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-primary);
-        }
-
-        /* ── Keyboard Close Button - Pure Glass ── */
-        .keyboard-close-btn {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border-top: 1px solid var(--glass-border);
-            padding: 16px 24px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            z-index: 1000;
-            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            height: 64px;
-        }
-
-        .keyboard-close-btn.visible {
-            display: flex;
-        }
-
-        .keyboard-close-btn:active {
-            background: var(--glass-highlight);
-        }
-
-        .keyboard-close-icon {
-            color: var(--text-primary);
-            width: 20px;
-            height: 20px;
-        }
-
-        .keyboard-close-text {
-            color: var(--text-primary);
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-        }
-
-        /* ── Preview Modal - Pure Glass ── */
-        .preview-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(20px);
-            z-index: 50;
-            display: none;
-            flex-direction: column;
-        }
-
-        .preview-modal.open { display: flex; }
-
-        .preview-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border-bottom: 1px solid var(--glass-border);
-            flex-shrink: 0;
-        }
-
-        .preview-title {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            letter-spacing: -0.02em;
-        }
-
-        .preview-close {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            cursor: pointer;
-            padding: 10px;
-            border-radius: 50%;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--glass-shadow);
-            width: 36px;
-            height: 36px;
-        }
-
-        .preview-close:hover { 
-            transform: scale(1.1);
-            background: rgba(255, 255, 255, 0.35);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .preview-close:hover {
-                background: rgba(255, 255, 255, 0.08);
-            }
-        }
-
-        .preview-frame {
-            flex: 1;
-            width: 100%;
-            background: white;
-            border: none;
-        }
-
-        /* ── Save Modal - Pure Glass ── */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.25);
-            backdrop-filter: blur(20px);
-            z-index: 50;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-overlay.open {
-            display: flex;
-            opacity: 1;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal-box {
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border: 1px solid var(--glass-border);
-            border-radius: 32px;
-            padding: 32px;
-            width: 88%;
-            max-width: 380px;
-            box-shadow: 
-                0 8px 16px rgba(0, 0, 0, 0.08),
-                0 32px 64px rgba(0, 0, 0, 0.12);
-            animation: glassScale 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        .modal-header {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-
-        .modal-icon-wrap {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 64px;
-            height: 64px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 50%;
-            margin-bottom: 16px;
-            box-shadow: var(--glass-shadow);
-        }
-
-        .modal-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-            letter-spacing: -0.02em;
-        }
-
-        .modal-subtitle {
-            font-size: 15px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .modal-field { margin-bottom: 24px; }
-
-        .modal-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            margin-left: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-        }
-
-        .modal-input-wrap { position: relative; }
-
-        .modal-input {
-            background: rgba(120, 120, 128, 0.12);
-            border: none;
-            border-radius: 16px;
-            padding: 16px 60px 16px 18px;
-            color: var(--text-primary);
-            font-size: 17px;
-            font-family: inherit;
-            font-weight: 500;
-            transition: var(--transition);
-            width: 100%;
-            outline: none;
-        }
-
-        .modal-input:focus {
-            background: rgba(120, 120, 128, 0.2);
-            box-shadow: 0 0 0 3px rgba(120, 120, 128, 0.15);
-        }
-
-        .modal-input-suffix {
-            position: absolute;
-            right: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            font-weight: 600;
-            pointer-events: none;
-            font-size: 15px;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-        }
-
-        /* Modal butonlar da aynı pure glass stil */
-        .modal-btn {
-            flex: 1;
-            padding: 14px 20px;
-            border-radius: 20px;
-            font-size: 17px;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border: none;
-            letter-spacing: -0.01em;
-            /* Pure Glass */
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            box-shadow: var(--glass-shadow);
-            height: 48px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .modal-btn:active { transform: scale(0.94); }
-
-        .modal-btn-save {
-            background: rgba(120, 120, 128, 0.2);
-        }
-
-        /* ── Toast - Pure Glass ── */
-        .toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            padding: 14px 28px;
-            border-radius: 24px;
-            box-shadow: var(--glass-shadow);
-            display: none;
-            align-items: center;
-            gap: 10px;
-            z-index: 60;
-            white-space: nowrap;
-            font-size: 15px;
-            font-weight: 600;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        .toast.open { 
-            display: flex; 
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
+            background:
+                radial-gradient(ellipse at top left, rgba(120,120,128,0.2) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(120,120,128,0.15) 0%, transparent 50%),
+                #000000;
+        }
+    }
+
+    body.keyboard-open { position: fixed; width: 100%; height: 100%; overflow: hidden; }
+    svg { display: block; flex-shrink: 0; }
+
+    /* ── Header ── */
+    .header {
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border-bottom: 1px solid var(--glass-border);
+        padding: 16px 20px;
+        flex-shrink: 0; z-index: 40;
+        transition: var(--transition);
+    }
+
+    .header-top {
+        display: flex; align-items: center;
+        justify-content: space-between; gap: 16px;
+    }
+
+    .header-bottom {
+        display: flex; align-items: center;
+        justify-content: space-between; gap: 16px;
+        margin-top: 16px; padding-top: 16px;
+        border-top: 1px solid var(--glass-border);
+    }
+
+    .tab {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 16px; border-radius: 20px;
+        font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
+        cursor: default; white-space: nowrap; font-family: inherit;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border: 1px solid var(--glass-border);
+        color: var(--text-primary); box-shadow: var(--glass-shadow);
+        transition: var(--transition);
+    }
+
+    .tab-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #ff453a; flex-shrink: 0;
+        box-shadow: 0 0 6px rgba(255,69,58,0.6);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+        display: inline-flex; align-items: center;
+        justify-content: center; gap: 6px;
+        border: none; cursor: pointer;
+        font-family: inherit; font-weight: 600;
+        font-size: 15px; letter-spacing: -0.01em;
+        border-radius: 22px; transition: var(--transition);
+        white-space: nowrap;
+        padding: 12px 20px; min-width: 100px; height: 44px;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border: 1px solid var(--glass-border);
+        color: var(--text-primary); box-shadow: var(--glass-shadow);
+        position: relative; overflow: hidden;
+    }
+
+    .btn:hover {
+        background: rgba(255,255,255,0.35);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.04), 0 12px 24px rgba(0,0,0,0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .btn:hover { background: rgba(255,255,255,0.08); }
+    }
+
+    .btn:active {
+        transform: scale(0.94);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .btn-sm {
+        padding: 10px 16px; min-width: 88px;
+        height: 40px; font-size: 14px; border-radius: 20px;
+    }
+
+    .actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .file-info { display: flex; align-items: center; flex: 1; min-width: 0; overflow: hidden; }
+
+    .editor-title {
+        color: var(--text-secondary); font-size: 13px;
+        font-family: 'JetBrains Mono', monospace;
+        overflow: hidden; text-overflow: ellipsis;
+        white-space: nowrap; font-weight: 500;
+    }
+    .editor-title.loaded { color: var(--text-primary); font-weight: 600; }
+
+    /* ══════════════════════════════════════
+       LIQUID GLASS SWITCHER (Kod / Önizle)
+       ══════════════════════════════════════ */
+    .view-switcher {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0;
+        width: 108px;
+        height: 44px;
+        box-sizing: border-box;
+        padding: 5px 6px;
+        border: none;
+        border-radius: 99em;
+        background-color: color-mix(in srgb, var(--glass-bg) 80%, transparent);
+        backdrop-filter: blur(var(--blur)) saturate(var(--saturation));
+        -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--saturation));
+        box-shadow:
+            inset 0 0 0 1px color-mix(in srgb, white calc(var(--glass-reflex-light) * 10%), transparent),
+            inset 1.8px 3px 0px -2px color-mix(in srgb, white calc(var(--glass-reflex-light) * 90%), transparent),
+            inset -2px -2px 0px -2px color-mix(in srgb, white calc(var(--glass-reflex-light) * 80%), transparent),
+            inset -0.3px -1px 4px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 12%), transparent),
+            0px 1px 5px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 10%), transparent),
+            0px 6px 16px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 8%), transparent);
+        transition: background-color 400ms cubic-bezier(1,0,0.4,1),
+                    box-shadow 400ms cubic-bezier(1,0,0.4,1);
+    }
+
+    .view-switcher__legend {
+        position: absolute; width: 1px; height: 1px;
+        margin: -1px; border: 0; padding: 0;
+        white-space: nowrap; clip-path: inset(100%);
+        clip: rect(0 0 0 0); overflow: hidden;
+    }
+
+    .view-switcher__input {
+        clip: rect(0 0 0 0); clip-path: inset(100%);
+        height: 1px; width: 1px; overflow: hidden;
+        position: absolute; white-space: nowrap;
+    }
+
+    .view-switcher__filter {
+        position: absolute; width: 0; height: 0; z-index: -1;
+    }
+
+    .view-switcher__option {
+        --c: var(--text-secondary);
+        display: flex; justify-content: center; align-items: center;
+        padding: 0 12px;
+        width: 48px; height: 100%;
+        box-sizing: border-box;
+        border-radius: 99em;
+        transition: all 160ms;
+        cursor: pointer;
+        position: relative; z-index: 1;
+    }
+
+    .view-switcher__option:hover { --c: var(--text-primary); }
+    .view-switcher__option:hover .view-switcher__icon { scale: 1.2; }
+    .view-switcher__option:has(input:checked) { --c: var(--text-primary); cursor: auto; }
+    .view-switcher__option:has(input:checked) .view-switcher__icon { scale: 1; }
+
+    .view-switcher__icon {
+        display: block; width: 20px; height: 20px;
+        fill: none; stroke: var(--c);
+        stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+        transition: scale 200ms cubic-bezier(0.5,0,0,1), stroke 200ms;
+    }
+
+    /* Moving toggle pill */
+    .view-switcher::after {
+        content: "";
+        position: absolute;
+        left: 4px; top: 4px;
+        display: block;
+        width: 48px;
+        height: calc(100% - 8px);
+        border-radius: 99em;
+        background-color: color-mix(in srgb, white calc(var(--glass-reflex-light) * 36%), transparent);
+        z-index: 0;
+        box-shadow:
+            inset 0 0 0 1px color-mix(in srgb, white calc(var(--glass-reflex-light) * 10%), transparent),
+            inset 2px 1px 0px -1px color-mix(in srgb, white calc(var(--glass-reflex-light) * 90%), transparent),
+            inset -1.5px -1px 0px -1px color-mix(in srgb, white calc(var(--glass-reflex-light) * 80%), transparent),
+            inset -1px 2px 3px -1px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 20%), transparent),
+            0px 3px 6px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 8%), transparent);
+        transition:
+            background-color 400ms cubic-bezier(1,0,0.4,1),
+            box-shadow 400ms cubic-bezier(1,0,0.4,1),
+            translate 400ms cubic-bezier(1,0,0.4,1);
+    }
+
+    /* Kod seçili */
+    .view-switcher:has(input[c-option="1"]:checked)::after {
+        translate: 0 0;
+        transform-origin: right;
+        animation: swScale 440ms ease;
+    }
+
+    /* Önizle seçili */
+    .view-switcher:has(input[c-option="2"]:checked)::after {
+        translate: 52px 0;
+        transform-origin: left;
+        animation: swScale 440ms ease;
+    }
+
+    @keyframes swScale {
+        0%   { scale: 1 1; }
+        50%  { scale: 1.18 1; }
+        100% { scale: 1 1; }
+    }
+
+    /* ── Main area ── */
+    main {
+        flex: 1; min-height: 0;
+        display: flex; flex-direction: column;
+        position: relative;
+    }
+
+    .code-area {
+        background: transparent; width: 100%;
+        flex: 1; min-height: 0;
+        position: relative; display: flex; flex-direction: column;
+    }
+
+    .code-input {
+        width: 100%; height: 100%;
+        padding: 20px; padding-bottom: 100px;
+        background: transparent; color: var(--text-primary);
+        border: none; resize: none; outline: none;
+        white-space: pre-wrap; word-wrap: break-word;
+        overflow-x: hidden; overflow-y: auto;
+        tab-size: 2; caret-color: var(--accent);
+        font-family: 'JetBrains Mono', 'SF Mono', monospace;
+        font-size: 15px; line-height: 1.6; letter-spacing: -0.01em;
+        flex: 1;
+    }
+
+    .code-input::-webkit-scrollbar { width: 8px; }
+    .code-input::-webkit-scrollbar-track { background: transparent; }
+    .code-input::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+
+    /* ── Inline Preview ── */
+    .preview-area {
+        display: none; flex: 1; min-height: 0;
+        flex-direction: column;
+    }
+    .preview-area.active { display: flex; }
+
+    .preview-frame-inline {
+        flex: 1; width: 100%; border: none; background: white;
+    }
+
+    .hidden-copy-area {
+        position: absolute; left: -9999px; top: -9999px;
+        opacity: 0; pointer-events: none;
+    }
+
+    /* ── FAB ── */
+    .fab-container {
+        position: fixed; bottom: 28px; right: 28px; z-index: 100;
+        transition: bottom 0.4s cubic-bezier(0.25,0.8,0.25,1), opacity 0.3s ease, transform 0.3s ease;
+    }
+    .fab-container.keyboard-open { bottom: 100px; }
+
+    .fab-main {
+        width: 60px; height: 60px; border-radius: 50%;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border: 1px solid var(--glass-border); color: var(--text-primary);
+        cursor: pointer; display: flex; align-items: center;
+        justify-content: center; box-shadow: var(--glass-shadow);
+        transition: var(--transition); position: relative; z-index: 102;
+    }
+    .fab-main:hover { transform: scale(1.08); background: rgba(255,255,255,0.35); }
+    @media (prefers-color-scheme: dark) { .fab-main:hover { background: rgba(255,255,255,0.08); } }
+    .fab-main:active { transform: scale(0.88); }
+    .fab-main.active { transform: rotate(45deg) scale(0.92); }
+    .fab-icon { color: var(--text-primary); transition: transform 0.3s ease; }
+
+    .fab-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.15);
+        backdrop-filter: blur(8px); z-index: 99;
+        display: none; opacity: 0; transition: opacity 0.3s ease;
+    }
+    .fab-overlay.open { display: block; opacity: 1; }
+
+    .fab-menu {
+        position: absolute; bottom: 76px; right: 0;
+        display: flex; flex-direction: column; align-items: flex-end; gap: 12px;
+        opacity: 0; transform: translateY(20px) scale(0.9);
+        pointer-events: none;
+        transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
+        transform-origin: bottom right;
+    }
+    .fab-menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
+
+    .fab-menu-item {
+        display: flex; align-items: center; gap: 12px;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border: 1px solid var(--glass-border); border-radius: 24px;
+        padding: 14px 22px; color: var(--text-primary);
+        cursor: pointer; box-shadow: var(--glass-shadow);
+        transition: var(--transition); white-space: nowrap;
+        transform: translateX(20px); opacity: 0;
+        font-weight: 600; font-size: 15px; height: 48px;
+    }
+    .fab-menu.open .fab-menu-item { transform: translateX(0); opacity: 1; }
+    .fab-menu.open .fab-menu-item:nth-child(1) { transition-delay: 0.06s; }
+    .fab-menu.open .fab-menu-item:nth-child(2) { transition-delay: 0.12s; }
+    .fab-menu.open .fab-menu-item:nth-child(3) { transition-delay: 0.18s; }
+    .fab-menu-item:hover { transform: scale(1.05); background: rgba(255,255,255,0.35); }
+    @media (prefers-color-scheme: dark) { .fab-menu-item:hover { background: rgba(255,255,255,0.08); } }
+    .fab-menu-item:active { transform: scale(0.95); }
+    .fab-menu-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; color: var(--text-primary); }
+
+    /* ── Keyboard Close ── */
+    .keyboard-close-btn {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border-top: 1px solid var(--glass-border);
+        padding: 16px 24px; display: none;
+        align-items: center; justify-content: center; gap: 8px;
+        z-index: 1000; height: 64px;
+    }
+    .keyboard-close-btn.visible { display: flex; }
+    .keyboard-close-btn:active { background: var(--glass-highlight); }
+    .keyboard-close-icon { color: var(--text-primary); width: 20px; height: 20px; }
+    .keyboard-close-text { color: var(--text-primary); font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+
+    /* ── Save Modal ── */
+    .modal-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.25);
+        backdrop-filter: blur(20px); z-index: 50;
+        display: none; align-items: center; justify-content: center;
+        opacity: 0; transition: opacity 0.3s ease;
+    }
+    .modal-overlay.open { display: flex; opacity: 1; animation: fadeIn 0.3s ease; }
+
+    .modal-box {
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border: 1px solid var(--glass-border); border-radius: 32px; padding: 32px;
+        width: 88%; max-width: 380px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.08), 0 32px 64px rgba(0,0,0,0.12);
+        animation: glassScale 0.4s cubic-bezier(0.25,0.8,0.25,1);
+    }
+
+    .modal-header { text-align: center; margin-bottom: 28px; }
+
+    .modal-icon-wrap {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 64px; height: 64px; background: var(--glass-bg);
+        border: 1px solid var(--glass-border); border-radius: 50%;
+        margin-bottom: 16px; box-shadow: var(--glass-shadow);
+    }
+
+    .modal-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; letter-spacing: -0.02em; }
+    .modal-subtitle { font-size: 15px; color: var(--text-secondary); font-weight: 500; }
+    .modal-field { margin-bottom: 24px; }
+
+    .modal-label {
+        display: block; font-size: 13px; font-weight: 600;
+        color: var(--text-secondary); margin-bottom: 8px; margin-left: 4px;
+        text-transform: uppercase; letter-spacing: 0.03em;
+    }
+
+    .modal-input-wrap { position: relative; }
+
+    .modal-input {
+        background: rgba(120,120,128,0.12); border: none; border-radius: 16px;
+        padding: 16px 60px 16px 18px; color: var(--text-primary);
+        font-size: 17px; font-family: inherit; font-weight: 500;
+        transition: var(--transition); width: 100%; outline: none;
+    }
+    .modal-input:focus { background: rgba(120,120,128,0.2); box-shadow: 0 0 0 3px rgba(120,120,128,0.15); }
+
+    .modal-input-suffix {
+        position: absolute; right: 18px; top: 50%;
+        transform: translateY(-50%); color: var(--text-secondary);
+        font-weight: 600; pointer-events: none; font-size: 15px;
+    }
+
+    .modal-actions { display: flex; gap: 12px; }
+
+    .modal-btn {
+        flex: 1; padding: 14px 20px; border-radius: 20px;
+        font-size: 17px; font-weight: 600; font-family: inherit;
+        cursor: pointer; transition: var(--transition);
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        border: none; letter-spacing: -0.01em;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border: 1px solid var(--glass-border); color: var(--text-primary);
+        box-shadow: var(--glass-shadow); height: 48px;
+    }
+    .modal-btn:active { transform: scale(0.94); }
+    .modal-btn-save { background: rgba(120,120,128,0.2); }
+
+    /* ── Toast ── */
+    .toast {
+        position: fixed; bottom: 100px; left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border: 1px solid var(--glass-border); color: var(--text-primary);
+        padding: 14px 28px; border-radius: 24px; box-shadow: var(--glass-shadow);
+        display: none; align-items: center; gap: 10px; z-index: 60;
+        white-space: nowrap; font-size: 15px; font-weight: 600;
+        opacity: 0; transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
+    }
+    .toast.open { display: flex; opacity: 1; transform: translateX(-50%) translateY(0); }
+    body.keyboard-open .toast { bottom: 180px; }
+
+    @keyframes glassScale {
+        from { opacity: 0; transform: scale(0.85) translateY(10px); }
+        to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    @media (max-width: 480px) {
+        .header { padding: 14px 16px; }
+        .code-input { font-size: 14px; padding: 16px; padding-bottom: 100px; }
+        .btn { font-size: 14px; padding: 10px 16px; min-width: 88px; height: 40px; border-radius: 20px; }
+        .btn-sm { padding: 8px 14px; min-width: 80px; height: 36px; font-size: 13px; border-radius: 18px; }
+        .fab-container { bottom: 24px; right: 24px; }
+        .fab-container.keyboard-open { bottom: 90px; }
+        .fab-main { width: 56px; height: 56px; }
+        .keyboard-close-btn { padding: 14px 20px; height: 60px; }
+        .modal-box { padding: 24px; border-radius: 28px; }
+        .modal-btn { height: 44px; border-radius: 18px; }
+        .view-switcher { width: 96px; height: 40px; }
+        .view-switcher__option { width: 42px; padding: 0 10px; }
+        .view-switcher::after { width: 42px; }
+        .view-switcher:has(input[c-option="2"]:checked)::after { translate: 46px 0; }
+    }
+</style>
+```
 
-        body.keyboard-open .toast {
-            bottom: 180px;
-        }
-
-        /* ── Animations ── */
-        @keyframes glassScale {
-            from { 
-                opacity: 0; 
-                transform: scale(0.85) translateY(10px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: scale(1) translateY(0); 
-            }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* ── Run Menu Overlay - Pure Glass ── */
-        .run-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.15);
-            backdrop-filter: blur(8px);
-            z-index: 90;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .run-overlay.open {
-            display: block;
-            opacity: 1;
-        }
-
-        /* ── Responsive ── */
-        @media (max-width: 480px) {
-            .header { padding: 14px 16px; }
-            .code-input { font-size: 14px; padding: 16px; padding-bottom: 100px; }
-            
-            /* Tüm butonlar mobilde de aynı yükseklik */
-            .btn { 
-                font-size: 14px; 
-                padding: 10px 16px; 
-                min-width: 88px;
-                height: 40px;
-                border-radius: 20px;
-            }
-            .btn-sm { 
-                padding: 8px 14px; 
-                min-width: 80px;
-                height: 36px;
-                font-size: 13px;
-                border-radius: 18px;
-            }
-            
-            .fab-container { bottom: 24px; right: 24px; }
-            .fab-container.keyboard-open { bottom: 90px; }
-            .fab-main { width: 56px; height: 56px; }
-            .keyboard-close-btn { padding: 14px 20px; height: 60px; }
-            
-            .modal-box { padding: 24px; border-radius: 28px; }
-            .modal-btn { height: 44px; border-radius: 18px; }
-            
-            .run-menu {
-                top: 70px;
-                right: 16px;
-            }
-        }
-    </style>
 </head>
 
 <body>
 
-<!-- ══ HEADER ══ -->
 <header class="header">
     <div class="header-top">
         <div>
@@ -895,105 +526,105 @@
             </span>
         </div>
 
-        <div class="actions">
-            <button onclick="clearCode()" class="btn btn-secondary">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-                Temizle
-            </button>
+```
+    <div class="actions">
+        <button onclick="clearCode()" class="btn btn-secondary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            Temizle
+        </button>
 
-            <div class="run-wrapper">
-                <button onclick="toggleRunMenu()" class="btn btn-primary">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Çalıştır
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </button>
+        <!-- ══ LIQUID GLASS SWITCHER ══ -->
+        <fieldset class="view-switcher" id="viewSwitcher">
+            <legend class="view-switcher__legend">Görünüm</legend>
+
+            <label class="view-switcher__option" title="Kod">
+                <input class="view-switcher__input" type="radio"
+                       name="view" value="code" c-option="1" checked />
+                <!-- Kod ikonu -->
+                <svg class="view-switcher__icon" viewBox="0 0 24 24">
+                    <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+            </label>
+
+            <label class="view-switcher__option" title="Önizle">
+                <input class="view-switcher__input" type="radio"
+                       name="view" value="preview" c-option="2" />
+                <!-- Göz ikonu -->
+                <svg class="view-switcher__icon" viewBox="0 0 24 24">
+                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+            </label>
+
+            <div class="view-switcher__filter">
+                <svg width="0" height="0">
+                    <filter id="vsf" primitiveUnits="objectBoundingBox">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="0.03" result="b"/>
+                        <feColorMatrix in="b" type="saturate" values="2" result="s"/>
+                        <feBlend in="SourceGraphic" in2="s" mode="normal"/>
+                    </filter>
+                </svg>
             </div>
-        </div>
-    </div>
-
-    <div class="header-bottom">
-        <div class="file-info">
-            <span id="editorTitle" class="editor-title">Yeni Dosya</span>
-        </div>
-
-        <div class="actions">
-            <button onclick="openSaveModal()" class="btn btn-success btn-sm">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                          d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
-                </svg>
-                Kaydet
-            </button>
-
-            <button onclick="loadFile()" class="btn btn-secondary btn-sm">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                </svg>
-                Yükle
-            </button>
-
-            <input type="file" id="fileInput"
-                   accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md"
-                   style="display:none"
-                   onchange="handleFileLoad(event)">
-        </div>
-    </div>
-</header>
-
-<!-- ══ RUN MENU - Body'nin doğrudan child elementi olarak ══ -->
-<div class="run-overlay" id="runOverlay" onclick="toggleRunMenu()"></div>
-<div id="runMenu" class="run-menu">
-    <div class="run-menu-item" onclick="runCode('popup')">
-        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-             class="icon-purple">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-        </svg>
-        <div>
-            <div class="run-menu-label">Popup Görüntüle</div>
-            <div class="run-menu-desc">Tam ekranda önizle</div>
-        </div>
-    </div>
-
-    <div class="run-menu-item" onclick="runCode('newtab')">
-        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-             class="icon-green">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-        </svg>
-        <div>
-            <div class="run-menu-label">Yeni Sekme</div>
-            <div class="run-menu-desc">Yeni sekmede aç</div>
-        </div>
+        </fieldset>
     </div>
 </div>
 
-<!-- ══ EDITOR ══ -->
+<div class="header-bottom">
+    <div class="file-info">
+        <span id="editorTitle" class="editor-title">Yeni Dosya</span>
+    </div>
+
+    <div class="actions">
+        <button onclick="openSaveModal()" class="btn btn-success btn-sm">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+            </svg>
+            Kaydet
+        </button>
+
+        <button onclick="loadFile()" class="btn btn-secondary btn-sm">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+            Yükle
+        </button>
+
+        <input type="file" id="fileInput"
+               accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md"
+               style="display:none"
+               onchange="handleFileLoad(event)">
+    </div>
+</div>
+```
+
+</header>
+
 <main>
-    <div class="code-area">
+    <!-- Editör -->
+    <div class="code-area" id="codeArea">
         <textarea id="editor" class="code-input" spellcheck="false"
                   oninput="updateCode()"
                   onkeydown="handleKeydown(event)"
                   onfocus="onEditorFocus()"
                   onblur="onEditorBlur()"></textarea>
     </div>
+
+```
+<!-- Inline Önizleme -->
+<div class="preview-area" id="previewArea">
+    <iframe id="previewFrameInline" class="preview-frame-inline"></iframe>
+</div>
+```
+
 </main>
 
-<!-- ══ HIDDEN COPY TEXTAREA ══ -->
 <textarea id="hiddenCopyArea" class="hidden-copy-area" readonly></textarea>
 
-<!-- ══ KEYBOARD CLOSE BUTTON ══ -->
 <div id="keyboardCloseBtn" class="keyboard-close-btn" onclick="closeKeyboard()">
     <svg class="keyboard-close-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -1001,28 +632,6 @@
     <span class="keyboard-close-text">Klavyeyi Kapat</span>
 </div>
 
-<!-- ══ PREVIEW MODAL ══ -->
-<div id="previewModal" class="preview-modal">
-    <div class="preview-header">
-        <div class="preview-title">
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-            </svg>
-            Önizleme
-        </div>
-        <button class="preview-close" onclick="closePreview()">
-            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-    </div>
-    <iframe id="previewFrame" class="preview-frame"></iframe>
-</div>
-
-<!-- ══ FLOATING ACTION BUTTON ══ -->
 <div class="fab-overlay" id="fabOverlay" onclick="toggleFabMenu()"></div>
 <div class="fab-container" id="fabContainer">
     <div class="fab-menu" id="fabMenu">
@@ -1032,7 +641,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
                 </svg>
             </div>
-            <span class="fab-menu-text">Yukarı Çık</span>
+            <span>Yukarı Çık</span>
         </div>
         <div class="fab-menu-item" onclick="copyAll()">
             <div class="fab-menu-icon">
@@ -1040,7 +649,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                 </svg>
             </div>
-            <span class="fab-menu-text">Tümünü Kopyala</span>
+            <span>Tümünü Kopyala</span>
         </div>
         <div class="fab-menu-item" onclick="pasteCode()">
             <div class="fab-menu-icon">
@@ -1048,18 +657,20 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                 </svg>
             </div>
-            <span class="fab-menu-text">Yapıştır</span>
+            <span>Yapıştır</span>
         </div>
     </div>
-    
-    <button class="fab-main" id="fabMain" onclick="toggleFabMenu()" aria-label="Menü">
-        <svg class="fab-icon" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/>
-        </svg>
-    </button>
+
+```
+<button class="fab-main" id="fabMain" onclick="toggleFabMenu()" aria-label="Menü">
+    <svg class="fab-icon" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/>
+    </svg>
+</button>
+```
+
 </div>
 
-<!-- ══ SAVE MODAL ══ -->
 <div id="saveModalOverlay" class="modal-overlay" onclick="handleOverlayClick(event)">
     <div class="modal-box">
         <div class="modal-header">
@@ -1073,30 +684,32 @@
             <div class="modal-subtitle">HTML dosyası olarak indirin</div>
         </div>
 
-        <div class="modal-field">
-            <label class="modal-label" for="saveFilename">Dosya Adı</label>
-            <div class="modal-input-wrap">
-                <input type="text" id="saveFilename" class="modal-input"
-                       placeholder="dosya-30.03.2026-20.29"
-                       onkeypress="if(event.key==='Enter') confirmSaveFromModal()">
-                <span class="modal-input-suffix">.html</span>
-            </div>
-        </div>
-
-        <div class="modal-actions">
-            <button onclick="closeSaveModal()" class="modal-btn modal-btn-cancel">İptal</button>
-            <button onclick="confirmSaveFromModal()" class="modal-btn modal-btn-save">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-                İndir
-            </button>
+```
+    <div class="modal-field">
+        <label class="modal-label" for="saveFilename">Dosya Adı</label>
+        <div class="modal-input-wrap">
+            <input type="text" id="saveFilename" class="modal-input"
+                   placeholder="dosya-31.03.2026-00.00"
+                   onkeypress="if(event.key==='Enter') confirmSaveFromModal()">
+            <span class="modal-input-suffix">.html</span>
         </div>
     </div>
+
+    <div class="modal-actions">
+        <button onclick="closeSaveModal()" class="modal-btn modal-btn-cancel">İptal</button>
+        <button onclick="confirmSaveFromModal()" class="modal-btn modal-btn-save">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            İndir
+        </button>
+    </div>
+</div>
+```
+
 </div>
 
-<!-- ══ TOAST ══ -->
 <div id="toast" class="toast">
     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
@@ -1113,73 +726,86 @@
 </div>`;
     let isFabOpen = false;
     let isKeyboardOpen = false;
+    let currentView = 'code';
+
+    /* ── Switcher: önceki değeri izle (animasyon yönü için) ── */
+    (function trackPrevious(el) {
+        const radios = el.querySelectorAll('input[type="radio"]');
+        let prev = null;
+        const init = el.querySelector('input[type="radio"]:checked');
+        if (init) { prev = init.getAttribute('c-option'); el.setAttribute('c-previous', prev); }
+        radios.forEach(r => {
+            r.addEventListener('change', () => {
+                if (r.checked) {
+                    el.setAttribute('c-previous', prev ?? '');
+                    prev = r.getAttribute('c-option');
+                    handleViewSwitch(r.value);
+                }
+            });
+        });
+    })(document.getElementById('viewSwitcher'));
+
+    function handleViewSwitch(view) {
+        currentView = view;
+        const codeArea    = document.getElementById('codeArea');
+        const previewArea = document.getElementById('previewArea');
+
+        if (view === 'preview') {
+            document.getElementById('previewFrameInline').srcdoc = buildPage();
+            codeArea.style.display = 'none';
+            previewArea.classList.add('active');
+            if (isKeyboardOpen) closeKeyboard();
+            showToast('Önizleme');
+        } else {
+            previewArea.classList.remove('active');
+            codeArea.style.display = '';
+            showToast('Kod Editörü');
+        }
+    }
+
+    function buildPage() {
+        return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>${code}</body>
+</html>`;
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         loadFromStorage();
         updateEditor();
         updateFilenameDisplay();
-
-        if ('visualViewport' in window) {
-            window.visualViewport.addEventListener('resize', handleVisualViewportChange);
-        }
-
-        const editor = document.getElementById('editor');
-        editor.addEventListener('focus', onEditorFocus);
-        editor.addEventListener('blur', onEditorBlur);
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.run-wrapper') && !e.target.closest('#runMenu')) {
-                document.getElementById('runMenu').classList.remove('open');
-                document.getElementById('runOverlay').classList.remove('open');
-            }
-        });
-
+        if ('visualViewport' in window)
+            window.visualViewport.addEventListener('resize', handleVVChange);
+        const ed = document.getElementById('editor');
+        ed.addEventListener('focus', onEditorFocus);
+        ed.addEventListener('blur',  onEditorBlur);
         window.addEventListener('beforeunload', saveToStorage);
     });
 
-    function handleVisualViewportChange() {
+    function handleVVChange() {
         if (!window.visualViewport) return;
-        
-        const viewportHeight = window.visualViewport.height;
-        const windowHeight = window.innerHeight;
-        const keyboardHeight = windowHeight - viewportHeight;
-        
-        if (keyboardHeight > 50) {
-            if (!isKeyboardOpen) {
-                isKeyboardOpen = true;
-                onKeyboardOpen();
-            }
-        } else {
-            if (isKeyboardOpen) {
-                isKeyboardOpen = false;
-                onKeyboardClose();
-            }
-        }
+        const kbH = window.innerHeight - window.visualViewport.height;
+        if (kbH > 50) { if (!isKeyboardOpen) { isKeyboardOpen = true; onKeyboardOpen(); } }
+        else           { if (isKeyboardOpen)  { isKeyboardOpen = false; onKeyboardClose(); } }
     }
 
     function onEditorFocus() {
         setTimeout(() => {
             if (window.visualViewport && window.innerHeight - window.visualViewport.height > 50) {
-                if (!isKeyboardOpen) {
-                    isKeyboardOpen = true;
-                    onKeyboardOpen();
-                }
-            } else {
-                onKeyboardOpen();
-            }
+                if (!isKeyboardOpen) { isKeyboardOpen = true; onKeyboardOpen(); }
+            } else { onKeyboardOpen(); }
         }, 100);
     }
 
     function onEditorBlur() {
         setTimeout(() => {
-            const activeElement = document.activeElement;
-            if (activeElement !== document.getElementById('editor') && 
-                activeElement !== document.getElementById('saveFilename')) {
-                if (isKeyboardOpen) {
-                    isKeyboardOpen = false;
-                    onKeyboardClose();
-                }
-            }
+            const a = document.activeElement;
+            if (a !== document.getElementById('editor') && a !== document.getElementById('saveFilename'))
+                if (isKeyboardOpen) { isKeyboardOpen = false; onKeyboardClose(); }
         }, 100);
     }
 
@@ -1187,15 +813,9 @@
         document.body.classList.add('keyboard-open');
         document.getElementById('keyboardCloseBtn').classList.add('visible');
         document.getElementById('fabContainer').classList.add('keyboard-open');
-        
-        const editor = document.getElementById('editor');
-        const scrollTop = editor.scrollTop;
-        
         if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-            document.body.style.position = 'fixed';
-            document.body.style.width = '100%';
-            document.body.style.height = '100%';
-            document.body.style.top = `-${scrollTop}px`;
+            const st = document.getElementById('editor').scrollTop;
+            Object.assign(document.body.style, { position:'fixed', width:'100%', height:'100%', top:`-${st}px` });
         }
     }
 
@@ -1203,64 +823,35 @@
         document.body.classList.remove('keyboard-open');
         document.getElementById('keyboardCloseBtn').classList.remove('visible');
         document.getElementById('fabContainer').classList.remove('keyboard-open');
-        
         if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-            const scrollTop = Math.abs(parseInt(document.body.style.top || '0'));
-            document.body.style.position = '';
-            document.body.style.width = '';
-            document.body.style.height = '';
-            document.body.style.top = '';
-            window.scrollTo(0, scrollTop);
+            const st = Math.abs(parseInt(document.body.style.top || '0'));
+            Object.assign(document.body.style, { position:'', width:'', height:'', top:'' });
+            window.scrollTo(0, st);
         }
     }
 
     function closeKeyboard() {
-        const editor = document.getElementById('editor');
-        const saveInput = document.getElementById('saveFilename');
-        
-        if (document.activeElement === editor || document.activeElement === saveInput) {
-            document.activeElement.blur();
-        }
-        
+        const ed = document.getElementById('editor'), si = document.getElementById('saveFilename');
+        if (document.activeElement === ed || document.activeElement === si) document.activeElement.blur();
         if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-            const tempInput = document.createElement('input');
-            tempInput.style.position = 'absolute';
-            tempInput.style.opacity = '0';
-            tempInput.style.pointerEvents = 'none';
-            document.body.appendChild(tempInput);
-            tempInput.focus();
-            setTimeout(() => {
-                tempInput.blur();
-                document.body.removeChild(tempInput);
-            }, 0);
+            const t = document.createElement('input');
+            t.style.cssText = 'position:absolute;opacity:0;pointer-events:none';
+            document.body.appendChild(t); t.focus();
+            setTimeout(() => { t.blur(); document.body.removeChild(t); }, 0);
         }
-        
-        isKeyboardOpen = false;
-        onKeyboardClose();
+        isKeyboardOpen = false; onKeyboardClose();
     }
 
     function toggleFabMenu() {
         isFabOpen = !isFabOpen;
-        const fabMain = document.getElementById('fabMain');
-        const fabMenu = document.getElementById('fabMenu');
-        const fabOverlay = document.getElementById('fabOverlay');
-        
-        if (isFabOpen) {
-            fabMain.classList.add('active');
-            fabMenu.classList.add('open');
-            fabOverlay.classList.add('open');
-        } else {
-            fabMain.classList.remove('active');
-            fabMenu.classList.remove('open');
-            fabOverlay.classList.remove('open');
-        }
+        document.getElementById('fabMain').classList.toggle('active', isFabOpen);
+        document.getElementById('fabMenu').classList.toggle('open',    isFabOpen);
+        document.getElementById('fabOverlay').classList.toggle('open', isFabOpen);
     }
 
     function scrollToTop() {
-        const editor = document.getElementById('editor');
-        editor.scrollTo({ top: 0, behavior: 'smooth' });
-        toggleFabMenu();
-        showToast('Yukarı çıkıldı');
+        if (currentView === 'code') document.getElementById('editor').scrollTo({ top:0, behavior:'smooth' });
+        toggleFabMenu(); showToast('Yukarı çıkıldı');
     }
 
     function saveToStorage() {
@@ -1271,94 +862,45 @@
 
     function loadFromStorage() {
         try {
-            const saved = localStorage.getItem('mobilKodEditor');
-            if (saved) {
-                const data = JSON.parse(saved);
-                if (data.code     !== undefined) code           = data.code;
-                if (data.filename !== undefined) loadedFilename = data.filename;
-            }
-        } catch (e) { console.error('Storage hatası:', e); }
+            const d = JSON.parse(localStorage.getItem('mobilKodEditor') || '{}');
+            if (d.code     !== undefined) code           = d.code;
+            if (d.filename !== undefined) loadedFilename = d.filename;
+        } catch(e) { console.error(e); }
     }
 
     function generateDefaultFilename() {
-        const d = new Date();
-        const pad = n => n.toString().padStart(2, '0');
-        return `dosya-${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}-${pad(d.getHours())}.${pad(d.getMinutes())}`;
+        const d = new Date(), p = n => String(n).padStart(2,'0');
+        return `dosya-${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()}-${p(d.getHours())}.${p(d.getMinutes())}`;
     }
 
     function updateFilenameDisplay() {
         const el = document.getElementById('editorTitle');
-        if (loadedFilename && loadedFilename.trim()) {
-            el.textContent = loadedFilename + '.html';
-            el.classList.add('loaded');
-        } else {
-            el.textContent = 'Yeni Dosya';
-            el.classList.remove('loaded');
-        }
+        if (loadedFilename?.trim()) { el.textContent = loadedFilename + '.html'; el.classList.add('loaded'); }
+        else { el.textContent = 'Yeni Dosya'; el.classList.remove('loaded'); }
     }
 
     function updateCode() {
         code = document.getElementById('editor').value;
         saveToStorage();
+        if (currentView === 'preview')
+            document.getElementById('previewFrameInline').srcdoc = buildPage();
     }
 
-    function updateEditor() {
-        document.getElementById('editor').value = code;
-    }
+    function updateEditor() { document.getElementById('editor').value = code; }
 
     function handleKeydown(e) {
         if (e.key === 'Tab') {
             e.preventDefault();
             const el = e.target, s = el.selectionStart;
-            el.value = el.value.substring(0, s) + '  ' + el.value.substring(el.selectionEnd);
+            el.value = el.value.substring(0,s) + '  ' + el.value.substring(el.selectionEnd);
             el.selectionStart = el.selectionEnd = s + 2;
             updateCode();
         }
     }
 
-    function toggleRunMenu() {
-        const menu = document.getElementById('runMenu');
-        const overlay = document.getElementById('runOverlay');
-        const isOpen = menu.classList.contains('open');
-        
-        if (isOpen) {
-            menu.classList.remove('open');
-            overlay.classList.remove('open');
-        } else {
-            menu.classList.add('open');
-            overlay.classList.add('open');
-        }
-    }
-
-    function runCode(mode) {
-        document.getElementById('runMenu').classList.remove('open');
-        document.getElementById('runOverlay').classList.remove('open');
-        const full = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-    ${code}
-</body>
-</html>`;
-        if (mode === 'newtab') {
-            window.open(URL.createObjectURL(new Blob([full], {type:'text/html'})), '_blank');
-            showToast('Yeni sekmede açıldı');
-        } else {
-            document.getElementById('previewFrame').srcdoc = full;
-            document.getElementById('previewModal').classList.add('open');
-        }
-    }
-
-    function closePreview() {
-        document.getElementById('previewModal').classList.remove('open');
-    }
-
     function openSaveModal() {
         const input = document.getElementById('saveFilename');
-        input.value = loadedFilename && loadedFilename.trim() ? loadedFilename : generateDefaultFilename();
+        input.value = loadedFilename?.trim() ? loadedFilename : generateDefaultFilename();
         document.getElementById('saveModalOverlay').classList.add('open');
         setTimeout(() => { input.focus(); input.select(); }, 100);
     }
@@ -1368,91 +910,71 @@
         if (isKeyboardOpen) closeKeyboard();
     }
 
-    function handleOverlayClick(e) {
-        if (e.target.id === 'saveModalOverlay') closeSaveModal();
-    }
+    function handleOverlayClick(e) { if (e.target.id === 'saveModalOverlay') closeSaveModal(); }
 
     function confirmSaveFromModal() {
-        let filename = document.getElementById('saveFilename').value.trim();
-        if (!filename) {
+        let fn = document.getElementById('saveFilename').value.trim();
+        if (!fn) {
             showToast('Lütfen bir dosya adı girin');
-            const input = document.getElementById('saveFilename');
-            input.focus();
-            ['-5px','5px','-5px','0'].forEach((x, i) =>
-                setTimeout(() => input.style.transform = `translateX(${x})`, i * 50));
+            const inp = document.getElementById('saveFilename'); inp.focus();
+            ['-5px','5px','-5px','0'].forEach((x,i) => setTimeout(() => inp.style.transform = `translateX(${x})`, i*50));
             return;
         }
-        if (!filename.endsWith('.html')) filename += '.html';
-        const full = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${filename}</title>
-</head>
-<body>
-${code}
-</body>
-</html>`;
+        if (!fn.endsWith('.html')) fn += '.html';
+        const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>${fn}</title>\n</head>\n<body>\n${code}\n</body>\n</html>`;
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([full], {type:'text/html'}));
-        a.download = filename;
-        a.click();
-        loadedFilename = filename.replace('.html', '');
-        saveToStorage();
-        updateFilenameDisplay();
-        showToast(`${filename} indirildi`);
-        closeSaveModal();
+        a.download = fn; a.click();
+        loadedFilename = fn.replace('.html','');
+        saveToStorage(); updateFilenameDisplay();
+        showToast(`${fn} indirildi`); closeSaveModal();
     }
 
     function loadFile() { document.getElementById('fileInput').click(); }
 
     function handleFileLoad(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+        const file = event.target.files[0]; if (!file) return;
         event.target.value = '';
-        loadedFilename = file.name.replace(/\\.[^/.]+$/, '');
-        const reader = new FileReader();
-        reader.onload  = (e) => { code = e.target.result; saveToStorage(); updateEditor(); updateFilenameDisplay(); showToast(file.name + ' yüklendi'); };
-        reader.onerror = () => showToast('Dosya okunamadı');
-        reader.readAsText(file);
+        loadedFilename = file.name.replace(/\.[^/.]+$/,'');
+        const r = new FileReader();
+        r.onload  = e => { code = e.target.result; saveToStorage(); updateEditor(); updateFilenameDisplay(); showToast(file.name + ' yüklendi'); };
+        r.onerror = () => showToast('Dosya okunamadı');
+        r.readAsText(file);
     }
 
     function clearCode() {
         if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
             code = ''; loadedFilename = '';
             saveToStorage(); updateEditor(); updateFilenameDisplay();
+            // Kod görünümüne dön
+            const codeRadio = document.querySelector('input[name="view"][value="code"]');
+            if (codeRadio && !codeRadio.checked) { codeRadio.checked = true; handleViewSwitch('code'); }
             showToast('Kodlar temizlendi');
         }
     }
 
     function copyAll() {
-        const hiddenArea = document.getElementById('hiddenCopyArea');
-        hiddenArea.value = code;
-        hiddenArea.select();
-        document.execCommand('copy');
-        if (isFabOpen) toggleFabMenu();
-        showToast('Kopyalandı');
+        const h = document.getElementById('hiddenCopyArea');
+        h.value = code; h.select(); document.execCommand('copy');
+        if (isFabOpen) toggleFabMenu(); showToast('Kopyalandı');
     }
 
     function pasteCode() {
         navigator.clipboard.readText().then(text => {
             const el = document.getElementById('editor'), s = el.selectionStart;
-            el.value = el.value.substring(0, s) + text + el.value.substring(el.selectionEnd);
+            el.value = el.value.substring(0,s) + text + el.value.substring(el.selectionEnd);
             el.selectionStart = el.selectionEnd = s + text.length;
-            updateCode(); 
-            if (isFabOpen) toggleFabMenu(); 
-            showToast('Yapıştırıldı');
+            updateCode(); if (isFabOpen) toggleFabMenu(); showToast('Yapıştırıldı');
         }).catch(() => showToast('Yapıştırma başarısız'));
     }
 
     let toastTimer;
-    function showToast(message) {
-        const toast = document.getElementById('toast');
-        document.getElementById('toastMessage').textContent = message;
-        toast.classList.add('open');
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        document.getElementById('toastMessage').textContent = msg;
+        t.classList.add('open');
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => toast.classList.remove('open'), 2000);
+        toastTimer = setTimeout(() => t.classList.remove('open'), 2000);
     }
 </script>
 
