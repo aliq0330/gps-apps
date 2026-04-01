@@ -1616,7 +1616,7 @@
     function previewSavedFile(fileId) {
         // Kaydedilmemiş değişiklik kontrolü
         if (hasUnsavedChanges) {
-            if (confirm('Şu an düzenlemekte olduğunuz kod kaydedilmemiş.\n\nKaydetmek istiyor musunuz?\n\n"Tamam" = Kaydet ve aç\n"İptal" = Kaydetmeden aç')) {
+            if (confirm('Şu anda düzenlemekte olduğunuz kod kaydedilmemiş.\n\nKaydetmek istiyor musunuz?\n')) {
                 quickSave();
             }
         }
