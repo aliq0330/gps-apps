@@ -112,6 +112,12 @@
         width: 8px; height: 8px; border-radius: 50%;
         background: #ff453a; flex-shrink: 0;
         box-shadow: 0 0 6px rgba(255,69,58,0.6);
+        transition: all 0.3s ease;
+    }
+
+    .tab-dot.has-content {
+        background: #34c759;
+        box-shadow: 0 0 6px rgba(52,199,89,0.6);
     }
 
     .btn {
@@ -574,7 +580,7 @@
     <div class="header-top">
         <div>
             <span class="tab">
-                <span class="tab-dot"></span>
+                <span class="tab-dot" id="tabDot"></span>
                 HTML
             </span>
         </div>
@@ -874,6 +880,7 @@
         loadFromStorage();
         updateEditor();
         updateFilenameDisplay();
+        updateTabDotColor();
         window.addEventListener('beforeunload', saveToStorage);
     });
 
@@ -914,14 +921,27 @@
         else { el.textContent = 'Yeni Dosya'; el.classList.remove('loaded'); }
     }
 
+    function updateTabDotColor() {
+        const tabDot = document.getElementById('tabDot');
+        const hasContent = code.trim().length > 0;
+        if (hasContent) {
+            tabDot.classList.add('has-content');
+        } else {
+            tabDot.classList.remove('has-content');
+        }
+    }
+
     function updateCode() {
         code = document.getElementById('editor').value;
         saveToStorage();
+        updateTabDotColor();
         if (currentView === 'preview')
             document.getElementById('previewFrameInline').srcdoc = buildPage();
     }
 
-    function updateEditor() { document.getElementById('editor').value = code; }
+    function updateEditor() { 
+        document.getElementById('editor').value = code; 
+    }
 
     function handleKeydown(e) {
         if (e.key === 'Tab') {
@@ -971,7 +991,14 @@
         event.target.value = '';
         loadedFilename = file.name.replace(/\.[^/.]+$/,'');
         const r = new FileReader();
-        r.onload  = e => { code = e.target.result; saveToStorage(); updateEditor(); updateFilenameDisplay(); showToast(file.name + ' yüklendi'); };
+        r.onload  = e => { 
+            code = e.target.result; 
+            saveToStorage(); 
+            updateEditor(); 
+            updateFilenameDisplay(); 
+            updateTabDotColor();
+            showToast(file.name + ' yüklendi'); 
+        };
         r.onerror = () => showToast('Dosya okunamadı');
         r.readAsText(file);
     }
@@ -980,6 +1007,7 @@
         if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
             code = ''; loadedFilename = '';
             saveToStorage(); updateEditor(); updateFilenameDisplay();
+            updateTabDotColor();
             const codeRadio = document.querySelector('input[name="view"][value="code"]');
             if (codeRadio && !codeRadio.checked) { codeRadio.checked = true; handleViewSwitch('code'); }
             showToast('Kodlar temizlendi');
