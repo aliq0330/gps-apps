@@ -914,15 +914,13 @@
             }
             
             #unsavedModalOverlay .modal-box,
-            #saveOptionsModalOverlay .modal-box,
-            #duplicateModalOverlay .modal-box {
+            #saveOptionsModalOverlay .modal-box {
                 width: 92%;
                 padding: 20px;
             }
             
             #unsavedModalOverlay .modal-actions,
-            #saveOptionsModalOverlay .modal-actions,
-            #duplicateModalOverlay .modal-actions {
+            #saveOptionsModalOverlay .modal-actions {
                 gap: 8px;
             }
         }
@@ -1166,7 +1164,7 @@
     </div>
 </div>
 
-<!-- Kaydetme Seçenekleri Modalı -->
+<!-- Kaydetme Seçenekleri Modalı (Yeni) -->
 <div id="saveOptionsModalOverlay" class="modal-overlay" onclick="handleSaveOptionsOverlayClick(event)">
     <div class="modal-box" style="max-width: 400px;">
         <div class="modal-header">
@@ -1204,40 +1202,6 @@
 
             <!-- İptal -->
             <button onclick="closeSaveOptionsModal()" class="modal-btn" style="width: 100%; margin-top: 6px; height: 48px; border-radius: 22px; opacity: 0.8;">
-                İptal
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Aynı İçerik Uyarı Modalı (YENİ) -->
-<div id="duplicateModalOverlay" class="modal-overlay" onclick="handleDuplicateOverlayClick(event)">
-    <div class="modal-box" style="max-width: 380px;">
-        <div class="modal-header">
-            <div class="modal-icon-wrap" style="background: rgba(255, 204, 0, 0.15); border-color: rgba(255, 204, 0, 0.3); color: #ffcc00;">
-                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-            <div class="modal-title">Aynı İçerik Mevcut</div>
-            <div class="modal-subtitle">Bu kod zaten kayıtlı dosyalarınızda bulunuyor</div>
-        </div>
-
-        <div style="margin-bottom: 24px; padding: 16px; background: var(--glass-bg); border-radius: 16px; border: 1px solid var(--glass-border);">
-            <p style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.5;">
-                Yine de kaydetmek istiyor musunuz? Bu işlem <strong style="color: var(--text-primary);">aynı içeriğe sahip yinelenen bir dosya</strong> oluşturacaktır.
-            </p>
-        </div>
-
-        <div class="modal-actions" style="flex-direction: column; gap: 10px;">
-            <button onclick="handleDuplicateContinue()" class="modal-btn" style="background: rgba(255, 204, 0, 0.15); border-color: rgba(255, 204, 0, 0.3); color: #ffcc00; width: 100%; height: 50px; border-radius: 22px;">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/>
-                </svg>
-                Yine de Kaydet
-            </button>
-
-            <button onclick="closeDuplicateModal()" class="modal-btn" style="width: 100%; height: 48px; border-radius: 22px; opacity: 0.8;">
                 İptal
             </button>
         </div>
@@ -1307,12 +1271,11 @@
     let savedFiles = [];
     let editingFileId = null;
     let hasUnsavedChanges = false;
-    let currentOpenFileId = null;
+    let currentOpenFileId = null; // Şu anda açık olan kayıtlı dosyanın ID'si
     
-    // Callback değişkenleri
+    // Kaydedilmemiş değişiklikler modalı için callback değişkenleri
     let unsavedCallbackSave = null;
     let unsavedCallbackDiscard = null;
-    let duplicateCheckCallback = null;
 
     (function trackPrevious(el) {
         const radios = el.querySelectorAll('input[type="radio"]');
@@ -1571,70 +1534,7 @@
         }
     }
 
-    // YENİ: Aynı içerik kontrolü
-    function isContentAlreadySaved(content) {
-        // Sadece kayıtlı dosyalarda ara (şu an açık olan dosya hariç)
-        return savedFiles.some(file => {
-            // Eğer bu dosya şu an açık olan dosya ise, tekrar kaydetmeye izin ver
-            if (currentOpenFileId && file.id === currentOpenFileId) {
-                return false;
-            }
-            return file.code === content;
-        });
-    }
-
-    // YENİ: Aynı içerik modal fonksiyonları
-    function showDuplicateContentModal(onContinue) {
-        duplicateCheckCallback = onContinue;
-        document.getElementById('duplicateModalOverlay').classList.add('open');
-    }
-
-    function closeDuplicateModal() {
-        document.getElementById('duplicateModalOverlay').classList.remove('open');
-        duplicateCheckCallback = null;
-    }
-
-    function handleDuplicateOverlayClick(e) {
-        if (e.target.id === 'duplicateModalOverlay') closeDuplicateModal();
-    }
-
-    function handleDuplicateContinue() {
-        closeDuplicateModal();
-        if (duplicateCheckCallback) duplicateCheckCallback();
-    }
-
-    // GÜNCELLENDİ: Quick Save ana fonksiyonu
-    function handleQuickSave() {
-        if (!code.trim()) {
-            showToast('Kaydedilecek kod yok');
-            return;
-        }
-
-        // Önce içeriğin zaten kayıtlı olup olmadığını kontrol et
-        // (Ama sadece yeni kayıt oluşturulacaksa kontrol et, güncellemede değil)
-        if (!currentOpenFileId && isContentAlreadySaved(code)) {
-            // Yeni dosya ve aynı içerik varsa uyarı göster
-            showDuplicateContentModal(() => {
-                // Kullanıcı yine de kaydetmek istiyor
-                continueQuickSave();
-            });
-            return;
-        }
-
-        // Normal akışa devam et
-        continueQuickSave();
-    }
-
-    function continueQuickSave() {
-        // Eğer kayıtlı bir dosya açıksa ve değişiklik yapıldıysa seçenek sun
-        if (currentOpenFileId && hasUnsavedChanges) {
-            openSaveOptionsModal();
-        } else {
-            // Yeni dosya veya değişiklik yoksa direkt yeni kayıt oluştur
-            createNewSave();
-        }
-    }
-
+    // YENİ: Kaydetme seçenekleri modalı fonksiyonları
     function openSaveOptionsModal() {
         const currentFile = savedFiles.find(f => f.id === currentOpenFileId);
         const displayName = currentFile ? currentFile.filename : loadedFilename;
@@ -1658,19 +1558,6 @@
         const fileIndex = savedFiles.findIndex(f => f.id === currentOpenFileId);
         if (fileIndex === -1) return;
         
-        // Aynı içerik kontrolü (başka bir dosya ile aynı mı?)
-        if (isContentAlreadySaved(code)) {
-            showDuplicateContentModal(() => {
-                // Yine de güncelle
-                performUpdate(fileIndex);
-            });
-            return;
-        }
-        
-        performUpdate(fileIndex);
-    }
-
-    function performUpdate(fileIndex) {
         // Mevcut dosyayı güncelle
         savedFiles[fileIndex].code = code;
         savedFiles[fileIndex].filename = loadedFilename || savedFiles[fileIndex].filename;
@@ -1685,6 +1572,12 @@
     function createNewSave() {
         closeSaveOptionsModal();
         
+        // Yeni kayıt oluştur (eski quickSave mantığı)
+        if (!code.trim()) {
+            showToast('Kaydedilecek kod yok');
+            return;
+        }
+
         const filename = loadedFilename?.trim() ? loadedFilename : generateDefaultFilename();
         const savedFile = {
             id: Date.now(),
@@ -1703,6 +1596,17 @@
         updateQuickSaveButton();
         renderSavedFiles();
         showToast(`${filename} olarak yeni kayıt oluşturuldu`);
+    }
+
+    // YENİ: Quick Save mantığını değiştiren ana fonksiyon
+    function handleQuickSave() {
+        // Eğer bir kayıtlı dosya açıksa ve değişiklik yapıldıysa seçenek sun
+        if (currentOpenFileId && hasUnsavedChanges) {
+            openSaveOptionsModal();
+        } else {
+            // Yeni dosya veya kayıtlı dosya ama değişiklik yoksa direkt yeni kayıt oluştur
+            createNewSave();
+        }
     }
 
     function saveSavedFiles() {
@@ -1877,16 +1781,13 @@
     function handleUnsavedSave() {
         closeUnsavedModal();
         if (unsavedCallbackSave) {
-            // Aynı içerik kontrolü yap
-            if (!currentOpenFileId && isContentAlreadySaved(code)) {
-                showDuplicateContentModal(() => {
-                    continueQuickSave();
-                    setTimeout(() => unsavedCallbackSave(), 100);
-                });
+            // Eğer açık bir dosya varsa ve değişiklik yapıldıysa seçenek sun
+            if (currentOpenFileId && hasUnsavedChanges) {
+                openSaveOptionsModal();
             } else {
-                continueQuickSave();
-                setTimeout(() => unsavedCallbackSave(), 100);
+                createNewSave();
             }
+            setTimeout(() => unsavedCallbackSave(), 100);
         }
     }
 
@@ -1903,7 +1804,7 @@
 
         code = file.code;
         loadedFilename = file.filename;
-        currentOpenFileId = file.id;
+        currentOpenFileId = file.id; // Açık dosya ID'sini kaydet
         updateEditor();
         updateFilenameDisplay();
         updateTabDotColor();
@@ -1927,7 +1828,7 @@
 
         code = file.code;
         loadedFilename = file.filename;
-        currentOpenFileId = file.id;
+        currentOpenFileId = file.id; // Açık dosya ID'sini kaydet
         updateEditor();
         updateFilenameDisplay();
         updateTabDotColor();
@@ -1974,6 +1875,7 @@
         if (confirm(`${file.filename}.html silinecek. Emin misiniz?`)) {
             savedFiles = savedFiles.filter(f => f.id !== id);
             
+            // Eğer silinen dosya şu an açıksa, currentOpenFileId'yi sıfırla
             if (currentOpenFileId === id) {
                 currentOpenFileId = null;
             }
@@ -2051,7 +1953,7 @@ ${file.code}
         const file = event.target.files[0]; if (!file) return;
         event.target.value = '';
         loadedFilename = file.name.replace(/\.[^/.]+$/,'');
-        currentOpenFileId = null;
+        currentOpenFileId = null; // Yükleme yapılınca açık dosya bağlantısı kopsun
         const r = new FileReader();
         r.onload  = e => { 
             code = e.target.result; 
@@ -2070,7 +1972,7 @@ ${file.code}
     function clearCode() {
         if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
             code = ''; loadedFilename = '';
-            currentOpenFileId = null;
+            currentOpenFileId = null; // Temizleme yapılınca bağlantı kopar
             hasUnsavedChanges = false;
             saveToStorage(); updateEditor(); updateFilenameDisplay();
             updateTabDotColor();
