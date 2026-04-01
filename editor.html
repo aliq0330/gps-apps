@@ -545,6 +545,20 @@
         margin-bottom: 8px;
         word-break: break-all;
         font-family: 'JetBrains Mono', monospace;
+        cursor: pointer;
+        padding: 4px 8px;
+        margin: -4px -8px 8px;
+        border-radius: 8px;
+        transition: var(--transition);
+    }
+
+    .saved-file-name:hover {
+        background: rgba(120,120,128,0.15);
+    }
+
+    .saved-file-name.editing {
+        background: rgba(120,120,128,0.2);
+        outline: 2px solid var(--accent);
     }
 
     .saved-file-date {
@@ -555,17 +569,19 @@
 
     .saved-file-actions {
         display: flex;
-        gap: 8px;
+        gap: 6px;
+        flex-wrap: wrap;
     }
 
     .saved-file-btn {
         flex: 1;
-        padding: 8px 12px;
+        min-width: 70px;
+        padding: 8px 10px;
         border-radius: 12px;
         border: 1px solid var(--glass-border);
         background: var(--glass-bg);
         color: var(--text-primary);
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
         cursor: pointer;
         display: flex;
@@ -589,6 +605,18 @@
         background: rgba(52,199,89,0.15);
         border-color: rgba(52,199,89,0.3);
         color: #34c759;
+    }
+
+    .saved-file-btn.preview:hover {
+        background: rgba(0,122,255,0.15);
+        border-color: rgba(0,122,255,0.3);
+        color: #007aff;
+    }
+
+    .saved-file-btn.code:hover {
+        background: rgba(175,82,222,0.15);
+        border-color: rgba(175,82,222,0.3);
+        color: #af52de;
     }
 
     .saved-files-overlay {
@@ -780,6 +808,16 @@
 
         .saved-files-panel {
             width: 100%;
+        }
+        
+        .saved-file-actions {
+            gap: 4px;
+        }
+        
+        .saved-file-btn {
+            min-width: 60px;
+            padding: 6px 8px;
+            font-size: 11px;
         }
     }
 </style>
@@ -1041,6 +1079,7 @@
     let isFabOpen = false;
     let currentView = 'code';
     let savedFiles = [];
+    let editingFileId = null;
 
     (function trackPrevious(el) {
         const radios = el.querySelectorAll('input[type="radio"]');
@@ -1226,7 +1265,7 @@
         }
     }
 
-    // Quick Save Functions
+    // Quick Save Functions - Her zaman yeni kayıt oluşturur
     function quickSave() {
         if (!code.trim()) {
             showToast('Kaydedilecek kod yok');
@@ -1241,19 +1280,12 @@
             timestamp: new Date().toISOString()
         };
 
-        // Check if file with same name exists and update it
-        const existingIndex = savedFiles.findIndex(f => f.filename === filename);
-        if (existingIndex !== -1) {
-            savedFiles[existingIndex] = savedFile;
-            showToast(`${filename} güncellendi`);
-        } else {
-            savedFiles.push(savedFile);
-            showToast(`${filename} kaydedildi`);
-        }
-
+        // Her zaman yeni kayıt ekle (güncelleme yok)
+        savedFiles.push(savedFile);
         saveSavedFiles();
         updateQuickSaveButton();
         renderSavedFiles();
+        showToast(`${filename} kaydedildi`);
     }
 
     function saveSavedFiles() {
@@ -1282,6 +1314,8 @@
     function closeSavedFilesPanel() {
         document.getElementById('savedFilesOverlay').classList.remove('open');
         document.getElementById('savedFilesPanel').classList.remove('open');
+        // Düzenleme modunu kapat
+        editingFileId = null;
     }
 
     function renderSavedFiles() {
@@ -1305,23 +1339,41 @@
         container.innerHTML = sortedFiles.map(file => {
             const date = new Date(file.timestamp);
             const dateStr = `${date.getDate().toString().padStart(2,'0')}.${(date.getMonth()+1).toString().padStart(2,'0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+            const isEditing = editingFileId === file.id;
             
             return `
                 <div class="saved-file-item">
-                    <div class="saved-file-name">${escapeHtml(file.filename)}.html</div>
+                    <div class="saved-file-name ${isEditing ? 'editing' : ''}" 
+                         onclick="startEditingName(${file.id})" 
+                         id="filename-${file.id}">
+                        ${escapeHtml(file.filename)}.html
+                    </div>
                     <div class="saved-file-date">${dateStr}</div>
                     <div class="saved-file-actions">
-                        <button class="saved-file-btn delete" onclick="deleteSavedFile(${file.id})" title="Sil">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        <button class="saved-file-btn preview" onclick="previewSavedFile(${file.id})" title="Önizle">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                             </svg>
-                            Sil
+                            Önizle
+                        </button>
+                        <button class="saved-file-btn code" onclick="viewSavedFileCode(${file.id})" title="Kodu Gör">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                            Kod
                         </button>
                         <button class="saved-file-btn download" onclick="downloadSavedFile(${file.id})" title="İndir">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                             </svg>
                             İndir
+                        </button>
+                        <button class="saved-file-btn delete" onclick="deleteSavedFile(${file.id})" title="Sil">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Sil
                         </button>
                     </div>
                 </div>
@@ -1333,6 +1385,106 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // Dosya adını düzenlemeye başla
+    function startEditingName(fileId) {
+        const file = savedFiles.find(f => f.id === fileId);
+        if (!file) return;
+
+        editingFileId = fileId;
+        const nameEl = document.getElementById(`filename-${fileId}`);
+        
+        // Input oluştur
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = file.filename;
+        input.className = 'saved-file-name editing';
+        input.style.width = '100%';
+        input.style.border = 'none';
+        input.style.background = 'transparent';
+        input.style.fontFamily = 'inherit';
+        input.style.fontSize = 'inherit';
+        input.style.fontWeight = 'inherit';
+        input.style.color = 'inherit';
+        input.style.outline = 'none';
+        
+        nameEl.replaceWith(input);
+        input.focus();
+        input.select();
+        
+        // Kaydetme fonksiyonu
+        const saveName = () => {
+            const newName = input.value.trim();
+            if (newName && newName !== file.filename) {
+                file.filename = newName;
+                file.timestamp = new Date().toISOString();
+                saveSavedFiles();
+                showToast('Dosya adı güncellendi');
+            }
+            editingFileId = null;
+            renderSavedFiles();
+        };
+        
+        // Event listeners
+        input.addEventListener('blur', saveName);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                input.blur();
+            } else if (e.key === 'Escape') {
+                editingFileId = null;
+                renderSavedFiles();
+            }
+        });
+    }
+
+    // Kaydedilen dosyayı önizle
+    function previewSavedFile(fileId) {
+        const file = savedFiles.find(f => f.id === fileId);
+        if (!file) return;
+
+        // Kodu yükle ama kaydetme
+        code = file.code;
+        loadedFilename = file.filename;
+        updateEditor();
+        updateFilenameDisplay();
+        updateTabDotColor();
+        updateQuickSaveButton();
+        
+        // Önizleme moduna geç
+        const previewRadio = document.querySelector('input[name="view"][value="preview"]');
+        if (previewRadio) {
+            previewRadio.checked = true;
+            handleViewSwitch('preview');
+        }
+        
+        closeSavedFilesPanel();
+        showToast(`${file.filename} önizleniyor`);
+    }
+
+    // Kaydedilen dosyanın kodunu gör
+    function viewSavedFileCode(fileId) {
+        const file = savedFiles.find(f => f.id === fileId);
+        if (!file) return;
+
+        // Kodu yükle
+        code = file.code;
+        loadedFilename = file.filename;
+        updateEditor();
+        updateFilenameDisplay();
+        updateTabDotColor();
+        updateQuickSaveButton();
+        
+        // Kod editörü moduna geç
+        const codeRadio = document.querySelector('input[name="view"][value="code"]');
+        if (codeRadio) {
+            codeRadio.checked = true;
+            handleViewSwitch('code');
+        }
+        
+        closeSavedFilesPanel();
+        showToast(`${file.filename} yüklendi`);
     }
 
     function deleteSavedFile(id) {
