@@ -866,362 +866,6 @@
                 gap: 10px;
             }
             .header-filename {
-.open .fab-menu-item { transform: translateX(0); opacity: 1; }
-        .fab-menu.open .fab-menu-item:nth-child(1) { transition-delay: 0.06s; }
-        .fab-menu.open .fab-menu-item:nth-child(2) { transition-delay: 0.12s; }
-        .fab-menu.open .fab-menu-item:nth-child(3) { transition-delay: 0.18s; }
-        .fab-menu.open .fab-menu-item:nth-child(4) { transition-delay: 0.24s; }
-        .fab-menu-item:hover { transform: scale(1.05); background: rgba(255,255,255,0.35); }
-        @media (prefers-color-scheme: dark) { .fab-menu-item:hover { background: rgba(255,255,255,0.08); } }
-        .fab-menu-item:active { transform: scale(0.95); }
-        .fab-menu-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; color: var(--text-primary); }
-
-        /* Saved Files Panel */
-        .saved-files-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 320px;
-            height: 100%;
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border-right: 1px solid var(--glass-border);
-            z-index: 150;
-            transform: translateX(-100%);
-            transition: transform 0.4s cubic-bezier(0.25,0.8,0.25,1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .saved-files-panel.open {
-            transform: translateX(0);
-        }
-
-        .saved-files-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .saved-files-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .saved-files-close {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-        }
-
-        .saved-files-close:hover {
-            background: rgba(255,69,58,0.15);
-            border-color: rgba(255,69,58,0.3);
-        }
-
-        .saved-files-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-        }
-
-        .saved-files-list::-webkit-scrollbar { width: 6px; }
-        .saved-files-list::-webkit-scrollbar-track { background: transparent; }
-        .saved-files-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
-
-        .saved-file-item {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
-            transition: var(--transition);
-        }
-
-        .saved-file-item:hover {
-            transform: translateX(4px);
-            background: rgba(255,255,255,0.3);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .saved-file-item:hover { background: rgba(255,255,255,0.05); }
-        }
-
-        .saved-file-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            word-break: break-all;
-            font-family: 'JetBrains Mono', monospace;
-            cursor: pointer;
-            padding: 6px 8px;
-            margin: -6px -8px 8px;
-            border-radius: 8px;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            position: relative;
-        }
-
-        .saved-file-name:hover {
-            background: rgba(120,120,128,0.15);
-        }
-
-        .saved-file-name:hover .edit-icon {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .saved-file-name.editing {
-            background: rgba(120,120,128,0.2);
-            outline: 2px solid var(--accent);
-        }
-
-        .edit-icon {
-            width: 14px;
-            height: 14px;
-            opacity: 0.4;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-            color: var(--text-secondary);
-        }
-
-        .saved-file-name:hover .edit-icon {
-            color: var(--accent);
-        }
-
-        .saved-file-date {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-        }
-
-        .saved-file-actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .saved-file-btn {
-            flex: 1;
-            min-width: 70px;
-            padding: 8px 10px;
-            border-radius: 12px;
-            border: 1px solid var(--glass-border);
-            background: var(--glass-bg);
-            color: var(--text-primary);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            transition: var(--transition);
-        }
-
-        .saved-file-btn:hover {
-            background: rgba(255,255,255,0.4);
-        }
-
-        .saved-file-btn.delete:hover {
-            background: rgba(255,69,58,0.15);
-            border-color: rgba(255,69,58,0.3);
-            color: #ff453a;
-        }
-
-        .saved-file-btn.download:hover {
-            background: rgba(52,199,89,0.15);
-            border-color: rgba(52,199,89,0.3);
-            color: #34c759;
-        }
-
-        .saved-file-btn.preview:hover {
-            background: rgba(0,122,255,0.15);
-            border-color: rgba(0,122,255,0.3);
-            color: #007aff;
-        }
-
-        .saved-file-btn.code:hover {
-            background: rgba(175,82,222,0.15);
-            border-color: rgba(175,82,222,0.3);
-            color: #af52de;
-        }
-
-        .saved-files-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.2);
-            backdrop-filter: blur(4px);
-            z-index: 140;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .saved-files-overlay.open {
-            display: block;
-            opacity: 1;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-secondary);
-        }
-
-        .empty-state svg {
-            margin: 0 auto 16px;
-            opacity: 0.5;
-        }
-
-        .empty-state-text {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .quick-save-btn {
-            background: rgba(52, 199, 89, 0.15);
-            border-color: rgba(52, 199, 89, 0.3);
-            color: #34c759;
-        }
-
-        .quick-save-btn:hover {
-            background: rgba(52, 199, 89, 0.25);
-        }
-
-        .view-saved-btn {
-            position: relative;
-        }
-
-        .saved-count {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            background: #ff453a;
-            color: white;
-            font-size: 11px;
-            font-weight: 700;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(255,69,58,0.4);
-        }
-
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.25);
-            backdrop-filter: blur(20px); z-index: 2000;
-            display: none; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s ease;
-        }
-        .modal-overlay.open { display: flex; opacity: 1; animation: fadeIn 0.3s ease; }
-
-        .modal-box {
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border: 1px solid var(--glass-border); border-radius: 32px; padding: 32px;
-            width: 88%; max-width: 380px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.08), 0 32px 64px rgba(0,0,0,0.12);
-            animation: glassScale 0.4s cubic-bezier(0.25,0.8,0.25,1);
-        }
-
-        .modal-header { text-align: center; margin-bottom: 28px; }
-
-        .modal-icon-wrap {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 64px; height: 64px; background: var(--glass-bg);
-            border: 1px solid var(--glass-border); border-radius: 50%;
-            margin-bottom: 16px; box-shadow: var(--glass-shadow);
-        }
-
-        .modal-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; letter-spacing: -0.02em; }
-        .modal-subtitle { font-size: 15px; color: var(--text-secondary); font-weight: 500; }
-        .modal-field { margin-bottom: 24px; }
-
-        .modal-label {
-            display: block; font-size: 13px; font-weight: 600;
-            color: var(--text-secondary); margin-bottom: 8px; margin-left: 4px;
-            text-transform: uppercase; letter-spacing: 0.03em;
-        }
-
-        .modal-input-wrap { position: relative; }
-
-        .modal-input {
-            background: rgba(120,120,128,0.12); border: none; border-radius: 16px;
-            padding: 16px 60px 16px 18px; color: var(--text-primary);
-            font-size: 17px; font-family: inherit; font-weight: 500;
-            transition: var(--transition); width: 100%; outline: none;
-        }
-        .modal-input:focus { background: rgba(120,120,128,0.2); box-shadow: 0 0 0 3px rgba(120,120,128,0.15); }
-
-        .modal-input-suffix {
-            position: absolute; right: 18px; top: 50%;
-            transform: translateY(-50%); color: var(--text-secondary);
-            font-weight: 600; pointer-events: none; font-size: 15px;
-        }
-
-        .modal-actions { display: flex; gap: 12px; }
-
-        .modal-btn {
-            flex: 1; padding: 14px 20px; border-radius: 20px;
-            font-size: 17px; font-weight: 600; font-family: inherit;
-            cursor: pointer; transition: var(--transition);
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            border: none; letter-spacing: -0.01em;
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border: 1px solid var(--glass-border); color: var(--text-primary);
-            box-shadow: var(--glass-shadow); height: 48px;
-        }
-        .modal-btn:active { transform: scale(0.94); }
-        .modal-btn-save { background: rgba(120,120,128,0.2); }
-
-        .toast {
-            position: fixed; bottom: 100px; left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: var(--glass-bg);
-            backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-            border: 1px solid var(--glass-border); color: var(--text-primary);
-            padding: 14px 28px; border-radius: 24px; box-shadow: var(--glass-shadow);
-            display: none; align-items: center; gap: 10px; z-index: 3000;
-            white-space: nowrap; font-size: 15px; font-weight: 600;
-            opacity: 0; transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
-        }
-        .toast.open { display: flex; opacity: 1; transform: translateX(-50%) translateY(0); }
-        body.preview-mode .toast { bottom: 40px; }
-
-        @keyframes glassScale {
-            from { opacity: 0; transform: scale(0.85) translateY(10px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        @media (max-width: 480px) {
-            .header { padding: 14px 16px; }
-            .header-bottom {
-                gap: 10px;
-            }
-            .header-filename {
                 max-width: 120px;
             }
             .code-input { font-size: 14px; padding: 16px; padding-bottom: 100px; }
@@ -1270,13 +914,15 @@
             }
             
             #unsavedModalOverlay .modal-box,
-            #saveOptionsModalOverlay .modal-box {
+            #saveOptionsModalOverlay .modal-box,
+            #duplicateModalOverlay .modal-box {
                 width: 92%;
                 padding: 20px;
             }
             
             #unsavedModalOverlay .modal-actions,
-            #saveOptionsModalOverlay .modal-actions {
+            #saveOptionsModalOverlay .modal-actions,
+            #duplicateModalOverlay .modal-actions {
                 gap: 8px;
             }
         }
@@ -1520,7 +1166,7 @@
     </div>
 </div>
 
-<!-- Kaydetme Seçenekleri Modalı (Yeni) -->
+<!-- Kaydetme Seçenekleri Modalı -->
 <div id="saveOptionsModalOverlay" class="modal-overlay" onclick="handleSaveOptionsOverlayClick(event)">
     <div class="modal-box" style="max-width: 400px;">
         <div class="modal-header">
@@ -1558,6 +1204,40 @@
 
             <!-- İptal -->
             <button onclick="closeSaveOptionsModal()" class="modal-btn" style="width: 100%; margin-top: 6px; height: 48px; border-radius: 22px; opacity: 0.8;">
+                İptal
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Aynı İçerik Uyarı Modalı (YENİ) -->
+<div id="duplicateModalOverlay" class="modal-overlay" onclick="handleDuplicateOverlayClick(event)">
+    <div class="modal-box" style="max-width: 380px;">
+        <div class="modal-header">
+            <div class="modal-icon-wrap" style="background: rgba(255, 204, 0, 0.15); border-color: rgba(255, 204, 0, 0.3); color: #ffcc00;">
+                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div class="modal-title">Aynı İçerik Mevcut</div>
+            <div class="modal-subtitle">Bu kod zaten kayıtlı dosyalarınızda bulunuyor</div>
+        </div>
+
+        <div style="margin-bottom: 24px; padding: 16px; background: var(--glass-bg); border-radius: 16px; border: 1px solid var(--glass-border);">
+            <p style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.5;">
+                Yine de kaydetmek istiyor musunuz? Bu işlem <strong style="color: var(--text-primary);">aynı içeriğe sahip yinelenen bir dosya</strong> oluşturacaktır.
+            </p>
+        </div>
+
+        <div class="modal-actions" style="flex-direction: column; gap: 10px;">
+            <button onclick="handleDuplicateContinue()" class="modal-btn" style="background: rgba(255, 204, 0, 0.15); border-color: rgba(255, 204, 0, 0.3); color: #ffcc00; width: 100%; height: 50px; border-radius: 22px;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Yine de Kaydet
+            </button>
+
+            <button onclick="closeDuplicateModal()" class="modal-btn" style="width: 100%; height: 48px; border-radius: 22px; opacity: 0.8;">
                 İptal
             </button>
         </div>
@@ -1627,11 +1307,12 @@
     let savedFiles = [];
     let editingFileId = null;
     let hasUnsavedChanges = false;
-    let currentOpenFileId = null; // Şu anda açık olan kayıtlı dosyanın ID'si
+    let currentOpenFileId = null;
     
-    // Kaydedilmemiş değişiklikler modalı için callback değişkenleri
+    // Callback değişkenleri
     let unsavedCallbackSave = null;
     let unsavedCallbackDiscard = null;
+    let duplicateCheckCallback = null;
 
     (function trackPrevious(el) {
         const radios = el.querySelectorAll('input[type="radio"]');
@@ -1890,7 +1571,70 @@
         }
     }
 
-    // YENİ: Kaydetme seçenekleri modalı fonksiyonları
+    // YENİ: Aynı içerik kontrolü
+    function isContentAlreadySaved(content) {
+        // Sadece kayıtlı dosyalarda ara (şu an açık olan dosya hariç)
+        return savedFiles.some(file => {
+            // Eğer bu dosya şu an açık olan dosya ise, tekrar kaydetmeye izin ver
+            if (currentOpenFileId && file.id === currentOpenFileId) {
+                return false;
+            }
+            return file.code === content;
+        });
+    }
+
+    // YENİ: Aynı içerik modal fonksiyonları
+    function showDuplicateContentModal(onContinue) {
+        duplicateCheckCallback = onContinue;
+        document.getElementById('duplicateModalOverlay').classList.add('open');
+    }
+
+    function closeDuplicateModal() {
+        document.getElementById('duplicateModalOverlay').classList.remove('open');
+        duplicateCheckCallback = null;
+    }
+
+    function handleDuplicateOverlayClick(e) {
+        if (e.target.id === 'duplicateModalOverlay') closeDuplicateModal();
+    }
+
+    function handleDuplicateContinue() {
+        closeDuplicateModal();
+        if (duplicateCheckCallback) duplicateCheckCallback();
+    }
+
+    // GÜNCELLENDİ: Quick Save ana fonksiyonu
+    function handleQuickSave() {
+        if (!code.trim()) {
+            showToast('Kaydedilecek kod yok');
+            return;
+        }
+
+        // Önce içeriğin zaten kayıtlı olup olmadığını kontrol et
+        // (Ama sadece yeni kayıt oluşturulacaksa kontrol et, güncellemede değil)
+        if (!currentOpenFileId && isContentAlreadySaved(code)) {
+            // Yeni dosya ve aynı içerik varsa uyarı göster
+            showDuplicateContentModal(() => {
+                // Kullanıcı yine de kaydetmek istiyor
+                continueQuickSave();
+            });
+            return;
+        }
+
+        // Normal akışa devam et
+        continueQuickSave();
+    }
+
+    function continueQuickSave() {
+        // Eğer kayıtlı bir dosya açıksa ve değişiklik yapıldıysa seçenek sun
+        if (currentOpenFileId && hasUnsavedChanges) {
+            openSaveOptionsModal();
+        } else {
+            // Yeni dosya veya değişiklik yoksa direkt yeni kayıt oluştur
+            createNewSave();
+        }
+    }
+
     function openSaveOptionsModal() {
         const currentFile = savedFiles.find(f => f.id === currentOpenFileId);
         const displayName = currentFile ? currentFile.filename : loadedFilename;
@@ -1914,6 +1658,19 @@
         const fileIndex = savedFiles.findIndex(f => f.id === currentOpenFileId);
         if (fileIndex === -1) return;
         
+        // Aynı içerik kontrolü (başka bir dosya ile aynı mı?)
+        if (isContentAlreadySaved(code)) {
+            showDuplicateContentModal(() => {
+                // Yine de güncelle
+                performUpdate(fileIndex);
+            });
+            return;
+        }
+        
+        performUpdate(fileIndex);
+    }
+
+    function performUpdate(fileIndex) {
         // Mevcut dosyayı güncelle
         savedFiles[fileIndex].code = code;
         savedFiles[fileIndex].filename = loadedFilename || savedFiles[fileIndex].filename;
@@ -1928,12 +1685,6 @@
     function createNewSave() {
         closeSaveOptionsModal();
         
-        // Yeni kayıt oluştur (eski quickSave mantığı)
-        if (!code.trim()) {
-            showToast('Kaydedilecek kod yok');
-            return;
-        }
-
         const filename = loadedFilename?.trim() ? loadedFilename : generateDefaultFilename();
         const savedFile = {
             id: Date.now(),
@@ -1952,17 +1703,6 @@
         updateQuickSaveButton();
         renderSavedFiles();
         showToast(`${filename} olarak yeni kayıt oluşturuldu`);
-    }
-
-    // YENİ: Quick Save mantığını değiştiren ana fonksiyon
-    function handleQuickSave() {
-        // Eğer bir kayıtlı dosya açıksa ve değişiklik yapıldıysa seçenek sun
-        if (currentOpenFileId && hasUnsavedChanges) {
-            openSaveOptionsModal();
-        } else {
-            // Yeni dosya veya kayıtlı dosya ama değişiklik yoksa direkt yeni kayıt oluştur
-            createNewSave();
-        }
     }
 
     function saveSavedFiles() {
@@ -2137,13 +1877,16 @@
     function handleUnsavedSave() {
         closeUnsavedModal();
         if (unsavedCallbackSave) {
-            // Eğer açık bir dosya varsa ve değişiklik yapıldıysa seçenek sun
-            if (currentOpenFileId && hasUnsavedChanges) {
-                openSaveOptionsModal();
+            // Aynı içerik kontrolü yap
+            if (!currentOpenFileId && isContentAlreadySaved(code)) {
+                showDuplicateContentModal(() => {
+                    continueQuickSave();
+                    setTimeout(() => unsavedCallbackSave(), 100);
+                });
             } else {
-                createNewSave();
+                continueQuickSave();
+                setTimeout(() => unsavedCallbackSave(), 100);
             }
-            setTimeout(() => unsavedCallbackSave(), 100);
         }
     }
 
@@ -2160,7 +1903,7 @@
 
         code = file.code;
         loadedFilename = file.filename;
-        currentOpenFileId = file.id; // Açık dosya ID'sini kaydet
+        currentOpenFileId = file.id;
         updateEditor();
         updateFilenameDisplay();
         updateTabDotColor();
@@ -2184,7 +1927,7 @@
 
         code = file.code;
         loadedFilename = file.filename;
-        currentOpenFileId = file.id; // Açık dosya ID'sini kaydet
+        currentOpenFileId = file.id;
         updateEditor();
         updateFilenameDisplay();
         updateTabDotColor();
@@ -2231,7 +1974,6 @@
         if (confirm(`${file.filename}.html silinecek. Emin misiniz?`)) {
             savedFiles = savedFiles.filter(f => f.id !== id);
             
-            // Eğer silinen dosya şu an açıksa, currentOpenFileId'yi sıfırla
             if (currentOpenFileId === id) {
                 currentOpenFileId = null;
             }
@@ -2309,7 +2051,7 @@ ${file.code}
         const file = event.target.files[0]; if (!file) return;
         event.target.value = '';
         loadedFilename = file.name.replace(/\.[^/.]+$/,'');
-        currentOpenFileId = null; // Yükleme yapılınca açık dosya bağlantısı kopsun
+        currentOpenFileId = null;
         const r = new FileReader();
         r.onload  = e => { 
             code = e.target.result; 
@@ -2328,7 +2070,7 @@ ${file.code}
     function clearCode() {
         if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
             code = ''; loadedFilename = '';
-            currentOpenFileId = null; // Temizleme yapılınca bağlantı kopar
+            currentOpenFileId = null;
             hasUnsavedChanges = false;
             saveToStorage(); updateEditor(); updateFilenameDisplay();
             updateTabDotColor();
