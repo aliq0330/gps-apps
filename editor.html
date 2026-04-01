@@ -8,7 +8,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
-
+```
     *, *::before, *::after {
         box-sizing: border-box;
         -webkit-tap-highlight-color: transparent;
@@ -637,6 +637,7 @@
         padding: 16px;
         margin-bottom: 12px;
         transition: var(--transition);
+        cursor: pointer;
     }
 
     .saved-file-item:hover {
@@ -968,7 +969,7 @@
         }
     }
 </style>
-
+```
 
 </head>
 
@@ -989,7 +990,7 @@
             </span>
         </div>
 
-
+```
     <div class="actions">
         <fieldset class="view-switcher" id="viewSwitcher">
             <legend class="view-switcher__legend">Görünüm</legend>
@@ -1063,7 +1064,7 @@
                onchange="handleFileLoad(event)">
     </div>
 </div>
-
+```
 
 </header>
 
@@ -1096,7 +1097,7 @@
     <fieldset class="view-switcher" id="floatingViewSwitcher">
         <legend class="view-switcher__legend">Görünüm</legend>
 
-
+```
     <label class="view-switcher__option" title="Kod">
         <input class="view-switcher__input" type="radio"
                name="floatingView" value="code" c-option="1" />
@@ -1124,7 +1125,7 @@
         </svg>
     </div>
 </fieldset>
-
+```
 
 </div>
 
@@ -1135,11 +1136,11 @@
                   onkeydown="handleKeydown(event)"></textarea>
     </div>
 
-
+```
 <div class="preview-area" id="previewArea">
     <iframe id="previewFrameInline" class="preview-frame-inline"></iframe>
 </div>
-
+```
 
 </main>
 
@@ -1183,13 +1184,13 @@
         </div>
     </div>
 
-
+```
 <button class="fab-main" id="fabMain" onclick="toggleFabMenu()" aria-label="Menü">
     <svg class="fab-icon" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/>
     </svg>
 </button>
-
+```
 
 </div>
 
@@ -1208,7 +1209,7 @@
             <div class="modal-subtitle">HTML dosyası olarak indirin</div>
         </div>
 
-
+```
     <div class="modal-field">
         <label class="modal-label" for="saveFilename">Dosya Adı</label>
         <div class="modal-input-wrap">
@@ -1230,7 +1231,7 @@
         </button>
     </div>
 </div>
-
+```
 
 </div>
 
@@ -1248,7 +1249,7 @@
             <div class="modal-subtitle">Nasıl kaydetmek istiyorsunuz?</div>
         </div>
 
-
+```
     <div style="margin-bottom: 24px; padding: 16px; background: var(--glass-bg); border-radius: 16px; border: 1px solid var(--glass-border);">
         <p style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.5;">
             <strong style="color: var(--text-primary);" id="currentFileNameDisplay">Dosya</strong> üzerinde değişiklik yaptınız.
@@ -1275,7 +1276,7 @@
         </button>
     </div>
 </div>
-
+```
 
 </div>
 
@@ -1293,7 +1294,7 @@
             <div class="modal-subtitle">Dosyada kaydedilmemiş değişiklikler var</div>
         </div>
 
-
+```
     <div style="margin-bottom: 24px; padding: 16px; background: var(--glass-bg); border-radius: 16px; border: 1px solid var(--glass-border);">
         <p style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.5;">
             Şu anda düzenlemekte olduğunuz kod kaydedilmemiş. <strong style="color: var(--text-primary);">Kaydetmeden devam</strong> ederseniz değişiklikleriniz kaybolacak.
@@ -1320,7 +1321,7 @@
         </button>
     </div>
 </div>
-
+```
 
 </div>
 
@@ -1338,7 +1339,7 @@
             <div class="modal-subtitle">Aynı içeriğe sahip kayıt bulundu</div>
         </div>
 
-
+```
     <div style="margin-bottom: 24px; padding: 16px; background: var(--glass-bg); border-radius: 16px; border: 1px solid var(--glass-border);">
         <p style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.5;">
             <strong style="color: var(--text-primary);" id="duplicateExistingName">Bu dosya</strong> adıyla aynı içeriğe sahip bir kayıt zaten mevcut. Yine de yeni kayıt oluşturmak istiyor musunuz?
@@ -1361,7 +1362,7 @@
         </button>
     </div>
 </div>
-
+```
 
 </div>
 
@@ -1710,7 +1711,10 @@
         savedFiles.push(savedFile);
         saveSavedFiles();
         currentOpenFileId = savedFile.id;
+        loadedFilename = newFilename;
         hasUnsavedChanges = false;
+        updateFilenameDisplay();
+        saveToStorage();
         updateQuickSaveButton();
         renderSavedFiles();
         showToast(`${newFilename} olarak kaydedildi`);
@@ -1873,9 +1877,9 @@
             const isOpen = currentOpenFileId === file.id;
             
             return `
-                <div class="saved-file-item" style="${isOpen ? 'border-color: #34c759; background: rgba(52, 199, 89, 0.1);' : ''}">
+                <div class="saved-file-item" onclick="openSavedFileItem(event, ${file.id})" style="${isOpen ? 'border-color: #34c759; background: rgba(52, 199, 89, 0.1);' : ''}">
                     <div class="saved-file-name ${isEditing ? 'editing' : ''}" 
-                         onclick="startEditingName(${file.id})" 
+                         onclick="event.stopPropagation(); startEditingName(${file.id})" 
                          id="filename-${file.id}">
                         ${escapeHtml(file.filename)}.html
                         ${isOpen ? '<span style="color: #34c759; font-size: 11px; margin-left: 6px;">(Açık)</span>' : ''}
@@ -1885,26 +1889,26 @@
                     </div>
                     <div class="saved-file-date">${dateStr}</div>
                     <div class="saved-file-actions">
-                        <button class="saved-file-btn preview" onclick="previewSavedFile(${file.id})" title="Önizle">
+                        <button class="saved-file-btn preview" onclick="event.stopPropagation(); previewSavedFile(${file.id})" title="Önizle">
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                             </svg>
                             Önizle
                         </button>
-                        <button class="saved-file-btn code" onclick="viewSavedFileCode(${file.id})" title="Kodu Gör">
+                        <button class="saved-file-btn code" onclick="event.stopPropagation(); viewSavedFileCode(${file.id})" title="Kodu Gör">
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
                             </svg>
                             Kod
                         </button>
-                        <button class="saved-file-btn download" onclick="downloadSavedFile(${file.id})" title="İndir">
+                        <button class="saved-file-btn download" onclick="event.stopPropagation(); downloadSavedFile(${file.id})" title="İndir">
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                             </svg>
                             İndir
                         </button>
-                        <button class="saved-file-btn delete" onclick="deleteSavedFile(${file.id})" title="Sil">
+                        <button class="saved-file-btn delete" onclick="event.stopPropagation(); deleteSavedFile(${file.id})" title="Sil">
                             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                             </svg>
@@ -1914,6 +1918,11 @@
                 </div>
             `;
         }).join('');
+    }
+
+    function openSavedFileItem(event, fileId) {
+        // Kart üzerindeki boş alana tıklandığında dosyayı kod editöründe aç
+        viewSavedFileCode(fileId);
     }
 
     function escapeHtml(text) {
