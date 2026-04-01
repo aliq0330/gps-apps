@@ -89,9 +89,17 @@
             justify-content: space-between; gap: 16px;
         }
 
+        .header-left-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            flex: 1;
+        }
+
         .header-bottom {
             display: flex; align-items: center;
-            justify-content: space-between; gap: 16px;
+            justify-content: flex-end; gap: 16px;
             margin-top: 16px; padding-top: 16px;
             border-top: 1px solid var(--glass-border);
             overflow-x: auto;
@@ -115,6 +123,7 @@
             border: 1px solid var(--glass-border);
             color: var(--text-primary); box-shadow: var(--glass-shadow);
             transition: var(--transition);
+            flex-shrink: 0;
         }
 
         .tab-dot {
@@ -190,22 +199,54 @@
             flex-shrink: 0; 
         }
 
-        .file-info { 
-            display: flex; 
-            align-items: center; 
-            flex: 1; 
-            min-width: 0; 
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
         .editor-title {
-            color: var(--text-secondary); font-size: 13px;
+            color: var(--text-secondary); 
+            font-size: 14px;
             font-family: 'JetBrains Mono', monospace;
-            overflow: hidden; text-overflow: ellipsis;
-            white-space: nowrap; font-weight: 500;
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            white-space: nowrap; 
+            font-weight: 500;
         }
         .editor-title.loaded { color: var(--text-primary); font-weight: 600; }
+
+        .header-filename {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            max-width: 200px;
+            overflow: hidden;
+        }
+
+        .header-filename:hover {
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
+        }
+
+        .header-filename:hover .edit-icon-small {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .header-filename.editing {
+            background: rgba(120,120,128,0.15);
+            border-color: var(--glass-border);
+            cursor: text;
+        }
+
+        .edit-icon-small {
+            width: 12px;
+            height: 12px;
+            opacity: 0;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
 
         .view-switcher {
             position: relative;
@@ -825,6 +866,9 @@
             .header-bottom {
                 gap: 10px;
             }
+            .header-filename {
+                max-width: 120px;
+            }
             .code-input { font-size: 14px; padding: 16px; padding-bottom: 100px; }
             .btn { font-size: 14px; padding: 10px 16px; min-width: 88px; height: 40px; border-radius: 20px; }
             .btn-sm { padding: 8px 14px; min-width: 80px; height: 36px; font-size: 13px; border-radius: 18px; }
@@ -877,10 +921,16 @@
 
 <header class="header">
     <div class="header-top">
-        <div>
+        <div class="header-left-group">
             <span class="tab">
                 <span class="tab-dot" id="tabDot"></span>
                 HTML
+            </span>
+            <span id="editorTitle" class="editor-title header-filename" onclick="startEditingHeaderFilename()">
+                Yeni Dosya
+                <svg class="edit-icon-small" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
             </span>
         </div>
 
@@ -919,10 +969,6 @@
     </div>
 
     <div class="header-bottom">
-        <div class="file-info">
-            <span id="editorTitle" class="editor-title">Yeni Dosya</span>
-        </div>
-
         <div class="actions">
             <button onclick="quickSave()" class="btn btn-success btn-sm quick-save-btn" id="quickSaveBtn" style="display: none;">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1125,6 +1171,7 @@
     let currentView = 'code';
     let savedFiles = [];
     let editingFileId = null;
+    let hasUnsavedChanges = false; // Kaydedilmemiş değişiklik takibi
 
     (function trackPrevious(el) {
         const radios = el.querySelectorAll('input[type="radio"]');
@@ -1247,8 +1294,84 @@
 
     function updateFilenameDisplay() {
         const el = document.getElementById('editorTitle');
-        if (loadedFilename?.trim()) { el.textContent = loadedFilename + '.html'; el.classList.add('loaded'); }
-        else { el.textContent = 'Yeni Dosya'; el.classList.remove('loaded'); }
+        if (!el) return;
+        
+        const displayName = loadedFilename?.trim() ? loadedFilename : 'Yeni Dosya';
+        
+        // Eğer editing modundaysa (input varsa) dokunma
+        if (el.tagName === 'INPUT') return;
+        
+        el.innerHTML = `
+            ${displayName}
+            <svg class="edit-icon-small" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+            </svg>
+        `;
+        
+        if (loadedFilename?.trim()) {
+            el.classList.add('loaded');
+        } else {
+            el.classList.remove('loaded');
+        }
+    }
+
+    function startEditingHeaderFilename() {
+        const nameEl = document.getElementById('editorTitle');
+        if (!nameEl || nameEl.tagName === 'INPUT') return;
+        
+        const currentName = loadedFilename || '';
+        
+        // Input oluştur
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentName;
+        input.className = 'editor-title header-filename editing';
+        input.style.width = '150px';
+        input.placeholder = 'dosya-adi';
+        
+        input.style.background = 'transparent';
+        input.style.border = 'none';
+        input.style.outline = 'none';
+        input.style.color = 'inherit';
+        input.style.fontFamily = 'inherit';
+        input.style.fontSize = 'inherit';
+        input.style.fontWeight = 'inherit';
+        
+        nameEl.replaceWith(input);
+        input.focus();
+        input.select();
+        
+        const saveName = () => {
+            const newName = input.value.trim();
+            if (newName) {
+                loadedFilename = newName;
+                hasUnsavedChanges = true; // İsim değişince de kaydedilmemiş sayılır
+            }
+            // Yeni span oluştur
+            const newSpan = document.createElement('span');
+            newSpan.id = 'editorTitle';
+            newSpan.className = 'editor-title header-filename';
+            newSpan.onclick = startEditingHeaderFilename;
+            input.replaceWith(newSpan);
+            updateFilenameDisplay();
+            saveToStorage();
+        };
+        
+        input.addEventListener('blur', saveName);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                input.blur();
+            } else if (e.key === 'Escape') {
+                // İptal et
+                const newSpan = document.createElement('span');
+                newSpan.id = 'editorTitle';
+                newSpan.className = 'editor-title header-filename';
+                newSpan.onclick = startEditingHeaderFilename;
+                input.replaceWith(newSpan);
+                updateFilenameDisplay();
+            }
+        });
     }
 
     function updateTabDotColor() {
@@ -1289,6 +1412,7 @@
 
     function updateCode() {
         code = document.getElementById('editor').value;
+        hasUnsavedChanges = true; // Değişiklik var
         saveToStorage();
         updateTabDotColor();
         updateQuickSaveButton();
@@ -1328,6 +1452,7 @@
         // Her zaman yeni kayıt ekle (güncelleme yok)
         savedFiles.push(savedFile);
         saveSavedFiles();
+        hasUnsavedChanges = false; // Kaydedildi
         updateQuickSaveButton();
         renderSavedFiles();
         showToast(`${filename} kaydedildi`);
@@ -1435,7 +1560,7 @@
         return div.innerHTML;
     }
 
-    // Dosya adını düzenlemeye başla
+    // Dosya adını düzenlemeye başla (Kayıtlı dosyalar panelinde)
     function startEditingName(fileId) {
         const file = savedFiles.find(f => f.id === fileId);
         if (!file) return;
@@ -1489,6 +1614,13 @@
 
     // Kaydedilen dosyayı önizle
     function previewSavedFile(fileId) {
+        // Kaydedilmemiş değişiklik kontrolü
+        if (hasUnsavedChanges) {
+            if (confirm('Şu an düzenlemekte olduğunuz kod kaydedilmemiş.\n\nKaydetmek istiyor musunuz?\n\n"Tamam" = Kaydet ve aç\n"İptal" = Kaydetmeden aç')) {
+                quickSave();
+            }
+        }
+        
         const file = savedFiles.find(f => f.id === fileId);
         if (!file) return;
 
@@ -1499,6 +1631,8 @@
         updateFilenameDisplay();
         updateTabDotColor();
         updateQuickSaveButton();
+        
+        hasUnsavedChanges = false; // Yeni dosya yüklendi
         
         // Önizleme moduna geç
         const previewRadio = document.querySelector('input[name="view"][value="preview"]');
@@ -1513,6 +1647,13 @@
 
     // Kaydedilen dosyanın kodunu gör
     function viewSavedFileCode(fileId) {
+        // Kaydedilmemiş değişiklik kontrolü
+        if (hasUnsavedChanges) {
+            if (confirm('Şu an düzenlemekte olduğunuz kod kaydedilmemiş.\n\nKaydetmek istiyor musunuz?\n\n"Tamam" = Kaydet ve aç\n"İptal" = Kaydetmeden aç')) {
+                quickSave();
+            }
+        }
+        
         const file = savedFiles.find(f => f.id === fileId);
         if (!file) return;
 
@@ -1523,6 +1664,8 @@
         updateFilenameDisplay();
         updateTabDotColor();
         updateQuickSaveButton();
+        
+        hasUnsavedChanges = false; // Yeni dosya yüklendi
         
         // Kod editörü moduna geç
         const codeRadio = document.querySelector('input[name="view"][value="code"]');
@@ -1617,6 +1760,7 @@ ${file.code}
         const r = new FileReader();
         r.onload  = e => { 
             code = e.target.result; 
+            hasUnsavedChanges = false; // Yeni dosya yüklendi
             saveToStorage(); 
             updateEditor(); 
             updateFilenameDisplay(); 
@@ -1631,6 +1775,7 @@ ${file.code}
     function clearCode() {
         if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
             code = ''; loadedFilename = '';
+            hasUnsavedChanges = false; // Temizlendi
             saveToStorage(); updateEditor(); updateFilenameDisplay();
             updateTabDotColor();
             updateQuickSaveButton();
