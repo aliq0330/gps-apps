@@ -819,10 +819,13 @@ body.preview-mode .toast { bottom: 40px; }
     padding: 12px 24px 40px;
     width: 100%; max-width: 520px;
     box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
-    animation: slideUp 0.4s cubic-bezier(0.25,0.8,0.25,1);
-    max-height: 92vh; overflow-y: auto;
+    height: 50vh; overflow-y: hidden;
+    transition: height 0.35s cubic-bezier(0.25,0.8,0.25,1);
+    will-change: height;
 }
-.profile-panel::-webkit-scrollbar { display: none; }
+.profile-panel::-webkit-scrollbar { width: 4px; }
+.profile-panel::-webkit-scrollbar-track { background: transparent; }
+.profile-panel::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
 
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
@@ -1027,10 +1030,13 @@ body.preview-mode .toast { bottom: 40px; }
     border: 1px solid var(--glass-border); border-radius: 32px 32px 0 0;
     padding: 12px 24px 40px; width: 100%; max-width: 520px;
     box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
-    animation: slideUp 0.4s cubic-bezier(0.25,0.8,0.25,1);
-    max-height: 85vh; overflow-y: auto;
+    height: 50vh; overflow-y: hidden;
+    transition: height 0.35s cubic-bezier(0.25,0.8,0.25,1);
+    will-change: height;
 }
-.pub-profile-panel::-webkit-scrollbar { display: none; }
+.pub-profile-panel::-webkit-scrollbar { width: 4px; }
+.pub-profile-panel::-webkit-scrollbar-track { background: transparent; }
+.pub-profile-panel::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
 .pub-file-card {
     background: var(--glass-bg); border: 1px solid var(--glass-border);
     border-radius: 16px; padding: 14px 16px; margin-bottom: 10px;
@@ -1303,7 +1309,7 @@ body.preview-mode .toast { bottom: 40px; }
 <!-- ── PUBLIC PROFİL PANELI ────────────────────────────────────────────── -->
 
 <div class="pub-profile-overlay" id="pubProfileOverlay" onclick="handlePubProfileOverlayClick(event)">
-    <div class="pub-profile-panel">
+    <div class="pub-profile-panel" id="pubProfilePanel">
         <div class="profile-drag-bar"></div>
         <div class="profile-header" id="pubProfileHeader">
             <div class="profile-avatar-big" style="cursor:default;">
@@ -1679,6 +1685,7 @@ let saveButtonState = 'idle';
 // Profil state
 let currentProfile = null;
 let selectedEmoji  = '👤';
+let _pubFilesData  = {};
 
 const PROFILE_EMOJIS = [
     '👤','😀','😎','🤓','🧑‍💻','👨‍💻','👩‍💻','🦊','🐼','🐨','🦁','🐸',
@@ -1849,7 +1856,81 @@ function openProfilePanel() {
     updateProfileHeader();
     updateProfileStats();
 
+    _sheetReset('profilePanel');
     document.getElementById('profilePanelOverlay').classList.add('open');
+}
+
+// ── Bottom Sheet ───────────────────────────────────────────
+function _sheetReset(panelId) {
+    const el = document.getElementById(panelId);
+    if (!el) return;
+    el.style.transition = 'none';
+    el.style.height = '50vh';
+    el.style.overflowY = 'hidden';
+    el.scrollTop = 0;
+    requestAnimationFrame(() => {
+        el.style.transition = 'height 0.35s cubic-bezier(0.25,0.8,0.25,1)';
+    });
+}
+
+function _sheetClose(panelId, closeFn) {
+    const el = document.getElementById(panelId);
+    if (!el) return;
+    const overlay = el.parentElement;
+    el.style.transition = 'height 0.3s cubic-bezier(0.25,0.8,0.25,1)';
+    el.style.height = '0px';
+    el.style.overflowY = 'hidden';
+    if (overlay) { overlay.style.transition = 'opacity 0.3s ease'; overlay.style.opacity = '0'; }
+    setTimeout(() => {
+        if (overlay) overlay.style.opacity = '';
+        closeFn();
+    }, 320);
+}
+
+function _initBottomSheet(panelId, closeFn) {
+    const el = document.getElementById(panelId);
+    if (!el) return;
+    const PEEK = () => window.innerHeight * 0.50;
+    const FULL = () => window.innerHeight * 0.90;
+    let startY = 0, startH = 0, dragging = false;
+
+    function snapTo(h) {
+        el.style.transition = 'height 0.35s cubic-bezier(0.25,0.8,0.25,1)';
+        if (h <= 0) {
+            _sheetClose(panelId, closeFn);
+        } else {
+            el.style.height = h + 'px';
+            el.style.overflowY = h >= FULL() - 30 ? 'auto' : 'hidden';
+        }
+    }
+
+    el.addEventListener('touchstart', function(e) {
+        if (el.scrollTop > 0) return;
+        startY = e.touches[0].clientY;
+        startH = el.getBoundingClientRect().height;
+        dragging = true;
+        el.style.transition = 'none';
+    }, {passive: true});
+
+    el.addEventListener('touchmove', function(e) {
+        if (!dragging) return;
+        if (el.scrollTop > 0) { dragging = false; return; }
+        const dy = e.touches[0].clientY - startY;
+        e.preventDefault();
+        const newH = Math.min(FULL() + 12, Math.max(40, startH - dy));
+        el.style.height = newH + 'px';
+        if (newH < FULL() - 30) el.style.overflowY = 'hidden';
+    }, {passive: false});
+
+    el.addEventListener('touchend', function() {
+        if (!dragging) return;
+        dragging = false;
+        const h = el.getBoundingClientRect().height;
+        const peek = PEEK(), full = FULL();
+        if (h < peek * 0.55)          snapTo(0);
+        else if (h < (peek + full) / 2) snapTo(peek);
+        else                            snapTo(full);
+    }, {passive: true});
 }
 
 function closeProfilePanel() {
@@ -2171,6 +2252,9 @@ function buildPage() {
 
 // ── App Init ───────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+    _initBottomSheet('profilePanel',   closeProfilePanel);
+    _initBottomSheet('pubProfilePanel', closePublicProfile);
+
     const { data: { session } } = await sb.auth.getSession();
     if (session?.user) {
         onUserLoggedIn(session.user);
@@ -2968,6 +3052,7 @@ async function doUserSearch() {
 // ── PUBLIC PROFİL ──────────────────────────────────────────────────────
 async function openPublicProfile(userId) {
     closeSearchPanel();
+    _sheetReset('pubProfilePanel');
     document.getElementById('pubProfileOverlay').classList.add('open');
     document.getElementById('pubProfileEmoji').textContent  = '⏳';
     document.getElementById('pubProfileUsername').textContent = 'Yükleniyor...';
@@ -3001,6 +3086,8 @@ async function openPublicProfile(userId) {
         }
 
         const pubFiles = files || [];
+        _pubFilesData = {};
+        pubFiles.forEach(f => { _pubFilesData[f.id] = { filename: f.filename, code: f.code }; });
         const totalLines = pubFiles.reduce((s, f) => s + (f.code.match(/\n/g)||[]).length + 1, 0);
         const fmt = n => n >= 1000 ? (n/1000).toFixed(1) + 'k' : n;
         document.getElementById('pubStatFiles').textContent = pubFiles.length;
@@ -3016,14 +3103,14 @@ async function openPublicProfile(userId) {
                 const date = `${pad(d2.getDate())}.${pad(d2.getMonth()+1)}.${d2.getFullYear()}`;
                 const lines = (f.code.match(/\n/g)||[]).length + 1;
                 return `
-                <div class="pub-file-card" onclick="loadPublicFile(${f.id}, '${escapeHtml(f.filename)}', ${JSON.stringify(f.code).replace(/</g,'\\u003c')})">
+                <div class="pub-file-card" onclick="loadPublicFile(${f.id})">
                     <div class="pub-file-icon">
                         <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
                         </svg>
                     </div>
                     <div class="pub-file-info">
-                        <div class="pub-file-name">${escapeHtml(f.filename)}.html</div>
+                        <div class="pub-file-name">${escapeHtml(f.filename)}</div>
                         <div class="pub-file-meta">${date} · ${lines} satır</div>
                     </div>
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;opacity:0.4;">
@@ -3046,15 +3133,17 @@ function handlePubProfileOverlayClick(e) {
     if (e.target.id === 'pubProfileOverlay') closePublicProfile();
 }
 
-function loadPublicFile(fileId, filename, fileCode) {
+function loadPublicFile(fileId) {
+    const file = _pubFilesData[fileId];
+    if (!file) return;
     if (hasUnsavedChanges) {
         showUnsavedChangesModal(
-            () => { _loadPublicFile(filename, fileCode); closePublicProfile(); },
-            () => { _loadPublicFile(filename, fileCode); closePublicProfile(); }
+            () => { _loadPublicFile(file.filename, file.code); closePublicProfile(); },
+            () => { _loadPublicFile(file.filename, file.code); closePublicProfile(); }
         );
         return;
     }
-    _loadPublicFile(filename, fileCode);
+    _loadPublicFile(file.filename, file.code);
     closePublicProfile();
 }
 
