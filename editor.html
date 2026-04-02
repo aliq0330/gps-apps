@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kod Editörü - Fullscreen Preview</title>
+    <title>Kod Editörü</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
-
+```
     *, *::before, *::after {
         box-sizing: border-box;
         -webkit-tap-highlight-color: transparent;
@@ -18,13 +19,10 @@
 
     :root {
         color-scheme: light dark;
-        --glass-bg: rgba(255, 255, 255, 0.25);
-        --glass-border: rgba(255, 255, 255, 0.4);
-        --glass-highlight: rgba(255, 255, 255, 0.6);
-        --glass-shadow:
-            0 2px 4px rgba(0,0,0,0.02),
-            0 8px 16px rgba(0,0,0,0.04),
-            0 16px 32px rgba(0,0,0,0.06);
+        --glass-bg: rgba(255,255,255,0.25);
+        --glass-border: rgba(255,255,255,0.4);
+        --glass-highlight: rgba(255,255,255,0.6);
+        --glass-shadow: 0 2px 4px rgba(0,0,0,0.02), 0 8px 16px rgba(0,0,0,0.04), 0 16px 32px rgba(0,0,0,0.06);
         --text-primary: #1c1c1e;
         --text-secondary: rgba(60,60,67,0.6);
         --accent: #8e8e93;
@@ -40,10 +38,7 @@
             --glass-bg: rgba(28,28,30,0.4);
             --glass-border: rgba(255,255,255,0.1);
             --glass-highlight: rgba(255,255,255,0.15);
-            --glass-shadow:
-                0 2px 4px rgba(0,0,0,0.2),
-                0 8px 16px rgba(0,0,0,0.3),
-                0 16px 32px rgba(0,0,0,0.4);
+            --glass-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.3), 0 16px 32px rgba(0,0,0,0.4);
             --text-primary: #ffffff;
             --text-secondary: rgba(235,235,245,0.6);
             --glass-reflex-light: 0.3;
@@ -75,6 +70,241 @@
 
     svg { display: block; flex-shrink: 0; }
 
+    /* ── AUTH SCREEN ─────────────────────────────────────────── */
+    #authScreen {
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+        background:
+            radial-gradient(ellipse at top left, rgba(120,120,128,0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at bottom right, rgba(120,120,128,0.1) 0%, transparent 50%),
+            radial-gradient(ellipse at center, rgba(255,255,255,0.8) 0%, rgba(242,242,247,1) 100%);
+        padding: 20px;
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        #authScreen {
+            background:
+                radial-gradient(ellipse at top left, rgba(120,120,128,0.2) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(120,120,128,0.15) 0%, transparent 50%),
+                #000000;
+        }
+    }
+
+    #authScreen.hide {
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(1.04);
+    }
+
+    .auth-box {
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border: 1px solid var(--glass-border);
+        border-radius: 36px;
+        padding: 40px 32px;
+        width: 100%; max-width: 400px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.06), 0 32px 64px rgba(0,0,0,0.1);
+        animation: glassScale 0.5s cubic-bezier(0.25,0.8,0.25,1);
+    }
+
+    .auth-logo {
+        display: flex; align-items: center; justify-content: center;
+        width: 72px; height: 72px; border-radius: 24px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        margin: 0 auto 24px;
+    }
+
+    .auth-title {
+        font-size: 26px; font-weight: 700;
+        color: var(--text-primary); text-align: center;
+        margin-bottom: 6px; letter-spacing: -0.03em;
+    }
+
+    .auth-subtitle {
+        font-size: 15px; color: var(--text-secondary);
+        text-align: center; margin-bottom: 32px; font-weight: 500;
+    }
+
+    .auth-tabs {
+        display: flex; gap: 6px; margin-bottom: 28px;
+        background: rgba(120,120,128,0.1);
+        border-radius: 16px; padding: 4px;
+    }
+
+    .auth-tab {
+        flex: 1; padding: 10px; border-radius: 12px;
+        font-size: 14px; font-weight: 600;
+        color: var(--text-secondary); cursor: pointer;
+        text-align: center; transition: all 0.25s ease;
+        border: none; background: transparent; font-family: inherit;
+    }
+
+    .auth-tab.active {
+        background: var(--glass-bg);
+        color: var(--text-primary);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border: 1px solid var(--glass-border);
+    }
+
+    .auth-field { margin-bottom: 16px; }
+
+    .auth-label {
+        display: block; font-size: 12px; font-weight: 600;
+        color: var(--text-secondary); margin-bottom: 8px; margin-left: 4px;
+        text-transform: uppercase; letter-spacing: 0.04em;
+    }
+
+    .auth-input {
+        width: 100%; padding: 14px 18px;
+        background: rgba(120,120,128,0.1);
+        border: 1px solid transparent; border-radius: 16px;
+        color: var(--text-primary); font-size: 16px;
+        font-family: inherit; font-weight: 500;
+        outline: none; transition: all 0.25s ease;
+        -webkit-appearance: none;
+    }
+
+    .auth-input:focus {
+        background: rgba(120,120,128,0.18);
+        border-color: var(--glass-border);
+        box-shadow: 0 0 0 3px rgba(120,120,128,0.12);
+    }
+
+    .auth-btn {
+        width: 100%; padding: 16px;
+        border-radius: 20px; border: none;
+        font-size: 17px; font-weight: 700;
+        font-family: inherit; cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1);
+        margin-top: 8px; letter-spacing: -0.01em;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border: 1px solid var(--glass-border);
+        color: var(--text-primary);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in srgb, white calc(var(--glass-reflex-light) * 10%), transparent),
+            inset 1.8px 3px 0px -2px color-mix(in srgb, white calc(var(--glass-reflex-light) * 90%), transparent),
+            0px 6px 16px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 8%), transparent);
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    .auth-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.35); }
+    @media (prefers-color-scheme: dark) { .auth-btn:hover { background: rgba(255,255,255,0.08); } }
+    .auth-btn:active { transform: scale(0.97); }
+    .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .auth-btn.primary {
+        background: rgba(52,199,89,0.2);
+        border-color: rgba(52,199,89,0.35);
+        color: var(--text-primary);
+    }
+    .auth-btn.primary:hover { background: rgba(52,199,89,0.3); }
+
+    .auth-error {
+        background: rgba(255,69,58,0.1);
+        border: 1px solid rgba(255,69,58,0.25);
+        border-radius: 14px; padding: 12px 16px;
+        font-size: 13px; color: #ff453a;
+        font-weight: 500; margin-bottom: 16px;
+        display: none; animation: glassScale 0.3s ease;
+    }
+    .auth-error.show { display: block; }
+
+    .auth-success {
+        background: rgba(52,199,89,0.1);
+        border: 1px solid rgba(52,199,89,0.25);
+        border-radius: 14px; padding: 12px 16px;
+        font-size: 13px; color: #34c759;
+        font-weight: 500; margin-bottom: 16px;
+        display: none; animation: glassScale 0.3s ease;
+        text-align: center; line-height: 1.5;
+    }
+    .auth-success.show { display: block; }
+
+    .auth-divider {
+        display: flex; align-items: center; gap: 12px;
+        margin: 20px 0; color: var(--text-secondary); font-size: 13px;
+    }
+    .auth-divider::before, .auth-divider::after {
+        content: ''; flex: 1; height: 1px;
+        background: var(--glass-border);
+    }
+
+    .google-btn {
+        background: var(--glass-bg);
+        border-color: var(--glass-border);
+    }
+
+    /* ── USER MENU ───────────────────────────────────────────── */
+    .user-pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 14px 8px 10px; border-radius: 22px;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border: 1px solid var(--glass-border);
+        color: var(--text-primary); cursor: pointer;
+        transition: var(--transition); font-size: 13px; font-weight: 600;
+        box-shadow: var(--glass-shadow); flex-shrink: 0; position: relative;
+    }
+    .user-pill:hover { background: rgba(255,255,255,0.35); }
+    @media (prefers-color-scheme: dark) { .user-pill:hover { background: rgba(255,255,255,0.08); } }
+
+    .user-avatar {
+        width: 26px; height: 26px; border-radius: 50%;
+        background: linear-gradient(135deg, rgba(52,199,89,0.6), rgba(0,122,255,0.6));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 700; color: white; flex-shrink: 0;
+    }
+
+    .user-email-short {
+        max-width: 100px; overflow: hidden;
+        text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .user-dropdown {
+        position: absolute; top: calc(100% + 8px); right: 0;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border: 1px solid var(--glass-border);
+        border-radius: 20px; padding: 8px;
+        min-width: 200px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        opacity: 0; pointer-events: none;
+        transform: translateY(-8px) scale(0.96);
+        transition: all 0.25s cubic-bezier(0.25,0.8,0.25,1);
+        z-index: 500;
+    }
+    .user-dropdown.open {
+        opacity: 1; pointer-events: all;
+        transform: translateY(0) scale(1);
+    }
+
+    .user-dropdown-email {
+        padding: 10px 14px; font-size: 12px;
+        color: var(--text-secondary); font-weight: 500;
+        border-bottom: 1px solid var(--glass-border); margin-bottom: 6px;
+        word-break: break-all;
+    }
+
+    .user-dropdown-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 11px 14px; border-radius: 14px;
+        font-size: 14px; font-weight: 600; color: var(--text-primary);
+        cursor: pointer; transition: all 0.2s ease;
+        border: none; background: transparent; font-family: inherit;
+        width: 100%; text-align: left;
+    }
+    .user-dropdown-item:hover { background: rgba(120,120,128,0.15); }
+    .user-dropdown-item.danger { color: #ff453a; }
+    .user-dropdown-item.danger:hover { background: rgba(255,69,58,0.1); }
+
+    /* ── HEADER ──────────────────────────────────────────────── */
     .header {
         background: var(--glass-bg);
         backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
@@ -87,7 +317,7 @@
 
     .header-top {
         display: flex; align-items: center;
-        justify-content: space-between; gap: 16px;
+        justify-content: space-between; gap: 12px;
     }
 
     .header-left-group {
@@ -124,10 +354,7 @@
         box-shadow: 0 0 6px rgba(255,69,58,0.6);
         transition: all 0.3s ease;
     }
-    .tab-dot.has-content {
-        background: #34c759;
-        box-shadow: 0 0 6px rgba(52,199,89,0.6);
-    }
+    .tab-dot.has-content { background: #34c759; box-shadow: 0 0 6px rgba(52,199,89,0.6); }
 
     .btn {
         display: inline-flex; align-items: center;
@@ -150,31 +377,16 @@
             inset -0.3px -1px 4px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 12%), transparent),
             0px 1px 5px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 10%), transparent),
             0px 6px 16px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 8%), transparent);
-        transition: background-color 400ms cubic-bezier(1,0,0.4,1),
-                    box-shadow 400ms cubic-bezier(1,0,0.4,1);
         flex-shrink: 0;
     }
-    .btn:hover {
-        background: rgba(255,255,255,0.35);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.04), 0 12px 24px rgba(0,0,0,0.08);
-    }
-    @media (prefers-color-scheme: dark) {
-        .btn:hover { background: rgba(255,255,255,0.08); }
-    }
-    .btn:active {
-        transform: scale(0.94);
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.02);
-    }
-    .btn-sm {
-        padding: 10px 16px; min-width: 88px;
-        height: 40px; font-size: 14px; border-radius: 20px;
-    }
-    .btn-success {
-        background: rgba(52, 199, 89, 0.15);
-        border-color: rgba(52, 199, 89, 0.3);
-    }
-    .btn-success:hover { background: rgba(52, 199, 89, 0.25); }
+    .btn:hover { background: rgba(255,255,255,0.35); transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.04), 0 12px 24px rgba(0,0,0,0.08); }
+    @media (prefers-color-scheme: dark) { .btn:hover { background: rgba(255,255,255,0.08); } }
+    .btn:active { transform: scale(0.94); }
+    .btn-sm { padding: 10px 16px; min-width: 88px; height: 40px; font-size: 14px; border-radius: 20px; }
+    .btn-success { background: rgba(52,199,89,0.15); border-color: rgba(52,199,89,0.3); }
+    .btn-success:hover { background: rgba(52,199,89,0.25); }
+    .btn-cloud { background: rgba(0,122,255,0.15); border-color: rgba(0,122,255,0.3); color: #007aff; }
+    .btn-cloud:hover { background: rgba(0,122,255,0.25); }
 
     .actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
@@ -195,13 +407,28 @@
     }
     .header-filename:hover { background: var(--glass-bg); border-color: var(--glass-border); }
     .header-filename:hover .edit-icon-small { opacity: 1; transform: scale(1); }
-    .header-filename.editing { background: rgba(120,120,128,0.15); border-color: var(--glass-border); cursor: text; }
 
     .edit-icon-small {
         width: 12px; height: 12px; opacity: 0;
         transition: all 0.2s ease; color: var(--text-secondary); flex-shrink: 0;
     }
 
+    /* ── SYNC INDICATOR ──────────────────────────────────────── */
+    .sync-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #8e8e93; flex-shrink: 0; margin-left: 2px;
+        transition: all 0.4s ease;
+    }
+    .sync-dot.syncing { background: #ff9f0a; box-shadow: 0 0 6px rgba(255,159,10,0.6); animation: pulse 1s infinite; }
+    .sync-dot.synced  { background: #34c759; box-shadow: 0 0 6px rgba(52,199,89,0.6); }
+    .sync-dot.error   { background: #ff453a; box-shadow: 0 0 6px rgba(255,69,58,0.6); }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+
+    /* ── VIEW SWITCHER ───────────────────────────────────────── */
     .view-switcher {
         position: relative; display: flex; align-items: center;
         gap: 0; width: 108px; height: 44px;
@@ -217,22 +444,13 @@
             inset -0.3px -1px 4px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 12%), transparent),
             0px 1px 5px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 10%), transparent),
             0px 6px 16px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 8%), transparent);
-        transition: background-color 400ms cubic-bezier(1,0,0.4,1),
-                    box-shadow 400ms cubic-bezier(1,0,0.4,1);
         flex-shrink: 0;
     }
+
     body.preview-mode .header .view-switcher { opacity: 0; pointer-events: none; transform: scale(0.9); }
 
-    .view-switcher__legend {
-        position: absolute; width: 1px; height: 1px; margin: -1px;
-        border: 0; padding: 0; white-space: nowrap;
-        clip-path: inset(100%); clip: rect(0 0 0 0); overflow: hidden;
-    }
-    .view-switcher__input {
-        clip: rect(0 0 0 0); clip-path: inset(100%);
-        height: 1px; width: 1px; overflow: hidden;
-        position: absolute; white-space: nowrap;
-    }
+    .view-switcher__legend { position: absolute; width: 1px; height: 1px; margin: -1px; border: 0; padding: 0; white-space: nowrap; clip-path: inset(100%); clip: rect(0 0 0 0); overflow: hidden; }
+    .view-switcher__input { clip: rect(0 0 0 0); clip-path: inset(100%); height: 1px; width: 1px; overflow: hidden; position: absolute; white-space: nowrap; }
     .view-switcher__filter { position: absolute; width: 0; height: 0; z-index: -1; }
 
     .view-switcher__option {
@@ -244,9 +462,7 @@
         position: relative; z-index: 1;
     }
     .view-switcher__option:hover { --c: var(--text-primary); }
-    .view-switcher__option:hover .view-switcher__icon { scale: 1.2; }
     .view-switcher__option:has(input:checked) { --c: var(--text-primary); cursor: auto; }
-    .view-switcher__option:has(input:checked) .view-switcher__icon { scale: 1; }
 
     .view-switcher__icon {
         display: block; width: 20px; height: 20px;
@@ -256,30 +472,20 @@
     }
 
     .view-switcher::after {
-        content: ""; position: absolute;
-        left: 4px; top: 4px; display: block;
+        content: ""; position: absolute; left: 4px; top: 4px; display: block;
         width: 48px; height: calc(100% - 8px); border-radius: 99em;
         background-color: color-mix(in srgb, white calc(var(--glass-reflex-light) * 36%), transparent);
         z-index: 0;
         box-shadow:
             inset 0 0 0 1px color-mix(in srgb, white calc(var(--glass-reflex-light) * 10%), transparent),
             inset 2px 1px 0px -1px color-mix(in srgb, white calc(var(--glass-reflex-light) * 90%), transparent),
-            inset -1.5px -1px 0px -1px color-mix(in srgb, white calc(var(--glass-reflex-light) * 80%), transparent),
-            inset -1px 2px 3px -1px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 20%), transparent),
             0px 3px 6px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 8%), transparent);
-        transition:
-            background-color 400ms cubic-bezier(1,0,0.4,1),
-            box-shadow 400ms cubic-bezier(1,0,0.4,1),
-            translate 400ms cubic-bezier(1,0,0.4,1);
+        transition: translate 400ms cubic-bezier(1,0,0.4,1);
     }
-    .view-switcher:has(input[c-option="1"]:checked)::after { translate: 0 0; transform-origin: right; animation: swScale 440ms ease; }
-    .view-switcher:has(input[c-option="2"]:checked)::after { translate: 52px 0; transform-origin: left; animation: swScale 440ms ease; }
+    .view-switcher:has(input[c-option="1"]:checked)::after { translate: 0 0; animation: swScale 440ms ease; }
+    .view-switcher:has(input[c-option="2"]:checked)::after { translate: 52px 0; animation: swScale 440ms ease; }
 
-    @keyframes swScale {
-        0%   { scale: 1 1; }
-        50%  { scale: 1.18 1; }
-        100% { scale: 1 1; }
-    }
+    @keyframes swScale { 0% { scale:1 1; } 50% { scale:1.18 1; } 100% { scale:1 1; } }
 
     .floating-switcher {
         position: fixed; top: 16px; right: 16px; z-index: 1000;
@@ -288,15 +494,8 @@
         transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
     }
     .floating-switcher.visible { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
-    .floating-switcher .view-switcher {
-        box-shadow:
-            inset 0 0 0 1px color-mix(in srgb, white calc(var(--glass-reflex-light) * 10%), transparent),
-            inset 1.8px 3px 0px -2px color-mix(in srgb, white calc(var(--glass-reflex-light) * 90%), transparent),
-            inset -2px -2px 0px -2px color-mix(in srgb, white calc(var(--glass-reflex-light) * 80%), transparent),
-            inset -0.3px -1px 4px 0px color-mix(in srgb, black calc(var(--glass-reflex-dark) * 12%), transparent),
-            0px 4px 12px rgba(0,0,0,0.15), 0px 12px 32px rgba(0,0,0,0.2);
-    }
 
+    /* ── MAIN ────────────────────────────────────────────────── */
     main {
         flex: 1; min-height: 0;
         display: flex; flex-direction: column; position: relative;
@@ -328,15 +527,14 @@
     .preview-area {
         display: none; position: fixed; inset: 0; z-index: 50;
         background: white; opacity: 0; transform: scale(1.02);
-        transition: opacity 0.4s cubic-bezier(0.25,0.8,0.25,1),
-                    transform 0.4s cubic-bezier(0.25,0.8,0.25,1);
+        transition: opacity 0.4s cubic-bezier(0.25,0.8,0.25,1), transform 0.4s cubic-bezier(0.25,0.8,0.25,1);
     }
     .preview-area.active { display: block; opacity: 1; transform: scale(1); }
-
     .preview-frame-inline { width: 100%; height: 100%; border: none; background: white; }
 
     .hidden-copy-area { position: absolute; left: -9999px; top: -9999px; opacity: 0; pointer-events: none; }
 
+    /* ── FAB ─────────────────────────────────────────────────── */
     .fab-container {
         position: fixed; bottom: 28px; right: 28px; z-index: 100;
         transition: opacity 0.3s ease, transform 0.3s ease;
@@ -354,16 +552,10 @@
         transition: var(--transition); position: relative; z-index: 102;
     }
     .fab-main:hover { transform: scale(1.08); background: rgba(255,255,255,0.35); }
-    @media (prefers-color-scheme: dark) { .fab-main:hover { background: rgba(255,255,255,0.08); } }
     .fab-main:active { transform: scale(0.88); }
     .fab-main.active { transform: rotate(45deg) scale(0.92); }
-    .fab-icon { color: var(--text-primary); transition: transform 0.3s ease; }
 
-    .fab-overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.15);
-        backdrop-filter: blur(8px); z-index: 99;
-        display: none; opacity: 0; transition: opacity 0.3s ease;
-    }
+    .fab-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.15); backdrop-filter: blur(8px); z-index: 99; display: none; opacity: 0; transition: opacity 0.3s ease; }
     .fab-overlay.open { display: block; opacity: 1; }
 
     .fab-menu {
@@ -394,11 +586,10 @@
     .fab-menu.open .fab-menu-item:nth-child(3) { transition-delay: 0.18s; }
     .fab-menu.open .fab-menu-item:nth-child(4) { transition-delay: 0.24s; }
     .fab-menu-item:hover { transform: scale(1.05); background: rgba(255,255,255,0.35); }
-    @media (prefers-color-scheme: dark) { .fab-menu-item:hover { background: rgba(255,255,255,0.08); } }
     .fab-menu-item:active { transform: scale(0.95); }
     .fab-menu-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; color: var(--text-primary); }
 
-    /* Saved Files Panel */
+    /* ── SAVED FILES PANEL ───────────────────────────────────── */
     .saved-files-panel {
         position: fixed; top: 0; left: 0; width: 320px; height: 100%;
         background: var(--glass-bg);
@@ -422,13 +613,12 @@
     .delete-all-btn {
         display: inline-flex; align-items: center; gap: 4px;
         padding: 5px 10px; border-radius: 12px;
-        border: 1px solid rgba(255, 69, 58, 0.3);
-        background: rgba(255, 69, 58, 0.1); color: #ff453a;
+        border: 1px solid rgba(255,69,58,0.3);
+        background: rgba(255,69,58,0.1); color: #ff453a;
         font-size: 12px; font-weight: 600; cursor: pointer;
         transition: var(--transition); white-space: nowrap; flex-shrink: 0;
     }
-    .delete-all-btn:hover { background: rgba(255, 69, 58, 0.2); border-color: rgba(255, 69, 58, 0.5); }
-    .delete-all-btn:active { transform: scale(0.94); }
+    .delete-all-btn:hover { background: rgba(255,69,58,0.2); }
 
     .saved-files-close {
         width: 36px; height: 36px; border-radius: 50%;
@@ -444,94 +634,45 @@
     .saved-files-list::-webkit-scrollbar-track { background: transparent; }
     .saved-files-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
 
-    /* ── Swipe-to-delete ─────────────────────────────────────── */
-    .swipe-wrapper {
-        position: relative;
-        margin-bottom: 12px;
-        border-radius: 16px;
-        overflow: hidden;
-    }
+    /* ── SWIPE TO DELETE ─────────────────────────────────────── */
+    .swipe-wrapper { position: relative; margin-bottom: 12px; border-radius: 16px; overflow: hidden; }
 
-    /* Delete backdrop shown behind item */
     .swipe-delete-bg {
-        position: absolute;
-        inset: 0;
+        position: absolute; inset: 0;
         background: linear-gradient(90deg, rgba(255,69,58,0.0) 0%, rgba(255,69,58,0.85) 60%, #ff453a 100%);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        padding-right: 24px;
-        opacity: 0;
-        transition: opacity 0.15s ease;
-        pointer-events: none;
-        z-index: 0;
+        border-radius: 16px; display: flex; align-items: center;
+        justify-content: flex-end; padding-right: 24px;
+        opacity: 0; transition: opacity 0.15s ease; pointer-events: none; z-index: 0;
     }
     .swipe-delete-bg.revealed { opacity: 1; }
 
     .swipe-delete-bg-icon {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        color: white;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        transform: scale(0.7);
-        transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+        color: white; font-size: 11px; font-weight: 700;
+        letter-spacing: 0.04em; text-transform: uppercase;
+        transform: scale(0.7); transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
     }
-    .swipe-delete-bg.revealed .swipe-delete-bg-icon {
-        transform: scale(1);
-    }
-    .swipe-delete-bg.commit .swipe-delete-bg-icon {
-        transform: scale(1.3);
-    }
+    .swipe-delete-bg.revealed .swipe-delete-bg-icon { transform: scale(1); }
+    .swipe-delete-bg.commit .swipe-delete-bg-icon { transform: scale(1.3); }
 
     .saved-file-item {
-        position: relative;
-        z-index: 1;
+        position: relative; z-index: 1;
         background: var(--glass-bg); border: 1px solid var(--glass-border);
         border-radius: 16px; padding: 16px;
         transition: border-color 0.3s ease, background 0.3s ease;
-        cursor: pointer;
-        /* swipe transform applied via JS, no CSS transition on transform during drag */
-        will-change: transform;
-        touch-action: pan-y;
-        user-select: none;
+        cursor: pointer; will-change: transform;
+        touch-action: pan-y; user-select: none;
     }
-    .saved-file-item.swipe-animating {
-        transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
-    }
-    .saved-file-item.swipe-confirm {
-        transition: transform 0.2s cubic-bezier(0.55,0,1,0.45),
-                    opacity 0.2s ease;
-    }
+    .saved-file-item.swipe-animating { transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1); }
+    .saved-file-item.swipe-confirm { transition: transform 0.2s cubic-bezier(0.55,0,1,0.45), opacity 0.2s ease; }
     .saved-file-item:hover { background: rgba(255,255,255,0.3); }
     @media (prefers-color-scheme: dark) { .saved-file-item:hover { background: rgba(255,255,255,0.05); } }
 
-    /* Collapse animation for the wrapper after delete */
-    .swipe-wrapper.collapsing {
-        animation: collapseRow 0.38s cubic-bezier(0.4,0,0.2,1) forwards;
-    }
-    @keyframes collapseRow {
-        0%   { max-height: 200px; opacity: 1; margin-bottom: 12px; transform: scale(1); }
-        30%  { opacity: 0; transform: scale(0.92) translateX(-8px); }
-        100% { max-height: 0; opacity: 0; margin-bottom: 0; padding: 0; transform: scale(0.88) translateX(-16px); }
-    }
+    .swipe-wrapper.collapsing { animation: collapseRow 0.38s cubic-bezier(0.4,0,0.2,1) forwards; }
+    @keyframes collapseRow { 0% { max-height:200px;opacity:1;margin-bottom:12px;transform:scale(1); } 30% { opacity:0;transform:scale(0.92) translateX(-8px); } 100% { max-height:0;opacity:0;margin-bottom:0;padding:0;transform:scale(0.88) translateX(-16px); } }
 
-    /* Hint animation — subtle first-time nudge */
-    .saved-file-item.swipe-hint {
-        animation: swipeHint 0.7s cubic-bezier(0.25,0.8,0.25,1);
-    }
-    @keyframes swipeHint {
-        0%   { transform: translateX(0); }
-        25%  { transform: translateX(-28px); }
-        60%  { transform: translateX(-8px); }
-        80%  { transform: translateX(-16px); }
-        100% { transform: translateX(0); }
-    }
+    .saved-file-item.swipe-hint { animation: swipeHint 0.7s cubic-bezier(0.25,0.8,0.25,1); }
+    @keyframes swipeHint { 0% { transform:translateX(0); } 25% { transform:translateX(-28px); } 60% { transform:translateX(-8px); } 80% { transform:translateX(-16px); } 100% { transform:translateX(0); } }
 
     .saved-file-name {
         font-size: 14px; font-weight: 600; color: var(--text-primary);
@@ -544,13 +685,17 @@
     .saved-file-name:hover .edit-icon { opacity: 1; transform: scale(1); }
     .saved-file-name.editing { background: rgba(120,120,128,0.2); outline: 2px solid var(--accent); }
 
-    .edit-icon {
-        width: 14px; height: 14px; opacity: 0.4;
-        transition: all 0.2s ease; flex-shrink: 0; color: var(--text-secondary);
-    }
+    .edit-icon { width: 14px; height: 14px; opacity: 0.4; transition: all 0.2s ease; flex-shrink: 0; color: var(--text-secondary); }
     .saved-file-name:hover .edit-icon { color: var(--accent); }
 
     .saved-file-date { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+    .saved-file-cloud-badge {
+        display: inline-flex; align-items: center; gap: 3px;
+        font-size: 10px; font-weight: 700; color: #007aff;
+        background: rgba(0,122,255,0.1); border-radius: 6px;
+        padding: 2px 6px; margin-left: 6px; vertical-align: middle;
+    }
+
     .saved-file-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
     .saved-file-btn {
@@ -566,38 +711,16 @@
     .saved-file-btn.preview:hover { background: rgba(0,122,255,0.15); border-color: rgba(0,122,255,0.3); color: #007aff; }
     .saved-file-btn.code:hover { background: rgba(175,82,222,0.15); border-color: rgba(175,82,222,0.3); color: #af52de; }
 
-    .saved-files-overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.2);
-        backdrop-filter: blur(4px); z-index: 140;
-        display: none; opacity: 0; transition: opacity 0.3s ease;
-    }
+    .saved-files-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); backdrop-filter: blur(4px); z-index: 140; display: none; opacity: 0; transition: opacity 0.3s ease; }
     .saved-files-overlay.open { display: block; opacity: 1; }
 
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
     .empty-state svg { margin: 0 auto 16px; opacity: 0.5; }
     .empty-state-text { font-size: 14px; font-weight: 500; }
 
-    /* Swipe hint tip */
-    .swipe-tip {
-        display: flex; align-items: center; gap: 6px;
-        font-size: 12px; color: var(--text-secondary); font-weight: 500;
-        padding: 8px 12px; margin-bottom: 12px;
-        opacity: 0.7;
-    }
+    .swipe-tip { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); font-weight: 500; padding: 8px 12px; margin-bottom: 12px; opacity: 0.7; }
 
-    .quick-save-btn { background: rgba(52, 199, 89, 0.15); border-color: rgba(52, 199, 89, 0.3); color: #34c759; }
-    .quick-save-btn:hover { background: rgba(52, 199, 89, 0.25); }
-    .view-saved-btn { position: relative; }
-
-    .saved-count {
-        position: absolute; top: -4px; right: -4px;
-        background: #ff453a; color: white;
-        font-size: 11px; font-weight: 700;
-        width: 20px; height: 20px; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 2px 8px rgba(255,69,58,0.4);
-    }
-
+    /* ── MODALS ──────────────────────────────────────────────── */
     .modal-overlay {
         position: fixed; inset: 0; background: rgba(0,0,0,0.25);
         backdrop-filter: blur(20px); z-index: 2000;
@@ -626,11 +749,7 @@
     .modal-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; letter-spacing: -0.02em; }
     .modal-subtitle { font-size: 15px; color: var(--text-secondary); font-weight: 500; }
     .modal-field { margin-bottom: 24px; }
-    .modal-label {
-        display: block; font-size: 13px; font-weight: 600;
-        color: var(--text-secondary); margin-bottom: 8px; margin-left: 4px;
-        text-transform: uppercase; letter-spacing: 0.03em;
-    }
+    .modal-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; margin-left: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
     .modal-input-wrap { position: relative; }
     .modal-input {
         background: rgba(120,120,128,0.12); border: none; border-radius: 16px;
@@ -639,11 +758,7 @@
         transition: var(--transition); width: 100%; outline: none;
     }
     .modal-input:focus { background: rgba(120,120,128,0.2); box-shadow: 0 0 0 3px rgba(120,120,128,0.15); }
-    .modal-input-suffix {
-        position: absolute; right: 18px; top: 50%;
-        transform: translateY(-50%); color: var(--text-secondary);
-        font-weight: 600; pointer-events: none; font-size: 15px;
-    }
+    .modal-input-suffix { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-weight: 600; pointer-events: none; font-size: 15px; }
     .modal-actions { display: flex; gap: 12px; }
     .modal-btn {
         flex: 1; padding: 14px 20px; border-radius: 20px;
@@ -660,6 +775,7 @@
     .modal-btn:active { transform: scale(0.94); }
     .modal-btn-save { background: rgba(120,120,128,0.2); }
 
+    /* ── TOAST ───────────────────────────────────────────────── */
     .toast {
         position: fixed; bottom: 100px; left: 50%;
         transform: translateX(-50%) translateY(20px);
@@ -675,11 +791,17 @@
     .toast.open { display: flex; opacity: 1; transform: translateX(-50%) translateY(0); }
     body.preview-mode .toast { bottom: 40px; }
 
-    @keyframes glassScale {
-        from { opacity: 0; transform: scale(0.85) translateY(10px); }
-        to   { opacity: 1; transform: scale(1) translateY(0); }
+    /* ── LOADING SPINNER ─────────────────────────────────────── */
+    .spinner {
+        width: 18px; height: 18px; border-radius: 50%;
+        border: 2px solid rgba(120,120,128,0.3);
+        border-top-color: var(--text-primary);
+        animation: spin 0.7s linear infinite; flex-shrink: 0;
     }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes glassScale { from { opacity:0; transform:scale(0.85) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
     @media (max-width: 480px) {
         .header { padding: 14px 16px; }
@@ -696,27 +818,88 @@
         .view-switcher__option { width: 42px; padding: 0 10px; }
         .view-switcher::after { width: 42px; }
         .view-switcher:has(input[c-option="2"]:checked)::after { translate: 46px 0; }
-        .floating-switcher { top: 12px; right: 12px; }
-        .floating-switcher .view-switcher { width: 96px; height: 40px; }
-        .floating-switcher .view-switcher__option { width: 42px; padding: 0 10px; }
-        .floating-switcher .view-switcher::after { width: 42px; }
-        .floating-switcher .view-switcher:has(input[c-option="2"]:checked)::after { translate: 46px 0; }
-        .saved-file-actions { gap: 4px; }
-        .saved-file-btn { min-width: 60px; padding: 6px 8px; font-size: 11px; }
-        #unsavedModalOverlay .modal-box,
-        #saveOptionsModalOverlay .modal-box,
-        #duplicateModalOverlay .modal-box { width: 92%; padding: 20px; }
-        #unsavedModalOverlay .modal-actions,
-        #saveOptionsModalOverlay .modal-actions,
-        #duplicateModalOverlay .modal-actions { gap: 8px; }
+        .user-email-short { max-width: 70px; }
+        .auth-box { padding: 28px 20px; border-radius: 28px; }
     }
 </style>
-
+```
 
 </head>
 <body>
 
-<header class="header">
+<!-- ── AUTH SCREEN ──────────────────────────────────────────────────── -->
+
+<div id="authScreen">
+    <div class="auth-box">
+        <div class="auth-logo">
+            <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            </svg>
+        </div>
+        <div class="auth-title">Kod Editörü</div>
+        <div class="auth-subtitle">Dosyalarınız bulutta güvende</div>
+
+```
+    <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')" id="loginTab">Giriş Yap</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')" id="registerTab">Kayıt Ol</button>
+    </div>
+
+    <div id="authError" class="auth-error"></div>
+    <div id="authSuccess" class="auth-success"></div>
+
+    <div id="loginForm">
+        <div class="auth-field">
+            <label class="auth-label">E-posta</label>
+            <input type="email" id="loginEmail" class="auth-input" placeholder="ornek@email.com" autocomplete="email">
+        </div>
+        <div class="auth-field">
+            <label class="auth-label">Şifre</label>
+            <input type="password" id="loginPassword" class="auth-input" placeholder="••••••••" autocomplete="current-password"
+                   onkeypress="if(event.key==='Enter') handleLogin()">
+        </div>
+        <button class="auth-btn primary" id="loginBtn" onclick="handleLogin()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+            </svg>
+            Giriş Yap
+        </button>
+        <div style="text-align:center;margin-top:14px;">
+            <button onclick="handleForgotPassword()" style="background:none;border:none;color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:4px;">
+                Şifremi unuttum
+            </button>
+        </div>
+    </div>
+
+    <div id="registerForm" style="display:none;">
+        <div class="auth-field">
+            <label class="auth-label">E-posta</label>
+            <input type="email" id="registerEmail" class="auth-input" placeholder="ornek@email.com" autocomplete="email">
+        </div>
+        <div class="auth-field">
+            <label class="auth-label">Şifre</label>
+            <input type="password" id="registerPassword" class="auth-input" placeholder="En az 6 karakter" autocomplete="new-password">
+        </div>
+        <div class="auth-field">
+            <label class="auth-label">Şifre Tekrar</label>
+            <input type="password" id="registerPassword2" class="auth-input" placeholder="Şifrenizi tekrar girin" autocomplete="new-password"
+                   onkeypress="if(event.key==='Enter') handleRegister()">
+        </div>
+        <button class="auth-btn primary" id="registerBtn" onclick="handleRegister()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+            </svg>
+            Kayıt Ol
+        </button>
+    </div>
+</div>
+```
+
+</div>
+
+<!-- ── APP ──────────────────────────────────────────────────────────── -->
+
+<header class="header" id="appHeader" style="display:none;">
     <div class="header-top">
         <div class="header-left-group">
             <span class="tab">
@@ -729,6 +912,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                 </svg>
             </span>
+            <span class="sync-dot" id="syncDot" title="Senkronizasyon durumu"></span>
         </div>
         <div class="actions">
             <fieldset class="view-switcher" id="viewSwitcher">
@@ -746,29 +930,44 @@
                         <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                     </svg>
                 </label>
-                <div class="view-switcher__filter">
-                    <svg width="0" height="0">
-                        <filter id="vsf" primitiveUnits="objectBoundingBox">
-                            <feGaussianBlur in="SourceGraphic" stdDeviation="0.03" result="b"/>
-                            <feColorMatrix in="b" type="saturate" values="2" result="s"/>
-                            <feBlend in="SourceGraphic" in2="s" mode="normal"/>
-                        </filter>
-                    </svg>
-                </div>
             </fieldset>
+
+```
+        <!-- User Pill -->
+        <div class="user-pill" id="userPill" onclick="toggleUserDropdown()">
+            <div class="user-avatar" id="userAvatar">?</div>
+            <span class="user-email-short" id="userEmailShort">...</span>
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+            </svg>
+            <div class="user-dropdown" id="userDropdown">
+                <div class="user-dropdown-email" id="userDropdownEmail">...</div>
+                <button class="user-dropdown-item" onclick="event.stopPropagation();syncFromCloud()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Buluttan Senkronize Et
+                </button>
+                <button class="user-dropdown-item danger" onclick="event.stopPropagation();handleSignOut()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    Çıkış Yap
+                </button>
+            </div>
         </div>
     </div>
-
+</div>
 
 <div class="header-bottom">
     <div class="actions">
-        <button onclick="handleQuickSave()" class="btn btn-success btn-sm quick-save-btn" id="quickSaveBtn" style="display:none;">
+        <button onclick="handleQuickSave()" class="btn btn-success btn-sm" id="quickSaveBtn" style="display:none;">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/>
             </svg>
             Kaydet
         </button>
-        <button onclick="openSavedFilesPanel()" class="btn btn-sm view-saved-btn" id="viewSavedBtn" style="display:none;">
+        <button onclick="openSavedFilesPanel()" class="btn btn-sm" id="viewSavedBtn" style="display:none;">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
             </svg>
@@ -781,17 +980,16 @@
             </svg>
             İndir
         </button>
-        <button onclick="loadFile()" class="btn btn-secondary btn-sm">
+        <button onclick="loadFile()" class="btn btn-sm">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
             </svg>
             Yükle
         </button>
-        <input type="file" id="fileInput" accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md"
-               style="display:none" onchange="handleFileLoad(event)">
+        <input type="file" id="fileInput" accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md" style="display:none" onchange="handleFileLoad(event)">
     </div>
 </div>
-
+```
 
 </header>
 
@@ -801,7 +999,7 @@
 <div class="saved-files-panel" id="savedFilesPanel">
     <div class="saved-files-header">
         <div class="saved-files-header-left">
-            <div class="saved-files-title">Kaydedilenler</div>
+            <div class="saved-files-title">Kayıtlar</div>
             <button class="delete-all-btn" id="deleteAllBtn" onclick="deleteAllFiles()" style="display:none;">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -834,19 +1032,10 @@
                 <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
             </svg>
         </label>
-        <div class="view-switcher__filter">
-            <svg width="0" height="0">
-                <filter id="vsf2" primitiveUnits="objectBoundingBox">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="0.03" result="b"/>
-                    <feColorMatrix in="b" type="saturate" values="2" result="s"/>
-                    <feBlend in="SourceGraphic" in2="s" mode="normal"/>
-                </filter>
-            </svg>
-        </div>
     </fieldset>
 </div>
 
-<main>
+<main id="appMain" style="display:none;">
     <div class="code-area" id="codeArea">
         <textarea id="editor" class="code-input" spellcheck="false"
                   oninput="updateCode()" onkeydown="handleKeydown(event)"></textarea>
@@ -859,7 +1048,7 @@
 <textarea id="hiddenCopyArea" class="hidden-copy-area" readonly></textarea>
 
 <div class="fab-overlay" id="fabOverlay" onclick="toggleFabMenu()"></div>
-<div class="fab-container" id="fabContainer">
+<div class="fab-container" id="fabContainer" style="display:none;">
     <div class="fab-menu" id="fabMenu">
         <div class="fab-menu-item" onclick="clearCode()">
             <div class="fab-menu-icon">
@@ -895,7 +1084,7 @@
         </div>
     </div>
     <button class="fab-main" id="fabMain" onclick="toggleFabMenu()" aria-label="Menü">
-        <svg class="fab-icon" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/>
         </svg>
     </button>
@@ -911,7 +1100,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
                 </svg>
             </div>
-            <div class="modal-title">Dosyayı Kaydet</div>
+            <div class="modal-title">Dosyayı İndir</div>
             <div class="modal-subtitle">HTML dosyası olarak indirin</div>
         </div>
         <div class="modal-field">
@@ -923,7 +1112,7 @@
             </div>
         </div>
         <div class="modal-actions">
-            <button onclick="closeSaveModal()" class="modal-btn modal-btn-cancel">İptal</button>
+            <button onclick="closeSaveModal()" class="modal-btn">İptal</button>
             <button onclick="confirmSaveFromModal()" class="modal-btn modal-btn-save">
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -941,7 +1130,7 @@
         <div class="modal-header">
             <div class="modal-icon-wrap" style="background:rgba(52,199,89,0.15);border-color:rgba(52,199,89,0.3);">
                 <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                 </svg>
             </div>
             <div class="modal-title">Değişiklikleri Kaydet</div>
@@ -965,9 +1154,7 @@
                 </svg>
                 Yeni Kayıt Oluştur
             </button>
-            <button onclick="closeSaveOptionsModal()" class="modal-btn" style="width:100%;margin-top:6px;height:48px;border-radius:22px;opacity:0.8;">
-                İptal
-            </button>
+            <button onclick="closeSaveOptionsModal()" class="modal-btn" style="width:100%;margin-top:6px;height:48px;border-radius:22px;opacity:0.8;">İptal</button>
         </div>
     </div>
 </div>
@@ -977,7 +1164,7 @@
 <div id="unsavedModalOverlay" class="modal-overlay" onclick="handleUnsavedOverlayClick(event)">
     <div class="modal-box" style="max-width:400px;">
         <div class="modal-header">
-            <div class="modal-icon-wrap" style="background:rgba(255,204,0,0.15);border-color:rgba(255,204,0,0.3);color:#ffcc00;">
+            <div class="modal-icon-wrap" style="background:rgba(255,204,0,0.15);border-color:rgba(255,204,0,0.3);">
                 <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
@@ -986,9 +1173,7 @@
             <div class="modal-subtitle">Dosyada kaydedilmemiş değişiklikler var</div>
         </div>
         <div style="margin-bottom:24px;padding:16px;background:var(--glass-bg);border-radius:16px;border:1px solid var(--glass-border);">
-            <p style="margin:0;font-size:14px;color:var(--text-secondary);line-height:1.5;">
-                Şu anda düzenlemekte olduğunuz kod kaydedilmemiş. <strong style="color:var(--text-primary);">Kaydetmeden devam</strong> ederseniz değişiklikleriniz kaybolacak.
-            </p>
+            <p style="margin:0;font-size:14px;color:var(--text-secondary);line-height:1.5;">Değişiklikleriniz kaybolacak. Devam etmek istiyor musunuz?</p>
         </div>
         <div class="modal-actions" style="flex-direction:column;gap:10px;">
             <button onclick="handleUnsavedSave()" class="modal-btn" style="background:rgba(52,199,89,0.15);border-color:rgba(52,199,89,0.3);color:#34c759;width:100%;height:50px;border-radius:22px;">
@@ -1003,9 +1188,7 @@
                 </svg>
                 Kaydetmeden Devam Et
             </button>
-            <button onclick="closeUnsavedModal()" class="modal-btn" style="width:100%;margin-top:6px;height:48px;border-radius:22px;opacity:0.8;">
-                İptal
-            </button>
+            <button onclick="closeUnsavedModal()" class="modal-btn" style="width:100%;margin-top:6px;height:48px;border-radius:22px;opacity:0.8;">İptal</button>
         </div>
     </div>
 </div>
@@ -1015,7 +1198,7 @@
 <div id="duplicateModalOverlay" class="modal-overlay" onclick="handleDuplicateOverlayClick(event)">
     <div class="modal-box" style="max-width:400px;">
         <div class="modal-header">
-            <div class="modal-icon-wrap" style="background:rgba(255,159,10,0.15);border-color:rgba(255,159,10,0.3);color:#ff9f0a;">
+            <div class="modal-icon-wrap" style="background:rgba(255,159,10,0.15);border-color:rgba(255,159,10,0.3);">
                 <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                 </svg>
@@ -1035,9 +1218,7 @@
                 </svg>
                 Evet, Yine de Kaydet
             </button>
-            <button onclick="closeDuplicateModal()" class="modal-btn" style="width:100%;margin-top:6px;height:48px;border-radius:22px;opacity:0.8;">
-                İptal
-            </button>
+            <button onclick="closeDuplicateModal()" class="modal-btn" style="width:100%;margin-top:6px;height:48px;border-radius:22px;opacity:0.8;">İptal</button>
         </div>
     </div>
 </div>
@@ -1050,792 +1231,988 @@
 </div>
 
 <script>
-    // ── State ─────────────────────────────────────────────────────────────
-    let loadedFilename    = '';
-    let code = `<!-- HTML kodunuzu buraya yazın -->
+// ── Supabase Init ──────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://lkhdbhymqwnaswoapuqc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxraGRiaHltcXduYXN3b2FwdXFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNzM4MDIsImV4cCI6MjA5MDY0OTgwMn0.lzTTx_L9hlIjccawuzJKHVfx-arnWbmuYvtbKwBMSZA';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── State ──────────────────────────────────────────────────────────────
+let currentUser       = null;
+let loadedFilename    = '';
+let code = `<!-- HTML kodunuzu buraya yazın -->
 <div class="container">
   <h1>Merhaba Dünya!</h1>
   <p>Mobil editöre hoş geldiniz.</p>
 </div>`;
-    let isFabOpen         = false;
-    let currentView       = 'code';
-    let savedFiles        = [];
-    let editingFileId     = null;
-    let hasUnsavedChanges = false;
-    let currentOpenFileId = null;
-    let unsavedCallbackSave    = null;
-    let unsavedCallbackDiscard = null;
-    let pendingDuplicateSave   = null;
+let isFabOpen         = false;
+let currentView       = 'code';
+let savedFiles        = [];
+let editingFileId     = null;
+let hasUnsavedChanges = false;
+let currentOpenFileId = null;
+let unsavedCallbackSave    = null;
+let unsavedCallbackDiscard = null;
+let pendingDuplicateSave   = null;
 
-    // ── Swipe-to-delete state ─────────────────────────────────────────────
-    const SWIPE_THRESHOLD   = 80;   // px to trigger delete
-    const SWIPE_MAX         = 120;  // px max drag
-    const HINT_SHOWN_KEY    = 'swipeHintShown';
-    let   swipeHintShown    = localStorage.getItem(HINT_SHOWN_KEY) === '1';
+const SWIPE_THRESHOLD = 80;
+const SWIPE_MAX       = 120;
+const HINT_SHOWN_KEY  = 'swipeHintShown';
+let swipeHintShown    = localStorage.getItem(HINT_SHOWN_KEY) === '1';
 
-    // ── Switcher Init ─────────────────────────────────────────────────────
-    function initSwitcher(el) {
-        const radios = el.querySelectorAll('input[type="radio"]');
-        let prev = null;
-        const init = el.querySelector('input[type="radio"]:checked');
-        if (init) { prev = init.getAttribute('c-option'); el.setAttribute('c-previous', prev); }
-        radios.forEach(r => {
-            r.addEventListener('change', () => {
-                if (r.checked) {
-                    el.setAttribute('c-previous', prev ?? '');
-                    prev = r.getAttribute('c-option');
-                    handleViewSwitch(r.value);
-                }
-            });
-        });
+// ── Auth ───────────────────────────────────────────────────────────────
+function switchAuthTab(tab) {
+    document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+    document.getElementById('registerTab').classList.toggle('active', tab === 'register');
+    document.getElementById('loginForm').style.display    = tab === 'login'    ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+    clearAuthMessages();
+}
+
+function showAuthError(msg) {
+    const el = document.getElementById('authError');
+    el.textContent = msg; el.classList.add('show');
+    document.getElementById('authSuccess').classList.remove('show');
+}
+
+function showAuthSuccess(msg) {
+    const el = document.getElementById('authSuccess');
+    el.textContent = msg; el.classList.add('show');
+    document.getElementById('authError').classList.remove('show');
+}
+
+function clearAuthMessages() {
+    document.getElementById('authError').classList.remove('show');
+    document.getElementById('authSuccess').classList.remove('show');
+}
+
+function setAuthLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.innerHTML = loading
+        ? '<div class="spinner"></div> Lütfen bekleyin...'
+        : btnId === 'loginBtn'
+            ? '<svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg> Giriş Yap'
+            : '<svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg> Kayıt Ol';
+}
+
+async function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass  = document.getElementById('loginPassword').value;
+    if (!email || !pass) { showAuthError('E-posta ve şifre gerekli'); return; }
+    setAuthLoading('loginBtn', true); clearAuthMessages();
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    setAuthLoading('loginBtn', false);
+    if (error) { showAuthError(error.message); return; }
+    onUserLoggedIn(data.user);
+}
+
+async function handleRegister() {
+    const email = document.getElementById('registerEmail').value.trim();
+    const pass  = document.getElementById('registerPassword').value;
+    const pass2 = document.getElementById('registerPassword2').value;
+    if (!email || !pass) { showAuthError('E-posta ve şifre gerekli'); return; }
+    if (pass.length < 6) { showAuthError('Şifre en az 6 karakter olmalı'); return; }
+    if (pass !== pass2)  { showAuthError('Şifreler eşleşmiyor'); return; }
+    setAuthLoading('registerBtn', true); clearAuthMessages();
+    const { data, error } = await sb.auth.signUp({ email, password: pass });
+    setAuthLoading('registerBtn', false);
+    if (error) { showAuthError(error.message); return; }
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+        showAuthError('Bu e-posta zaten kayıtlı. Giriş yapmayı deneyin.');
+        return;
     }
+    showAuthSuccess('Kayıt başarılı! E-postanızı doğrulayın, ardından giriş yapabilirsiniz.');
+}
+
+async function handleForgotPassword() {
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email) { showAuthError('Lütfen önce e-posta adresinizi girin'); return; }
+    clearAuthMessages();
+    const { error } = await sb.auth.resetPasswordForEmail(email);
+    if (error) { showAuthError(error.message); return; }
+    showAuthSuccess('Şifre sıfırlama e-postası gönderildi!');
+}
+
+async function handleSignOut() {
+    closeUserDropdown();
+    await sb.auth.signOut();
+    currentUser = null;
+    savedFiles = []; currentOpenFileId = null;
+    showAuthScreen();
+    showToast('Çıkış yapıldı');
+}
+
+function onUserLoggedIn(user) {
+    currentUser = user;
+    hideAuthScreen();
+    showApp();
+    updateUserUI(user);
+    loadSavedFilesFromCloud();
+}
+
+function showAuthScreen() {
+    document.getElementById('authScreen').style.display = 'flex';
+    setTimeout(() => document.getElementById('authScreen').classList.remove('hide'), 10);
+    document.getElementById('appHeader').style.display  = 'none';
+    document.getElementById('appMain').style.display    = 'none';
+    document.getElementById('fabContainer').style.display = 'none';
+}
+
+function hideAuthScreen() {
+    const s = document.getElementById('authScreen');
+    s.classList.add('hide');
+    setTimeout(() => s.style.display = 'none', 400);
+}
+
+function showApp() {
+    document.getElementById('appHeader').style.display  = '';
+    document.getElementById('appMain').style.display    = '';
+    document.getElementById('fabContainer').style.display = '';
     initSwitcher(document.getElementById('viewSwitcher'));
     initSwitcher(document.getElementById('floatingViewSwitcher'));
+    loadFromStorage();
+    updateEditor();
+    updateFilenameDisplay();
+    updateTabDotColor();
+}
 
-    // ── View Switch ───────────────────────────────────────────────────────
-    function handleViewSwitch(view) {
-        currentView = view;
-        const previewArea      = document.getElementById('previewArea');
-        const floatingSwitcher = document.getElementById('floatingSwitcher');
-        syncSwitchers(view);
-        if (view === 'preview') {
-            document.body.classList.add('preview-mode');
-            document.getElementById('previewFrameInline').srcdoc = buildPage();
-            previewArea.classList.add('active');
-            floatingSwitcher.classList.add('visible');
-            showToast('Önizleme');
+function updateUserUI(user) {
+    const email  = user.email || '';
+    const initial = email.charAt(0).toUpperCase();
+    document.getElementById('userAvatar').textContent       = initial;
+    document.getElementById('userEmailShort').textContent   = email.split('@')[0];
+    document.getElementById('userDropdownEmail').textContent = email;
+}
+
+// ── User Dropdown ──────────────────────────────────────────────────────
+function toggleUserDropdown() {
+    document.getElementById('userDropdown').classList.toggle('open');
+}
+function closeUserDropdown() {
+    document.getElementById('userDropdown').classList.remove('open');
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('#userPill')) closeUserDropdown();
+});
+
+// ── Sync Indicator ─────────────────────────────────────────────────────
+function setSyncStatus(status) {
+    const dot = document.getElementById('syncDot');
+    dot.className = 'sync-dot';
+    if (status) dot.classList.add(status);
+}
+
+// ── Supabase DB Operations ─────────────────────────────────────────────
+async function loadSavedFilesFromCloud() {
+    if (!currentUser) return;
+    setSyncStatus('syncing');
+    try {
+        const { data, error } = await sb.from('files')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .order('updated_at', { ascending: false });
+        if (error) throw error;
+        savedFiles = (data || []).map(r => ({
+            id: r.id, filename: r.filename, code: r.code,
+            timestamp: r.updated_at, cloud: true
+        }));
+        setSyncStatus('synced');
+    } catch(e) {
+        console.error('Cloud load error:', e);
+        setSyncStatus('error');
+        loadLocalFiles();
+    }
+    updateQuickSaveButton();
+    renderSavedFiles();
+}
+
+function loadLocalFiles() {
+    try {
+        const d = JSON.parse(localStorage.getItem('mobilKodEditor_savedFiles') || '[]');
+        savedFiles = d;
+    } catch(e) { savedFiles = []; }
+}
+
+async function syncFromCloud() {
+    closeUserDropdown();
+    showToast('Buluttan senkronize ediliyor...');
+    await loadSavedFilesFromCloud();
+    showToast('Senkronize edildi');
+}
+
+async function saveFileToCloud(file) {
+    if (!currentUser) return null;
+    setSyncStatus('syncing');
+    try {
+        // Check if numeric id (cloud) or new
+        const isCloudId = typeof file.id === 'number' && file.id < 9999999999999;
+        if (isCloudId && file.cloud) {
+            // Update
+            const { data, error } = await sb.from('files')
+                .update({ filename: file.filename, code: file.code, updated_at: new Date().toISOString() })
+                .eq('id', file.id)
+                .eq('user_id', currentUser.id)
+                .select().single();
+            if (error) throw error;
+            setSyncStatus('synced');
+            return data;
         } else {
-            document.body.classList.remove('preview-mode');
-            previewArea.classList.remove('active');
-            floatingSwitcher.classList.remove('visible');
-            showToast('Kod Editörü');
+            // Insert
+            const { data, error } = await sb.from('files')
+                .insert({ user_id: currentUser.id, filename: file.filename, code: file.code })
+                .select().single();
+            if (error) throw error;
+            setSyncStatus('synced');
+            return data;
         }
+    } catch(e) {
+        console.error('Cloud save error:', e);
+        setSyncStatus('error');
+        return null;
     }
+}
 
-    function syncSwitchers(view) {
-        document.querySelectorAll('#viewSwitcher input[name="view"]').forEach(r => { if (r.value === view) r.checked = true; });
-        document.querySelectorAll('#floatingViewSwitcher input[name="floatingView"]').forEach(r => { if (r.value === view) r.checked = true; });
-    }
+async function deleteFileFromCloud(fileId) {
+    if (!currentUser) return;
+    try {
+        await sb.from('files')
+            .delete()
+            .eq('id', fileId)
+            .eq('user_id', currentUser.id);
+    } catch(e) { console.error('Cloud delete error:', e); }
+}
 
-    function buildPage() {
-        return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body>${code}</body></html>`;
-    }
-
-    // ── Init ──────────────────────────────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', () => {
-        loadFromStorage();
-        loadSavedFiles();
-        updateEditor();
-        updateFilenameDisplay();
-        updateTabDotColor();
-        updateQuickSaveButton();
-        window.addEventListener('beforeunload', saveToStorage);
+// ── Switcher Init ──────────────────────────────────────────────────────
+function initSwitcher(el) {
+    const radios = el.querySelectorAll('input[type="radio"]');
+    let prev = null;
+    const init = el.querySelector('input[type="radio"]:checked');
+    if (init) { prev = init.getAttribute('c-option'); }
+    radios.forEach(r => {
+        r.addEventListener('change', () => {
+            if (r.checked) { prev = r.getAttribute('c-option'); handleViewSwitch(r.value); }
+        });
     });
+}
 
-    // ── FAB ───────────────────────────────────────────────────────────────
-    function toggleFabMenu() {
-        isFabOpen = !isFabOpen;
-        document.getElementById('fabMain').classList.toggle('active', isFabOpen);
-        document.getElementById('fabMenu').classList.toggle('open',    isFabOpen);
-        document.getElementById('fabOverlay').classList.toggle('open', isFabOpen);
+// ── View Switch ────────────────────────────────────────────────────────
+function handleViewSwitch(view) {
+    currentView = view;
+    const previewArea      = document.getElementById('previewArea');
+    const floatingSwitcher = document.getElementById('floatingSwitcher');
+    syncSwitchers(view);
+    if (view === 'preview') {
+        document.body.classList.add('preview-mode');
+        document.getElementById('previewFrameInline').srcdoc = buildPage();
+        previewArea.classList.add('active');
+        floatingSwitcher.classList.add('visible');
+        showToast('Önizleme');
+    } else {
+        document.body.classList.remove('preview-mode');
+        previewArea.classList.remove('active');
+        floatingSwitcher.classList.remove('visible');
+        showToast('Kod Editörü');
     }
+}
 
-    function scrollToTop() {
-        if (currentView === 'code') document.getElementById('editor').scrollTo({ top: 0, behavior: 'smooth' });
-        toggleFabMenu();
-        showToast('Yukarı çıkıldı');
+function syncSwitchers(view) {
+    document.querySelectorAll('#viewSwitcher input[name="view"]').forEach(r => { if (r.value === view) r.checked = true; });
+    document.querySelectorAll('#floatingViewSwitcher input[name="floatingView"]').forEach(r => { if (r.value === view) r.checked = true; });
+}
+
+function buildPage() {
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body>${code}</body></html>`;
+}
+
+// ── App Init ───────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) {
+        onUserLoggedIn(session.user);
     }
+    sb.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session?.user && !currentUser) {
+            onUserLoggedIn(session.user);
+        }
+        if (event === 'SIGNED_OUT') {
+            currentUser = null;
+            showAuthScreen();
+        }
+    });
+    window.addEventListener('beforeunload', saveToStorage);
+});
 
-    // ── Storage ───────────────────────────────────────────────────────────
-    function saveToStorage() {
-        localStorage.setItem('mobilKodEditor', JSON.stringify({ code, filename: loadedFilename, timestamp: new Date().toISOString() }));
-    }
+// ── FAB ────────────────────────────────────────────────────────────────
+function toggleFabMenu() {
+    isFabOpen = !isFabOpen;
+    document.getElementById('fabMain').classList.toggle('active', isFabOpen);
+    document.getElementById('fabMenu').classList.toggle('open',    isFabOpen);
+    document.getElementById('fabOverlay').classList.toggle('open', isFabOpen);
+}
 
-    function loadFromStorage() {
-        try {
-            const d = JSON.parse(localStorage.getItem('mobilKodEditor') || '{}');
-            if (d.code     !== undefined) code           = d.code;
-            if (d.filename !== undefined) loadedFilename = d.filename;
-        } catch(e) { console.error(e); }
-    }
+function scrollToTop() {
+    if (currentView === 'code') document.getElementById('editor').scrollTo({ top: 0, behavior: 'smooth' });
+    toggleFabMenu(); showToast('Yukarı çıkıldı');
+}
 
-    // ── Filename Helpers ──────────────────────────────────────────────────
-    const DEFAULT_NAME = 'Yeni Dosya';
+// ── Storage ────────────────────────────────────────────────────────────
+function saveToStorage() {
+    localStorage.setItem('mobilKodEditor', JSON.stringify({ code, filename: loadedFilename, timestamp: new Date().toISOString() }));
+}
 
-    function getBaseFilename() {
-        return loadedFilename?.trim() || DEFAULT_NAME;
-    }
+function loadFromStorage() {
+    try {
+        const d = JSON.parse(localStorage.getItem('mobilKodEditor') || '{}');
+        if (d.code     !== undefined) code           = d.code;
+        if (d.filename !== undefined) loadedFilename = d.filename;
+    } catch(e) {}
+}
 
-    function generateUniqueFilename(baseName) {
-        const existingNames = new Set(savedFiles.map(f => f.filename.toLowerCase()));
-        if (!existingNames.has(baseName.toLowerCase())) return baseName;
-        const trailingNum = baseName.match(/-(\d+)$/);
-        const stem    = trailingNum ? baseName.slice(0, baseName.lastIndexOf('-')) : baseName;
-        let counter   = trailingNum ? parseInt(trailingNum[1], 10) + 1 : 2;
-        while (existingNames.has(`${stem}-${counter}`.toLowerCase())) counter++;
-        return `${stem}-${counter}`;
-    }
+// ── Filename Helpers ───────────────────────────────────────────────────
+const DEFAULT_NAME = 'Yeni Dosya';
 
-    function findDuplicateContent(codeToCheck) {
-        const trimmed = codeToCheck.trim();
-        return savedFiles.find(f => f.code.trim() === trimmed) || null;
-    }
+function getBaseFilename() { return loadedFilename?.trim() || DEFAULT_NAME; }
 
-    // ── UI Helpers ────────────────────────────────────────────────────────
-    function updateFilenameDisplay() {
-        const el = document.getElementById('editorTitle');
-        if (!el || el.tagName === 'INPUT') return;
-        const displayName = loadedFilename?.trim() ? loadedFilename : DEFAULT_NAME;
-        el.innerHTML = `${displayName}
-            <svg class="edit-icon-small" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-            </svg>`;
-        el.classList.toggle('loaded', !!loadedFilename?.trim());
-    }
+function generateUniqueFilename(baseName) {
+    const existingNames = new Set(savedFiles.map(f => f.filename.toLowerCase()));
+    if (!existingNames.has(baseName.toLowerCase())) return baseName;
+    const trailingNum = baseName.match(/-(\d+)$/);
+    const stem    = trailingNum ? baseName.slice(0, baseName.lastIndexOf('-')) : baseName;
+    let counter   = trailingNum ? parseInt(trailingNum[1], 10) + 1 : 2;
+    while (existingNames.has(`${stem}-${counter}`.toLowerCase())) counter++;
+    return `${stem}-${counter}`;
+}
 
-    function startEditingHeaderFilename() {
-        const nameEl = document.getElementById('editorTitle');
-        if (!nameEl || nameEl.tagName === 'INPUT') return;
-        const input = document.createElement('input');
-        input.type = 'text'; input.value = loadedFilename || '';
-        input.className = 'editor-title header-filename editing';
-        input.style.cssText = 'width:150px;background:transparent;border:none;outline:none;color:inherit;font-family:inherit;font-size:inherit;font-weight:inherit;';
-        input.placeholder = 'dosya-adi';
-        nameEl.replaceWith(input); input.focus(); input.select();
-        const saveName = () => {
-            const n = input.value.trim();
-            if (n) { loadedFilename = n; hasUnsavedChanges = true; }
+function findDuplicateContent(codeToCheck) {
+    const trimmed = codeToCheck.trim();
+    return savedFiles.find(f => f.code.trim() === trimmed) || null;
+}
+
+// ── UI Helpers ─────────────────────────────────────────────────────────
+function updateFilenameDisplay() {
+    const el = document.getElementById('editorTitle');
+    if (!el || el.tagName === 'INPUT') return;
+    const displayName = loadedFilename?.trim() ? loadedFilename : DEFAULT_NAME;
+    el.innerHTML = `${displayName}
+        <svg class="edit-icon-small" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+        </svg>`;
+    el.classList.toggle('loaded', !!loadedFilename?.trim());
+}
+
+function startEditingHeaderFilename() {
+    const nameEl = document.getElementById('editorTitle');
+    if (!nameEl || nameEl.tagName === 'INPUT') return;
+    const input = document.createElement('input');
+    input.type = 'text'; input.value = loadedFilename || '';
+    input.className = 'editor-title header-filename';
+    input.style.cssText = 'width:150px;background:transparent;border:none;outline:none;color:inherit;font-family:inherit;font-size:inherit;font-weight:inherit;';
+    input.placeholder = 'dosya-adi';
+    nameEl.replaceWith(input); input.focus(); input.select();
+    const saveName = () => {
+        const n = input.value.trim();
+        if (n) { loadedFilename = n; hasUnsavedChanges = true; }
+        const span = document.createElement('span');
+        span.id = 'editorTitle'; span.className = 'editor-title header-filename';
+        span.onclick = startEditingHeaderFilename;
+        input.replaceWith(span); updateFilenameDisplay(); saveToStorage();
+    };
+    input.addEventListener('blur', saveName);
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        else if (e.key === 'Escape') {
             const span = document.createElement('span');
             span.id = 'editorTitle'; span.className = 'editor-title header-filename';
             span.onclick = startEditingHeaderFilename;
-            input.replaceWith(span); updateFilenameDisplay(); saveToStorage();
-        };
-        input.addEventListener('blur', saveName);
-        input.addEventListener('keydown', e => {
-            if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
-            else if (e.key === 'Escape') {
-                const span = document.createElement('span');
-                span.id = 'editorTitle'; span.className = 'editor-title header-filename';
-                span.onclick = startEditingHeaderFilename;
-                input.replaceWith(span); updateFilenameDisplay();
-            }
-        });
+            input.replaceWith(span); updateFilenameDisplay();
+        }
+    });
+}
+
+function updateTabDotColor() {
+    document.getElementById('tabDot').classList.toggle('has-content', code.trim().length > 0);
+}
+
+function updateQuickSaveButton() {
+    const hasContent = code.trim().length > 0;
+    const qs = document.getElementById('quickSaveBtn');
+    const vs = document.getElementById('viewSavedBtn');
+    if (qs) qs.style.display = hasContent ? 'inline-flex' : 'none';
+    if (vs) vs.style.display = (hasContent || savedFiles.length > 0) ? 'inline-flex' : 'none';
+    updateSavedCount();
+}
+
+function updateSavedCount() {
+    const el = document.getElementById('savedCount');
+    if (!el) return;
+    el.textContent   = savedFiles.length;
+    el.style.display = savedFiles.length > 0 ? 'flex' : 'none';
+}
+
+// ── Editor ─────────────────────────────────────────────────────────────
+function updateCode() {
+    code = document.getElementById('editor').value;
+    hasUnsavedChanges = true;
+    saveToStorage(); updateTabDotColor(); updateQuickSaveButton();
+    if (currentView === 'preview')
+        document.getElementById('previewFrameInline').srcdoc = buildPage();
+}
+
+function updateEditor() { document.getElementById('editor').value = code; }
+
+function handleKeydown(e) {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const el = e.target, s = el.selectionStart;
+        el.value = el.value.substring(0, s) + '  ' + el.value.substring(el.selectionEnd);
+        el.selectionStart = el.selectionEnd = s + 2;
+        updateCode();
+    }
+}
+
+// ── Duplicate Modal ────────────────────────────────────────────────────
+function openDuplicateModal(existingFile, newFilename) {
+    pendingDuplicateSave = { newFilename };
+    document.getElementById('duplicateExistingName').textContent = existingFile.filename + '.html';
+    document.getElementById('duplicateModalOverlay').classList.add('open');
+}
+function closeDuplicateModal() {
+    document.getElementById('duplicateModalOverlay').classList.remove('open');
+    setTimeout(() => { pendingDuplicateSave = null; }, 300);
+}
+function handleDuplicateOverlayClick(e) {
+    if (e.target.id === 'duplicateModalOverlay') closeDuplicateModal();
+}
+async function confirmDuplicateSave() {
+    closeDuplicateModal();
+    if (!pendingDuplicateSave) return;
+    await _doSave(pendingDuplicateSave.newFilename);
+    pendingDuplicateSave = null;
+}
+
+// ── Core Save Logic ────────────────────────────────────────────────────
+async function _doSave(filename) {
+    const localFile = {
+        id: Date.now(), filename, code,
+        timestamp: new Date().toISOString(), cloud: false
+    };
+    savedFiles.push(localFile);
+    renderSavedFiles(); updateQuickSaveButton();
+    showToast(`${filename} kaydediliyor...`);
+
+    const cloudResult = await saveFileToCloud(localFile);
+    if (cloudResult) {
+        // Replace local entry with cloud entry
+        const idx = savedFiles.findIndex(f => f.id === localFile.id);
+        if (idx !== -1) {
+            savedFiles[idx] = {
+                id: cloudResult.id, filename: cloudResult.filename,
+                code: cloudResult.code, timestamp: cloudResult.updated_at, cloud: true
+            };
+            currentOpenFileId = cloudResult.id;
+        }
+    } else {
+        currentOpenFileId = localFile.id;
     }
 
-    function updateTabDotColor() {
-        document.getElementById('tabDot').classList.toggle('has-content', code.trim().length > 0);
+    loadedFilename = filename;
+    hasUnsavedChanges = false;
+    updateFilenameDisplay(); saveToStorage();
+    updateQuickSaveButton(); renderSavedFiles();
+    showToast(`${filename} kaydedildi ☁️`);
+}
+
+async function createNewSave() {
+    closeSaveOptionsModal();
+    if (!code.trim()) { showToast('Kaydedilecek kod yok'); return; }
+    const baseName   = getBaseFilename();
+    const uniqueName = generateUniqueFilename(baseName);
+    const duplicate  = findDuplicateContent(code);
+    if (duplicate) { openDuplicateModal(duplicate, uniqueName); return; }
+    await _doSave(uniqueName);
+}
+
+function handleQuickSave() {
+    if (currentOpenFileId && hasUnsavedChanges) openSaveOptionsModal();
+    else createNewSave();
+}
+
+// ── Save Options Modal ─────────────────────────────────────────────────
+function openSaveOptionsModal() {
+    const currentFile = savedFiles.find(f => f.id === currentOpenFileId);
+    document.getElementById('currentFileNameDisplay').textContent =
+        (currentFile ? currentFile.filename : loadedFilename) || DEFAULT_NAME;
+    document.getElementById('saveOptionsModalOverlay').classList.add('open');
+}
+function closeSaveOptionsModal() {
+    document.getElementById('saveOptionsModalOverlay').classList.remove('open');
+}
+function handleSaveOptionsOverlayClick(e) {
+    if (e.target.id === 'saveOptionsModalOverlay') closeSaveOptionsModal();
+}
+
+async function updateExistingFile() {
+    closeSaveOptionsModal();
+    if (!currentOpenFileId) return;
+    const idx = savedFiles.findIndex(f => f.id === currentOpenFileId);
+    if (idx === -1) return;
+    savedFiles[idx].code      = code;
+    savedFiles[idx].filename  = loadedFilename || savedFiles[idx].filename;
+    savedFiles[idx].timestamp = new Date().toISOString();
+    hasUnsavedChanges = false;
+    renderSavedFiles(); showToast('Güncelleniyor...');
+    await saveFileToCloud(savedFiles[idx]);
+    showToast(`${savedFiles[idx].filename} güncellendi ☁️`);
+}
+
+// ── Saved Files Panel ──────────────────────────────────────────────────
+function openSavedFilesPanel() {
+    renderSavedFiles();
+    document.getElementById('savedFilesOverlay').classList.add('open');
+    document.getElementById('savedFilesPanel').classList.add('open');
+}
+
+function closeSavedFilesPanel() {
+    document.getElementById('savedFilesOverlay').classList.remove('open');
+    document.getElementById('savedFilesPanel').classList.remove('open');
+    editingFileId = null;
+}
+
+function updateDeleteAllBtnVisibility() {
+    const btn = document.getElementById('deleteAllBtn');
+    if (btn) btn.style.display = savedFiles.length > 0 ? 'inline-flex' : 'none';
+}
+
+async function deleteAllFiles() {
+    if (!savedFiles.length) return;
+    if (confirm(`Tüm ${savedFiles.length} kayıt silinecek. Emin misiniz?`)) {
+        // Delete all from cloud
+        for (const f of savedFiles) {
+            if (f.cloud) await deleteFileFromCloud(f.id);
+        }
+        savedFiles = []; currentOpenFileId = null;
+        renderSavedFiles(); updateQuickSaveButton();
+        showToast('Tüm kayıtlar silindi');
     }
+}
 
-    function updateQuickSaveButton() {
-        const hasContent = code.trim().length > 0;
-        document.getElementById('quickSaveBtn').style.display  = hasContent ? 'inline-flex' : 'none';
-        document.getElementById('viewSavedBtn').style.display  = (hasContent || savedFiles.length > 0) ? 'inline-flex' : 'none';
-        updateSavedCount();
+// ── Swipe to delete ────────────────────────────────────────────────────
+function attachSwipeToItem(wrapper, fileId) {
+    const item = wrapper.querySelector('.saved-file-item');
+    const bg   = wrapper.querySelector('.swipe-delete-bg');
+    let startX = 0, startY = 0, currentX = 0;
+    let isDragging = false, isSwipeIntent = false, isVertical = null;
+    const DEAD_ZONE = 6;
+
+    function onStart(clientX, clientY) {
+        startX = clientX; startY = clientY;
+        currentX = 0; isDragging = true; isVertical = null; isSwipeIntent = false;
+        item.classList.remove('swipe-animating');
     }
-
-    function updateSavedCount() {
-        const el = document.getElementById('savedCount');
-        el.textContent   = savedFiles.length;
-        el.style.display = savedFiles.length > 0 ? 'flex' : 'none';
+    function onMove(clientX, clientY) {
+        if (!isDragging) return;
+        const dx = clientX - startX, dy = clientY - startY;
+        if (isVertical === null && (Math.abs(dx) > DEAD_ZONE || Math.abs(dy) > DEAD_ZONE)) {
+            isVertical = Math.abs(dy) > Math.abs(dx);
+        }
+        if (isVertical) return;
+        if (dx > 0) { if (currentX < 0) { currentX = 0; item.style.transform = ''; } return; }
+        isSwipeIntent = true;
+        currentX = Math.max(-SWIPE_MAX, dx);
+        const ratio = Math.min(1, Math.abs(currentX) / SWIPE_THRESHOLD);
+        item.style.transform = `translateX(${currentX}px)`;
+        bg.style.opacity = ratio;
+        bg.classList.toggle('revealed', Math.abs(currentX) >= SWIPE_THRESHOLD * 0.4);
     }
-
-    // ── Editor ────────────────────────────────────────────────────────────
-    function updateCode() {
-        code = document.getElementById('editor').value;
-        hasUnsavedChanges = true;
-        saveToStorage(); updateTabDotColor(); updateQuickSaveButton();
-        if (currentView === 'preview')
-            document.getElementById('previewFrameInline').srcdoc = buildPage();
-    }
-
-    function updateEditor() { document.getElementById('editor').value = code; }
-
-    function handleKeydown(e) {
-        if (e.key === 'Tab') {
-            e.preventDefault();
-            const el = e.target, s = el.selectionStart;
-            el.value = el.value.substring(0, s) + '  ' + el.value.substring(el.selectionEnd);
-            el.selectionStart = el.selectionEnd = s + 2;
-            updateCode();
+    function onEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        if (!isSwipeIntent || isVertical) return;
+        item.classList.add('swipe-animating');
+        if (Math.abs(currentX) >= SWIPE_THRESHOLD) {
+            bg.classList.add('commit');
+            item.classList.add('swipe-confirm');
+            item.style.transform = 'translateX(-110%)';
+            item.style.opacity = '0';
+            setTimeout(() => {
+                wrapper.classList.add('collapsing');
+                wrapper.addEventListener('animationend', () => {
+                    wrapper.remove();
+                    _doSwipeDelete(fileId);
+                }, { once: true });
+            }, 200);
+        } else {
+            item.style.transform = '';
+            bg.classList.remove('revealed');
+            bg.style.opacity = '0';
+            currentX = 0;
         }
     }
 
-    // ── Duplicate Modal ───────────────────────────────────────────────────
-    function openDuplicateModal(existingFile, newFilename) {
-        pendingDuplicateSave = { newFilename };
-        document.getElementById('duplicateExistingName').textContent = existingFile.filename + '.html';
-        document.getElementById('duplicateModalOverlay').classList.add('open');
-    }
-
-    function closeDuplicateModal() {
-        document.getElementById('duplicateModalOverlay').classList.remove('open');
-        setTimeout(() => { pendingDuplicateSave = null; }, 300);
-    }
-
-    function handleDuplicateOverlayClick(e) {
-        if (e.target.id === 'duplicateModalOverlay') closeDuplicateModal();
-    }
-
-    function confirmDuplicateSave() {
-        closeDuplicateModal();
-        if (!pendingDuplicateSave) return;
-        _doSave(pendingDuplicateSave.newFilename);
-        pendingDuplicateSave = null;
-    }
-
-    // ── Core Save Logic ───────────────────────────────────────────────────
-    function _doSave(filename) {
-        const savedFile = { id: Date.now(), filename, code, timestamp: new Date().toISOString() };
-        savedFiles.push(savedFile);
-        saveSavedFiles();
-        currentOpenFileId = savedFile.id;
-        loadedFilename    = filename;
-        hasUnsavedChanges = false;
-        updateFilenameDisplay();
-        saveToStorage();
-        updateQuickSaveButton();
-        renderSavedFiles();
-        showToast(`${filename} olarak kaydedildi`);
-    }
-
-    function createNewSave() {
-        closeSaveOptionsModal();
-        if (!code.trim()) { showToast('Kaydedilecek kod yok'); return; }
-        const baseName   = getBaseFilename();
-        const uniqueName = generateUniqueFilename(baseName);
-        const duplicate  = findDuplicateContent(code);
-        if (duplicate) { openDuplicateModal(duplicate, uniqueName); return; }
-        _doSave(uniqueName);
-    }
-
-    function handleQuickSave() {
-        if (currentOpenFileId && hasUnsavedChanges) openSaveOptionsModal();
-        else createNewSave();
-    }
-
-    // ── Save Options Modal ────────────────────────────────────────────────
-    function openSaveOptionsModal() {
-        const currentFile = savedFiles.find(f => f.id === currentOpenFileId);
-        document.getElementById('currentFileNameDisplay').textContent =
-            (currentFile ? currentFile.filename : loadedFilename) || DEFAULT_NAME;
-        document.getElementById('saveOptionsModalOverlay').classList.add('open');
-    }
-
-    function closeSaveOptionsModal() {
-        document.getElementById('saveOptionsModalOverlay').classList.remove('open');
-    }
-
-    function handleSaveOptionsOverlayClick(e) {
-        if (e.target.id === 'saveOptionsModalOverlay') closeSaveOptionsModal();
-    }
-
-    function updateExistingFile() {
-        closeSaveOptionsModal();
-        if (!currentOpenFileId) return;
-        const idx = savedFiles.findIndex(f => f.id === currentOpenFileId);
-        if (idx === -1) return;
-        savedFiles[idx].code      = code;
-        savedFiles[idx].filename  = loadedFilename || savedFiles[idx].filename;
-        savedFiles[idx].timestamp = new Date().toISOString();
-        saveSavedFiles();
-        hasUnsavedChanges = false;
-        renderSavedFiles();
-        showToast(`${savedFiles[idx].filename} güncellendi`);
-    }
-
-    // ── Saved Files Storage ───────────────────────────────────────────────
-    function saveSavedFiles() {
-        localStorage.setItem('mobilKodEditor_savedFiles', JSON.stringify(savedFiles));
-    }
-
-    function loadSavedFiles() {
-        try {
-            const data = localStorage.getItem('mobilKodEditor_savedFiles');
-            if (data) savedFiles = JSON.parse(data);
-        } catch(e) { savedFiles = []; }
-        updateQuickSaveButton();
-    }
-
-    // ── Saved Files Panel ─────────────────────────────────────────────────
-    function openSavedFilesPanel() {
-        renderSavedFiles();
-        document.getElementById('savedFilesOverlay').classList.add('open');
-        document.getElementById('savedFilesPanel').classList.add('open');
-    }
-
-    function closeSavedFilesPanel() {
-        document.getElementById('savedFilesOverlay').classList.remove('open');
-        document.getElementById('savedFilesPanel').classList.remove('open');
-        editingFileId = null;
-    }
-
-    function updateDeleteAllBtnVisibility() {
-        const btn = document.getElementById('deleteAllBtn');
-        if (btn) btn.style.display = savedFiles.length > 0 ? 'inline-flex' : 'none';
-    }
-
-    function deleteAllFiles() {
-        if (!savedFiles.length) return;
-        if (confirm(`Tüm ${savedFiles.length} kayıt silinecek. Emin misiniz?`)) {
-            savedFiles = []; currentOpenFileId = null;
-            saveSavedFiles(); renderSavedFiles(); updateQuickSaveButton();
-            showToast('Tüm kayıtlar silindi');
+    item.addEventListener('touchstart', e => {
+        if (e.target.closest('button, .saved-file-name')) return;
+        const t = e.touches[0]; onStart(t.clientX, t.clientY);
+    }, { passive: true });
+    item.addEventListener('touchmove', e => {
+        if (!isDragging) return;
+        const t = e.touches[0];
+        const dx = t.clientX - startX, dy = t.clientY - startY;
+        if (isVertical === null && (Math.abs(dx) > DEAD_ZONE || Math.abs(dy) > DEAD_ZONE)) {
+            isVertical = Math.abs(dy) > Math.abs(dx);
         }
-    }
+        if (!isVertical && Math.abs(dx) > DEAD_ZONE) e.preventDefault();
+        onMove(t.clientX, t.clientY);
+    }, { passive: false });
+    item.addEventListener('touchend', onEnd);
+    item.addEventListener('touchcancel', onEnd);
+    item.addEventListener('mousedown', e => {
+        if (e.button !== 0) return;
+        if (e.target.closest('button, .saved-file-name')) return;
+        onStart(e.clientX, e.clientY);
+        const onMM = ev => onMove(ev.clientX, ev.clientY);
+        const onMU = () => { onEnd(); document.removeEventListener('mousemove', onMM); document.removeEventListener('mouseup', onMU); };
+        document.addEventListener('mousemove', onMM);
+        document.addEventListener('mouseup', onMU);
+    });
+}
 
-    // ── Swipe-to-delete logic ─────────────────────────────────────────────
-    function attachSwipeToItem(wrapper, fileId) {
-        const item = wrapper.querySelector('.saved-file-item');
-        const bg   = wrapper.querySelector('.swipe-delete-bg');
+async function _doSwipeDelete(fileId) {
+    const file = savedFiles.find(f => f.id === fileId);
+    const name = file ? file.filename : '';
+    if (file?.cloud) await deleteFileFromCloud(fileId);
+    savedFiles = savedFiles.filter(f => f.id !== fileId);
+    if (currentOpenFileId === fileId) currentOpenFileId = null;
+    updateQuickSaveButton(); updateDeleteAllBtnVisibility(); updateSavedCount();
+    if (savedFiles.length === 0) renderSavedFiles();
+    showToast(`${name} silindi`);
+}
 
-        let startX = 0, startY = 0, currentX = 0;
-        let isDragging = false, isSwipeIntent = false, isVertical = null;
-        const DEAD_ZONE = 6;
-
-        function onStart(clientX, clientY) {
-            startX = clientX; startY = clientY;
-            currentX = 0; isDragging = true; isVertical = null; isSwipeIntent = false;
-            item.classList.remove('swipe-animating');
-        }
-
-        function onMove(clientX, clientY) {
-            if (!isDragging) return;
-            const dx = clientX - startX;
-            const dy = clientY - startY;
-
-            // Determine axis intent once we leave dead zone
-            if (isVertical === null && (Math.abs(dx) > DEAD_ZONE || Math.abs(dy) > DEAD_ZONE)) {
-                isVertical = Math.abs(dy) > Math.abs(dx);
-            }
-            if (isVertical) return; // let native scroll handle it
-
-            // Only left swipe
-            if (dx > 0) {
-                if (currentX < 0) { currentX = 0; item.style.transform = ''; }
-                return;
-            }
-
-            isSwipeIntent = true;
-            currentX = Math.max(-SWIPE_MAX, dx);
-            const ratio = Math.min(1, Math.abs(currentX) / SWIPE_THRESHOLD);
-
-            item.style.transform = `translateX(${currentX}px)`;
-            bg.style.opacity = ratio;
-            bg.classList.toggle('revealed', Math.abs(currentX) >= SWIPE_THRESHOLD * 0.4);
-        }
-
-        function onEnd() {
-            if (!isDragging) return;
-            isDragging = false;
-            if (!isSwipeIntent || isVertical) return;
-
-            item.classList.add('swipe-animating');
-
-            if (Math.abs(currentX) >= SWIPE_THRESHOLD) {
-                // Commit delete: fly out then collapse
-                bg.classList.add('commit');
-                item.classList.add('swipe-confirm');
-                item.style.transform = `translateX(-110%)`;
-                item.style.opacity = '0';
-                setTimeout(() => {
-                    wrapper.classList.add('collapsing');
-                    wrapper.addEventListener('animationend', () => {
-                        wrapper.remove();
-                        _doSwipeDelete(fileId);
-                    }, { once: true });
-                }, 200);
-            } else {
-                // Snap back
-                item.style.transform = '';
-                bg.classList.remove('revealed');
-                bg.style.opacity = '0';
-                currentX = 0;
-            }
-        }
-
-        // Touch events
-        item.addEventListener('touchstart', e => {
-            // Don't swipe if tapping a button
-            if (e.target.closest('button, .saved-file-name')) return;
-            const t = e.touches[0];
-            onStart(t.clientX, t.clientY);
-        }, { passive: true });
-
-        item.addEventListener('touchmove', e => {
-            if (!isDragging) return;
-            const t = e.touches[0];
-            const dx = t.clientX - startX;
-            const dy = t.clientY - startY;
-            if (isVertical === null && (Math.abs(dx) > DEAD_ZONE || Math.abs(dy) > DEAD_ZONE)) {
-                isVertical = Math.abs(dy) > Math.abs(dx);
-            }
-            if (!isVertical && Math.abs(dx) > DEAD_ZONE) {
-                e.preventDefault(); // prevent scroll while swiping horizontally
-            }
-            onMove(t.clientX, t.clientY);
-        }, { passive: false });
-
-        item.addEventListener('touchend', onEnd);
-        item.addEventListener('touchcancel', onEnd);
-
-        // Mouse events (desktop testing)
-        item.addEventListener('mousedown', e => {
-            if (e.button !== 0) return;
-            if (e.target.closest('button, .saved-file-name')) return;
-            onStart(e.clientX, e.clientY);
-            const onMouseMove = ev => onMove(ev.clientX, ev.clientY);
-            const onMouseUp   = () => { onEnd(); document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); };
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-        });
-    }
-
-    function _doSwipeDelete(fileId) {
-        const file = savedFiles.find(f => f.id === fileId);
-        const name = file ? file.filename : '';
-        savedFiles = savedFiles.filter(f => f.id !== fileId);
-        if (currentOpenFileId === fileId) currentOpenFileId = null;
-        saveSavedFiles();
-        updateQuickSaveButton();
-        updateDeleteAllBtnVisibility();
-        updateSavedCount();
-        // If list is now empty, re-render to show empty state
-        if (savedFiles.length === 0) renderSavedFiles();
-        showToast(`${name} silindi`);
-    }
-
-    // ── Render ────────────────────────────────────────────────────────────
-    function renderSavedFiles() {
-        const container = document.getElementById('savedFilesList');
-        updateDeleteAllBtnVisibility();
-
-        if (!savedFiles.length) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-                    </svg>
-                    <div class="empty-state-text">Henüz kaydedilmiş dosya yok</div>
-                </div>`;
-            return;
-        }
-
-        const sorted = [...savedFiles].sort((a, b) => b.id - a.id);
-        const pad = n => String(n).padStart(2, '0');
-
-        // Swipe tip (shown only when there are items)
-        const tipHtml = `
-            <div class="swipe-tip">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"/>
+// ── Render ─────────────────────────────────────────────────────────────
+function renderSavedFiles() {
+    const container = document.getElementById('savedFilesList');
+    updateDeleteAllBtnVisibility();
+    if (!savedFiles.length) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
                 </svg>
-                Silmek için sola kaydırın
+                <div class="empty-state-text">Henüz kaydedilmiş dosya yok</div>
             </div>`;
+        return;
+    }
 
-        container.innerHTML = tipHtml + sorted.map(file => {
-            const d = new Date(file.timestamp);
-            const dateStr = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-            const isOpen  = currentOpenFileId === file.id;
-            return `
-            <div class="swipe-wrapper" data-file-id="${file.id}">
-                <div class="swipe-delete-bg">
-                    <div class="swipe-delete-bg-icon">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+    const sorted = [...savedFiles].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const pad = n => String(n).padStart(2, '0');
+
+    const tipHtml = `
+        <div class="swipe-tip">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"/>
+            </svg>
+            Silmek için sola kaydırın
+        </div>`;
+
+    container.innerHTML = tipHtml + sorted.map(file => {
+        const d = new Date(file.timestamp);
+        const dateStr = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        const isOpen  = currentOpenFileId === file.id;
+        const cloudBadge = file.cloud
+            ? `<span class="saved-file-cloud-badge"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>Bulut</span>`
+            : '';
+        return `
+        <div class="swipe-wrapper" data-file-id="${file.id}">
+            <div class="swipe-delete-bg">
+                <div class="swipe-delete-bg-icon">
+                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Sil
+                </div>
+            </div>
+            <div class="saved-file-item" onclick="openSavedFileItem(event,${file.id})"
+                 style="${isOpen ? 'border-color:#34c759;background:rgba(52,199,89,0.1);' : ''}">
+                <div class="saved-file-name" onclick="event.stopPropagation();startEditingName(${file.id})" id="filename-${file.id}">
+                    ${escapeHtml(file.filename)}.html
+                    ${isOpen ? '<span style="color:#34c759;font-size:11px;margin-left:6px;">(Açık)</span>' : ''}
+                    ${cloudBadge}
+                    <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    </svg>
+                </div>
+                <div class="saved-file-date">${dateStr}</div>
+                <div class="saved-file-actions">
+                    <button class="saved-file-btn preview" onclick="event.stopPropagation();previewSavedFile(${file.id})">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Önizle
+                    </button>
+                    <button class="saved-file-btn code" onclick="event.stopPropagation();viewSavedFileCode(${file.id})">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                        </svg>
+                        Kod
+                    </button>
+                    <button class="saved-file-btn download" onclick="event.stopPropagation();downloadSavedFile(${file.id})">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        İndir
+                    </button>
+                    <button class="saved-file-btn delete" onclick="event.stopPropagation();deleteSavedFile(${file.id})">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
                         Sil
-                    </div>
+                    </button>
                 </div>
-                <div class="saved-file-item" onclick="openSavedFileItem(event,${file.id})"
-                     style="${isOpen ? 'border-color:#34c759;background:rgba(52,199,89,0.1);' : ''}">
-                    <div class="saved-file-name" onclick="event.stopPropagation();startEditingName(${file.id})" id="filename-${file.id}">
-                        ${escapeHtml(file.filename)}.html
-                        ${isOpen ? '<span style="color:#34c759;font-size:11px;margin-left:6px;">(Açık)</span>' : ''}
-                        <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                        </svg>
-                    </div>
-                    <div class="saved-file-date">${dateStr}</div>
-                    <div class="saved-file-actions">
-                        <button class="saved-file-btn preview" onclick="event.stopPropagation();previewSavedFile(${file.id})">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                            </svg>
-                            Önizle
-                        </button>
-                        <button class="saved-file-btn code" onclick="event.stopPropagation();viewSavedFileCode(${file.id})">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                            </svg>
-                            Kod
-                        </button>
-                        <button class="saved-file-btn download" onclick="event.stopPropagation();downloadSavedFile(${file.id})">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                            </svg>
-                            İndir
-                        </button>
-                        <button class="saved-file-btn delete" onclick="event.stopPropagation();deleteSavedFile(${file.id})">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                            Sil
-                        </button>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
+            </div>
+        </div>`;
+    }).join('');
 
-        // Attach swipe handlers to each wrapper
-        container.querySelectorAll('.swipe-wrapper').forEach(wrapper => {
-            const fileId = parseInt(wrapper.dataset.fileId, 10);
-            attachSwipeToItem(wrapper, fileId);
-        });
+    container.querySelectorAll('.swipe-wrapper').forEach(wrapper => {
+        const fileId = parseInt(wrapper.dataset.fileId, 10);
+        attachSwipeToItem(wrapper, fileId);
+    });
 
-        // Show hint animation on first render with items
-        if (!swipeHintShown && sorted.length > 0) {
-            swipeHintShown = true;
-            localStorage.setItem(HINT_SHOWN_KEY, '1');
+    if (!swipeHintShown && sorted.length > 0) {
+        swipeHintShown = true;
+        localStorage.setItem(HINT_SHOWN_KEY, '1');
+        setTimeout(() => {
+            const firstItem = container.querySelector('.saved-file-item');
+            if (firstItem) {
+                firstItem.classList.add('swipe-hint');
+                firstItem.addEventListener('animationend', () => firstItem.classList.remove('swipe-hint'), { once: true });
+            }
+        }, 600);
+    }
+}
+
+function openSavedFileItem(event, fileId) { viewSavedFileCode(fileId); }
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+async function startEditingName(fileId) {
+    const file = savedFiles.find(f => f.id === fileId);
+    if (!file) return;
+    editingFileId = fileId;
+    const nameEl = document.getElementById(`filename-${fileId}`);
+    const input  = document.createElement('input');
+    input.type = 'text'; input.value = file.filename;
+    input.className = 'saved-file-name editing';
+    input.style.cssText = 'width:100%;border:none;background:transparent;font-family:inherit;font-size:inherit;font-weight:inherit;color:inherit;outline:none;';
+    nameEl.replaceWith(input); input.focus(); input.select();
+    const saveName = async () => {
+        const n = input.value.trim();
+        if (n && n !== file.filename) {
+            file.filename = n; file.timestamp = new Date().toISOString();
+            showToast('Dosya adı güncelleniyor...');
+            await saveFileToCloud(file);
+            showToast('Dosya adı güncellendi');
+        }
+        editingFileId = null; renderSavedFiles();
+    };
+    input.addEventListener('blur', saveName);
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        else if (e.key === 'Escape') { editingFileId = null; renderSavedFiles(); }
+    });
+}
+
+// ── Unsaved Modal ──────────────────────────────────────────────────────
+function showUnsavedChangesModal(onSave, onDiscard) {
+    unsavedCallbackSave    = onSave;
+    unsavedCallbackDiscard = onDiscard;
+    document.getElementById('unsavedModalOverlay').classList.add('open');
+}
+function closeUnsavedModal() {
+    document.getElementById('unsavedModalOverlay').classList.remove('open');
+    setTimeout(() => { unsavedCallbackSave = null; unsavedCallbackDiscard = null; }, 300);
+}
+function handleUnsavedOverlayClick(e) {
+    if (e.target.id === 'unsavedModalOverlay') closeUnsavedModal();
+}
+function handleUnsavedSave() {
+    closeUnsavedModal();
+    if (unsavedCallbackSave) {
+        if (currentOpenFileId && hasUnsavedChanges) openSaveOptionsModal();
+        else createNewSave();
+        setTimeout(() => unsavedCallbackSave && unsavedCallbackSave(), 100);
+    }
+}
+function handleUnsavedDiscard() {
+    closeUnsavedModal();
+    if (unsavedCallbackDiscard) unsavedCallbackDiscard();
+}
+
+// ── Open Saved File ────────────────────────────────────────────────────
+function continuePreviewSavedFile(fileId) {
+    const file = savedFiles.find(f => f.id === fileId);
+    if (!file) return;
+    code = file.code; loadedFilename = file.filename;
+    currentOpenFileId = file.id; hasUnsavedChanges = false;
+    updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
+    const r = document.querySelector('input[name="view"][value="preview"]');
+    if (r) { r.checked = true; handleViewSwitch('preview'); }
+    closeSavedFilesPanel(); showToast(`${file.filename} önizleniyor`);
+}
+
+function continueViewSavedFileCode(fileId) {
+    const file = savedFiles.find(f => f.id === fileId);
+    if (!file) return;
+    code = file.code; loadedFilename = file.filename;
+    currentOpenFileId = file.id; hasUnsavedChanges = false;
+    updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
+    const r = document.querySelector('input[name="view"][value="code"]');
+    if (r) { r.checked = true; handleViewSwitch('code'); }
+    closeSavedFilesPanel(); showToast(`${file.filename} yüklendi`);
+}
+
+function previewSavedFile(fileId) {
+    if (hasUnsavedChanges && currentOpenFileId !== fileId) {
+        showUnsavedChangesModal(() => continuePreviewSavedFile(fileId), () => continuePreviewSavedFile(fileId));
+        return;
+    }
+    continuePreviewSavedFile(fileId);
+}
+
+function viewSavedFileCode(fileId) {
+    if (hasUnsavedChanges && currentOpenFileId !== fileId) {
+        showUnsavedChangesModal(() => continueViewSavedFileCode(fileId), () => continueViewSavedFileCode(fileId));
+        return;
+    }
+    continueViewSavedFileCode(fileId);
+}
+
+// ── Delete / Download ──────────────────────────────────────────────────
+async function deleteSavedFile(id) {
+    const file = savedFiles.find(f => f.id === id);
+    if (!file) return;
+    if (confirm(`${file.filename}.html silinecek. Emin misiniz?`)) {
+        const wrapper = document.querySelector(`.swipe-wrapper[data-file-id="${id}"]`);
+        if (wrapper) {
+            const item = wrapper.querySelector('.saved-file-item');
+            const bg   = wrapper.querySelector('.swipe-delete-bg');
+            bg.classList.add('revealed', 'commit'); bg.style.opacity = '1';
+            item.classList.add('swipe-confirm');
+            item.style.transform = 'translateX(-110%)'; item.style.opacity = '0';
             setTimeout(() => {
-                const firstItem = container.querySelector('.saved-file-item');
-                if (firstItem) {
-                    firstItem.classList.add('swipe-hint');
-                    firstItem.addEventListener('animationend', () => firstItem.classList.remove('swipe-hint'), { once: true });
-                }
-            }, 600);
+                wrapper.classList.add('collapsing');
+                wrapper.addEventListener('animationend', () => {
+                    wrapper.remove(); _doSwipeDelete(id);
+                }, { once: true });
+            }, 200);
+        } else {
+            await _doSwipeDelete(id);
         }
     }
+}
 
-    function openSavedFileItem(event, fileId) { viewSavedFileCode(fileId); }
+function downloadSavedFile(id) {
+    const file = savedFiles.find(f => f.id === id);
+    if (!file) return;
+    const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width,initial-scale=1.0">\n    <title>${file.filename}</title>\n</head>\n<body>\n${file.code}\n</body>\n</html>`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([full], { type: 'text/html' }));
+    a.download = `${file.filename}.html`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(a.href);
+    showToast(`${file.filename} indirildi`);
+}
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+// ── Download Modal ─────────────────────────────────────────────────────
+function openSaveModal() {
+    const input = document.getElementById('saveFilename');
+    input.value = loadedFilename?.trim() ? loadedFilename : DEFAULT_NAME;
+    document.getElementById('saveModalOverlay').classList.add('open');
+    setTimeout(() => { input.focus(); input.select(); }, 100);
+}
+function closeSaveModal() { document.getElementById('saveModalOverlay').classList.remove('open'); }
+function handleOverlayClick(e) { if (e.target.id === 'saveModalOverlay') closeSaveModal(); }
+
+function confirmSaveFromModal() {
+    let fn = document.getElementById('saveFilename').value.trim();
+    if (!fn) {
+        showToast('Lütfen bir dosya adı girin');
+        const inp = document.getElementById('saveFilename'); inp.focus();
+        ['-5px','5px','-5px','0'].forEach((x, i) => setTimeout(() => inp.style.transform = `translateX(${x})`, i * 50));
+        return;
     }
+    if (!fn.endsWith('.html')) fn += '.html';
+    const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width,initial-scale=1.0">\n    <title>${fn}</title>\n</head>\n<body>\n${code}\n</body>\n</html>`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([full], { type: 'text/html' }));
+    a.download = fn; a.click();
+    loadedFilename = fn.replace('.html', '');
+    saveToStorage(); updateFilenameDisplay();
+    showToast(`${fn} indirildi`); closeSaveModal();
+}
 
-    function startEditingName(fileId) {
-        const file = savedFiles.find(f => f.id === fileId);
-        if (!file) return;
-        editingFileId = fileId;
-        const nameEl = document.getElementById(`filename-${fileId}`);
-        const input  = document.createElement('input');
-        input.type = 'text'; input.value = file.filename;
-        input.className = 'saved-file-name editing';
-        input.style.cssText = 'width:100%;border:none;background:transparent;font-family:inherit;font-size:inherit;font-weight:inherit;color:inherit;outline:none;';
-        nameEl.replaceWith(input); input.focus(); input.select();
-        const saveName = () => {
-            const n = input.value.trim();
-            if (n && n !== file.filename) {
-                file.filename = n; file.timestamp = new Date().toISOString();
-                saveSavedFiles(); showToast('Dosya adı güncellendi');
-            }
-            editingFileId = null; renderSavedFiles();
-        };
-        input.addEventListener('blur', saveName);
-        input.addEventListener('keydown', e => {
-            if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
-            else if (e.key === 'Escape') { editingFileId = null; renderSavedFiles(); }
-        });
-    }
+// ── Load File ──────────────────────────────────────────────────────────
+function loadFile() { document.getElementById('fileInput').click(); }
 
-    // ── Unsaved Changes Modal ─────────────────────────────────────────────
-    function showUnsavedChangesModal(onSave, onDiscard) {
-        unsavedCallbackSave    = onSave;
-        unsavedCallbackDiscard = onDiscard;
-        document.getElementById('unsavedModalOverlay').classList.add('open');
-    }
+function handleFileLoad(event) {
+    const file = event.target.files[0]; if (!file) return;
+    event.target.value = '';
+    loadedFilename = file.name.replace(/\.[^/.]+$/, '');
+    currentOpenFileId = null;
+    const r = new FileReader();
+    r.onload = e => {
+        code = e.target.result; hasUnsavedChanges = false;
+        saveToStorage(); updateEditor(); updateFilenameDisplay();
+        updateTabDotColor(); updateQuickSaveButton();
+        showToast(file.name + ' yüklendi');
+    };
+    r.onerror = () => showToast('Dosya okunamadı');
+    r.readAsText(file);
+}
 
-    function closeUnsavedModal() {
-        document.getElementById('unsavedModalOverlay').classList.remove('open');
-        setTimeout(() => { unsavedCallbackSave = null; unsavedCallbackDiscard = null; }, 300);
-    }
-
-    function handleUnsavedOverlayClick(e) {
-        if (e.target.id === 'unsavedModalOverlay') closeUnsavedModal();
-    }
-
-    function handleUnsavedSave() {
-        closeUnsavedModal();
-        if (unsavedCallbackSave) {
-            if (currentOpenFileId && hasUnsavedChanges) openSaveOptionsModal();
-            else createNewSave();
-            setTimeout(() => unsavedCallbackSave && unsavedCallbackSave(), 100);
-        }
-    }
-
-    function handleUnsavedDiscard() {
-        closeUnsavedModal();
-        if (unsavedCallbackDiscard) unsavedCallbackDiscard();
-    }
-
-    // ── Open Saved File ───────────────────────────────────────────────────
-    function continuePreviewSavedFile(fileId) {
-        const file = savedFiles.find(f => f.id === fileId);
-        if (!file) return;
-        code = file.code; loadedFilename = file.filename;
-        currentOpenFileId = file.id; hasUnsavedChanges = false;
-        updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
-        const r = document.querySelector('input[name="view"][value="preview"]');
-        if (r) { r.checked = true; handleViewSwitch('preview'); }
-        closeSavedFilesPanel(); showToast(`${file.filename} önizleniyor`);
-    }
-
-    function continueViewSavedFileCode(fileId) {
-        const file = savedFiles.find(f => f.id === fileId);
-        if (!file) return;
-        code = file.code; loadedFilename = file.filename;
-        currentOpenFileId = file.id; hasUnsavedChanges = false;
-        updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
+// ── Misc ───────────────────────────────────────────────────────────────
+function clearCode() {
+    if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
+        code = ''; loadedFilename = '';
+        currentOpenFileId = null; hasUnsavedChanges = false;
+        saveToStorage(); updateEditor(); updateFilenameDisplay();
+        updateTabDotColor(); updateQuickSaveButton();
         const r = document.querySelector('input[name="view"][value="code"]');
-        if (r) { r.checked = true; handleViewSwitch('code'); }
-        closeSavedFilesPanel(); showToast(`${file.filename} yüklendi`);
+        if (r && !r.checked) { r.checked = true; handleViewSwitch('code'); }
+        showToast('Kodlar temizlendi');
     }
+    if (isFabOpen) toggleFabMenu();
+}
 
-    function previewSavedFile(fileId) {
-        if (hasUnsavedChanges && currentOpenFileId !== fileId) {
-            showUnsavedChangesModal(() => continuePreviewSavedFile(fileId), () => continuePreviewSavedFile(fileId));
-            return;
-        }
-        continuePreviewSavedFile(fileId);
-    }
+function copyAll() {
+    const h = document.getElementById('hiddenCopyArea');
+    h.value = code; h.select(); document.execCommand('copy');
+    if (isFabOpen) toggleFabMenu(); showToast('Kopyalandı');
+}
 
-    function viewSavedFileCode(fileId) {
-        if (hasUnsavedChanges && currentOpenFileId !== fileId) {
-            showUnsavedChangesModal(() => continueViewSavedFileCode(fileId), () => continueViewSavedFileCode(fileId));
-            return;
-        }
-        continueViewSavedFileCode(fileId);
-    }
+function pasteCode() {
+    navigator.clipboard.readText().then(text => {
+        const el = document.getElementById('editor'), s = el.selectionStart;
+        el.value = el.value.substring(0, s) + text + el.value.substring(el.selectionEnd);
+        el.selectionStart = el.selectionEnd = s + text.length;
+        updateCode(); if (isFabOpen) toggleFabMenu(); showToast('Yapıştırıldı');
+    }).catch(() => showToast('Yapıştırma başarısız'));
+}
 
-    // ── Delete / Download ─────────────────────────────────────────────────
-    function deleteSavedFile(id) {
-        const file = savedFiles.find(f => f.id === id);
-        if (!file) return;
-        if (confirm(`${file.filename}.html silinecek. Emin misiniz?`)) {
-            // Find wrapper and animate
-            const wrapper = document.querySelector(`.swipe-wrapper[data-file-id="${id}"]`);
-            if (wrapper) {
-                const item = wrapper.querySelector('.saved-file-item');
-                const bg   = wrapper.querySelector('.swipe-delete-bg');
-                bg.classList.add('revealed', 'commit');
-                bg.style.opacity = '1';
-                item.classList.add('swipe-confirm');
-                item.style.transform = 'translateX(-110%)';
-                item.style.opacity = '0';
-                setTimeout(() => {
-                    wrapper.classList.add('collapsing');
-                    wrapper.addEventListener('animationend', () => {
-                        wrapper.remove();
-                        _doSwipeDelete(id);
-                    }, { once: true });
-                }, 200);
-            } else {
-                _doSwipeDelete(id);
-            }
-        }
-    }
-
-    function downloadSavedFile(id) {
-        const file = savedFiles.find(f => f.id === id);
-        if (!file) return;
-        const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width,initial-scale=1.0">\n    <title>${file.filename}</title>\n</head>\n<body>\n${file.code}\n</body>\n</html>`;
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([full], { type: 'text/html' }));
-        a.download = `${file.filename}.html`;
-        document.body.appendChild(a); a.click();
-        document.body.removeChild(a); URL.revokeObjectURL(a.href);
-        showToast(`${file.filename} indirildi`);
-    }
-
-    // ── Download Modal ────────────────────────────────────────────────────
-    function openSaveModal() {
-        const input = document.getElementById('saveFilename');
-        input.value = loadedFilename?.trim() ? loadedFilename : DEFAULT_NAME;
-        document.getElementById('saveModalOverlay').classList.add('open');
-        setTimeout(() => { input.focus(); input.select(); }, 100);
-    }
-
-    function closeSaveModal() { document.getElementById('saveModalOverlay').classList.remove('open'); }
-
-    function handleOverlayClick(e) { if (e.target.id === 'saveModalOverlay') closeSaveModal(); }
-
-    function confirmSaveFromModal() {
-        let fn = document.getElementById('saveFilename').value.trim();
-        if (!fn) {
-            showToast('Lütfen bir dosya adı girin');
-            const inp = document.getElementById('saveFilename'); inp.focus();
-            ['-5px','5px','-5px','0'].forEach((x, i) => setTimeout(() => inp.style.transform = `translateX(${x})`, i * 50));
-            return;
-        }
-        if (!fn.endsWith('.html')) fn += '.html';
-        const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width,initial-scale=1.0">\n    <title>${fn}</title>\n</head>\n<body>\n${code}\n</body>\n</html>`;
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([full], { type: 'text/html' }));
-        a.download = fn; a.click();
-        loadedFilename = fn.replace('.html', '');
-        saveToStorage(); updateFilenameDisplay();
-        showToast(`${fn} indirildi`); closeSaveModal();
-    }
-
-    // ── Load File ─────────────────────────────────────────────────────────
-    function loadFile() { document.getElementById('fileInput').click(); }
-
-    function handleFileLoad(event) {
-        const file = event.target.files[0]; if (!file) return;
-        event.target.value = '';
-        loadedFilename = file.name.replace(/\.[^/.]+$/, '');
-        currentOpenFileId = null;
-        const r = new FileReader();
-        r.onload = e => {
-            code = e.target.result; hasUnsavedChanges = false;
-            saveToStorage(); updateEditor(); updateFilenameDisplay();
-            updateTabDotColor(); updateQuickSaveButton();
-            showToast(file.name + ' yüklendi');
-        };
-        r.onerror = () => showToast('Dosya okunamadı');
-        r.readAsText(file);
-    }
-
-    // ── Misc ──────────────────────────────────────────────────────────────
-    function clearCode() {
-        if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
-            code = ''; loadedFilename = '';
-            currentOpenFileId = null; hasUnsavedChanges = false;
-            saveToStorage(); updateEditor(); updateFilenameDisplay();
-            updateTabDotColor(); updateQuickSaveButton();
-            const r = document.querySelector('input[name="view"][value="code"]');
-            if (r && !r.checked) { r.checked = true; handleViewSwitch('code'); }
-            showToast('Kodlar temizlendi');
-        }
-        if (isFabOpen) toggleFabMenu();
-    }
-
-    function copyAll() {
-        const h = document.getElementById('hiddenCopyArea');
-        h.value = code; h.select(); document.execCommand('copy');
-        if (isFabOpen) toggleFabMenu(); showToast('Kopyalandı');
-    }
-
-    function pasteCode() {
-        navigator.clipboard.readText().then(text => {
-            const el = document.getElementById('editor'), s = el.selectionStart;
-            el.value = el.value.substring(0, s) + text + el.value.substring(el.selectionEnd);
-            el.selectionStart = el.selectionEnd = s + text.length;
-            updateCode(); if (isFabOpen) toggleFabMenu(); showToast('Yapıştırıldı');
-        }).catch(() => showToast('Yapıştırma başarısız'));
-    }
-
-    let toastTimer;
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        document.getElementById('toastMessage').textContent = msg;
-        t.classList.add('open');
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => t.classList.remove('open'), 2000);
-    }
+let toastTimer;
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMessage').textContent = msg;
+    t.classList.add('open');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('open'), 2500);
+}
 </script>
 
 </body>
