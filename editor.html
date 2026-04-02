@@ -1095,6 +1095,71 @@ body.preview-mode .toast { bottom: 40px; }
     .auth-box { padding: 28px 20px; border-radius: 28px; }
 }
 
+/* ── KEŞFET PANELİ ───────────────────────────────────────── */
+.explore-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(20px); z-index: 5800;
+    display: none; align-items: flex-end; justify-content: center;
+    opacity: 0; transition: opacity 0.3s ease;
+}
+.explore-overlay.open { display: flex; opacity: 1; animation: fadeIn 0.3s ease; }
+.explore-panel {
+    background: var(--glass-bg);
+    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    border: 1px solid var(--glass-border); border-radius: 32px 32px 0 0;
+    padding: 12px 24px 40px; width: 100%; max-width: 520px;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+    height: 50vh; overflow-y: hidden;
+    transition: height 0.35s cubic-bezier(0.25,0.8,0.25,1); will-change: height;
+}
+.explore-panel::-webkit-scrollbar { width: 4px; }
+.explore-panel::-webkit-scrollbar-track { background: transparent; }
+.explore-panel::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+.explore-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; flex-shrink: 0;
+}
+.explore-panel-title { font-size: 20px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+.explore-close-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    color: var(--text-primary); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: var(--transition);
+}
+.explore-close-btn:hover { background: rgba(255,69,58,0.15); border-color: rgba(255,69,58,0.3); }
+.explore-file-card {
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    border-radius: 16px; padding: 12px 14px; margin-bottom: 10px;
+    cursor: pointer; transition: all 0.2s ease;
+    display: flex; align-items: center; gap: 10px;
+}
+.explore-file-card:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
+@media (prefers-color-scheme: dark) { .explore-file-card:hover { background: rgba(255,255,255,0.06); } }
+.explore-file-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(0,122,255,0.12); border: 1px solid rgba(0,122,255,0.2);
+    display: flex; align-items: center; justify-content: center; color: #007aff;
+}
+.explore-file-info { flex: 1; min-width: 0; }
+.explore-file-name {
+    font-size: 14px; font-weight: 700; color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.explore-file-author { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-top: 2px; }
+
+/* ── BEĞEN BUTONU ────────────────────────────────────────── */
+.like-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 10px; border-radius: 18px; flex-shrink: 0;
+    background: rgba(255,69,58,0.07); border: 1px solid rgba(255,69,58,0.18);
+    color: var(--text-secondary); font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s ease; font-family: inherit; line-height: 1;
+}
+.like-btn:hover { background: rgba(255,69,58,0.14); border-color: rgba(255,69,58,0.32); color: #ff453a; }
+.like-btn.liked { background: rgba(255,69,58,0.14); border-color: rgba(255,69,58,0.38); color: #ff453a; }
+.like-btn:active { transform: scale(0.9); }
 
 </style>
 
@@ -1306,6 +1371,25 @@ body.preview-mode .toast { bottom: 40px; }
     </div>
 </div>
 
+<!-- ── KEŞFET PANELİ ───────────────────────────────────────────────────── -->
+
+<div class="explore-overlay" id="exploreOverlay" onclick="handleExploreOverlayClick(event)">
+    <div class="explore-panel" id="explorePanel">
+        <div class="profile-drag-bar"></div>
+        <div class="explore-panel-header">
+            <div class="explore-panel-title">🔥 Keşfet</div>
+            <button class="explore-close-btn" onclick="closeExplorePanel()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div id="exploreList">
+            <div class="search-empty">Yükleniyor...</div>
+        </div>
+    </div>
+</div>
+
 <!-- ── PUBLIC PROFİL PANELI ────────────────────────────────────────────── -->
 
 <div class="pub-profile-overlay" id="pubProfileOverlay" onclick="handlePubProfileOverlayClick(event)">
@@ -1474,6 +1558,14 @@ body.preview-mode .toast { bottom: 40px; }
 <div class="fab-overlay" id="fabOverlay" onclick="toggleFabMenu()"></div>
 <div class="fab-container" id="fabContainer" style="display:none;">
     <div class="fab-menu" id="fabMenu">
+        <div class="fab-menu-item" onclick="toggleFabMenu();openExplorePanel()">
+            <div class="fab-menu-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+            </div>
+            <span>Keşfet</span>
+        </div>
         <div class="fab-menu-item" onclick="clearCode()">
             <div class="fab-menu-icon">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1655,6 +1747,22 @@ body.preview-mode .toast { bottom: 40px; }
 </div>
 
 <script>
+/*
+ * SUPABASE — likes tablosu (bir kez çalıştır):
+ *
+ * CREATE TABLE likes (
+ *   id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+ *   user_id    uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+ *   file_id    bigint REFERENCES files(id) ON DELETE CASCADE NOT NULL,
+ *   created_at timestamptz DEFAULT now(),
+ *   UNIQUE(user_id, file_id)
+ * );
+ * ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
+ * CREATE POLICY "Herkes okuyabilir" ON likes FOR SELECT USING (true);
+ * CREATE POLICY "Kendi beğenisini ekleyebilir" ON likes FOR INSERT WITH CHECK (auth.uid() = user_id);
+ * CREATE POLICY "Kendi beğenisini silebilir" ON likes FOR DELETE USING (auth.uid() = user_id);
+ */
+
 // ── Supabase Init ──────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://lkhdbhymqwnaswoapuqc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxraGRiaHltcXduYXN3b2FwdXFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNzM4MDIsImV4cCI6MjA5MDY0OTgwMn0.lzTTx_L9hlIjccawuzJKHVfx-arnWbmuYvtbKwBMSZA';
@@ -1686,6 +1794,11 @@ let saveButtonState = 'idle';
 let currentProfile = null;
 let selectedEmoji  = '👤';
 let _pubFilesData  = {};
+
+// Beğeni state
+let _myLikes      = new Set(); // current user's liked file IDs
+let _likeCounts   = {};        // file_id -> like count
+let _myLikesLoaded = false;
 
 const PROFILE_EMOJIS = [
     '👤','😀','😎','🤓','🧑‍💻','👨‍💻','👩‍💻','🦊','🐼','🐨','🦁','🐸',
@@ -2270,6 +2383,7 @@ function buildPage() {
 document.addEventListener('DOMContentLoaded', async () => {
     _initBottomSheet('profilePanel',   closeProfilePanel);
     _initBottomSheet('pubProfilePanel', closePublicProfile);
+    _initBottomSheet('explorePanel',   closeExplorePanel);
 
     const { data: { session } } = await sb.auth.getSession();
     if (session?.user) {
@@ -3109,6 +3223,17 @@ async function openPublicProfile(userId) {
         document.getElementById('pubStatFiles').textContent = pubFiles.length;
         document.getElementById('pubStatLines').textContent = fmt(totalLines);
 
+        // Beğeni verilerini çek
+        if (pubFiles.length > 0) {
+            const fileIds = pubFiles.map(f => f.id);
+            const [{ data: fileLikes }, { data: myFileLikes }] = await Promise.all([
+                sb.from('likes').select('file_id').in('file_id', fileIds),
+                currentUser ? sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds) : { data: [] }
+            ]);
+            (fileLikes || []).forEach(l => { _likeCounts[l.file_id] = (_likeCounts[l.file_id] || 0) + 1; });
+            (myFileLikes || []).forEach(l => { _myLikes.add(l.file_id); });
+        }
+
         if (pubFiles.length === 0) {
             document.getElementById('pubFilesList').innerHTML =
                 '<div class="search-empty" style="padding:24px 0;">Bu kullanıcının public dosyası yok</div>';
@@ -3118,6 +3243,8 @@ async function openPublicProfile(userId) {
                 const d2   = new Date(f.updated_at);
                 const date = `${pad(d2.getDate())}.${pad(d2.getMonth()+1)}.${d2.getFullYear()}`;
                 const lines = (f.code.match(/\n/g)||[]).length + 1;
+                const liked = _myLikes.has(f.id);
+                const cnt   = _likeCounts[f.id] || 0;
                 return `
                 <div class="pub-file-card" onclick="loadPublicFile(${f.id})">
                     <div class="pub-file-icon">
@@ -3129,9 +3256,10 @@ async function openPublicProfile(userId) {
                         <div class="pub-file-name">${escapeHtml(f.filename)}</div>
                         <div class="pub-file-meta">${date} · ${lines} satır</div>
                     </div>
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;opacity:0.4;">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
+                    <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
+                        onclick="event.stopPropagation();toggleLike(${f.id})">
+                        ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
+                    </button>
                 </div>`;
             }).join('');
         }
@@ -3171,6 +3299,134 @@ function _loadPublicFile(filename, fileCode) {
     const r = document.querySelector('input[name="view"][value="code"]');
     if (r) { r.checked = true; handleViewSwitch('code'); }
     showToast(`${filename} yüklendi`);
+}
+
+// ── BEĞEN ─────────────────────────────────────────────────────────────
+async function toggleLike(fileId) {
+    if (!currentUser) { showToast('Beğenmek için giriş yapın'); return; }
+    const liked = _myLikes.has(fileId);
+    // Optimistik güncelle
+    if (liked) {
+        _myLikes.delete(fileId);
+        _likeCounts[fileId] = Math.max(0, (_likeCounts[fileId] || 1) - 1);
+    } else {
+        _myLikes.add(fileId);
+        _likeCounts[fileId] = (_likeCounts[fileId] || 0) + 1;
+    }
+    // Tüm like butonlarını güncelle
+    document.querySelectorAll(`[data-like-id="${fileId}"]`).forEach(btn => {
+        const nowLiked = _myLikes.has(fileId);
+        btn.classList.toggle('liked', nowLiked);
+        btn.querySelector('span') && (btn.querySelector('span').textContent = _likeCounts[fileId] || 0);
+        btn.childNodes[0].textContent = nowLiked ? '♥ ' : '♡ ';
+    });
+    document.querySelectorAll(`[data-like-count="${fileId}"]`).forEach(el => {
+        el.textContent = _likeCounts[fileId] || 0;
+    });
+    try {
+        if (liked) {
+            await sb.from('likes').delete().eq('user_id', currentUser.id).eq('file_id', fileId);
+        } else {
+            await sb.from('likes').insert({ user_id: currentUser.id, file_id: fileId });
+        }
+    } catch(e) {
+        // Hata olursa geri al
+        if (liked) { _myLikes.add(fileId); _likeCounts[fileId]++; }
+        else { _myLikes.delete(fileId); _likeCounts[fileId] = Math.max(0, (_likeCounts[fileId] || 1) - 1); }
+        console.error('Like error:', e);
+        showToast('Beğeni kaydedilemedi');
+    }
+}
+
+// ── KEŞFET ─────────────────────────────────────────────────────────────
+function openExplorePanel() {
+    _sheetReset('explorePanel');
+    document.getElementById('exploreOverlay').classList.add('open');
+    loadExploreFiles();
+}
+
+function closeExplorePanel() {
+    document.getElementById('exploreOverlay').classList.remove('open');
+}
+
+function handleExploreOverlayClick(e) {
+    if (e.target.id === 'exploreOverlay') closeExplorePanel();
+}
+
+async function loadExploreFiles() {
+    const list = document.getElementById('exploreList');
+    list.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
+    try {
+        // Public dosyaları profil bilgisiyle çek
+        const { data: files } = await sb.from('files')
+            .select('id, filename, updated_at, user_id, profiles(username, avatar_emoji)')
+            .eq('is_public', true)
+            .limit(100);
+
+        // Tüm beğenileri çek
+        const { data: allLikes } = await sb.from('likes').select('file_id');
+
+        // Kullanıcının beğenilerini çek
+        if (currentUser && !_myLikesLoaded) {
+            const { data: myL } = await sb.from('likes').select('file_id').eq('user_id', currentUser.id);
+            (myL || []).forEach(l => _myLikes.add(l.file_id));
+            _myLikesLoaded = true;
+        }
+
+        // Beğeni sayısını hesapla
+        const counts = {};
+        (allLikes || []).forEach(l => { counts[l.file_id] = (counts[l.file_id] || 0) + 1; });
+        Object.assign(_likeCounts, counts);
+
+        // En çok beğenilene göre sırala
+        const sorted = (files || []).sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
+
+        if (sorted.length === 0) {
+            list.innerHTML = '<div class="search-empty">Henüz public dosya yok</div>';
+            return;
+        }
+
+        const pad = n => String(n).padStart(2, '0');
+        list.innerHTML = sorted.map((f, i) => {
+            const d      = new Date(f.updated_at);
+            const date   = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
+            const author = f.profiles?.username || 'Kullanıcı';
+            const emoji  = f.profiles?.avatar_emoji || '👤';
+            const cnt    = counts[f.id] || 0;
+            const liked  = _myLikes.has(f.id);
+            const rank   = i < 3 ? ['🥇','🥈','🥉'][i] : `${i+1}.`;
+            return `
+            <div class="explore-file-card" onclick="loadExploreFile(${f.id})">
+                <div class="explore-file-icon">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                    </svg>
+                </div>
+                <div style="font-size:16px;flex-shrink:0;">${rank}</div>
+                <div class="explore-file-info">
+                    <div class="explore-file-name">${escapeHtml(f.filename)}</div>
+                    <div class="explore-file-author">${emoji} ${escapeHtml(author)}</div>
+                </div>
+                <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
+                    onclick="event.stopPropagation();toggleLike(${f.id})">
+                    ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
+                </button>
+            </div>`;
+        }).join('');
+    } catch(e) {
+        console.error('Explore error:', e);
+        list.innerHTML = '<div class="search-empty">Yüklenemedi</div>';
+    }
+}
+
+function loadExploreFile(fileId) {
+    // _pubFilesData'da yoksa doğrudan Supabase'den çek
+    const cached = _pubFilesData[fileId];
+    if (cached) { _loadPublicFile(cached.filename, cached.code); closeExplorePanel(); return; }
+    sb.from('files').select('filename, code').eq('id', fileId).single().then(({ data }) => {
+        if (data) { _loadPublicFile(data.filename, data.code); }
+        closeExplorePanel();
+    });
 }
 
 // ── PUBLIC DOSYA TOGGLE ────────────────────────────────────────────────
