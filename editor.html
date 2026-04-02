@@ -316,8 +316,52 @@ svg { display: block; flex-shrink: 0; }
     transition: var(--transition);
 }
 
-/* Önizleme modunda header gizli */
+/* Önizleme modunda header ve title bar gizli */
 body.preview-mode .header { display: none !important; }
+body.preview-mode .file-title-bar { display: none !important; }
+
+/* ── BOTTOM BAR ──────────────────────────────────────────── */
+.bottom-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+    background: var(--glass-bg);
+    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    border-top: 1px solid var(--glass-border);
+    display: flex; align-items: stretch;
+    height: 60px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.06);
+}
+.bottom-bar-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 4px;
+    padding: 8px 4px; border-radius: 0;
+    border: none; background: transparent; cursor: pointer;
+    color: var(--text-secondary); font-family: inherit;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.03em;
+    text-transform: uppercase; transition: all 0.2s ease; position: relative;
+}
+.bottom-bar-btn:active { transform: scale(0.88); }
+.bottom-bar-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+.bottom-bar-btn.bb-save   { color: #007aff; }
+.bottom-bar-btn.bb-saved  { color: #34c759; }
+.bottom-bar-btn.bb-active { color: #007aff; }
+
+/* App logosu */
+.app-logo-area {
+    display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;
+}
+.app-logo-icon {
+    width: 30px; height: 30px; border-radius: 9px;
+    background: linear-gradient(135deg, rgba(0,122,255,0.3), rgba(52,199,89,0.3));
+    border: 1px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+}
+.app-logo-name {
+    font-size: 16px; font-weight: 800; color: var(--text-primary);
+    letter-spacing: -0.03em; white-space: nowrap;
+}
 
 .header-top {
     display: flex; align-items: center;
@@ -329,16 +373,7 @@ body.preview-mode .header { display: none !important; }
     gap: 8px; min-width: 0; flex: 1;
 }
 
-.header-bottom {
-    display: flex; align-items: center;
-    justify-content: flex-end; gap: 16px;
-    margin-top: 16px; padding-top: 16px;
-    border-top: 1px solid var(--glass-border);
-    overflow-x: auto; overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; flex-wrap: nowrap;
-}
-.header-bottom::-webkit-scrollbar { display: none; }
+.header-bottom { display: none; }
 
 .btn {
     display: inline-flex; align-items: center;
@@ -483,14 +518,8 @@ body.preview-mode .header { display: none !important; }
 
 @keyframes swScale { 0% { scale:1 1; } 50% { scale:1.18 1; } 100% { scale:1 1; } }
 
-/* Önizleme modunda sabit switcher - sol üstte */
-.floating-switcher {
-    position: fixed; top: 16px; left: 16px; z-index: 1000;
-    opacity: 0; pointer-events: none;
-    transform: translateY(-4px) scale(0.9);
-    transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
-}
-.floating-switcher.visible { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+/* View switcher ve floating switcher gizli — bottom bar kullanıyor */
+.view-switcher, .floating-switcher { display: none !important; }
 
 /* ── MAIN ────────────────────────────────────────────────── */
 main {
@@ -507,7 +536,7 @@ body.preview-mode .code-area { opacity: 0; pointer-events: none; transform: scal
 
 .code-input {
     width: 100%; height: 100%;
-    padding: 20px; padding-bottom: 100px;
+    padding: 20px; padding-bottom: 140px;
     background: transparent; color: var(--text-primary);
     border: none; resize: none; outline: none;
     white-space: pre-wrap; word-wrap: break-word;
@@ -533,7 +562,7 @@ body.preview-mode .code-area { opacity: 0; pointer-events: none; transform: scal
 
 /* ── FAB ─────────────────────────────────────────────────── */
 .fab-container {
-    position: fixed; bottom: 28px; right: 28px; z-index: 100;
+    position: fixed; bottom: 76px; right: 20px; z-index: 100;
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: translateY(20px); }
@@ -786,7 +815,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     opacity: 0; transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
 }
 .toast.open { display: flex; opacity: 1; transform: translateX(-50%) translateY(0); }
-body.preview-mode .toast { bottom: 40px; }
+body.preview-mode .toast { bottom: 80px; }
 
 /* ── LOADING SPINNER ─────────────────────────────────────── */
 .spinner {
@@ -1277,64 +1306,24 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <header class="header" id="appHeader" style="display:none;">
     <div class="header-top">
-        <div class="header-left-group">
-            <!-- View Switcher sol tarafta (tab butonunun yerine) -->
-            <fieldset class="view-switcher" id="viewSwitcher">
-                <legend class="view-switcher__legend">Görünüm</legend>
-                <label class="view-switcher__option" title="Kod">
-                    <input class="view-switcher__input" type="radio" name="view" value="code" c-option="1" checked />
-                    <svg class="view-switcher__icon" viewBox="0 0 24 24">
-                        <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                    </svg>
-                </label>
-                <label class="view-switcher__option" title="Önizle">
-                    <input class="view-switcher__input" type="radio" name="view" value="preview" c-option="2" />
-                    <svg class="view-switcher__icon" viewBox="0 0 24 24">
-                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                    </svg>
-                </label>
-            </fieldset>
-
-
-    </div>
-    <div class="actions">
-        <!-- User Pill -->
-        <div class="user-pill" id="userPill" onclick="toggleUserDropdown()">
-            <div class="user-avatar" id="userAvatar">?</div>
-            <span class="user-email-short" id="userEmailShort">...</span>
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-            </svg>
+        <div class="app-logo-area">
+            <div class="app-logo-icon">⌨</div>
+            <span class="app-logo-name">Editör</span>
+        </div>
+        <div class="actions">
+            <div class="user-pill" id="userPill" onclick="toggleUserDropdown()">
+                <div class="user-avatar" id="userAvatar">?</div>
+            </div>
         </div>
     </div>
-</div>
-
-<div class="header-bottom">
-    <div class="actions">
-        <button onclick="handleQuickSave()" class="btn btn-sm btn-save-idle" id="quickSaveBtn" style="display:none;">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" id="quickSaveBtnIcon">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/>
-            </svg>
-            <span id="quickSaveBtnText">Kaydet</span>
-        </button>
-        <button onclick="openSaveModal()" class="btn btn-sm">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
-            </svg>
-            İndir
-        </button>
-        <button onclick="loadFile()" class="btn btn-sm">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-            </svg>
-            Yükle
-        </button>
-        <input type="file" id="fileInput" accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md" style="display:none" onchange="handleFileLoad(event)">
-    </div>
-</div>
-
-
+    <!-- viewSwitcher gizli, JS uyumluluğu için -->
+    <fieldset class="view-switcher" id="viewSwitcher" style="display:none;" aria-hidden="true">
+        <input type="radio" name="view" value="code" checked />
+        <input type="radio" name="view" value="preview" />
+    </fieldset>
+    <!-- quickSaveBtn gizli, JS uyumluluğu için -->
+    <button id="quickSaveBtn" style="display:none;" onclick="handleQuickSave()"></button>
+    <input type="file" id="fileInput" accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md" style="display:none" onchange="handleFileLoad(event)">
 </header>
 
 <!-- Dropdown body'e ekleniyor, her zaman üstte -->
@@ -1347,13 +1336,7 @@ body.preview-mode .file-title-bar { display: none !important; }
         </svg>
         Profilim
     </button>
-    <button class="user-dropdown-item" id="viewSavedBtn" onclick="closeUserDropdown();openSavedFilesPanel()">
-        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
-        </svg>
-        Kayıtlar
-        <span class="saved-count" id="savedCount" style="display:none;margin-left:auto;">0</span>
-    </button>
+    <span id="savedCount" style="display:none;"></span>
     <button class="user-dropdown-item" onclick="closeUserDropdown();openSearchPanel()">
         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -1572,6 +1555,35 @@ body.preview-mode .file-title-bar { display: none !important; }
     </fieldset>
 </div>
 
+<!-- ── BOTTOM BAR ───────────────────────────────────────────────────── -->
+<div class="bottom-bar" id="bottomBar" style="display:none;">
+    <button class="bottom-bar-btn bb-save" id="bbSaveBtn" onclick="handleQuickSave()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" id="bbSaveIcon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+        </svg>
+        <span id="bbSaveText">Kaydet</span>
+    </button>
+    <button class="bottom-bar-btn" onclick="openSavedFilesPanel()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+        </svg>
+        Kayıtlar
+    </button>
+    <button class="bottom-bar-btn" onclick="openExplorePanel()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+        </svg>
+        Keşfet
+    </button>
+    <button class="bottom-bar-btn" id="bbPreviewBtn" onclick="toggleBottomBarView()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" id="bbPreviewIcon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+        </svg>
+        <span id="bbPreviewText">Önizle</span>
+    </button>
+</div>
+
 <div class="file-title-bar" id="fileTitleBar" style="display:none;">
     <span class="sync-dot" id="syncDot" title="Senkronizasyon durumu"></span>
     <span id="editorTitle" class="file-title-name" onclick="startEditingHeaderFilename()">
@@ -1597,13 +1609,21 @@ body.preview-mode .file-title-bar { display: none !important; }
 <div class="fab-overlay" id="fabOverlay" onclick="toggleFabMenu()"></div>
 <div class="fab-container" id="fabContainer" style="display:none;">
     <div class="fab-menu" id="fabMenu">
-        <div class="fab-menu-item" onclick="toggleFabMenu();openExplorePanel()">
+        <div class="fab-menu-item" onclick="toggleFabMenu();openSaveModal()">
             <div class="fab-menu-icon">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
                 </svg>
             </div>
-            <span>Keşfet</span>
+            <span>İndir</span>
+        </div>
+        <div class="fab-menu-item" onclick="toggleFabMenu();loadFile()">
+            <div class="fab-menu-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+            </div>
+            <span>Yükle</span>
         </div>
         <div class="fab-menu-item" onclick="clearCode()">
             <div class="fab-menu-icon">
@@ -2117,24 +2137,31 @@ let swipeHintShown    = localStorage.getItem(HINT_SHOWN_KEY) === '1';
 // ── Kaydet Butonu Durum Yönetimi ───────────────────────────────────────
 function setSaveButtonState(state) {
     saveButtonState = state;
-    const btn      = document.getElementById('quickSaveBtn');
-    const iconEl   = document.getElementById('quickSaveBtnIcon');
-    const textEl   = document.getElementById('quickSaveBtnText');
+    // Bottom bar save butonu
+    const bbBtn  = document.getElementById('bbSaveBtn');
+    const bbIcon = document.getElementById('bbSaveIcon');
+    const bbText = document.getElementById('bbSaveText');
+    if (bbBtn) {
+        bbBtn.classList.remove('bb-save', 'bb-saved');
+        if (state === 'saved') {
+            bbBtn.classList.add('bb-saved');
+            bbBtn.onclick = null;
+            if (bbIcon) bbIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>';
+            if (bbText) bbText.textContent = 'Kaydedildi';
+        } else {
+            bbBtn.classList.add('bb-save');
+            bbBtn.onclick = handleQuickSave;
+            if (bbIcon) bbIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>';
+            if (bbText) bbText.textContent = 'Kaydet';
+        }
+    }
+    // Eski gizli quickSaveBtn (JS uyumluluğu)
+    const btn = document.getElementById('quickSaveBtn');
     if (!btn) return;
-
-    btn.classList.remove('btn-save-idle', 'btn-save-saved');
-
     if (state === 'saved') {
-        btn.classList.add('btn-save-saved');
-        btn.onclick = null; // kaydedildi durumunda tıklama devre dışı
-        iconEl.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>';
-        textEl.textContent = 'Kaydedildi';
+        btn.onclick = null;
     } else {
-        // idle (mavi, + işareti)
-        btn.classList.add('btn-save-idle');
         btn.onclick = handleQuickSave;
-        iconEl.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/>';
-        textEl.textContent = 'Kaydet';
     }
 }
 
@@ -2234,9 +2261,10 @@ function onUserLoggedIn(user) {
 function showAuthScreen() {
     document.getElementById('authScreen').style.display = 'flex';
     setTimeout(() => document.getElementById('authScreen').classList.remove('hide'), 10);
-    document.getElementById('appHeader').style.display  = 'none';
+    document.getElementById('appHeader').style.display    = 'none';
     document.getElementById('fileTitleBar').style.display = 'none';
-    document.getElementById('appMain').style.display    = 'none';
+    document.getElementById('bottomBar').style.display    = 'none';
+    document.getElementById('appMain').style.display      = 'none';
     document.getElementById('fabContainer').style.display = 'none';
 }
 
@@ -2247,12 +2275,12 @@ function hideAuthScreen() {
 }
 
 function showApp() {
-    document.getElementById('appHeader').style.display  = '';
+    document.getElementById('appHeader').style.display    = '';
     document.getElementById('fileTitleBar').style.display = '';
-    document.getElementById('appMain').style.display    = '';
+    document.getElementById('bottomBar').style.display    = '';
+    document.getElementById('appMain').style.display      = '';
     document.getElementById('fabContainer').style.display = '';
     initSwitcher(document.getElementById('viewSwitcher'));
-    initSwitcher(document.getElementById('floatingViewSwitcher'));
     loadFromStorage();
     updateEditor();
     updateFilenameDisplay();
@@ -2394,21 +2422,34 @@ function initSwitcher(el) {
 // ── View Switch ────────────────────────────────────────────────────────
 function handleViewSwitch(view) {
     currentView = view;
-    const previewArea      = document.getElementById('previewArea');
-    const floatingSwitcher = document.getElementById('floatingSwitcher');
+    const previewArea = document.getElementById('previewArea');
     syncSwitchers(view);
     if (view === 'preview') {
         document.body.classList.add('preview-mode');
         document.getElementById('previewFrameInline').srcdoc = buildPage();
         previewArea.classList.add('active');
-        floatingSwitcher.classList.add('visible');
-        showToast('Önizleme');
     } else {
         document.body.classList.remove('preview-mode');
         previewArea.classList.remove('active');
-        floatingSwitcher.classList.remove('visible');
-        showToast('Kod Editörü');
     }
+    _updateBBView(view);
+}
+
+function toggleBottomBarView() {
+    handleViewSwitch(currentView === 'preview' ? 'code' : 'preview');
+}
+
+function _updateBBView(view) {
+    const btn  = document.getElementById('bbPreviewBtn');
+    const text = document.getElementById('bbPreviewText');
+    const icon = document.getElementById('bbPreviewIcon');
+    if (!btn) return;
+    const isPreview = view === 'preview';
+    btn.classList.toggle('bb-active', isPreview);
+    if (text) text.textContent = isPreview ? 'Kod' : 'Önizle';
+    if (icon) icon.innerHTML = isPreview
+        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>'
+        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
 }
 
 function syncSwitchers(view) {
@@ -2537,11 +2578,6 @@ function updateTabDotColor() {
 }
 
 function updateQuickSaveButton() {
-    const hasContent = code.trim().length > 0;
-    const qs = document.getElementById('quickSaveBtn');
-    const vs = document.getElementById('viewSavedBtn');
-    if (qs) qs.style.display = hasContent ? 'inline-flex' : 'none';
-    if (vs) vs.style.display = (hasContent || savedFiles.length > 0) ? 'flex' : 'none';
     updateSavedCount();
 }
 
