@@ -268,7 +268,7 @@
     }
 
     .user-dropdown {
-        position: absolute; top: calc(100% + 8px); right: 0;
+        position: fixed; top: auto; right: 20px;
         background: var(--glass-bg);
         backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
         -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
@@ -336,26 +336,6 @@
     }
     .header-bottom::-webkit-scrollbar { display: none; }
 
-    .tab {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 8px 16px; border-radius: 20px;
-        font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
-        cursor: default; white-space: nowrap; font-family: inherit;
-        background: var(--glass-bg);
-        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-        border: 1px solid var(--glass-border);
-        color: var(--text-primary); box-shadow: var(--glass-shadow);
-        transition: var(--transition); flex-shrink: 0;
-    }
-
-    .tab-dot {
-        width: 8px; height: 8px; border-radius: 50%;
-        background: #ff453a; flex-shrink: 0;
-        box-shadow: 0 0 6px rgba(255,69,58,0.6);
-        transition: all 0.3s ease;
-    }
-    .tab-dot.has-content { background: #34c759; box-shadow: 0 0 6px rgba(52,199,89,0.6); }
-
     .btn {
         display: inline-flex; align-items: center;
         justify-content: center; gap: 6px;
@@ -387,6 +367,10 @@
     .btn-success:hover { background: rgba(52,199,89,0.25); }
     .btn-cloud { background: rgba(0,122,255,0.15); border-color: rgba(0,122,255,0.3); color: #007aff; }
     .btn-cloud:hover { background: rgba(0,122,255,0.25); }
+    .btn-save-default { background: rgba(0,122,255,0.2); border-color: rgba(0,122,255,0.4); color: #007aff; }
+    .btn-save-default:hover { background: rgba(0,122,255,0.32); }
+    .btn-save-saved { background: rgba(52,199,89,0.2); border-color: rgba(52,199,89,0.4); color: #34c759; }
+    .btn-save-saved:hover { background: rgba(52,199,89,0.32); }
 
     .actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
@@ -488,7 +472,7 @@
     @keyframes swScale { 0% { scale:1 1; } 50% { scale:1.18 1; } 100% { scale:1 1; } }
 
     .floating-switcher {
-        position: fixed; top: 16px; right: 16px; z-index: 1000;
+        position: fixed; top: 16px; left: 16px; z-index: 1000;
         opacity: 0; pointer-events: none;
         transform: translateY(0px) scale(0.9);
         transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
@@ -902,19 +886,6 @@
 <header class="header" id="appHeader" style="display:none;">
     <div class="header-top">
         <div class="header-left-group">
-            <span class="tab">
-                <span class="tab-dot" id="tabDot"></span>
-                HTML
-            </span>
-            <span id="editorTitle" class="editor-title header-filename" onclick="startEditingHeaderFilename()">
-                Yeni Dosya
-                <svg class="edit-icon-small" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                </svg>
-            </span>
-            <span class="sync-dot" id="syncDot" title="Senkronizasyon durumu"></span>
-        </div>
-        <div class="actions">
             <fieldset class="view-switcher" id="viewSwitcher">
                 <legend class="view-switcher__legend">Görünüm</legend>
                 <label class="view-switcher__option" title="Kod">
@@ -931,7 +902,15 @@
                     </svg>
                 </label>
             </fieldset>
-
+            <span id="editorTitle" class="editor-title header-filename" onclick="startEditingHeaderFilename()">
+                Yeni Dosya
+                <svg class="edit-icon-small" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+            </span>
+            <span class="sync-dot" id="syncDot" title="Senkronizasyon durumu"></span>
+        </div>
+        <div class="actions">
 
         <!-- User Pill -->
         <div class="user-pill" id="userPill" onclick="toggleUserDropdown()">
@@ -961,11 +940,11 @@
 
 <div class="header-bottom">
     <div class="actions">
-        <button onclick="handleQuickSave()" class="btn btn-success btn-sm" id="quickSaveBtn" style="display:none;">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/>
+        <button onclick="handleQuickSave()" class="btn btn-save-default btn-sm" id="quickSaveBtn" style="display:none;">
+            <svg id="quickSaveIcon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
             </svg>
-            Kaydet
+            <span id="quickSaveLabel">Kaydet</span>
         </button>
         <button onclick="openSavedFilesPanel()" class="btn btn-sm" id="viewSavedBtn" style="display:none;">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1388,7 +1367,11 @@ function updateUserUI(user) {
 
 // ── User Dropdown ──────────────────────────────────────────────────────
 function toggleUserDropdown() {
-    document.getElementById('userDropdown').classList.toggle('open');
+    const pill = document.getElementById('userPill');
+    const dropdown = document.getElementById('userDropdown');
+    const rect = pill.getBoundingClientRect();
+    dropdown.style.top = (rect.bottom + 8) + 'px';
+    dropdown.classList.toggle('open');
 }
 function closeUserDropdown() {
     document.getElementById('userDropdown').classList.remove('open');
@@ -1633,7 +1616,7 @@ function startEditingHeaderFilename() {
 }
 
 function updateTabDotColor() {
-    document.getElementById('tabDot').classList.toggle('has-content', code.trim().length > 0);
+    // tab removed - no-op
 }
 
 function updateQuickSaveButton() {
@@ -1723,6 +1706,7 @@ async function _doSave(filename) {
     updateFilenameDisplay(); saveToStorage();
     updateQuickSaveButton(); renderSavedFiles();
     showToast(`${filename} kaydedildi ☁️`);
+    showQuickSaveSavedState();
 }
 
 async function createNewSave() {
@@ -1733,6 +1717,25 @@ async function createNewSave() {
     const duplicate  = findDuplicateContent(code);
     if (duplicate) { openDuplicateModal(duplicate, uniqueName); return; }
     await _doSave(uniqueName);
+}
+
+let quickSaveTimer = null;
+function showQuickSaveSavedState() {
+    const btn = document.getElementById('quickSaveBtn');
+    const icon = document.getElementById('quickSaveIcon');
+    const label = document.getElementById('quickSaveLabel');
+    if (!btn) return;
+    btn.classList.remove('btn-save-default');
+    btn.classList.add('btn-save-saved');
+    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>';
+    label.textContent = 'Kaydedildi';
+    clearTimeout(quickSaveTimer);
+    quickSaveTimer = setTimeout(() => {
+        btn.classList.remove('btn-save-saved');
+        btn.classList.add('btn-save-default');
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>';
+        label.textContent = 'Kaydet';
+    }, 2000);
 }
 
 function handleQuickSave() {
@@ -1766,6 +1769,7 @@ async function updateExistingFile() {
     renderSavedFiles(); showToast('Güncelleniyor...');
     await saveFileToCloud(savedFiles[idx]);
     showToast(`${savedFiles[idx].filename} güncellendi ☁️`);
+    showQuickSaveSavedState();
 }
 
 // ── Saved Files Panel ──────────────────────────────────────────────────
@@ -2215,5 +2219,5 @@ function showToast(msg) {
 }
 </script>
 
-</body>
+<script src="https://replit-cdn.com/replit-pill/replit-pill.global.js" data-repl-id="6d16c259-7d09-476e-8693-6ec01040f758"></script></body>
 </html>
