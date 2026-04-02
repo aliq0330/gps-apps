@@ -3357,11 +3357,20 @@ async function loadExploreFiles() {
     const list = document.getElementById('exploreList');
     list.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
     try {
-        // Public dosyaları profil bilgisiyle çek
-        const { data: files } = await sb.from('files')
-            .select('id, filename, updated_at, user_id, profiles(username, avatar_emoji)')
+        // Public dosyaları çek (join olmadan)
+        const { data: files, error: filesErr } = await sb.from('files')
+            .select('id, filename, updated_at, user_id')
             .eq('is_public', true)
             .limit(100);
+        if (filesErr) throw filesErr;
+
+        // Profilleri ayrı çek
+        const userIds = [...new Set((files || []).map(f => f.user_id))];
+        const { data: profiles } = userIds.length
+            ? await sb.from('profiles').select('id, username, avatar_emoji').in('id', userIds)
+            : { data: [] };
+        const profileMap = {};
+        (profiles || []).forEach(p => { profileMap[p.id] = p; });
 
         // Tüm beğenileri çek
         const { data: allLikes } = await sb.from('likes').select('file_id');
@@ -3390,8 +3399,9 @@ async function loadExploreFiles() {
         list.innerHTML = sorted.map((f, i) => {
             const d      = new Date(f.updated_at);
             const date   = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
-            const author = f.profiles?.username || 'Kullanıcı';
-            const emoji  = f.profiles?.avatar_emoji || '👤';
+            const prof   = profileMap[f.user_id];
+            const author = prof?.username || 'Kullanıcı';
+            const emoji  = prof?.avatar_emoji || '👤';
             const cnt    = counts[f.id] || 0;
             const liked  = _myLikes.has(f.id);
             const rank   = i < 3 ? ['🥇','🥈','🥉'][i] : `${i+1}.`;
