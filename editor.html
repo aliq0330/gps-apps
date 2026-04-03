@@ -1295,7 +1295,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 /* ── MESAJLAR ─────────────────────────────────────── */
 .messages-overlay {
     position: fixed; inset: 0; z-index: 300;
-    background: rgba(0,0,0,0.3); backdrop-filter: blur(4px);
+    background: rgba(0,0,0,0.3); backdrop-filter: blur(6px);
     display: none; align-items: flex-end;
 }
 .messages-overlay.open { display: flex; }
@@ -1305,9 +1305,10 @@ body.preview-mode .file-title-bar { display: none !important; }
     -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
     border-top: 1px solid var(--glass-border);
     border-radius: 24px 24px 0 0;
-    height: 55%; display: flex; flex-direction: column;
+    height: 50%; display: flex; flex-direction: column;
     padding-bottom: env(safe-area-inset-bottom, 0);
     transition: height 0.35s cubic-bezier(0.25,0.8,0.25,1);
+    overflow: hidden;
 }
 .conv-overlay {
     position: fixed; inset: 0; z-index: 350;
@@ -1322,72 +1323,110 @@ body.preview-mode .file-title-bar { display: none !important; }
 .conv-overlay.open { transform: translateX(0); }
 .conv-header {
     display: flex; align-items: center; gap: 12px;
-    padding: 16px 20px; border-bottom: 1px solid var(--glass-border);
-    padding-top: max(16px, env(safe-area-inset-top, 16px)); flex-shrink: 0;
+    padding: 14px 20px; border-bottom: 1px solid var(--glass-border);
+    padding-top: max(14px, env(safe-area-inset-top, 14px)); flex-shrink: 0;
+    background: var(--glass-bg);
+    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
 }
 .conv-back-btn {
-    width: 36px; height: 36px; border-radius: 50%;
-    border: 1px solid var(--glass-border); background: transparent;
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: rgba(120,120,128,0.1);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; color: var(--text-primary); flex-shrink: 0;
+    transition: background 0.2s;
 }
-.conv-header-name { font-size: 17px; font-weight: 700; color: var(--text-primary); flex: 1; }
+.conv-back-btn:active { background: rgba(120,120,128,0.25); }
+.conv-header-name { font-size: 16px; font-weight: 700; color: var(--text-primary); flex: 1; }
 .conv-messages {
-    flex: 1; overflow-y: auto; padding: 16px; display: flex;
-    flex-direction: column; gap: 8px; min-height: 0;
+    flex: 1; overflow-y: auto; padding: 12px 16px 16px; display: flex;
+    flex-direction: column; gap: 4px; min-height: 0;
 }
+/* WhatsApp-like bubbles */
+.conv-bubble-wrap { display: flex; flex-direction: column; }
+.conv-bubble-wrap.mine { align-items: flex-end; }
+.conv-bubble-wrap.theirs { align-items: flex-start; }
 .conv-bubble {
-    max-width: 75%; padding: 10px 14px; border-radius: 18px;
-    font-size: 15px; line-height: 1.45; word-break: break-word;
+    max-width: 78%; padding: 9px 14px; font-size: 15px;
+    line-height: 1.45; word-break: break-word; position: relative;
 }
 .conv-bubble.mine {
     background: #007aff; color: #fff;
-    align-self: flex-end; border-bottom-right-radius: 5px;
+    border-radius: 18px 18px 4px 18px;
 }
 .conv-bubble.theirs {
     background: rgba(120,120,128,0.15); color: var(--text-primary);
-    align-self: flex-start; border-bottom-left-radius: 5px;
+    border-radius: 18px 18px 18px 4px;
 }
-.conv-bubble-time { font-size: 11px; opacity: 0.55; margin-top: 3px; text-align: right; }
-.conv-bubble.theirs .conv-bubble-time { text-align: left; }
+.conv-bubble-time {
+    font-size: 11px; opacity: 0.5; margin-top: 2px;
+    padding: 0 4px;
+}
+.conv-bubble-wrap.mine .conv-bubble-time { text-align: right; color: var(--text-secondary); }
+.conv-bubble-wrap.theirs .conv-bubble-time { text-align: left; color: var(--text-secondary); }
+/* Group consecutive messages */
+.conv-bubble-wrap + .conv-bubble-wrap { margin-top: 4px; }
+.conv-bubble-wrap.mine + .conv-bubble-wrap.theirs,
+.conv-bubble-wrap.theirs + .conv-bubble-wrap.mine { margin-top: 12px; }
 .conv-input-row {
     display: flex; align-items: flex-end; gap: 10px;
-    padding: 10px 16px; border-top: 1px solid var(--glass-border); flex-shrink: 0;
+    padding: 10px 14px; border-top: 1px solid var(--glass-border); flex-shrink: 0;
 }
 .conv-input {
-    flex: 1; border: 1px solid var(--glass-border); border-radius: 20px;
+    flex: 1; border: 1px solid var(--glass-border); border-radius: 22px;
     padding: 10px 16px; font-family: inherit; font-size: 15px;
-    background: rgba(120,120,128,0.1); color: var(--text-primary);
+    background: rgba(120,120,128,0.08); color: var(--text-primary);
     outline: none; resize: none; max-height: 120px; line-height: 1.4;
-    overflow-y: auto;
+    overflow-y: auto; transition: border-color 0.2s;
 }
+.conv-input:focus { border-color: rgba(0,122,255,0.5); }
 .conv-send-btn {
-    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
     background: #007aff; border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     color: #fff; transition: all 0.2s;
 }
 .conv-send-btn:active { transform: scale(0.88); background: #0055cc; }
 .conv-send-btn:disabled { background: rgba(120,120,128,0.3); }
+/* Conversation list */
+.conv-list-inner { padding: 8px 0; }
+.conv-item-wrap { overflow: hidden; position: relative; }
+.conv-item-delete-btn {
+    position: absolute; right: 0; top: 0; bottom: 0; width: 80px;
+    background: #ff3b30; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;
+    flex-direction: column; gap: 4px;
+}
 .conv-item {
     display: flex; align-items: center; gap: 14px;
-    padding: 14px 20px; cursor: pointer; border-bottom: 1px solid var(--glass-border);
-    transition: background 0.15s;
+    padding: 12px 20px; cursor: pointer;
+    background: transparent;
+    transition: transform 0.25s cubic-bezier(0.25,0.8,0.25,1), background 0.15s;
+    position: relative; will-change: transform;
 }
-.conv-item:active { background: rgba(120,120,128,0.08); }
-.conv-item-emoji { font-size: 28px; flex-shrink: 0; line-height: 1; }
+.conv-item:active { background: rgba(120,120,128,0.06); }
+.conv-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(120,120,128,0.12); border: 1px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0; line-height: 1;
+}
 .conv-item-info { flex: 1; min-width: 0; }
 .conv-item-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
 .conv-item-preview {
     font-size: 13px; color: var(--text-secondary);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;
+    font-weight: 400;
 }
-.conv-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.conv-item-preview.unread { color: var(--text-primary); font-weight: 600; }
+.conv-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
 .conv-item-time { font-size: 11px; color: var(--text-secondary); }
+.conv-unread-time { color: #007aff; font-weight: 700; }
 .conv-unread-badge {
     background: #007aff; color: #fff; border-radius: 10px;
     font-size: 12px; font-weight: 700; padding: 2px 7px;
-    min-width: 18px; text-align: center;
+    min-width: 20px; text-align: center; line-height: 18px; height: 18px;
 }
 .bb-msg-badge {
     position: absolute; top: 5px; right: 50%; transform: translateX(14px);
@@ -1396,12 +1435,28 @@ body.preview-mode .file-title-bar { display: none !important; }
     min-width: 16px; text-align: center; line-height: 16px; height: 16px;
     display: none;
 }
-.msg-btn { color: #007aff; border: 1.5px solid #007aff; border-radius: 12px;
-    padding: 10px 20px; font-size: 14px; font-weight: 700;
-    background: transparent; cursor: pointer; width: 100%; margin-bottom: 12px;
+.msg-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: rgba(0,122,255,0.1); color: #007aff;
+    border: 1.5px solid rgba(0,122,255,0.3); border-radius: 14px;
+    padding: 12px 20px; font-size: 14px; font-weight: 700;
+    cursor: pointer; width: 100%; margin-bottom: 16px;
     font-family: inherit; transition: all 0.2s;
+    backdrop-filter: blur(8px);
 }
-.msg-btn:active { background: rgba(0,122,255,0.1); }
+.msg-btn:active { background: rgba(0,122,255,0.2); transform: scale(0.97); }
+.msg-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 20px 12px; flex-shrink: 0;
+}
+.msg-panel-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.msg-panel-close {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(120,120,128,0.15); border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-secondary);
+}
+
 
 </style>
 
@@ -1598,10 +1653,10 @@ body.preview-mode .file-title-bar { display: none !important; }
 <div class="messages-overlay" id="messagesOverlay" onclick="handleMsgOverlayClick(event)">
     <div class="messages-panel" id="messagesPanel">
         <div class="profile-drag-bar"></div>
-        <div class="explore-panel-header">
-            <div class="explore-panel-title">Mesajlar</div>
-            <button class="explore-close-btn" onclick="closeMessagesPanel()">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="msg-panel-header">
+            <div class="msg-panel-title">Mesajlar</div>
+            <button class="msg-panel-close" onclick="closeMessagesPanel()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
@@ -1668,7 +1723,7 @@ body.preview-mode .file-title-bar { display: none !important; }
             </div>
         </div>
         <button class="msg-btn" id="pubProfileMsgBtn" onclick="startMessageWithUser()" style="display:none;">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
             </svg>
             Mesaj Gönder
@@ -1842,6 +1897,12 @@ body.preview-mode .file-title-bar { display: none !important; }
 </div>
 
 <div class="file-title-bar" id="fileTitleBar" style="display:none;">
+    <button class="toolbar-btn" id="toolbarSaveBtn" onclick="handleQuickSave()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 3v5h5M9 17h6M9 13h6"/>
+        </svg>
+        Kaydet
+    </button>
     <button class="toolbar-btn" onclick="openSaveModal()">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
@@ -2716,6 +2777,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     _initBottomSheet('profilePanel',   closeProfilePanel);
     _initBottomSheet('pubProfilePanel', closePublicProfile);
     _initBottomSheet('explorePanel',   closeExplorePanel);
+    _initBottomSheet('messagesPanel',  closeMessagesPanel);
 
     const { data: { session } } = await sb.auth.getSession();
     if (session?.user) {
@@ -3847,6 +3909,7 @@ let _convOtherUser  = null;   // { id, username, emoji }
 let _msgRealtime    = null;
 
 function openMessagesPanel() {
+    _sheetReset('messagesPanel');
     document.getElementById('messagesOverlay').classList.add('open');
     loadConversations();
 }
@@ -3880,7 +3943,7 @@ async function loadConversations() {
     (profiles || []).forEach(p => { pMap[p.id] = p; });
 
     let totalUnread = 0;
-    el.innerHTML = convs.map(c => {
+    const items = convs.map(c => {
         const otherId = c.user1_id === currentUser.id ? c.user2_id : c.user1_id;
         const prof = pMap[otherId] || {};
         const msgs = c.messages || [];
@@ -3889,19 +3952,27 @@ async function loadConversations() {
         totalUnread += unread;
         const preview = lastMsg ? (lastMsg.sender_id === currentUser.id ? 'Sen: ' : '') + lastMsg.content : 'Konuşmaya başla';
         const timeStr = lastMsg ? _fmtTime(lastMsg.created_at) : '';
-        return `<div class="conv-item" onclick="openConversation('${otherId}','${escapeHtml(prof.username||'Kullanıcı')}','${prof.avatar_emoji||'👤'}','${c.id}')">
-            <div class="conv-item-emoji">${prof.avatar_emoji||'👤'}</div>
-            <div class="conv-item-info">
-                <div class="conv-item-name">${escapeHtml(prof.username||'Kullanıcı')}</div>
-                <div class="conv-item-preview">${escapeHtml(preview)}</div>
+        return `<div class="conv-item-wrap" id="wrap-${c.id}">
+            <div class="conv-item-delete-btn" onclick="deleteConversation('${c.id}')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Sil
             </div>
-            <div class="conv-item-right">
-                <div class="conv-item-time">${timeStr}</div>
-                ${unread > 0 ? `<div class="conv-unread-badge">${unread}</div>` : ''}
+            <div class="conv-item" data-conv-id="${c.id}" onclick="openConversation('${otherId}','${escapeHtml(prof.username||'Kullanıcı')}','${prof.avatar_emoji||'👤'}','${c.id}')">
+                <div class="conv-avatar">${prof.avatar_emoji||'👤'}</div>
+                <div class="conv-item-info">
+                    <div class="conv-item-name">${escapeHtml(prof.username||'Kullanıcı')}</div>
+                    <div class="conv-item-preview ${unread > 0 ? 'unread' : ''}">${escapeHtml(preview)}</div>
+                </div>
+                <div class="conv-item-right">
+                    <div class="conv-item-time ${unread > 0 ? 'conv-unread-time' : ''}">${timeStr}</div>
+                    ${unread > 0 ? `<div class="conv-unread-badge">${unread}</div>` : ''}
+                </div>
             </div>
         </div>`;
     }).join('');
+    el.innerHTML = `<div class="conv-list-inner">${items}</div>`;
     _setBadge(totalUnread);
+    _attachConvSwipe();
 }
 
 async function openConversation(otherId, username, emoji, existingConvId) {
@@ -3955,6 +4026,7 @@ async function loadMessages() {
         .update({ read: true })
         .eq('conversation_id', _activeConvId)
         .neq('sender_id', currentUser.id);
+    _updateUnreadBadge();
 }
 
 function _renderMessages(msgs) {
@@ -3965,8 +4037,9 @@ function _renderMessages(msgs) {
     }
     el.innerHTML = msgs.map(m => {
         const mine = m.sender_id === currentUser.id;
-        return `<div>
-            <div class="conv-bubble ${mine ? 'mine' : 'theirs'}">${escapeHtml(m.content)}</div>
+        const side = mine ? 'mine' : 'theirs';
+        return `<div class="conv-bubble-wrap ${side}">
+            <div class="conv-bubble ${side}">${escapeHtml(m.content)}</div>
             <div class="conv-bubble-time">${_fmtTime(m.created_at)}</div>
         </div>`;
     }).join('');
@@ -3983,8 +4056,10 @@ function _subscribeConv() {
             const el = document.getElementById('convMessages');
             const m = payload.new;
             const mine = m.sender_id === currentUser.id;
+            const side = mine ? 'mine' : 'theirs';
             const div = document.createElement('div');
-            div.innerHTML = `<div class="conv-bubble ${mine ? 'mine' : 'theirs'}">${escapeHtml(m.content)}</div>
+            div.className = `conv-bubble-wrap ${side}`;
+            div.innerHTML = `<div class="conv-bubble ${side}">${escapeHtml(m.content)}</div>
                 <div class="conv-bubble-time">${_fmtTime(m.created_at)}</div>`;
             el.appendChild(div);
             el.scrollTop = el.scrollHeight;
@@ -4045,6 +4120,55 @@ function _setBadge(n) {
     if (!b) return;
     if (n > 0) { b.style.display = ''; b.textContent = n > 99 ? '99+' : n; }
     else { b.style.display = 'none'; }
+}
+
+function _attachConvSwipe() {
+    document.querySelectorAll('.conv-item-wrap').forEach(wrap => {
+        const item = wrap.querySelector('.conv-item');
+        if (!item || item._swipeAttached) return;
+        item._swipeAttached = true;
+        let startX = 0, startY = 0, dx = 0, swiping = false, decided = false;
+        item.addEventListener('touchstart', e => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            dx = 0; swiping = false; decided = false;
+            item.style.transition = 'none';
+        }, { passive: true });
+        item.addEventListener('touchmove', e => {
+            const cx = e.touches[0].clientX, cy = e.touches[0].clientY;
+            if (!decided) {
+                if (Math.abs(cx - startX) < 6 && Math.abs(cy - startY) < 6) return;
+                decided = true;
+                swiping = Math.abs(cx - startX) > Math.abs(cy - startY);
+            }
+            if (!swiping) return;
+            dx = Math.min(0, cx - startX);
+            item.style.transform = `translateX(${dx}px)`;
+        }, { passive: true });
+        item.addEventListener('touchend', () => {
+            if (!swiping) return;
+            item.style.transition = 'transform 0.25s cubic-bezier(0.25,0.8,0.25,1)';
+            if (dx < -80) {
+                item.style.transform = 'translateX(-80px)';
+            } else {
+                item.style.transform = 'translateX(0)';
+            }
+        });
+    });
+}
+
+async function deleteConversation(convId) {
+    const wrap = document.getElementById('wrap-' + convId);
+    if (wrap) {
+        wrap.style.transition = 'opacity 0.3s, max-height 0.3s';
+        wrap.style.opacity = '0';
+        wrap.style.maxHeight = wrap.offsetHeight + 'px';
+        setTimeout(() => { wrap.style.maxHeight = '0'; wrap.style.overflow = 'hidden'; }, 10);
+        setTimeout(() => wrap.remove(), 350);
+    }
+    await sb.from('messages').delete().eq('conversation_id', convId);
+    await sb.from('conversations').delete().eq('id', convId);
+    _updateUnreadBadge();
 }
 
 function _fmtTime(iso) {
