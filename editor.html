@@ -1292,6 +1292,117 @@ body.preview-mode .file-title-bar { display: none !important; }
     .cm-keyword  { color: #9b59b6; }
 }
 
+/* ── MESAJLAR ─────────────────────────────────────── */
+.messages-overlay {
+    position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.3); backdrop-filter: blur(4px);
+    display: none; align-items: flex-end;
+}
+.messages-overlay.open { display: flex; }
+.messages-panel {
+    width: 100%; background: var(--glass-bg);
+    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    border-top: 1px solid var(--glass-border);
+    border-radius: 24px 24px 0 0;
+    height: 55%; display: flex; flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    transition: height 0.35s cubic-bezier(0.25,0.8,0.25,1);
+}
+.conv-overlay {
+    position: fixed; inset: 0; z-index: 350;
+    background: var(--glass-bg);
+    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    display: flex; flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.conv-overlay.open { transform: translateX(0); }
+.conv-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px; border-bottom: 1px solid var(--glass-border);
+    padding-top: max(16px, env(safe-area-inset-top, 16px)); flex-shrink: 0;
+}
+.conv-back-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--glass-border); background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-primary); flex-shrink: 0;
+}
+.conv-header-name { font-size: 17px; font-weight: 700; color: var(--text-primary); flex: 1; }
+.conv-messages {
+    flex: 1; overflow-y: auto; padding: 16px; display: flex;
+    flex-direction: column; gap: 8px; min-height: 0;
+}
+.conv-bubble {
+    max-width: 75%; padding: 10px 14px; border-radius: 18px;
+    font-size: 15px; line-height: 1.45; word-break: break-word;
+}
+.conv-bubble.mine {
+    background: #007aff; color: #fff;
+    align-self: flex-end; border-bottom-right-radius: 5px;
+}
+.conv-bubble.theirs {
+    background: rgba(120,120,128,0.15); color: var(--text-primary);
+    align-self: flex-start; border-bottom-left-radius: 5px;
+}
+.conv-bubble-time { font-size: 11px; opacity: 0.55; margin-top: 3px; text-align: right; }
+.conv-bubble.theirs .conv-bubble-time { text-align: left; }
+.conv-input-row {
+    display: flex; align-items: flex-end; gap: 10px;
+    padding: 10px 16px; border-top: 1px solid var(--glass-border); flex-shrink: 0;
+}
+.conv-input {
+    flex: 1; border: 1px solid var(--glass-border); border-radius: 20px;
+    padding: 10px 16px; font-family: inherit; font-size: 15px;
+    background: rgba(120,120,128,0.1); color: var(--text-primary);
+    outline: none; resize: none; max-height: 120px; line-height: 1.4;
+    overflow-y: auto;
+}
+.conv-send-btn {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    background: #007aff; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; transition: all 0.2s;
+}
+.conv-send-btn:active { transform: scale(0.88); background: #0055cc; }
+.conv-send-btn:disabled { background: rgba(120,120,128,0.3); }
+.conv-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 20px; cursor: pointer; border-bottom: 1px solid var(--glass-border);
+    transition: background 0.15s;
+}
+.conv-item:active { background: rgba(120,120,128,0.08); }
+.conv-item-emoji { font-size: 28px; flex-shrink: 0; line-height: 1; }
+.conv-item-info { flex: 1; min-width: 0; }
+.conv-item-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.conv-item-preview {
+    font-size: 13px; color: var(--text-secondary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;
+}
+.conv-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.conv-item-time { font-size: 11px; color: var(--text-secondary); }
+.conv-unread-badge {
+    background: #007aff; color: #fff; border-radius: 10px;
+    font-size: 12px; font-weight: 700; padding: 2px 7px;
+    min-width: 18px; text-align: center;
+}
+.bb-msg-badge {
+    position: absolute; top: 5px; right: 50%; transform: translateX(14px);
+    background: #ff3b30; color: #fff; border-radius: 8px;
+    font-size: 10px; font-weight: 700; padding: 0 5px;
+    min-width: 16px; text-align: center; line-height: 16px; height: 16px;
+    display: none;
+}
+.msg-btn { color: #007aff; border: 1.5px solid #007aff; border-radius: 12px;
+    padding: 10px 20px; font-size: 14px; font-weight: 700;
+    background: transparent; cursor: pointer; width: 100%; margin-bottom: 12px;
+    font-family: inherit; transition: all 0.2s;
+}
+.msg-btn:active { background: rgba(0,122,255,0.1); }
+
 </style>
 
 </head>
@@ -1482,6 +1593,53 @@ body.preview-mode .file-title-bar { display: none !important; }
     </div>
 </div>
 
+<!-- ── MESAJLAR PANELİ ─────────────────────────────────────────────────── -->
+
+<div class="messages-overlay" id="messagesOverlay" onclick="handleMsgOverlayClick(event)">
+    <div class="messages-panel" id="messagesPanel">
+        <div class="profile-drag-bar"></div>
+        <div class="explore-panel-header">
+            <div class="explore-panel-title">Mesajlar</div>
+            <button class="explore-close-btn" onclick="closeMessagesPanel()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div id="conversationsList" style="overflow-y:auto;flex:1;">
+            <div class="search-empty">Yükleniyor...</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── KONUŞMA EKRANI ──────────────────────────────────────────────────── -->
+
+<div class="conv-overlay" id="convOverlay">
+    <div class="conv-header">
+        <button class="conv-back-btn" onclick="closeConversation()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
+        <span id="convHeaderEmoji" style="font-size:22px;"></span>
+        <span class="conv-header-name" id="convHeaderName"></span>
+    </div>
+    <div class="conv-messages" id="convMessages">
+        <div class="search-empty">Yükleniyor...</div>
+    </div>
+    <div class="conv-input-row">
+        <textarea class="conv-input" id="convInput" rows="1"
+            placeholder="Mesaj yaz..."
+            onkeydown="handleConvKeydown(event)"
+            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+        <button class="conv-send-btn" id="convSendBtn" onclick="sendMessage()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+        </button>
+    </div>
+</div>
+
 <!-- ── PUBLIC PROFİL PANELI ────────────────────────────────────────────── -->
 
 <div class="pub-profile-overlay" id="pubProfileOverlay" onclick="handlePubProfileOverlayClick(event)">
@@ -1509,6 +1667,12 @@ body.preview-mode .file-title-bar { display: none !important; }
                 <div class="profile-stat-label">Satır</div>
             </div>
         </div>
+        <button class="msg-btn" id="pubProfileMsgBtn" onclick="startMessageWithUser()" style="display:none;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+            </svg>
+            Mesaj Gönder
+        </button>
         <div class="profile-section-title">Public Dosyalar</div>
         <div id="pubFilesList"></div>
     </div>
@@ -1654,6 +1818,13 @@ body.preview-mode .file-title-bar { display: none !important; }
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
         </svg>
         Keşfet
+    </button>
+    <button class="bottom-bar-btn" id="bbMsgBtn" onclick="openMessagesPanel()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="position:relative;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+        </svg>
+        <span class="bb-msg-badge" id="bbMsgBadge">0</span>
+        Mesaj
     </button>
     <button class="bottom-bar-btn" onclick="openSavedFilesPanel()">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
