@@ -1153,6 +1153,25 @@ body.preview-mode .toast { bottom: 80px; }
 }
 .comment-send-btn:active { transform: scale(0.88); }
 
+/* ── DOSYA ÖNİZLEME ─────────────────────────────────────── */
+.file-preview-box {
+    border-radius: 10px; overflow: hidden; border: 1px solid var(--glass-border);
+    margin-bottom: 12px; height: 200px; background: #fff; position: relative;
+}
+.file-preview-frame { width: 100%; height: 100%; border: none; pointer-events: none; display: block; }
+.file-preview-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #888; background: #f5f5f5; }
+.pub-file-expand-body {
+    display: none; border: 1px solid var(--glass-border); border-top: none;
+    padding: 12px 14px; background: var(--glass-bg);
+}
+.pub-file-expand-body.open { display: block; }
+.pub-file-load-btn {
+    width: 100%; padding: 9px; background: #007aff; color: #fff; border: none;
+    border-radius: 10px; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: opacity 0.15s; margin-bottom: 0;
+}
+.pub-file-load-btn:active { opacity: 0.75; }
+
 /* ── PUBLIC TOGGLE ───────────────────────────────────────── */
 .public-toggle-row {
     display: flex; align-items: center; justify-content: space-between;
@@ -3859,7 +3878,7 @@ async function openPublicProfile(userId) {
                 const cnt   = _likeCounts[f.id] || 0;
                 return `
                 <div class="pub-file-wrap">
-                    <div class="pub-file-card" onclick="loadPublicFile(${f.id})">
+                    <div class="pub-file-card" onclick="togglePubFileCard(${f.id})">
                         <div class="pub-file-icon">
                             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
@@ -3873,6 +3892,13 @@ async function openPublicProfile(userId) {
                             onclick="event.stopPropagation();toggleLike(${f.id})">
                             ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
                         </button>
+                    </div>
+                    <div class="pub-file-expand-body" id="pfbody-${f.id}">
+                        <div class="file-preview-box">
+                            <div class="file-preview-loading" id="pfload-${f.id}">Önizleme yükleniyor...</div>
+                            <iframe class="file-preview-frame" id="pfprev-${f.id}" sandbox="allow-scripts allow-same-origin" style="display:none;"></iframe>
+                        </div>
+                        <button class="pub-file-load-btn" onclick="loadPublicFile(${f.id})">Editörde Aç</button>
                     </div>
                     <div class="comments-section">
                         <button class="comments-toggle" onclick="toggleComments(${f.id},this)">
@@ -3905,6 +3931,25 @@ function closePublicProfile() {
 
 function handlePubProfileOverlayClick(e) {
     if (e.target.id === 'pubProfileOverlay') closePublicProfile();
+}
+
+function togglePubFileCard(fileId) {
+    const body = document.getElementById('pfbody-' + fileId);
+    if (!body) return;
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    if (!isOpen) {
+        const frame = document.getElementById('pfprev-' + fileId);
+        const loader = document.getElementById('pfload-' + fileId);
+        if (frame && !frame.dataset.loaded) {
+            const cached = _pubFilesData[fileId];
+            if (cached?.code) {
+                frame.onload = () => { if (loader) loader.style.display = 'none'; frame.style.display = 'block'; };
+                frame.srcdoc = cached.code;
+                frame.dataset.loaded = '1';
+            }
+        }
+    }
 }
 
 function loadPublicFile(fileId) {
@@ -4056,8 +4101,12 @@ async function loadExploreFiles() {
                     </button>
                 </div>
                 <div class="explore-card-body" id="ebody-${f.id}">
+                    <div class="file-preview-box">
+                        <div class="file-preview-loading" id="eload-${f.id}">Önizleme yükleniyor...</div>
+                        <iframe class="file-preview-frame" id="eprev-${f.id}" sandbox="allow-scripts allow-same-origin" style="display:none;"></iframe>
+                    </div>
                     <div class="explore-card-actions">
-                        <button class="explore-edit-btn" onclick="loadExploreFile(${f.id})">Düzenle</button>
+                        <button class="explore-edit-btn" onclick="loadExploreFile(${f.id})">Editörde Aç</button>
                         <button class="explore-author-btn" onclick="openPublicProfile('${f.user_id}')">${emoji} ${escapeHtml(author)}</button>
                     </div>
                     <div class="explore-cmt-count" id="ecmt-count-${f.id}">Yükleniyor...</div>
@@ -4080,7 +4129,7 @@ function loadExploreFile(fileId) {
     });
 }
 
-function toggleExploreCard(fileId) {
+async function toggleExploreCard(fileId) {
     const card = document.querySelector(`#ewrap-${fileId} .explore-file-card`);
     const body = document.getElementById('ebody-' + fileId);
     if (!card || !body) return;
@@ -4092,6 +4141,19 @@ function toggleExploreCard(fileId) {
     }
     card.classList.remove('closed');
     body.classList.add('open');
+    // Load preview iframe once
+    const frame = document.getElementById('eprev-' + fileId);
+    const loader = document.getElementById('eload-' + fileId);
+    if (frame && !frame.dataset.loaded) {
+        const { data } = await sb.from('files').select('code').eq('id', fileId).single();
+        if (data?.code) {
+            frame.onload = () => { if (loader) loader.style.display = 'none'; frame.style.display = 'block'; };
+            frame.srcdoc = data.code;
+            frame.dataset.loaded = '1';
+            // cache for loadExploreFile
+            if (!_pubFilesData[fileId]) _pubFilesData[fileId] = { filename: (_exploreDataMap[fileId]?.filename || ''), code: data.code };
+        }
+    }
     _loadExploreComments(fileId);
 }
 
