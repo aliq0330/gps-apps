@@ -1260,13 +1260,17 @@ body.preview-mode .file-title-bar { display: none !important; }
     font-size: 15px; line-height: 1.6; letter-spacing: -0.01em;
     color: var(--text-primary); border: none;
 }
-.CodeMirror-scroll { padding: 20px; padding-bottom: 140px; box-sizing: border-box; }
+.CodeMirror-scroll { padding: 12px 20px; padding-bottom: 140px; box-sizing: border-box; overflow-x: auto !important; }
+.CodeMirror-scroll::-webkit-scrollbar:horizontal { height: 6px; }
+.CodeMirror-hscrollbar::-webkit-scrollbar { height: 6px; }
+.CodeMirror-hscrollbar::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
 .CodeMirror-lines { padding: 0; }
 .CodeMirror-cursor { border-left: 2px solid var(--accent) !important; }
 .CodeMirror-selected, .CodeMirror-focused .CodeMirror-selected {
     background: rgba(0,122,255,0.18) !important;
 }
-.CodeMirror-gutters { display: none; }
+.CodeMirror-gutters { background: transparent !important; border-right: 1px solid var(--glass-border) !important; }
+.CodeMirror-linenumber { color: var(--text-secondary); font-size: 12px; padding: 0 8px 0 6px; min-width: 28px; text-align: right; }
 .CodeMirror-scroll::-webkit-scrollbar { width: 8px; }
 .CodeMirror-scroll::-webkit-scrollbar-track { background: transparent; }
 .CodeMirror-scroll::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
@@ -2706,9 +2710,9 @@ function handleKeydown(e) {
 function _initCodeMirror() {
     if (typeof CodeMirror === 'undefined') return;
     window.cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
-        lineNumbers: false,
+        lineNumbers: true,
         mode: 'htmlmixed',
-        lineWrapping: true,
+        lineWrapping: false,
         tabSize: 2,
         indentWithTabs: false,
         autofocus: false,
