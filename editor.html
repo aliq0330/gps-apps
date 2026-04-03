@@ -2879,8 +2879,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         onUserLoggedIn(session.user);
     }
     sb.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' && session?.user && !currentUser) {
-            onUserLoggedIn(session.user);
+        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session?.user) {
+            if (!currentUser) onUserLoggedIn(session.user);
+            return;
         }
         if (event === 'SIGNED_OUT') {
             currentUser = null;
