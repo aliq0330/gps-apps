@@ -4536,7 +4536,7 @@ async function submitComment(fileId) {
         user_id: currentUser.id,
         content
     });
-    if (error) { showToast('Yorum gönderilemedi'); inp.value = content; return; }
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     await loadComments(fileId);
 }
 
