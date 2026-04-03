@@ -2530,6 +2530,7 @@ function showApp() {
     initSwitcher(document.getElementById('viewSwitcher'));
     loadFromStorage();
     updateEditor();
+    _updateUnreadBadge();
     updateFilenameDisplay();
     updateTabDotColor();
 }
@@ -3579,6 +3580,11 @@ async function openPublicProfile(userId) {
         if (prof) {
             document.getElementById('pubProfileEmoji').textContent    = prof.avatar_emoji || '👤';
             document.getElementById('pubProfileUsername').textContent = prof.username || 'Kullanıcı';
+            const msgBtn = document.getElementById('pubProfileMsgBtn');
+            if (msgBtn) {
+                msgBtn.style.display = currentUser && currentUser.id !== userId ? '' : 'none';
+                msgBtn.dataset.userId = userId;
+            }
             const d = new Date(prof.created_at || Date.now());
             document.getElementById('pubProfileSince').textContent =
                 'Üyelik: ' + d.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
@@ -3833,6 +3839,222 @@ async function toggleFilePublic(fileId, currentState, event) {
         btn.classList.toggle('on', currentState); // geri al
         showToast('İşlem başarısız');
     }
+}
+
+// ── MESAJLAŞMA ──────────────────────────────────────────────────────────
+let _activeConvId   = null;
+let _convOtherUser  = null;   // { id, username, emoji }
+let _msgRealtime    = null;
+
+function openMessagesPanel() {
+    document.getElementById('messagesOverlay').classList.add('open');
+    loadConversations();
+}
+function closeMessagesPanel() {
+    document.getElementById('messagesOverlay').classList.remove('open');
+}
+function handleMsgOverlayClick(e) {
+    if (e.target.id === 'messagesOverlay') closeMessagesPanel();
+}
+
+async function loadConversations() {
+    if (!currentUser) return;
+    const el = document.getElementById('conversationsList');
+    el.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
+
+    const { data: convs, error } = await sb
+        .from('conversations')
+        .select('*, messages(content, created_at, sender_id, read)')
+        .or(`user1_id.eq.${currentUser.id},user2_id.eq.${currentUser.id}`)
+        .order('last_message_at', { ascending: false });
+
+    if (error || !convs || convs.length === 0) {
+        el.innerHTML = '<div class="search-empty">Henüz mesajın yok</div>';
+        return;
+    }
+
+    // Get other user IDs
+    const otherIds = convs.map(c => c.user1_id === currentUser.id ? c.user2_id : c.user1_id);
+    const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', otherIds);
+    const pMap = {};
+    (profiles || []).forEach(p => { pMap[p.id] = p; });
+
+    let totalUnread = 0;
+    el.innerHTML = convs.map(c => {
+        const otherId = c.user1_id === currentUser.id ? c.user2_id : c.user1_id;
+        const prof = pMap[otherId] || {};
+        const msgs = c.messages || [];
+        const lastMsg = msgs[msgs.length - 1];
+        const unread = msgs.filter(m => !m.read && m.sender_id !== currentUser.id).length;
+        totalUnread += unread;
+        const preview = lastMsg ? (lastMsg.sender_id === currentUser.id ? 'Sen: ' : '') + lastMsg.content : 'Konuşmaya başla';
+        const timeStr = lastMsg ? _fmtTime(lastMsg.created_at) : '';
+        return `<div class="conv-item" onclick="openConversation('${otherId}','${escapeHtml(prof.username||'Kullanıcı')}','${prof.avatar_emoji||'👤'}','${c.id}')">
+            <div class="conv-item-emoji">${prof.avatar_emoji||'👤'}</div>
+            <div class="conv-item-info">
+                <div class="conv-item-name">${escapeHtml(prof.username||'Kullanıcı')}</div>
+                <div class="conv-item-preview">${escapeHtml(preview)}</div>
+            </div>
+            <div class="conv-item-right">
+                <div class="conv-item-time">${timeStr}</div>
+                ${unread > 0 ? `<div class="conv-unread-badge">${unread}</div>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+    _setBadge(totalUnread);
+}
+
+async function openConversation(otherId, username, emoji, existingConvId) {
+    _convOtherUser = { id: otherId, username, emoji };
+    document.getElementById('convHeaderEmoji').textContent = emoji;
+    document.getElementById('convHeaderName').textContent = username;
+    document.getElementById('convMessages').innerHTML = '<div class="search-empty">Yükleniyor...</div>';
+    document.getElementById('convInput').value = '';
+    document.getElementById('convInput').style.height = 'auto';
+    document.getElementById('convOverlay').classList.add('open');
+
+    // Find or create conversation
+    if (existingConvId) {
+        _activeConvId = existingConvId;
+    } else {
+        const u1 = currentUser.id < otherId ? currentUser.id : otherId;
+        const u2 = currentUser.id < otherId ? otherId : currentUser.id;
+        let { data: existing } = await sb.from('conversations')
+            .select('id').eq('user1_id', u1).eq('user2_id', u2).maybeSingle();
+        if (existing) {
+            _activeConvId = existing.id;
+        } else {
+            const { data: created } = await sb.from('conversations')
+                .insert({ user1_id: u1, user2_id: u2 }).select('id').single();
+            _activeConvId = created?.id;
+        }
+    }
+
+    await loadMessages();
+    _subscribeConv();
+}
+
+function closeConversation() {
+    document.getElementById('convOverlay').classList.remove('open');
+    if (_msgRealtime) { sb.removeChannel(_msgRealtime); _msgRealtime = null; }
+    _activeConvId = null; _convOtherUser = null;
+}
+
+async function loadMessages() {
+    if (!_activeConvId) return;
+    const el = document.getElementById('convMessages');
+
+    const { data: msgs } = await sb.from('messages')
+        .select('*').eq('conversation_id', _activeConvId)
+        .order('created_at', { ascending: true });
+
+    _renderMessages(msgs || []);
+
+    // Mark as read
+    await sb.from('messages')
+        .update({ read: true })
+        .eq('conversation_id', _activeConvId)
+        .neq('sender_id', currentUser.id);
+}
+
+function _renderMessages(msgs) {
+    const el = document.getElementById('convMessages');
+    if (msgs.length === 0) {
+        el.innerHTML = '<div class="search-empty" style="margin-top:40px;">İlk mesajı sen gönder 👋</div>';
+        return;
+    }
+    el.innerHTML = msgs.map(m => {
+        const mine = m.sender_id === currentUser.id;
+        return `<div>
+            <div class="conv-bubble ${mine ? 'mine' : 'theirs'}">${escapeHtml(m.content)}</div>
+            <div class="conv-bubble-time">${_fmtTime(m.created_at)}</div>
+        </div>`;
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+}
+
+function _subscribeConv() {
+    if (_msgRealtime) sb.removeChannel(_msgRealtime);
+    _msgRealtime = sb.channel('conv-' + _activeConvId)
+        .on('postgres_changes', {
+            event: 'INSERT', schema: 'public', table: 'messages',
+            filter: `conversation_id=eq.${_activeConvId}`
+        }, payload => {
+            const el = document.getElementById('convMessages');
+            const m = payload.new;
+            const mine = m.sender_id === currentUser.id;
+            const div = document.createElement('div');
+            div.innerHTML = `<div class="conv-bubble ${mine ? 'mine' : 'theirs'}">${escapeHtml(m.content)}</div>
+                <div class="conv-bubble-time">${_fmtTime(m.created_at)}</div>`;
+            el.appendChild(div);
+            el.scrollTop = el.scrollHeight;
+            if (!mine) {
+                sb.from('messages').update({ read: true }).eq('id', m.id);
+            }
+        })
+        .subscribe();
+}
+
+async function sendMessage() {
+    if (!_activeConvId || !currentUser) return;
+    const inp = document.getElementById('convInput');
+    const content = inp.value.trim();
+    if (!content) return;
+    inp.value = ''; inp.style.height = 'auto';
+    document.getElementById('convSendBtn').disabled = true;
+    try {
+        await sb.from('messages').insert({
+            conversation_id: _activeConvId,
+            sender_id: currentUser.id,
+            content
+        });
+        await sb.from('conversations')
+            .update({ last_message_at: new Date().toISOString() })
+            .eq('id', _activeConvId);
+    } catch(e) {
+        showToast('Mesaj gönderilemedi');
+        inp.value = content;
+    }
+    document.getElementById('convSendBtn').disabled = false;
+}
+
+function handleConvKeydown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function startMessageWithUser() {
+    if (!currentUser) { showToast('Mesaj göndermek için giriş yapın'); return; }
+    const userId = document.getElementById('pubProfileMsgBtn').dataset.userId;
+    const username = document.getElementById('pubProfileUsername').textContent;
+    const emoji = document.getElementById('pubProfileEmoji').textContent;
+    closePublicProfile();
+    setTimeout(() => openConversation(userId, username, emoji, null), 300);
+}
+
+async function _updateUnreadBadge() {
+    if (!currentUser) return;
+    const { data } = await sb.from('messages')
+        .select('id', { count: 'exact' })
+        .eq('read', false)
+        .neq('sender_id', currentUser.id);
+    _setBadge(data?.length || 0);
+}
+
+function _setBadge(n) {
+    const b = document.getElementById('bbMsgBadge');
+    if (!b) return;
+    if (n > 0) { b.style.display = ''; b.textContent = n > 99 ? '99+' : n; }
+    else { b.style.display = 'none'; }
+}
+
+function _fmtTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso), now = new Date();
+    const diff = now - d;
+    if (diff < 60000) return 'Az önce';
+    if (diff < 3600000) return Math.floor(diff/60000) + 'dk';
+    if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
+    return d.toLocaleDateString('tr-TR', { day:'numeric', month:'short' });
 }
 </script>
 
