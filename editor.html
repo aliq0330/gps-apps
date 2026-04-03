@@ -1271,7 +1271,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
     -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
     border: 1px solid var(--glass-border); border-radius: 32px 32px 0 0;
-    padding: 12px 24px 40px; width: 100%; max-width: 520px;
+    padding: 12px 16px 40px; width: 100%; max-width: 520px;
     box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
     height: 50vh; overflow-y: hidden;
     transition: height 0.35s cubic-bezier(0.25,0.8,0.25,1); will-change: height;
@@ -1281,7 +1281,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 .explore-panel::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
 .explore-panel-header {
     display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 16px; flex-shrink: 0;
+    margin-bottom: 14px; flex-shrink: 0;
 }
 .explore-panel-title { font-size: 20px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
 .explore-close-btn {
@@ -1291,36 +1291,65 @@ body.preview-mode .file-title-bar { display: none !important; }
     display: flex; align-items: center; justify-content: center; transition: var(--transition);
 }
 .explore-close-btn:hover { background: rgba(255,69,58,0.15); border-color: rgba(255,69,58,0.3); }
+
+/* Grid layout */
+#exploreList { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-bottom: 20px; }
+.explore-card-wrap { grid-column: span 1; }
+.explore-card-wrap.expanded { grid-column: 1 / -1; }
+
+/* Kare kart (collapsed) */
 .explore-file-card {
     background: var(--glass-bg); border: 1px solid var(--glass-border);
-    border-radius: 16px; padding: 12px 14px; margin-bottom: 10px;
-    cursor: pointer; transition: all 0.2s ease;
-    display: flex; align-items: center; gap: 10px;
+    border-radius: 14px; overflow: hidden; cursor: pointer;
+    display: flex; flex-direction: column; transition: border-radius 0.2s;
 }
-.explore-file-card:active { background: rgba(120,120,128,0.1); }
-@media (prefers-color-scheme: dark) { .explore-file-card:active { background: rgba(255,255,255,0.06); } }
-.explore-card-wrap { margin-bottom: 10px; }
-.explore-card-wrap .explore-file-card { border-radius: 16px 16px 0 0; margin-bottom: 0; transition: border-radius 0.2s; }
-.explore-card-wrap .explore-file-card.closed { border-radius: 16px; }
-.explore-card-body { display: none; border: 1px solid var(--glass-border); border-top: none; border-radius: 0 0 16px 16px; padding: 12px 14px 14px; background: var(--glass-bg); }
+.explore-file-card:active { opacity: 0.85; }
+
+/* Küçük resim (thumbnail) alanı */
+.explore-card-thumb {
+    width: 100%; aspect-ratio: 1; overflow: hidden;
+    background: #fff; position: relative; flex-shrink: 0;
+}
+.explore-thumb-loader {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; font-size: 11px; color: #888;
+    background: #f0f0f0; z-index: 1;
+}
+.explore-thumb-frame {
+    position: absolute; top: 0; left: 0;
+    width: 390px; height: 390px; border: none; pointer-events: none;
+    transform-origin: top left; opacity: 0; transition: opacity 0.3s;
+}
+.explore-thumb-frame.loaded { opacity: 1; }
+.explore-rank-badge {
+    position: absolute; top: 6px; left: 6px;
+    font-size: 15px; z-index: 2; line-height: 1;
+}
+
+/* Kart alt bilgi satırı */
+.explore-card-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 10px; border-top: 1px solid var(--glass-border); flex-shrink: 0;
+}
+.explore-file-info { flex: 1; min-width: 0; }
+.explore-file-name {
+    font-size: 12px; font-weight: 700; color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.explore-file-author { font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-top: 1px; }
+
+/* Genişletilmiş hâl */
+.explore-card-wrap.expanded .explore-file-card { border-radius: 14px 14px 0 0; flex-direction: row; align-items: center; padding: 10px 12px; }
+.explore-card-wrap.expanded .explore-card-thumb { display: none; }
+.explore-card-wrap.expanded .explore-card-row { border-top: none; padding: 0; flex: 1; }
+.explore-card-body { display: none; border: 1px solid var(--glass-border); border-top: none; border-radius: 0 0 14px 14px; padding: 12px 14px 14px; background: var(--glass-bg); }
 .explore-card-body.open { display: block; }
 .explore-card-actions { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .explore-edit-btn { padding: 7px 16px; background: #007aff; color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
 .explore-edit-btn:active { opacity: 0.75; }
 .explore-author-btn { font-size: 13px; color: var(--text-secondary); cursor: pointer; border: none; background: none; font-family: inherit; padding: 0; text-decoration: underline; text-underline-offset: 2px; margin-left: auto; }
 .explore-cmt-count { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-bottom: 8px; }
-.explore-file-icon {
-    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
-    background: rgba(0,122,255,0.12); border: 1px solid rgba(0,122,255,0.2);
-    display: flex; align-items: center; justify-content: center; color: #007aff;
-}
-.explore-file-info { flex: 1; min-width: 0; }
-.explore-file-name {
-    font-size: 14px; font-weight: 700; color: var(--text-primary);
-    font-family: 'JetBrains Mono', monospace;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.explore-file-author { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-top: 2px; }
 
 /* ── BEĞEN BUTONU ────────────────────────────────────────── */
 .like-btn {
@@ -4070,11 +4099,8 @@ async function loadExploreFiles() {
             return;
         }
 
-        const pad = n => String(n).padStart(2, '0');
         _exploreDataMap = {};
         list.innerHTML = sorted.map((f, i) => {
-            const d      = new Date(f.updated_at);
-            const date   = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
             const prof   = profileMap[f.user_id];
             const author = prof?.username || 'Kullanıcı';
             const emoji  = prof?.avatar_emoji || '👤';
@@ -4084,36 +4110,34 @@ async function loadExploreFiles() {
             _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, filename: f.filename };
             return `
             <div class="explore-card-wrap" id="ewrap-${f.id}">
-                <div class="explore-file-card closed" onclick="toggleExploreCard(${f.id})">
-                    <div class="explore-file-icon">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                        </svg>
+                <div class="explore-file-card" onclick="toggleExploreCard(${f.id})">
+                    <div class="explore-card-thumb">
+                        <span class="explore-rank-badge">${rank}</span>
+                        <div class="explore-thumb-loader" id="eload-${f.id}">···</div>
+                        <iframe class="explore-thumb-frame" id="eprev-${f.id}" sandbox="allow-scripts allow-same-origin"></iframe>
                     </div>
-                    <div style="font-size:16px;flex-shrink:0;">${rank}</div>
-                    <div class="explore-file-info">
-                        <div class="explore-file-name">${escapeHtml(f.filename)}</div>
-                        <div class="explore-file-author">${emoji} ${escapeHtml(author)}</div>
+                    <div class="explore-card-row">
+                        <div class="explore-file-info">
+                            <div class="explore-file-name">${escapeHtml(f.filename)}</div>
+                            <div class="explore-file-author">${emoji} ${escapeHtml(author)}</div>
+                        </div>
+                        <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
+                            onclick="event.stopPropagation();toggleLike(${f.id})" style="font-size:12px;padding:4px 8px;">
+                            ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
+                        </button>
                     </div>
-                    <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
-                        onclick="event.stopPropagation();toggleLike(${f.id})">
-                        ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
-                    </button>
                 </div>
                 <div class="explore-card-body" id="ebody-${f.id}">
-                    <div class="file-preview-box">
-                        <div class="file-preview-loading" id="eload-${f.id}">Önizleme yükleniyor...</div>
-                        <iframe class="file-preview-frame" id="eprev-${f.id}" sandbox="allow-scripts allow-same-origin" style="display:none;"></iframe>
-                    </div>
                     <div class="explore-card-actions">
                         <button class="explore-edit-btn" onclick="loadExploreFile(${f.id})">Editörde Aç</button>
                         <button class="explore-author-btn" onclick="openPublicProfile('${f.user_id}')">${emoji} ${escapeHtml(author)}</button>
                     </div>
-                    <div class="explore-cmt-count" id="ecmt-count-${f.id}">Yükleniyor...</div>
+                    <div class="explore-cmt-count" id="ecmt-count-${f.id}"></div>
                     <div id="ecmt-list-${f.id}"></div>
                 </div>
             </div>`;
         }).join('');
+        _initExploreLazy();
     } catch(e) {
         console.error('Explore error:', e);
         list.innerHTML = '<div class="search-empty">Yüklenemedi</div>';
@@ -4129,32 +4153,61 @@ function loadExploreFile(fileId) {
     });
 }
 
-async function toggleExploreCard(fileId) {
-    const card = document.querySelector(`#ewrap-${fileId} .explore-file-card`);
+function toggleExploreCard(fileId) {
+    const wrap = document.getElementById('ewrap-' + fileId);
     const body = document.getElementById('ebody-' + fileId);
-    if (!card || !body) return;
-    const isOpen = body.classList.contains('open');
+    if (!wrap || !body) return;
+    const isOpen = wrap.classList.contains('expanded');
     if (isOpen) {
+        wrap.classList.remove('expanded');
         body.classList.remove('open');
-        card.classList.add('closed');
-        return;
+    } else {
+        // Close any other expanded card
+        document.querySelectorAll('.explore-card-wrap.expanded').forEach(w => {
+            w.classList.remove('expanded');
+            const b = document.getElementById('ebody-' + w.id.replace('ewrap-', ''));
+            if (b) b.classList.remove('open');
+        });
+        wrap.classList.add('expanded');
+        body.classList.add('open');
+        // Load thumb if not yet loaded
+        _loadExploreThumb(fileId);
+        _loadExploreComments(fileId);
     }
-    card.classList.remove('closed');
-    body.classList.add('open');
-    // Load preview iframe once
+}
+
+function _initExploreLazy() {
+    const root = document.getElementById('exploreList');
+    if (!root) return;
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (!e.isIntersecting) return;
+            const fileId = e.target.id.replace('ewrap-', '');
+            _loadExploreThumb(fileId);
+            obs.unobserve(e.target);
+        });
+    }, { root, rootMargin: '300px' });
+    document.querySelectorAll('[id^="ewrap-"]').forEach(el => obs.observe(el));
+}
+
+async function _loadExploreThumb(fileId) {
     const frame = document.getElementById('eprev-' + fileId);
-    const loader = document.getElementById('eload-' + fileId);
-    if (frame && !frame.dataset.loaded) {
-        const { data } = await sb.from('files').select('code').eq('id', fileId).single();
-        if (data?.code) {
-            frame.onload = () => { if (loader) loader.style.display = 'none'; frame.style.display = 'block'; };
-            frame.srcdoc = data.code;
-            frame.dataset.loaded = '1';
-            // cache for loadExploreFile
-            if (!_pubFilesData[fileId]) _pubFilesData[fileId] = { filename: (_exploreDataMap[fileId]?.filename || ''), code: data.code };
-        }
-    }
-    _loadExploreComments(fileId);
+    if (!frame || frame.dataset.loaded) return;
+    frame.dataset.loaded = '1';
+    const { data } = await sb.from('files').select('code').eq('id', fileId).single();
+    if (!data?.code) return;
+    const d = _exploreDataMap[fileId] || {};
+    d.code = data.code;
+    _exploreDataMap[fileId] = d;
+    if (!_pubFilesData[fileId]) _pubFilesData[fileId] = { filename: d.filename || '', code: data.code };
+    frame.srcdoc = data.code;
+    frame.onload = () => {
+        const box = frame.closest('.explore-card-thumb');
+        if (box) frame.style.transform = `scale(${box.offsetWidth / 390})`;
+        frame.classList.add('loaded');
+        const loader = document.getElementById('eload-' + fileId);
+        if (loader) loader.style.display = 'none';
+    };
 }
 
 async function _loadExploreComments(fileId) {
