@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kod Editörü</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -1244,6 +1251,42 @@ body.preview-mode .file-title-bar { display: none !important; }
 .like-btn:hover { background: rgba(255,69,58,0.14); border-color: rgba(255,69,58,0.32); color: #ff453a; }
 .like-btn.liked { background: rgba(255,69,58,0.14); border-color: rgba(255,69,58,0.38); color: #ff453a; }
 .like-btn:active { transform: scale(0.9); }
+
+/* ── CodeMirror theme override ─────────────────────── */
+.CodeMirror {
+    flex: 1; height: 100%; min-height: 0;
+    background: transparent !important;
+    font-family: 'JetBrains Mono','SF Mono',monospace;
+    font-size: 15px; line-height: 1.6; letter-spacing: -0.01em;
+    color: var(--text-primary); border: none;
+}
+.CodeMirror-scroll { padding: 20px; padding-bottom: 140px; box-sizing: border-box; }
+.CodeMirror-lines { padding: 0; }
+.CodeMirror-cursor { border-left: 2px solid var(--accent) !important; }
+.CodeMirror-selected, .CodeMirror-focused .CodeMirror-selected {
+    background: rgba(0,122,255,0.18) !important;
+}
+.CodeMirror-gutters { display: none; }
+.CodeMirror-scroll::-webkit-scrollbar { width: 8px; }
+.CodeMirror-scroll::-webkit-scrollbar-track { background: transparent; }
+.CodeMirror-scroll::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+.cm-tag    { color: #007aff; }
+.cm-bracket{ color: #007aff; }
+.cm-attribute { color: #ff9f0a; }
+.cm-string { color: #30d158; }
+.cm-comment { color: var(--text-secondary); font-style: italic; }
+.cm-keyword { color: #bf5af2; }
+.cm-def     { color: #ff9f0a; }
+.cm-number  { color: #ff6b6b; }
+.cm-operator{ color: #ff6b6b; }
+.cm-property{ color: #5ac8fa; }
+.cm-atom    { color: #ff9f0a; }
+.cm-meta    { color: var(--text-secondary); }
+@media (prefers-color-scheme: light) {
+    .cm-property { color: #0a84ff; }
+    .cm-string   { color: #248a3d; }
+    .cm-keyword  { color: #9b59b6; }
+}
 
 </style>
 
@@ -2493,6 +2536,7 @@ function buildPage() {
 
 // ── App Init ───────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+    _initCodeMirror();
     _initBottomSheet('profilePanel',   closeProfilePanel);
     _initBottomSheet('pubProfilePanel', closePublicProfile);
     _initBottomSheet('explorePanel',   closeExplorePanel);
@@ -2522,7 +2566,10 @@ function toggleFabMenu() {
 }
 
 function scrollToTop() {
-    if (currentView === 'code') document.getElementById('editor').scrollTo({ top: 0, behavior: 'smooth' });
+    if (currentView === 'code') {
+        if (window.cm) cm.scrollTo(0, 0);
+        else document.getElementById('editor').scrollTo({ top: 0, behavior: 'smooth' });
+    }
     toggleFabMenu(); showToast('Yukarı çıkıldı');
 }
 
@@ -2631,9 +2678,22 @@ function updateCode() {
         document.getElementById('previewFrameInline').srcdoc = buildPage();
 }
 
-function updateEditor() { document.getElementById('editor').value = code; }
+function _getCMMode(filename) {
+    const ext = (filename || '').split('.').pop().toLowerCase();
+    return { html:'htmlmixed', htm:'htmlmixed', js:'javascript', css:'css', xml:'xml', svg:'xml', json:'javascript', md:'markdown', markdown:'markdown' }[ext] || 'htmlmixed';
+}
+function updateEditor() {
+    if (window.cm) {
+        cm.setValue(code || '');
+        cm.clearHistory();
+        cm.setOption('mode', _getCMMode(loadedFilename || ''));
+    } else {
+        document.getElementById('editor').value = code;
+    }
+}
 
 function handleKeydown(e) {
+    if (window.cm) return; // CodeMirror handles keyboard
     if (e.key === 'Tab') {
         e.preventDefault();
         const el = e.target, s = el.selectionStart;
@@ -2641,6 +2701,32 @@ function handleKeydown(e) {
         el.selectionStart = el.selectionEnd = s + 2;
         updateCode();
     }
+}
+
+function _initCodeMirror() {
+    if (typeof CodeMirror === 'undefined') return;
+    window.cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
+        lineNumbers: false,
+        mode: 'htmlmixed',
+        lineWrapping: true,
+        tabSize: 2,
+        indentWithTabs: false,
+        autofocus: false,
+        extraKeys: {
+            Tab: cm => {
+                if (cm.somethingSelected()) cm.indentSelection('add');
+                else cm.replaceSelection('  ', 'end');
+            },
+            'Shift-Tab': cm => cm.indentSelection('subtract')
+        }
+    });
+    cm.on('change', () => {
+        code = cm.getValue();
+        hasUnsavedChanges = true;
+        saveToStorage(); updateTabDotColor(); updateQuickSaveButton();
+        if (saveButtonState === 'saved') setSaveButtonState('idle');
+        if (currentView === 'preview') document.getElementById('previewFrameInline').srcdoc = buildPage();
+    });
 }
 
 // ── Duplicate Modal ────────────────────────────────────────────────────
@@ -3194,10 +3280,15 @@ function copyAll() {
 
 function pasteCode() {
     navigator.clipboard.readText().then(text => {
-        const el = document.getElementById('editor'), s = el.selectionStart;
-        el.value = el.value.substring(0, s) + text + el.value.substring(el.selectionEnd);
-        el.selectionStart = el.selectionEnd = s + text.length;
-        updateCode(); if (isFabOpen) toggleFabMenu(); showToast('Yapıştırıldı');
+        if (window.cm) {
+            cm.replaceRange(text, cm.getCursor());
+        } else {
+            const el = document.getElementById('editor'), s = el.selectionStart;
+            el.value = el.value.substring(0, s) + text + el.value.substring(el.selectionEnd);
+            el.selectionStart = el.selectionEnd = s + text.length;
+            updateCode();
+        }
+        if (isFabOpen) toggleFabMenu(); showToast('Yapıştırıldı');
     }).catch(() => showToast('Yapıştırma başarısız'));
 }
 
