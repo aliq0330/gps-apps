@@ -1482,6 +1482,77 @@ body.preview-mode .file-title-bar { display: none !important; }
 .conv-ctx-divider { height: 1px; background: var(--glass-border); margin: 0; }
 .conv-ctx-backdrop { position: fixed; inset: 0; z-index: 599; }
 
+/* ── BİLDİRİMLER ──────────────────────────────────────── */
+.notif-btn {
+    position: relative; width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--glass-border); background: var(--glass-bg);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-secondary);
+    transition: all 0.2s; margin-right: 6px; flex-shrink: 0;
+}
+.notif-btn:active { transform: scale(0.88); }
+.notif-btn.has-new { color: #ff2d55; border-color: rgba(255,45,85,0.35);
+    background: rgba(255,45,85,0.08); }
+.notif-badge {
+    position: absolute; top: -4px; right: -4px;
+    background: #ff2d55; color: #fff; border-radius: 9px;
+    font-size: 10px; font-weight: 800; padding: 0 4px;
+    min-width: 16px; height: 16px; line-height: 16px;
+    text-align: center; display: none;
+    border: 2px solid var(--glass-bg);
+}
+.notif-overlay {
+    position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.3); backdrop-filter: blur(6px);
+    display: none; align-items: flex-end;
+}
+.notif-overlay.open { display: flex; }
+.notif-panel {
+    width: 100%; background: var(--glass-bg);
+    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    border-top: 1px solid var(--glass-border);
+    border-radius: 24px 24px 0 0; height: 50%;
+    display: flex; flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    transition: height 0.35s cubic-bezier(0.25,0.8,0.25,1); overflow: hidden;
+}
+.notif-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 20px 12px; flex-shrink: 0;
+}
+.notif-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.notif-clear-btn {
+    font-size: 13px; font-weight: 600; color: #ff3b30;
+    background: none; border: none; cursor: pointer;
+    font-family: inherit; padding: 4px 8px;
+}
+.notif-list { overflow-y: auto; flex: 1; }
+.notif-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; border-bottom: 1px solid var(--glass-border);
+    transition: background 0.15s;
+}
+.notif-item:active { background: rgba(120,120,128,0.06); }
+.notif-avatar { font-size: 26px; flex-shrink: 0; line-height: 1; }
+.notif-info { flex: 1; min-width: 0; }
+.notif-text {
+    font-size: 14px; color: var(--text-primary); line-height: 1.4;
+    font-weight: 500;
+}
+.notif-text strong { font-weight: 700; }
+.notif-text .notif-file { color: #007aff; font-weight: 600; }
+.notif-time { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.notif-delete-btn {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    border: none; background: rgba(120,120,128,0.12);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-secondary);
+    transition: all 0.2s;
+}
+.notif-delete-btn:active { background: rgba(255,59,48,0.15); color: #ff3b30; transform: scale(0.88); }
+
 
 </style>
 
@@ -1573,6 +1644,12 @@ body.preview-mode .file-title-bar { display: none !important; }
             </span>
         </div>
         <div class="actions">
+            <button class="notif-btn" id="notifBtn" onclick="openNotifPanel()" style="display:none;">
+                <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+                <span class="notif-badge" id="notifBadge">0</span>
+            </button>
             <div class="user-pill" id="userPill" onclick="toggleUserDropdown()">
                 <div class="user-avatar" id="userAvatar">?</div>
                 <span class="user-pill-name" id="userPillName">...</span>
@@ -2608,6 +2685,7 @@ function showApp() {
     loadFromStorage();
     updateEditor();
     _updateUnreadBadge();
+    _updateNotifBadge();
     updateFilenameDisplay();
     updateTabDotColor();
 }
@@ -2794,6 +2872,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     _initBottomSheet('pubProfilePanel', closePublicProfile);
     _initBottomSheet('explorePanel',   closeExplorePanel);
     _initBottomSheet('messagesPanel',  closeMessagesPanel);
+    _initBottomSheet('notifPanel',     closeNotifPanel);
 
     const { data: { session } } = await sb.auth.getSession();
     if (session?.user) {
@@ -4275,6 +4354,116 @@ function convCtxGoProfile() {
     if (otherId) openPublicProfile(otherId);
 }
 
+// ── BİLDİRİMLER ────────────────────────────────────────────────────────
+function openNotifPanel() {
+    _sheetReset('notifPanel');
+    document.getElementById('notifOverlay').classList.add('open');
+    loadNotifications();
+}
+function closeNotifPanel() {
+    document.getElementById('notifOverlay').classList.remove('open');
+}
+function handleNotifOverlayClick(e) {
+    if (e.target.id === 'notifOverlay') closeNotifPanel();
+}
+
+async function loadNotifications() {
+    if (!currentUser) return;
+    const el = document.getElementById('notifList');
+    el.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
+
+    const { data: notifs } = await sb
+        .from('like_notifications')
+        .select('*')
+        .eq('to_user_id', currentUser.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+    if (!notifs || notifs.length === 0) {
+        el.innerHTML = '<div class="search-empty">Henüz beğeni bildirimin yok</div>';
+        _setNotifBadge(0); return;
+    }
+
+    const fromIds = [...new Set(notifs.map(n => n.from_user_id))];
+    const fileIds  = [...new Set(notifs.map(n => n.file_id))];
+    const [{ data: profiles }, { data: files }] = await Promise.all([
+        sb.from('profiles').select('id,username,avatar_emoji').in('id', fromIds),
+        sb.from('files').select('id,filename').in('id', fileIds)
+    ]);
+    const pMap = {}, fMap = {};
+    (profiles || []).forEach(p => { pMap[p.id] = p; });
+    (files    || []).forEach(f => { fMap[f.id] = f; });
+
+    el.innerHTML = notifs.map(n => {
+        const prof = pMap[n.from_user_id] || {};
+        const file = fMap[n.file_id] || {};
+        return `<div class="notif-item" id="notif-${n.id}">
+            <div class="notif-avatar">${prof.avatar_emoji || '👤'}</div>
+            <div class="notif-info">
+                <div class="notif-text">
+                    <strong>${escapeHtml(prof.username || 'Biri')}</strong>
+                    &nbsp;❤️ <span class="notif-file">${escapeHtml((file.filename || 'dosya') + '.html')}</span> dosyanı beğendi
+                </div>
+                <div class="notif-time">${_fmtTime(n.created_at)}</div>
+            </div>
+            <button class="notif-delete-btn" onclick="deleteNotif('${n.id}')">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>`;
+    }).join('');
+
+    // Mark all as seen
+    await sb.from('like_notifications')
+        .update({ seen: true })
+        .eq('to_user_id', currentUser.id)
+        .eq('seen', false);
+    _setNotifBadge(0);
+}
+
+async function deleteNotif(id) {
+    const el = document.getElementById('notif-' + id);
+    if (el) {
+        el.style.transition = 'opacity 0.2s, max-height 0.25s, padding 0.25s';
+        el.style.opacity = '0'; el.style.maxHeight = el.offsetHeight + 'px';
+        setTimeout(() => { el.style.maxHeight = '0'; el.style.padding = '0'; el.style.overflow = 'hidden'; }, 10);
+        setTimeout(() => el.remove(), 280);
+    }
+    await sb.from('like_notifications').delete().eq('id', id);
+}
+
+async function clearAllNotifs() {
+    document.getElementById('notifList').innerHTML = '<div class="search-empty">Bildirim yok</div>';
+    await sb.from('like_notifications').delete().eq('to_user_id', currentUser.id);
+    _setNotifBadge(0);
+}
+
+async function _updateNotifBadge() {
+    if (!currentUser) return;
+    const { count } = await sb
+        .from('like_notifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('to_user_id', currentUser.id)
+        .eq('seen', false);
+    _setNotifBadge(count || 0);
+}
+
+function _setNotifBadge(n) {
+    const btn   = document.getElementById('notifBtn');
+    const badge = document.getElementById('notifBadge');
+    if (!btn || !badge) return;
+    btn.style.display = '';
+    if (n > 0) {
+        badge.style.display = '';
+        badge.textContent   = n > 99 ? '99+' : n;
+        btn.classList.add('has-new');
+    } else {
+        badge.style.display = 'none';
+        btn.classList.remove('has-new');
+    }
+}
+
 function _fmtTime(iso) {
     if (!iso) return '';
     const d = new Date(iso), now = new Date();
@@ -4285,6 +4474,20 @@ function _fmtTime(iso) {
     return d.toLocaleDateString('tr-TR', { day:'numeric', month:'short' });
 }
 </script>
+
+<!-- ── BİLDİRİMLER PANELİ ──────────────────────────────────────────────── -->
+<div class="notif-overlay" id="notifOverlay" onclick="handleNotifOverlayClick(event)">
+    <div class="notif-panel" id="notifPanel">
+        <div class="profile-drag-bar"></div>
+        <div class="notif-header">
+            <div class="notif-title">❤️ Beğeniler</div>
+            <button class="notif-clear-btn" onclick="clearAllNotifs()">Tümünü Sil</button>
+        </div>
+        <div class="notif-list" id="notifList">
+            <div class="search-empty">Yükleniyor...</div>
+        </div>
+    </div>
+</div>
 
 <!-- ── CONV CONTEXT MENU ──────────────────────────────────────────────── -->
 <div class="conv-ctx-backdrop" id="convCtxBackdrop" style="display:none;" onclick="closeConvCtx()"></div>
