@@ -1101,6 +1101,7 @@ body.preview-mode .toast { bottom: 80px; }
 .pub-file-meta { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-top: 2px; }
 /* ── YORUMLAR ───────────────────────────────────────────── */
 .pub-file-wrap { margin-bottom: 12px; }
+.pub-file-wrap .pub-file-card { border-radius: 16px 16px 0 0; margin-bottom: 0; }
 .comments-section {
     border: 1px solid var(--glass-border); border-top: none;
     border-radius: 0 0 16px 16px; overflow: hidden;
@@ -1277,8 +1278,18 @@ body.preview-mode .file-title-bar { display: none !important; }
     cursor: pointer; transition: all 0.2s ease;
     display: flex; align-items: center; gap: 10px;
 }
-.explore-file-card:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
-@media (prefers-color-scheme: dark) { .explore-file-card:hover { background: rgba(255,255,255,0.06); } }
+.explore-file-card:active { background: rgba(120,120,128,0.1); }
+@media (prefers-color-scheme: dark) { .explore-file-card:active { background: rgba(255,255,255,0.06); } }
+.explore-card-wrap { margin-bottom: 10px; }
+.explore-card-wrap .explore-file-card { border-radius: 16px 16px 0 0; margin-bottom: 0; transition: border-radius 0.2s; }
+.explore-card-wrap .explore-file-card.closed { border-radius: 16px; }
+.explore-card-body { display: none; border: 1px solid var(--glass-border); border-top: none; border-radius: 0 0 16px 16px; padding: 12px 14px 14px; background: var(--glass-bg); }
+.explore-card-body.open { display: block; }
+.explore-card-actions { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.explore-edit-btn { padding: 7px 16px; background: #007aff; color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+.explore-edit-btn:active { opacity: 0.75; }
+.explore-author-btn { font-size: 13px; color: var(--text-secondary); cursor: pointer; border: none; background: none; font-family: inherit; padding: 0; text-decoration: underline; text-underline-offset: 2px; margin-left: auto; }
+.explore-cmt-count { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-bottom: 8px; }
 .explore-file-icon {
     width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
     background: rgba(0,122,255,0.12); border: 1px solid rgba(0,122,255,0.2);
@@ -1394,7 +1405,8 @@ body.preview-mode .file-title-bar { display: none !important; }
     transition: background 0.2s;
 }
 .conv-back-btn:active { background: rgba(120,120,128,0.25); }
-.conv-header-name { font-size: 16px; font-weight: 700; color: var(--text-primary); flex: 1; }
+.conv-header-name { font-size: 16px; font-weight: 700; color: var(--text-primary); flex: 1; cursor: pointer; }
+.conv-header-emoji { font-size: 22px; cursor: pointer; }
 .conv-messages {
     flex: 1; overflow-y: auto; padding: 12px 16px 16px; display: flex;
     flex-direction: column; gap: 4px; min-height: 0;
@@ -1834,8 +1846,8 @@ body.preview-mode .file-title-bar { display: none !important; }
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
             </svg>
         </button>
-        <span id="convHeaderEmoji" style="font-size:22px;"></span>
-        <span class="conv-header-name" id="convHeaderName"></span>
+        <span class="conv-header-emoji" id="convHeaderEmoji" onclick="if(_convOtherUser)openPublicProfile(_convOtherUser.id)"></span>
+        <span class="conv-header-name" id="convHeaderName" onclick="if(_convOtherUser)openPublicProfile(_convOtherUser.id)"></span>
     </div>
     <div class="conv-messages" id="convMessages">
         <div class="search-empty">Yükleniyor...</div>
@@ -2313,6 +2325,7 @@ let saveButtonState = 'idle';
 let currentProfile = null;
 let selectedEmoji  = '👤';
 let _pubFilesData  = {};
+let _exploreDataMap = {}; // fileId -> { userId, username, emoji, filename }
 
 // Beğeni state
 let _myLikes      = new Set(); // current user's liked file IDs
@@ -3817,17 +3830,20 @@ async function openPublicProfile(userId) {
         document.getElementById('pubStatFiles').textContent = pubFiles.length;
         document.getElementById('pubStatLines').textContent = fmt(totalLines);
 
-        // Beğeni verilerini çek
+        // Beğeni ve yorum sayılarını çek
+        let _commentCountMap = {};
         if (pubFiles.length > 0) {
             const fileIds = pubFiles.map(f => f.id);
-            const [{ data: fileLikes }, { data: myFileLikes }] = await Promise.all([
+            const [{ data: fileLikes }, { data: myFileLikes }, { data: commentRows }] = await Promise.all([
                 sb.from('likes').select('file_id').in('file_id', fileIds),
-                currentUser ? sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds) : { data: [] }
+                currentUser ? sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds) : { data: [] },
+                sb.from('comments').select('file_id').in('file_id', fileIds)
             ]);
             const _freshCounts = {};
             (fileLikes || []).forEach(l => { _freshCounts[l.file_id] = (_freshCounts[l.file_id] || 0) + 1; });
             Object.assign(_likeCounts, _freshCounts);
             (myFileLikes || []).forEach(l => { _myLikes.add(l.file_id); });
+            (commentRows || []).forEach(c => { _commentCountMap[c.file_id] = (_commentCountMap[c.file_id] || 0) + 1; });
         }
 
         if (pubFiles.length === 0) {
@@ -3861,7 +3877,7 @@ async function openPublicProfile(userId) {
                     <div class="comments-section">
                         <button class="comments-toggle" onclick="toggleComments(${f.id},this)">
                             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                            <span id="ctoggle-${f.id}">Yorumlar</span>
+                            <span id="ctoggle-${f.id}">Yorumlar (${_commentCountMap[f.id] || 0})</span>
                         </button>
                         <div class="comments-body" id="cbody-${f.id}">
                             <div id="clist-${f.id}" style="min-height:20px;"></div>
@@ -4010,6 +4026,7 @@ async function loadExploreFiles() {
         }
 
         const pad = n => String(n).padStart(2, '0');
+        _exploreDataMap = {};
         list.innerHTML = sorted.map((f, i) => {
             const d      = new Date(f.updated_at);
             const date   = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
@@ -4019,22 +4036,33 @@ async function loadExploreFiles() {
             const cnt    = counts[f.id] || 0;
             const liked  = _myLikes.has(f.id);
             const rank   = i < 3 ? ['🥇','🥈','🥉'][i] : `${i+1}.`;
+            _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, filename: f.filename };
             return `
-            <div class="explore-file-card" onclick="loadExploreFile(${f.id})">
-                <div class="explore-file-icon">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                    </svg>
+            <div class="explore-card-wrap" id="ewrap-${f.id}">
+                <div class="explore-file-card closed" onclick="toggleExploreCard(${f.id})">
+                    <div class="explore-file-icon">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                        </svg>
+                    </div>
+                    <div style="font-size:16px;flex-shrink:0;">${rank}</div>
+                    <div class="explore-file-info">
+                        <div class="explore-file-name">${escapeHtml(f.filename)}</div>
+                        <div class="explore-file-author">${emoji} ${escapeHtml(author)}</div>
+                    </div>
+                    <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
+                        onclick="event.stopPropagation();toggleLike(${f.id})">
+                        ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
+                    </button>
                 </div>
-                <div style="font-size:16px;flex-shrink:0;">${rank}</div>
-                <div class="explore-file-info">
-                    <div class="explore-file-name">${escapeHtml(f.filename)}</div>
-                    <div class="explore-file-author">${emoji} ${escapeHtml(author)}</div>
+                <div class="explore-card-body" id="ebody-${f.id}">
+                    <div class="explore-card-actions">
+                        <button class="explore-edit-btn" onclick="loadExploreFile(${f.id})">Düzenle</button>
+                        <button class="explore-author-btn" onclick="openPublicProfile('${f.user_id}')">${emoji} ${escapeHtml(author)}</button>
+                    </div>
+                    <div class="explore-cmt-count" id="ecmt-count-${f.id}">Yükleniyor...</div>
+                    <div id="ecmt-list-${f.id}"></div>
                 </div>
-                <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
-                    onclick="event.stopPropagation();toggleLike(${f.id})">
-                    ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
-                </button>
             </div>`;
         }).join('');
     } catch(e) {
@@ -4044,13 +4072,55 @@ async function loadExploreFiles() {
 }
 
 function loadExploreFile(fileId) {
-    // _pubFilesData'da yoksa doğrudan Supabase'den çek
     const cached = _pubFilesData[fileId];
     if (cached) { _loadPublicFile(cached.filename, cached.code); closeExplorePanel(); return; }
     sb.from('files').select('filename, code').eq('id', fileId).single().then(({ data }) => {
         if (data) { _loadPublicFile(data.filename, data.code); }
         closeExplorePanel();
     });
+}
+
+function toggleExploreCard(fileId) {
+    const card = document.querySelector(`#ewrap-${fileId} .explore-file-card`);
+    const body = document.getElementById('ebody-' + fileId);
+    if (!card || !body) return;
+    const isOpen = body.classList.contains('open');
+    if (isOpen) {
+        body.classList.remove('open');
+        card.classList.add('closed');
+        return;
+    }
+    card.classList.remove('closed');
+    body.classList.add('open');
+    _loadExploreComments(fileId);
+}
+
+async function _loadExploreComments(fileId) {
+    const countEl = document.getElementById('ecmt-count-' + fileId);
+    const listEl  = document.getElementById('ecmt-list-'  + fileId);
+    if (!listEl) return;
+    listEl.innerHTML = '<div style="font-size:12px;color:var(--text-secondary);padding:4px 0;">Yükleniyor...</div>';
+    const { data: comments } = await sb.from('comments').select('*').eq('file_id', fileId).order('created_at', { ascending: true });
+    const cnt = (comments || []).length;
+    if (countEl) countEl.textContent = `💬 ${cnt} yorum`;
+    if (!comments || cnt === 0) { listEl.innerHTML = '<div style="font-size:12px;color:var(--text-secondary);padding:4px 0;">Henüz yorum yok</div>'; return; }
+    const uids = [...new Set(comments.map(c => c.user_id))];
+    const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const pMap = {};
+    (profiles || []).forEach(p => { pMap[p.id] = p; });
+    listEl.innerHTML = comments.map(c => {
+        const p = pMap[c.user_id] || {};
+        return `<div class="comment-item">
+            <div class="comment-avatar">${p.avatar_emoji || '👤'}</div>
+            <div class="comment-body">
+                <div class="comment-header">
+                    <span class="comment-username">${escapeHtml(p.username || 'Kullanıcı')}</span>
+                    <span class="comment-time">${_fmtTime(c.created_at)}</span>
+                </div>
+                <div class="comment-text">${escapeHtml(c.content)}</div>
+            </div>
+        </div>`;
+    }).join('');
 }
 
 // ── PUBLIC DOSYA TOGGLE ────────────────────────────────────────────────
@@ -4132,9 +4202,9 @@ async function loadConversations() {
             </div>
             <div class="conv-item" data-conv-id="${c.id}" data-other-id="${otherId}" data-username="${escapeHtml(prof.username||'Kullanıcı')}" data-emoji="${prof.avatar_emoji||'👤'}"
                 onclick="openConversation('${otherId}','${escapeHtml(prof.username||'Kullanıcı')}','${prof.avatar_emoji||'👤'}','${c.id}')">
-                <div class="conv-avatar">${prof.avatar_emoji||'👤'}</div>
+                <div class="conv-avatar" onclick="event.stopPropagation();openPublicProfile('${otherId}')" style="cursor:pointer;">${prof.avatar_emoji||'👤'}</div>
                 <div class="conv-item-info">
-                    <div class="conv-item-name">${escapeHtml(prof.username||'Kullanıcı')}</div>
+                    <div class="conv-item-name" onclick="event.stopPropagation();openPublicProfile('${otherId}')" style="cursor:pointer;">${escapeHtml(prof.username||'Kullanıcı')}</div>
                     <div class="conv-item-preview ${unread > 0 ? 'unread' : ''}">${escapeHtml(preview)}</div>
                 </div>
                 <div class="conv-item-right">
@@ -4425,11 +4495,13 @@ function _showConvCtx(convId, item, x, y) {
     _ctxOtherId = item.dataset.otherId;
     const menu = document.getElementById('convCtxMenu');
     const backdrop = document.getElementById('convCtxBackdrop');
-    // Position near touch
+    // Position above finger
     const vw = window.innerWidth, vh = window.innerHeight;
     const mw = 190, mh = 110;
-    let left = Math.min(x, vw - mw - 12);
-    let top  = Math.min(y - 10, vh - mh - 12);
+    let left = Math.min(Math.max(12, x - mw / 2), vw - mw - 12);
+    let top  = y - mh - 20;
+    if (top < 12) top = y + 20;
+    if (top + mh > vh - 12) top = vh - mh - 12;
     menu.style.left = left + 'px';
     menu.style.top  = top  + 'px';
     backdrop.style.display = '';
@@ -4469,13 +4541,8 @@ function convCtxGoProfile() {
 // ── YORUMLAR ────────────────────────────────────────────────────────────
 async function toggleComments(fileId, btn) {
     const body = document.getElementById('cbody-' + fileId);
-    const label = document.getElementById('ctoggle-' + fileId);
     const isOpen = body.classList.contains('open');
-    if (isOpen) {
-        body.classList.remove('open');
-        label.textContent = 'Yorumlar';
-        return;
-    }
+    if (isOpen) { body.classList.remove('open'); return; }
     body.classList.add('open');
     await loadComments(fileId);
 }
@@ -4536,7 +4603,7 @@ async function submitComment(fileId) {
         user_id: currentUser.id,
         content
     });
-    if (error) { showToast('Yorum gönderilemedi'); inp.value = content; return; }
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     await loadComments(fileId);
 }
 
