@@ -1690,6 +1690,23 @@ body.preview-mode .file-title-bar { display: none !important; }
 }
 @media (prefers-color-scheme: dark) { .fv-cmt-input-row { background: rgba(28,28,30,0.95); } }
 
+/* Yorum aksiyon butonları */
+.cmt-actions { display: flex; gap: 12px; align-items: center; margin-top: 5px; }
+.cmt-like-btn { background: none; border: none; cursor: pointer; font-size: 13px; color: var(--text-secondary); padding: 0; display: flex; align-items: center; gap: 3px; font-family: inherit; transition: color 0.15s; }
+.cmt-like-btn.liked { color: #ff3b30; }
+.cmt-like-btn:active { opacity: 0.7; }
+.cmt-reply-btn { background: none; border: none; cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 0; font-family: inherit; font-weight: 500; transition: color 0.15s; }
+.cmt-reply-btn:active { color: #007aff; }
+/* Yanıt input */
+.cmt-reply-input-wrap { display: flex; gap: 6px; margin-top: 7px; align-items: flex-end; }
+.cmt-reply-textarea { flex: 1; resize: none; border: 1px solid var(--glass-border); border-radius: 10px; padding: 6px 10px; font-size: 13px; background: var(--glass-bg); color: var(--text-primary); font-family: inherit; min-height: 34px; max-height: 80px; outline: none; }
+.cmt-reply-send { padding: 6px 12px; background: #007aff; color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; flex-shrink: 0; }
+/* İç içe yanıtlar */
+.cmt-replies-wrap { margin-top: 8px; padding-left: 10px; border-left: 2px solid var(--glass-border); }
+.comment-item.cmt-reply { padding: 6px 0; }
+.comment-item.cmt-reply .comment-avatar { font-size: 16px; }
+.comment-item.cmt-reply .comment-text { font-size: 13px; }
+
 /* ── BİLDİRİMLER ──────────────────────────────────────── */
 .notif-btn {
     position: relative; width: 34px; height: 34px; border-radius: 50%;
@@ -4929,6 +4946,8 @@ let _fvUserId  = null;
 let _fvCM      = null;
 let _fvTab     = 'code';
 let _fvCmtLoaded = false;
+let _fvCmtLikes = {};
+let _fvMyCmtLikes = new Set();
 
 async function openFileView(fileId) {
     _fvFileId    = fileId;
@@ -5066,30 +5085,57 @@ async function fvLoadComments() {
     const listEl = document.getElementById('fvCmtList');
     listEl.innerHTML = '<div class="search-empty" style="padding:20px 0;">Yükleniyor...</div>';
     const { data: comments } = await sb.from('comments').select('*').eq('file_id', _fvFileId).order('created_at', { ascending: false });
-    const cnt = (comments || []).length;
+    const all = comments || [];
+    const topLevel = all.filter(c => !c.parent_id);
+    const cnt = topLevel.length;
     document.getElementById('fvCmtBadge').textContent = cnt ? ` (${cnt})` : '';
     if (currentUser) document.getElementById('fvCmtInputRow').style.display = '';
-    if (!comments || cnt === 0) { listEl.innerHTML = '<div class="search-empty" style="padding:20px 0;">Henüz yorum yok</div>'; return; }
-    const uids = [...new Set(comments.map(c => c.user_id))];
-    const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    if (all.length === 0) { listEl.innerHTML = '<div class="search-empty" style="padding:20px 0;">Henüz yorum yok</div>'; return; }
+    const uids = [...new Set(all.map(c => c.user_id))];
+    const cmtIds = all.map(c => c.id);
+    const [{ data: profiles }, { data: allLikes }, { data: myLikes }] = await Promise.all([
+        sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
+        sb.from('comment_likes').select('comment_id').in('comment_id', cmtIds),
+        currentUser ? sb.from('comment_likes').select('comment_id').eq('user_id', currentUser.id).in('comment_id', cmtIds) : { data: [] }
+    ]);
     const pMap = {};
     (profiles || []).forEach(p => { pMap[p.id] = p; });
+    _fvCmtLikes = {};
+    (allLikes || []).forEach(l => { _fvCmtLikes[l.comment_id] = (_fvCmtLikes[l.comment_id] || 0) + 1; });
+    _fvMyCmtLikes = new Set((myLikes || []).map(l => l.comment_id));
+    const repliesMap = {};
+    all.filter(c => c.parent_id).forEach(r => { if (!repliesMap[r.parent_id]) repliesMap[r.parent_id] = []; repliesMap[r.parent_id].push(r); });
     const fileOwnerId = _fvUserId || '';
-    listEl.innerHTML = comments.map(c => {
+    const renderCmt = (c, isReply = false) => {
         const p = pMap[c.user_id] || {};
         const canDel = currentUser && (currentUser.id === c.user_id || currentUser.id === fileOwnerId);
-        return `<div class="comment-item" id="fvcmt-${c.id}">
+        const liked = _fvMyCmtLikes.has(c.id);
+        const likeCnt = _fvCmtLikes[c.id] || 0;
+        const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderCmt(r, true)).join('') : '';
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="fvcmt-${c.id}">
             <div class="comment-avatar">${p.avatar_emoji || '👤'}</div>
             <div class="comment-body">
                 <div class="comment-header">
                     <span class="comment-username">${escapeHtml(p.username || 'Kullanıcı')}</span>
                     <span class="comment-time">${_fmtTime(c.created_at)}</span>
+                    ${canDel ? `<button class="comment-delete-btn" onclick="fvDeleteComment('${c.id}')">✕</button>` : ''}
                 </div>
                 <div class="comment-text">${escapeHtml(c.content)}</div>
+                <div class="cmt-actions">
+                    <button class="cmt-like-btn${liked ? ' liked' : ''}" onclick="fvToggleCmtLike('${c.id}',this)">
+                        ${liked ? '♥' : '♡'}<span id="fvcl-${c.id}">${likeCnt ? ' ' + likeCnt : ''}</span>
+                    </button>
+                    ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="fvShowReply('${c.id}')">Yanıtla</button>` : ''}
+                </div>
+                ${!isReply ? `<div class="cmt-reply-input-wrap" id="fvri-${c.id}" style="display:none;">
+                    <textarea class="cmt-reply-textarea" id="fvrit-${c.id}" placeholder="Yanıtla..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button class="cmt-reply-send" onclick="fvSubmitReply('${c.id}')">Gönder</button>
+                </div>` : ''}
+                ${childReplies ? `<div class="cmt-replies-wrap">${childReplies}</div>` : ''}
             </div>
-            ${canDel ? `<button class="comment-delete-btn" onclick="fvDeleteComment('${c.id}')">✕</button>` : ''}
         </div>`;
-    }).join('');
+    };
+    listEl.innerHTML = topLevel.map(c => renderCmt(c)).join('');
 }
 
 async function fvSubmitComment() {
@@ -5110,6 +5156,54 @@ async function fvDeleteComment(commentId) {
     await sb.from('comments').delete().eq('id', commentId);
     const remaining = document.querySelectorAll('#fvCmtList .comment-item').length;
     document.getElementById('fvCmtBadge').textContent = remaining ? ` (${remaining})` : '';
+}
+
+async function fvToggleCmtLike(commentId, btn) {
+    if (!currentUser) { showToast('Beğenmek için giriş yapın'); return; }
+    const liked = _fvMyCmtLikes.has(commentId);
+    const span = document.getElementById('fvcl-' + commentId);
+    if (liked) {
+        _fvMyCmtLikes.delete(commentId);
+        _fvCmtLikes[commentId] = Math.max(0, (_fvCmtLikes[commentId] || 1) - 1);
+        btn.classList.remove('liked');
+        btn.childNodes[0].textContent = '♡';
+    } else {
+        _fvMyCmtLikes.add(commentId);
+        _fvCmtLikes[commentId] = (_fvCmtLikes[commentId] || 0) + 1;
+        btn.classList.add('liked');
+        btn.childNodes[0].textContent = '♥';
+    }
+    if (span) span.textContent = _fvCmtLikes[commentId] ? ' ' + _fvCmtLikes[commentId] : '';
+    try {
+        if (liked) await sb.from('comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId);
+        else await sb.from('comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
+    } catch(e) {
+        if (liked) { _fvMyCmtLikes.add(commentId); _fvCmtLikes[commentId]++; btn.classList.add('liked'); btn.childNodes[0].textContent = '♥'; }
+        else { _fvMyCmtLikes.delete(commentId); _fvCmtLikes[commentId] = Math.max(0,(_fvCmtLikes[commentId]||1)-1); btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡'; }
+        if (span) span.textContent = _fvCmtLikes[commentId] ? ' ' + _fvCmtLikes[commentId] : '';
+        showToast('Beğeni kaydedilemedi');
+    }
+}
+
+function fvShowReply(commentId) {
+    const wrap = document.getElementById('fvri-' + commentId);
+    if (!wrap) return;
+    const showing = wrap.style.display !== 'none';
+    wrap.style.display = showing ? 'none' : 'flex';
+    if (!showing) document.getElementById('fvrit-' + commentId)?.focus();
+}
+
+async function fvSubmitReply(parentId) {
+    if (!currentUser || !_fvFileId) return;
+    const inp = document.getElementById('fvrit-' + parentId);
+    const content = inp?.value.trim();
+    if (!content) return;
+    inp.value = ''; inp.style.height = 'auto';
+    document.getElementById('fvri-' + parentId).style.display = 'none';
+    const { error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content, parent_id: parentId });
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    _fvCmtLoaded = false;
+    fvLoadComments();
 }
 
 function _initFileViewSwipeBack() {
