@@ -374,6 +374,9 @@ body.preview-mode .file-title-bar { display: none !important; }
 .bottom-bar-btn.bb-save   { color: #007aff; }
 .bottom-bar-btn.bb-saved  { color: #34c759; }
 .bottom-bar-btn.bb-active { color: #007aff; }
+/* 6 buton için kompakt mod */
+.bottom-bar .bottom-bar-btn { font-size: 9px; }
+.bottom-bar .bottom-bar-btn svg { width: 20px; height: 20px; }
 
 /* Header sol — sync + dosya adı */
 .header-file-area {
@@ -2052,6 +2055,24 @@ body.preview-mode .file-title-bar { display: none !important; }
     </div>
 </div>
 
+<!-- ── AKIŞ PANELİ ──────────────────────────────────────────────────────── -->
+<div class="fv-overlay" id="feedOverlay" style="z-index:6000;">
+    <div class="fv-header">
+        <button class="fv-back-btn" onclick="closeFeedPanel()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
+        <div class="fv-header-info">
+            <div class="fv-filename">Akış</div>
+            <div style="font-size:12px;color:var(--text-secondary);" id="feedSubtitle">Takip ettiklerinin paylaşımları</div>
+        </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px 16px 100px;" id="feedList">
+        <div class="search-empty">Yükleniyor...</div>
+    </div>
+</div>
+
 <!-- ── PUBLIC PROFİL PANELI ────────────────────────────────────────────── -->
 
 <div class="pub-profile-overlay" id="pubProfileOverlay" onclick="handlePubProfileOverlayClick(event)">
@@ -2238,6 +2259,12 @@ body.preview-mode .file-title-bar { display: none !important; }
         </svg>
         Ara
     </button>
+    <button class="bottom-bar-btn" id="bbFeedBtn" onclick="openFeedPanel()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+        Akış
+    </button>
     <button class="bottom-bar-btn" onclick="openExplorePanel()">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -2251,18 +2278,18 @@ body.preview-mode .file-title-bar { display: none !important; }
         <span class="bb-msg-badge" id="bbMsgBadge">0</span>
         Mesaj
     </button>
-    <button class="bottom-bar-btn" onclick="openSavedFilesPanel()">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
-        </svg>
-        Kayıtlar
-    </button>
     <button class="bottom-bar-btn" id="bbPreviewBtn" onclick="toggleBottomBarView()">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" id="bbPreviewIcon">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
         </svg>
         <span id="bbPreviewText">Önizle</span>
+    </button>
+    <button class="bottom-bar-btn" onclick="openSavedFilesPanel()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+        </svg>
+        Kayıtlar
     </button>
 </div>
 
@@ -4360,6 +4387,142 @@ async function toggleLike(fileId) {
         console.error('Like error:', e);
         showToast('Beğeni kaydedilemedi');
     }
+}
+
+// ── AKIŞ ───────────────────────────────────────────────────────────────
+let _feedLoaded = false;
+
+function openFeedPanel() {
+    const overlay = document.getElementById('feedOverlay');
+    overlay.classList.add('open');
+    if (!currentUser) {
+        document.getElementById('feedList').innerHTML = '<div class="search-empty" style="padding:40px 0;">Akışı görmek için giriş yapın</div>';
+        return;
+    }
+    if (!_feedLoaded) loadFeed();
+}
+
+function closeFeedPanel() {
+    document.getElementById('feedOverlay').classList.remove('open');
+}
+
+async function loadFeed() {
+    _feedLoaded = true;
+    const listEl = document.getElementById('feedList');
+    listEl.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
+
+    // Takip edilenleri çek
+    const { data: followRows } = await sb.from('follows').select('following_id').eq('follower_id', currentUser.id);
+    const followingIds = (followRows || []).map(r => r.following_id);
+
+    if (!followingIds.length) {
+        listEl.innerHTML = '<div class="search-empty" style="padding:40px 0;">Henüz kimseyi takip etmiyorsunuz.<br>Keşfet\'ten kullanıcı profillerine gidip takip edebilirsiniz.</div>';
+        document.getElementById('feedSubtitle').textContent = '0 takip edilen';
+        return;
+    }
+
+    document.getElementById('feedSubtitle').textContent = followingIds.length + ' takip edilen';
+
+    // Takip edilenlerin public dosyalarını çek
+    const { data: files } = await sb.from('files')
+        .select('id, filename, code, updated_at, user_id')
+        .in('user_id', followingIds)
+        .eq('is_public', true)
+        .order('updated_at', { ascending: false })
+        .limit(60);
+
+    if (!files || !files.length) {
+        listEl.innerHTML = '<div class="search-empty" style="padding:40px 0;">Takip ettiklerinizin henüz paylaştığı dosya yok</div>';
+        return;
+    }
+
+    const uids = [...new Set(files.map(f => f.user_id))];
+    const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const pMap = {};
+    (profiles || []).forEach(p => { pMap[p.id] = p; });
+
+    const fileIds = files.map(f => f.id);
+    const [{ data: allLikes }, { data: myLikesData }] = await Promise.all([
+        sb.from('likes').select('file_id').in('file_id', fileIds),
+        sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds)
+    ]);
+    const likeCounts = {};
+    (allLikes || []).forEach(l => { likeCounts[l.file_id] = (likeCounts[l.file_id] || 0) + 1; });
+    (myLikesData || []).forEach(l => { _myLikes.add(l.file_id); Object.assign(_likeCounts, likeCounts); });
+    Object.assign(_likeCounts, likeCounts);
+
+    files.forEach(f => {
+        const p = pMap[f.user_id] || {};
+        _exploreDataMap[f.id] = { userId: f.user_id, username: p.username || 'Kullanıcı', emoji: p.avatar_emoji || '👤', filename: f.filename, code: f.code };
+    });
+
+    listEl.innerHTML = '<div class="explore-grid" id="feedGrid">' + files.map(f => {
+        const p = pMap[f.user_id] || {};
+        const liked = _myLikes.has(f.id);
+        const cnt = likeCounts[f.id] || 0;
+        const d = new Date(f.updated_at);
+        const dateStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+        return `<div class="explore-card-wrap" id="fewrap-${f.id}">
+            <div class="explore-file-card" onclick="toggleFeedCard('${f.id}')">
+                <div class="explore-card-thumb">
+                    <div class="explore-thumb-loader" id="feload-${f.id}">⏳</div>
+                    <iframe class="explore-card-frame" id="feprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
+                </div>
+                <div class="explore-card-row">
+                    <span class="explore-card-emoji">${p.avatar_emoji || '👤'}</span>
+                    <div class="explore-card-info">
+                        <div class="explore-card-name">${escapeHtml(f.filename || 'dosya.html')}</div>
+                        <div class="explore-card-user">${escapeHtml(p.username || 'Kullanıcı')} · ${dateStr}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="explore-card-body" id="febody-${f.id}">
+                <div class="explore-card-actions">
+                    <button class="explore-edit-btn" onclick="event.stopPropagation();openFileView('${f.id}')">Aç</button>
+                    <button class="like-btn${liked ? ' liked' : ''}" onclick="event.stopPropagation();toggleLike('${f.id}');this.classList.toggle('liked');this.querySelector('span').textContent=(_likeCounts['${f.id}']||0)" style="padding:6px 12px;font-size:13px;">
+                        ${liked ? '♥' : '♡'} <span>${cnt || ''}</span>
+                    </button>
+                    <button class="explore-edit-btn" style="background:rgba(120,120,128,0.12);color:var(--text-primary);border:1px solid var(--glass-border);" onclick="event.stopPropagation();openPublicProfile('${f.user_id}')">Profil</button>
+                </div>
+            </div>
+        </div>`;
+    }).join('') + '</div>';
+
+    // Lazy load thumbnails
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) _loadFeedThumb(e.target.id.replace('fewrap-',''), obs); });
+    }, { rootMargin: '200px' });
+    document.querySelectorAll('#feedGrid [id^="fewrap-"]').forEach(el => obs.observe(el));
+}
+
+function toggleFeedCard(fileId) {
+    const wrap = document.getElementById('fewrap-' + fileId);
+    const body = document.getElementById('febody-' + fileId);
+    if (!wrap || !body) return;
+    const isExp = wrap.classList.contains('expanded');
+    document.querySelectorAll('#feedGrid .explore-card-wrap.expanded').forEach(w => {
+        w.classList.remove('expanded');
+        const b = w.querySelector('.explore-card-body');
+        if (b) b.classList.remove('open');
+    });
+    if (!isExp) { wrap.classList.add('expanded'); body.classList.add('open'); _loadFeedThumb(fileId); }
+}
+
+async function _loadFeedThumb(fileId, obs) {
+    const frame = document.getElementById('feprev-' + fileId);
+    if (!frame || frame.dataset.loaded) return;
+    frame.dataset.loaded = '1';
+    if (obs) obs.unobserve(document.getElementById('fewrap-' + fileId));
+    const d = _exploreDataMap[fileId];
+    if (!d?.code) { const { data } = await sb.from('files').select('code').eq('id', fileId).single(); if (data?.code) { _exploreDataMap[fileId] = { ...(d||{}), code: data.code }; frame.srcdoc = data.code; } return; }
+    frame.srcdoc = d.code;
+    frame.onload = () => {
+        const box = frame.closest('.explore-card-thumb');
+        if (box) frame.style.transform = `scale(${box.offsetWidth / 390})`;
+        frame.classList.add('loaded');
+        const loader = document.getElementById('feload-' + fileId);
+        if (loader) loader.style.display = 'none';
+    };
 }
 
 // ── KEŞFET ─────────────────────────────────────────────────────────────
