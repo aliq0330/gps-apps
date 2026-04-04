@@ -1023,7 +1023,7 @@ body.preview-mode .toast { bottom: 80px; }
     animation: glassScale 0.35s cubic-bezier(0.25,0.8,0.25,1);
     max-height: 80vh; display: flex; flex-direction: column;
 }
-.search-input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.search-input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .search-input-wrap { flex: 1; position: relative; }
 .search-input-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; }
 .search-input {
@@ -1041,8 +1041,18 @@ body.preview-mode .toast { bottom: 80px; }
     display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;
 }
 .search-close-btn:hover { background: rgba(255,69,58,0.12); border-color: rgba(255,69,58,0.3); }
+/* Sekmeler */
+.search-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-shrink: 0; }
+.search-tab {
+    flex: 1; padding: 8px; border-radius: 12px; border: 1px solid var(--glass-border);
+    background: transparent; color: var(--text-secondary); cursor: pointer;
+    font-size: 13px; font-weight: 600; font-family: inherit; transition: all 0.2s;
+}
+.search-tab.active { background: #007aff; color: #fff; border-color: #007aff; }
 .search-results { flex: 1; overflow-y: auto; }
 .search-results::-webkit-scrollbar { display: none; }
+/* Dosya arama ızgarası (keşfet ile aynı) */
+.search-file-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; grid-auto-flow: dense; }
 .search-result-item {
     display: flex; align-items: center; gap: 14px; padding: 14px;
     border-radius: 18px; cursor: pointer; transition: all 0.2s ease;
@@ -1831,7 +1841,7 @@ body.preview-mode .file-title-bar { display: none !important; }
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input type="text" id="userSearchInput" class="search-input"
-                    placeholder="Kullanıcı adı ile ara..."
+                    placeholder="Ara..."
                     oninput="debounceSearch()"
                     autocomplete="off" autocorrect="off" spellcheck="false">
             </div>
@@ -1841,8 +1851,12 @@ body.preview-mode .file-title-bar { display: none !important; }
                 </svg>
             </button>
         </div>
+        <div class="search-tabs">
+            <button class="search-tab active" id="stab-users" onclick="switchSearchTab('users')">👤 Kişiler</button>
+            <button class="search-tab" id="stab-files" onclick="switchSearchTab('files')">📄 Dosyalar</button>
+        </div>
         <div class="search-results" id="searchResults">
-            <div class="search-empty">Aramak istediğiniz kullanıcı adını yazın</div>
+            <div class="search-empty">Aramak istediğiniz kişi veya dosya adını yazın</div>
         </div>
     </div>
 </div>
@@ -3755,11 +3769,13 @@ function showToast(msg) {
 
 // ── KULLANICI ARAMA ────────────────────────────────────────────────────
 let searchDebounceTimer = null;
+let _searchTab = 'users';
 
 function openSearchPanel() {
     document.getElementById('searchPanelOverlay').classList.add('open');
     document.getElementById('userSearchInput').value = '';
-    document.getElementById('searchResults').innerHTML = '<div class="search-empty">Aramak istediğiniz kullanıcı adını yazın</div>';
+    document.getElementById('searchResults').innerHTML = '<div class="search-empty">Aramak istediğiniz kişi veya dosya adını yazın</div>';
+    switchSearchTab(_searchTab);
     const inp = document.getElementById('userSearchInput');
     inp.setAttribute('autofocus', '');
     setTimeout(() => { inp.focus(); inp.click(); }, 300);
@@ -3773,18 +3789,24 @@ function handleSearchOverlayClick(e) {
     if (e.target.id === 'searchPanelOverlay') closeSearchPanel();
 }
 
+function switchSearchTab(tab) {
+    _searchTab = tab;
+    document.getElementById('stab-users').classList.toggle('active', tab === 'users');
+    document.getElementById('stab-files').classList.toggle('active', tab === 'files');
+    const q = document.getElementById('userSearchInput').value.trim();
+    if (q) debounceSearch();
+    else document.getElementById('searchResults').innerHTML = `<div class="search-empty">${tab === 'users' ? 'Kullanıcı adı ile arayın' : 'Dosya adı ile arayın'}</div>`;
+}
+
 function debounceSearch() {
     clearTimeout(searchDebounceTimer);
-    searchDebounceTimer = setTimeout(doUserSearch, 400);
+    searchDebounceTimer = setTimeout(_searchTab === 'users' ? doUserSearch : doFileSearch, 400);
 }
 
 async function doUserSearch() {
     const q = document.getElementById('userSearchInput').value.trim();
     const container = document.getElementById('searchResults');
-    if (!q) {
-        container.innerHTML = '<div class="search-empty">Aramak istediğiniz kullanıcı adını yazın</div>';
-        return;
-    }
+    if (!q) { container.innerHTML = '<div class="search-empty">Kullanıcı adı ile arayın</div>'; return; }
     container.innerHTML = '<div class="search-empty"><div class="spinner" style="margin:0 auto;"></div></div>';
     try {
         const { data, error } = await sb.from('profiles')
@@ -3792,20 +3814,11 @@ async function doUserSearch() {
             .ilike('username', `%${q}%`)
             .limit(20);
         if (error) throw error;
-        if (!data || data.length === 0) {
-            container.innerHTML = '<div class="search-empty">Kullanıcı bulunamadı</div>';
-            return;
-        }
-        // Her kullanıcının public dosya sayısını çek
+        if (!data || data.length === 0) { container.innerHTML = '<div class="search-empty">Kullanıcı bulunamadı</div>'; return; }
         const userIds = data.map(u => u.id);
-        const { data: fileCounts } = await sb.from('files')
-            .select('user_id')
-            .in('user_id', userIds)
-            .eq('is_public', true);
-
+        const { data: fileCounts } = await sb.from('files').select('user_id').in('user_id', userIds).eq('is_public', true);
         const countMap = {};
         (fileCounts || []).forEach(f => { countMap[f.user_id] = (countMap[f.user_id] || 0) + 1; });
-
         container.innerHTML = data.map(u => {
             const cnt   = countMap[u.id] || 0;
             const emoji = u.avatar_emoji || '👤';
@@ -3827,6 +3840,90 @@ async function doUserSearch() {
         console.error('Search error:', e);
         container.innerHTML = '<div class="search-empty">Arama başarısız</div>';
     }
+}
+
+async function doFileSearch() {
+    const q = document.getElementById('userSearchInput').value.trim();
+    const container = document.getElementById('searchResults');
+    if (!q) { container.innerHTML = '<div class="search-empty">Dosya adı ile arayın</div>'; return; }
+    container.innerHTML = '<div class="search-empty"><div class="spinner" style="margin:0 auto;"></div></div>';
+    try {
+        const { data: files, error } = await sb.from('files')
+            .select('id, filename, updated_at, user_id')
+            .eq('is_public', true)
+            .ilike('filename', `%${q}%`)
+            .limit(40);
+        if (error) throw error;
+        if (!files || files.length === 0) { container.innerHTML = '<div class="search-empty">Dosya bulunamadı</div>'; return; }
+
+        const userIds = [...new Set(files.map(f => f.user_id))];
+        const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', userIds);
+        const pMap = {};
+        (profiles || []).forEach(p => { pMap[p.id] = p; });
+
+        const [{ data: allLikes }, { data: myL }] = await Promise.all([
+            sb.from('likes').select('file_id').in('file_id', files.map(f => f.id)),
+            currentUser ? sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', files.map(f => f.id)) : { data: [] }
+        ]);
+        const counts = {};
+        (allLikes || []).forEach(l => { counts[l.file_id] = (counts[l.file_id] || 0) + 1; });
+        (myL || []).forEach(l => { _myLikes.add(l.file_id); Object.assign(_likeCounts, counts); });
+        Object.assign(_likeCounts, counts);
+
+        container.innerHTML = '<div class="search-file-grid" id="searchFileGrid">' + files.map(f => {
+            const prof   = pMap[f.user_id] || {};
+            const author = prof.username || 'Kullanıcı';
+            const emoji  = prof.avatar_emoji || '👤';
+            const cnt    = counts[f.id] || 0;
+            const liked  = _myLikes.has(f.id);
+            if (!_exploreDataMap[f.id]) _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, filename: f.filename };
+            return `
+            <div class="explore-card-wrap" id="ewrap-${f.id}">
+                <div class="explore-file-card" onclick="toggleExploreCard(${f.id})">
+                    <div class="explore-card-thumb">
+                        <div class="explore-thumb-loader" id="eload-${f.id}">···</div>
+                        <iframe class="explore-thumb-frame" id="eprev-${f.id}" sandbox="allow-scripts allow-same-origin"></iframe>
+                    </div>
+                    <div class="explore-card-row">
+                        <div class="explore-file-info">
+                            <div class="explore-file-name">${escapeHtml(f.filename)}</div>
+                            <div class="explore-file-author">${emoji} ${escapeHtml(author)}</div>
+                        </div>
+                        <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
+                            onclick="event.stopPropagation();toggleLike(${f.id})" style="font-size:12px;padding:4px 8px;">
+                            ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="explore-card-body" id="ebody-${f.id}">
+                    <div class="explore-card-actions">
+                        <button class="explore-edit-btn" onclick="loadExploreFile(${f.id})">Editörde Aç</button>
+                        <button class="explore-author-btn" onclick="openPublicProfile('${f.user_id}')">${emoji} ${escapeHtml(author)}</button>
+                    </div>
+                    <div class="explore-cmt-count" id="ecmt-count-${f.id}"></div>
+                    <div id="ecmt-list-${f.id}"></div>
+                </div>
+            </div>`;
+        }).join('') + '</div>';
+        _initSearchFileLazy();
+    } catch(e) {
+        console.error('File search error:', e);
+        container.innerHTML = '<div class="search-empty">Arama başarısız</div>';
+    }
+}
+
+function _initSearchFileLazy() {
+    const root = document.getElementById('searchResults');
+    if (!root) return;
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (!e.isIntersecting) return;
+            const fileId = e.target.id.replace('ewrap-', '');
+            _loadExploreThumb(fileId);
+            obs.unobserve(e.target);
+        });
+    }, { root, rootMargin: '200px' });
+    document.querySelectorAll('#searchFileGrid [id^="ewrap-"]').forEach(el => obs.observe(el));
 }
 
 // ── PUBLIC PROFİL ──────────────────────────────────────────────────────
