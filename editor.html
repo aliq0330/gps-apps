@@ -5065,7 +5065,7 @@ async function fvLoadComments() {
     _fvCmtLoaded = true;
     const listEl = document.getElementById('fvCmtList');
     listEl.innerHTML = '<div class="search-empty" style="padding:20px 0;">Yükleniyor...</div>';
-    const { data: comments } = await sb.from('comments').select('*').eq('file_id', _fvFileId).order('created_at', { ascending: true });
+    const { data: comments } = await sb.from('comments').select('*').eq('file_id', _fvFileId).order('created_at', { ascending: false });
     const cnt = (comments || []).length;
     document.getElementById('fvCmtBadge').textContent = cnt ? ` (${cnt})` : '';
     if (currentUser) document.getElementById('fvCmtInputRow').style.display = '';
