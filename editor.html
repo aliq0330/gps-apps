@@ -4350,12 +4350,13 @@ async function _loadExploreComments(fileId) {
 // ── PUBLIC DOSYA TOGGLE ────────────────────────────────────────────────
 async function toggleFilePublic(fileId, currentState, event) {
     event.stopPropagation();
-    const btn     = event.currentTarget;
-    const row     = btn.closest('.public-toggle-row');
-    const label   = row?.querySelector('.pub-toggle-text');
-    const newState = !currentState;
+    const btn      = event.currentTarget;
+    const row      = btn.closest('.public-toggle-row');
+    const label    = row?.querySelector('.pub-toggle-text');
+    const isNowOn  = btn.classList.contains('on');   // gerçek anlık durum
+    const newState = !isNowOn;
     btn.classList.toggle('on', newState);
-    if (row) row.classList.toggle('on', newState);
+    if (row)   row.classList.toggle('on', newState);
     if (label) label.textContent = newState ? 'Herkese Açık' : 'Sadece Ben';
     const idx = savedFiles.findIndex(f => f.id === fileId);
     if (idx !== -1) savedFiles[idx].isPublic = newState;
@@ -4367,9 +4368,9 @@ async function toggleFilePublic(fileId, currentState, event) {
         showToast(newState ? '🌐 Dosya herkese açık' : '🔒 Dosya gizlendi');
     } catch(e) {
         console.error('Toggle public error:', e);
-        btn.classList.toggle('on', currentState);
-        if (row) row.classList.toggle('on', currentState);
-        if (label) label.textContent = currentState ? 'Herkese Açık' : 'Sadece Ben';
+        btn.classList.toggle('on', isNowOn);
+        if (row)   row.classList.toggle('on', isNowOn);
+        if (label) label.textContent = isNowOn ? 'Herkese Açık' : 'Sadece Ben';
         showToast('İşlem başarısız');
     }
 }
