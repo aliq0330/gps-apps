@@ -5174,7 +5174,8 @@ function closeFileView() {
 }
 
 function fvGoProfile() {
-    if (_fvUserId) { closeFileView(); openPublicProfile(_fvUserId); }
+    const userId = _fvUserId;
+    if (userId) { closeFileView(); openPublicProfile(userId); }
 }
 
 function fvLoadInEditor() {
