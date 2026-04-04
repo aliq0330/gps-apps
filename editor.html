@@ -1380,12 +1380,6 @@ body.preview-mode .file-title-bar { display: none !important; }
 .like-btn.liked { background: rgba(255,69,58,0.14); border-color: rgba(255,69,58,0.38); color: #ff453a; }
 .like-btn:active { transform: scale(0.9); }
 
-/* ── Line icon states ───────────────────────────────── */
-.ico-heart { fill: none; transition: fill 0.15s; }
-.liked .ico-heart, .ico-heart.filled { fill: currentColor; }
-.ico-chat { fill: none; }
-[class*="like-btn"] svg, [class*="like-btn"] .ico-heart { pointer-events: none; }
-
 /* ── CodeMirror theme override ─────────────────────── */
 .CodeMirror {
     flex: 1; height: 100%; min-height: 0;
@@ -2654,15 +2648,6 @@ let _feedMyCmtLikes  = new Set();
 
 // Fork sayıları
 let _forkCounts = {}; // fileId -> fork count
-
-// ── SVG İKON SETİ ─────────────────────────────────────────────────────
-const _ico = {
-    heart: `<svg class="ico-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`,
-    chat:  `<svg class="ico-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>`,
-    send:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`,
-    x:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M6 6l12 12"/></svg>`,
-    reply: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>`
-};
 
 const PROFILE_EMOJIS = [
     '👤','😀','😎','🤓','🧑‍💻','👨‍💻','👩‍💻','🦊','🐼','🐨','🦁','🐸',
@@ -4514,8 +4499,8 @@ async function toggleLike(fileId) {
     document.querySelectorAll(`[data-like-id="${fileId}"]`).forEach(btn => {
         const nowLiked = _myLikes.has(fileId);
         btn.classList.toggle('liked', nowLiked);
-        const s = btn.querySelector('span[data-like-count]') || btn.querySelector('span:not(.bb-msg-badge)');
-        if (s) s.textContent = _likeCounts[fileId] || '';
+        btn.querySelector('span') && (btn.querySelector('span').textContent = _likeCounts[fileId] || 0);
+        btn.childNodes[0].textContent = nowLiked ? '♥ ' : '♡ ';
     });
     document.querySelectorAll(`[data-like-count="${fileId}"]`).forEach(el => {
         el.textContent = _likeCounts[fileId] || 0;
@@ -4640,9 +4625,12 @@ async function loadFeed() {
                 <iframe class="feed-thumb-frame" id="feprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
             </div>
             <div class="feed-card-actions">
-                <button class="feed-like-btn${liked ? ' liked' : ''}" id="flike-${f.id}" onclick="feedToggleLike('${f.id}')">${_ico.heart}<span id="flikecnt-${f.id}">${cnt || ''}</span>
+                <button class="feed-like-btn${liked ? ' liked' : ''}" id="flike-${f.id}" onclick="feedToggleLike('${f.id}')">
+                    ${liked ? '♥' : '♡'} <span id="flikecnt-${f.id}">${cnt || ''}</span>
                 </button>
-                <button class="feed-comment-toggle" onclick="feedToggleComments('${f.id}')">${_ico.chat}<span id="fcmtcnt-${f.id}"></span>
+                <button class="feed-comment-toggle" onclick="feedToggleComments('${f.id}')">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                    <span id="fcmtcnt-${f.id}"></span>
                 </button>
                 <span class="fork-count-badge" id="forkcount-${f.id}" title="Fork sayısı">${_forkCounts[f.id] ? `<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}` : ''}</span>
             </div>
@@ -4651,7 +4639,7 @@ async function loadFeed() {
                 <div class="feed-comments-list" id="fcmtlist-${f.id}"><div class="search-empty" style="padding:8px 0;font-size:12px;">Yükleniyor...</div></div>
                 ${currentUser ? `<div class="feed-cmt-input-row">
                     <textarea class="feed-cmt-textarea" id="fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                    <button class="feed-cmt-send" onclick="feedSubmitComment('${f.id}')">${_ico.send}</button>
+                    <button class="feed-cmt-send" onclick="feedSubmitComment('${f.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button>
                 </div>` : ''}
             </div>
         </div>`;
@@ -4672,7 +4660,7 @@ async function feedToggleLike(fileId) {
     if (liked) { _myLikes.delete(fileId); _likeCounts[fileId] = Math.max(0,(_likeCounts[fileId]||1)-1); }
     else { _myLikes.add(fileId); _likeCounts[fileId] = (_likeCounts[fileId]||0)+1; }
     const cnt = _likeCounts[fileId] || 0;
-    if (btn) { btn.classList.toggle('liked', !liked); }
+    if (btn) { btn.classList.toggle('liked', !liked); btn.childNodes[0].textContent = !liked ? '♥ ' : '♡ '; }
     if (cntEl) cntEl.textContent = cnt || '';
     if (textEl) {
         if (cnt === 0) { textEl.style.display='none'; textEl.textContent=''; }
@@ -4701,90 +4689,58 @@ async function feedToggleComments(fileId) {
 async function feedLoadComments(fileId) {
     const listEl = document.getElementById('fcmtlist-' + fileId);
     if (!listEl) return;
-    const { data: allCmts } = await sb.from('comments').select('*').eq('file_id', fileId).order('created_at', { ascending: false });
-    const topLevel = (allCmts||[]).filter(c => !c.parent_id);
-    const replies  = (allCmts||[]).filter(c => c.parent_id);
+    const { data: allComments } = await sb.from('comments').select('*').eq('file_id', fileId).order('created_at', { ascending: true });
+    const all = allComments || [];
+    const topLevel = all.filter(c => !c.parent_id);
     const cntEl = document.getElementById('fcmtcnt-' + fileId);
     if (cntEl) cntEl.textContent = topLevel.length || '';
-    if (!topLevel.length) { listEl.innerHTML = '<div class="search-empty" style="padding:8px 0;font-size:12px;">Henüz yorum yok</div>'; return; }
-    const uids = [...new Set((allCmts||[]).map(c => c.user_id))];
-    const cmtIds = (allCmts||[]).map(c => c.id);
-    const [{ data: profs }, { data: allCL }, { data: myCL }] = await Promise.all([
+    if (!all.length) { listEl.innerHTML = '<div class="search-empty" style="padding:8px 0;font-size:12px;">Henüz yorum yok</div>'; return; }
+    const uids = [...new Set(all.map(c => c.user_id))];
+    const cmtIds = all.map(c => c.id);
+    const [{ data: profs }, { data: allLikes }, { data: myLikes }] = await Promise.all([
         sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
         sb.from('comment_likes').select('comment_id').in('comment_id', cmtIds),
         currentUser ? sb.from('comment_likes').select('comment_id').eq('user_id', currentUser.id).in('comment_id', cmtIds) : { data: [] }
     ]);
     const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
-    const clCount = {}; (allCL||[]).forEach(l => { clCount[l.comment_id] = (clCount[l.comment_id]||0)+1; });
-    const myClSet = new Set((myCL||[]).map(l => l.comment_id));
+    _feedCmtLikes = {};
+    (allLikes||[]).forEach(l => { _feedCmtLikes[l.comment_id] = (_feedCmtLikes[l.comment_id]||0)+1; });
+    _feedMyCmtLikes = new Set((myLikes||[]).map(l => l.comment_id));
     const repliesMap = {};
-    replies.forEach(r => { if (!repliesMap[r.parent_id]) repliesMap[r.parent_id]=[]; repliesMap[r.parent_id].push(r); });
+    all.filter(c => c.parent_id).forEach(r => { if (!repliesMap[r.parent_id]) repliesMap[r.parent_id] = []; repliesMap[r.parent_id].push(r); });
     const fileOwnerId = _exploreDataMap[fileId]?.userId || '';
+    const _XSVG = `<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>`;
 
-    const renderCmt = (c, isReply=false) => {
+    const renderFC = (c, isReply = false) => {
         const p = pm[c.user_id] || {};
         const canDel = currentUser && (currentUser.id === c.user_id || currentUser.id === fileOwnerId);
-        const likedCmt = myClSet.has(c.id);
-        const lcnt = clCount[c.id] || 0;
-        const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r=>renderCmt(r,true)).join('') : '';
-        return `<div class="feed-comment-item" id="feedcmt-${c.id}">
-            <span class="feed-cmt-avatar">${p.avatar_emoji||'👤'}</span>
-            <div class="feed-cmt-body">
-                <div><span class="feed-cmt-username">${escapeHtml(p.username||'Kullanıcı')}</span> <span class="feed-cmt-text">${escapeHtml(c.content)}</span></div>
-                <div class="feed-cmt-actions">
-                    <button class="feed-cmt-like-btn${likedCmt?' liked':''}" onclick="feedCmtLike('${c.id}',this)">${_ico.heart}<span>${lcnt||''}</span></button>
-                    ${!isReply && currentUser ? `<button class="feed-cmt-reply-btn" onclick="feedShowReply('${c.id}')">${_ico.reply} Yanıtla</button>` : ''}
-                    ${canDel ? `<button class="feed-cmt-del-btn" onclick="feedDeleteComment('${c.id}','${fileId}')">${_ico.x}</button>` : ''}
+        const liked = _feedMyCmtLikes.has(c.id);
+        const likeCnt = _feedCmtLikes[c.id] || 0;
+        const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderFC(r, true)).join('') : '';
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="feedcmt-${c.id}">
+            <div class="comment-avatar">${p.avatar_emoji||'👤'}</div>
+            <div class="comment-body">
+                <div class="comment-header">
+                    <span class="comment-username">${escapeHtml(p.username||'Kullanıcı')}</span>
+                    <span class="comment-time">${_fmtTime(c.created_at)}</span>
+                    ${canDel ? `<button class="comment-delete-btn" onclick="feedDeleteComment('${c.id}','${fileId}')">${_XSVG}</button>` : ''}
                 </div>
-                ${!isReply && currentUser ? `<div class="feed-cmt-reply-wrap" id="feedri-${c.id}" style="display:none;">
-                    <textarea class="feed-cmt-textarea" id="feedrit-${c.id}" placeholder="Yanıtla..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="font-size:12px;"></textarea>
-                    <button class="feed-cmt-send" onclick="feedSubmitReply('${c.id}','${fileId}')" style="width:26px;height:26px;">${_ico.send}</button>
+                <div class="comment-text">${escapeHtml(c.content)}</div>
+                <div class="cmt-actions">
+                    <button class="cmt-like-btn${liked ? ' liked' : ''}" onclick="feedToggleCmtLike('${c.id}',this)">
+                        ${liked ? '♥' : '♡'}<span id="feedcl-${c.id}">${likeCnt ? ' '+likeCnt : ''}</span>
+                    </button>
+                    ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="feedShowReply('${c.id}','${fileId}')">Yanıtla</button>` : ''}
+                </div>
+                ${!isReply ? `<div class="cmt-reply-input-wrap" id="feedri-${c.id}" style="display:none;">
+                    <textarea class="cmt-reply-textarea" id="feedrit-${c.id}" placeholder="Yanıtla..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button class="cmt-reply-send" onclick="feedSubmitReply('${c.id}','${fileId}')">Gönder</button>
                 </div>` : ''}
-                ${childReplies ? `<div class="cmt-replies-wrap" style="margin-top:6px;">${childReplies}</div>` : ''}
+                ${childReplies ? `<div class="cmt-replies-wrap">${childReplies}</div>` : ''}
             </div>
         </div>`;
     };
-    listEl.innerHTML = topLevel.map(c => renderCmt(c)).join('');
-}
-
-async function feedCmtLike(commentId, btn) {
-    if (!currentUser) { showToast('Beğenmek için giriş yapın'); return; }
-    const liked = btn.classList.contains('liked');
-    btn.classList.toggle('liked', !liked);
-    const span = btn.querySelector('span');
-    let cnt = parseInt(span?.textContent||'0')||0;
-    cnt = liked ? Math.max(0,cnt-1) : cnt+1;
-    if (span) span.textContent = cnt || '';
-    try {
-        if (liked) await sb.from('comment_likes').delete().eq('user_id',currentUser.id).eq('comment_id',commentId);
-        else await sb.from('comment_likes').insert({user_id:currentUser.id,comment_id:commentId});
-    } catch(e) {
-        btn.classList.toggle('liked', liked);
-        if (span) span.textContent = (liked ? cnt+1 : Math.max(0,cnt-1)) || '';
-        showToast('Beğeni kaydedilemedi');
-    }
-}
-
-function feedShowReply(commentId) {
-    const wrap = document.getElementById('feedri-' + commentId);
-    if (!wrap) return;
-    const showing = wrap.style.display !== 'none';
-    wrap.style.display = showing ? 'none' : 'flex';
-    if (!showing) document.getElementById('feedrit-' + commentId)?.focus();
-}
-
-async function feedSubmitReply(parentId, fileId) {
-    if (!currentUser) return;
-    const inp = document.getElementById('feedrit-' + parentId);
-    const content = inp?.value.trim();
-    if (!content) return;
-    inp.value = ''; inp.style.height = 'auto';
-    document.getElementById('feedri-' + parentId).style.display = 'none';
-    const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
-    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    const wrap = document.getElementById('fcmtwrap-' + fileId);
-    if (wrap) wrap.dataset.loaded = '';
-    await feedLoadComments(fileId);
+    listEl.innerHTML = topLevel.map(c => renderFC(c)).join('');
 }
 
 async function feedSubmitComment(fileId) {
@@ -5798,6 +5754,7 @@ function _fvUpdateLike() {
     const btn   = document.getElementById('fvLikeBtn');
     if (!btn) return;
     btn.classList.toggle('liked', liked);
+    document.getElementById('fvLikeIcon').textContent  = liked ? '♥' : '♡';
     document.getElementById('fvLikeCount').textContent = cnt;
 }
 
@@ -5856,13 +5813,14 @@ async function fvLoadComments() {
                 <div class="comment-header">
                     <span class="comment-username">${escapeHtml(p.username || 'Kullanıcı')}</span>
                     <span class="comment-time">${_fmtTime(c.created_at)}</span>
-                    ${canDel ? `<button class="comment-delete-btn" onclick="fvDeleteComment('${c.id}')" style="width:18px;height:18px;padding:0;">${_ico.x}</button>` : ''}
+                    ${canDel ? `<button class="comment-delete-btn" onclick="fvDeleteComment('${c.id}')"><svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></button>` : ''}
                 </div>
                 <div class="comment-text">${escapeHtml(c.content)}</div>
                 <div class="cmt-actions">
-                    <button class="cmt-like-btn${liked ? ' liked' : ''}" onclick="fvToggleCmtLike('${c.id}',this)">${_ico.heart}<span id="fvcl-${c.id}">${likeCnt ? ' ' + likeCnt : ''}</span>
+                    <button class="cmt-like-btn${liked ? ' liked' : ''}" onclick="fvToggleCmtLike('${c.id}',this)">
+                        ${liked ? '♥' : '♡'}<span id="fvcl-${c.id}">${likeCnt ? ' ' + likeCnt : ''}</span>
                     </button>
-                    ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="fvShowReply('${c.id}')">${_ico.reply} Yanıtla</button>` : ''}
+                    ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="fvShowReply('${c.id}')">Yanıtla</button>` : ''}
                 </div>
                 ${!isReply ? `<div class="cmt-reply-input-wrap" id="fvri-${c.id}" style="display:none;">
                     <textarea class="cmt-reply-textarea" id="fvrit-${c.id}" placeholder="Yanıtla..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
@@ -5899,15 +5857,24 @@ async function fvToggleCmtLike(commentId, btn) {
     if (!currentUser) { showToast('Beğenmek için giriş yapın'); return; }
     const liked = _fvMyCmtLikes.has(commentId);
     const span = document.getElementById('fvcl-' + commentId);
-    if (liked) { _fvMyCmtLikes.delete(commentId); _fvCmtLikes[commentId] = Math.max(0,(_fvCmtLikes[commentId]||1)-1); btn.classList.remove('liked'); }
-    else { _fvMyCmtLikes.add(commentId); _fvCmtLikes[commentId] = (_fvCmtLikes[commentId]||0)+1; btn.classList.add('liked'); }
+    if (liked) {
+        _fvMyCmtLikes.delete(commentId);
+        _fvCmtLikes[commentId] = Math.max(0, (_fvCmtLikes[commentId] || 1) - 1);
+        btn.classList.remove('liked');
+        btn.childNodes[0].textContent = '♡';
+    } else {
+        _fvMyCmtLikes.add(commentId);
+        _fvCmtLikes[commentId] = (_fvCmtLikes[commentId] || 0) + 1;
+        btn.classList.add('liked');
+        btn.childNodes[0].textContent = '♥';
+    }
     if (span) span.textContent = _fvCmtLikes[commentId] ? ' ' + _fvCmtLikes[commentId] : '';
-    try {
-        if (liked) await sb.from('comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId);
-        else await sb.from('comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
-    } catch(e) {
-        if (liked) { _fvMyCmtLikes.add(commentId); _fvCmtLikes[commentId]++; btn.classList.add('liked'); }
-        else { _fvMyCmtLikes.delete(commentId); _fvCmtLikes[commentId] = Math.max(0,(_fvCmtLikes[commentId]||1)-1); btn.classList.remove('liked'); }
+    const { error: _fve } = liked
+        ? await sb.from('comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId)
+        : await sb.from('comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
+    if (_fve) {
+        if (liked) { _fvMyCmtLikes.add(commentId); _fvCmtLikes[commentId]++; btn.classList.add('liked'); btn.childNodes[0].textContent = '♥'; }
+        else { _fvMyCmtLikes.delete(commentId); _fvCmtLikes[commentId] = Math.max(0,(_fvCmtLikes[commentId]||1)-1); btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡'; }
         if (span) span.textContent = _fvCmtLikes[commentId] ? ' ' + _fvCmtLikes[commentId] : '';
         showToast('Beğeni kaydedilemedi');
     }
@@ -6163,7 +6130,7 @@ function _fmtTime(iso) {
             <button class="fv-author-btn" id="fvAuthorBtn" onclick="fvGoProfile()"></button>
         </div>
         <button class="fv-like-btn" id="fvLikeBtn" onclick="fvToggleLike()">
-            <svg class="ico-heart" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            <span id="fvLikeIcon">♡</span>
             <span id="fvLikeCount">0</span>
         </button>
         <span class="fork-count-badge" id="fvForkCount" style="display:none;">
