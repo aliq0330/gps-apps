@@ -4720,10 +4720,10 @@ async function feedToggleCmtLike(commentId, btn) {
         btn.classList.add('liked'); btn.childNodes[0].textContent = '♥';
     }
     if (span) span.textContent = _feedCmtLikes[commentId] ? ' '+_feedCmtLikes[commentId] : '';
-    try {
-        if (liked) await sb.from('comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId);
-        else await sb.from('comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
-    } catch(e) {
+    const { error: _fe } = liked
+        ? await sb.from('comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId)
+        : await sb.from('comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
+    if (_fe) {
         if (liked) { _feedMyCmtLikes.add(commentId); _feedCmtLikes[commentId]++; btn.classList.add('liked'); btn.childNodes[0].textContent = '♥'; }
         else { _feedMyCmtLikes.delete(commentId); _feedCmtLikes[commentId]=Math.max(0,(_feedCmtLikes[commentId]||1)-1); btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡'; }
         if (span) span.textContent = _feedCmtLikes[commentId] ? ' '+_feedCmtLikes[commentId] : '';
@@ -5517,10 +5517,10 @@ async function profToggleCmtLike(commentId, btn) {
         btn.classList.add('liked'); btn.childNodes[0].textContent = '♥';
     }
     if (span) span.textContent = _profCmtLikes[commentId] ? ' ' + _profCmtLikes[commentId] : '';
-    try {
-        if (liked) await sb.from('comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId);
-        else await sb.from('comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
-    } catch(e) {
+    const { error: _pe } = liked
+        ? await sb.from('comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId)
+        : await sb.from('comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
+    if (_pe) {
         if (liked) { _profMyCmtLikes.add(commentId); _profCmtLikes[commentId]++; btn.classList.add('liked'); btn.childNodes[0].textContent = '♥'; }
         else { _profMyCmtLikes.delete(commentId); _profCmtLikes[commentId] = Math.max(0,(_profCmtLikes[commentId]||1)-1); btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡'; }
         if (span) span.textContent = _profCmtLikes[commentId] ? ' ' + _profCmtLikes[commentId] : '';
@@ -5784,10 +5784,10 @@ async function fvToggleCmtLike(commentId, btn) {
         btn.childNodes[0].textContent = '♥';
     }
     if (span) span.textContent = _fvCmtLikes[commentId] ? ' ' + _fvCmtLikes[commentId] : '';
-    try {
-        if (liked) await sb.from('comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId);
-        else await sb.from('comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
-    } catch(e) {
+    const { error: _fve } = liked
+        ? await sb.from('comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId)
+        : await sb.from('comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
+    if (_fve) {
         if (liked) { _fvMyCmtLikes.add(commentId); _fvCmtLikes[commentId]++; btn.classList.add('liked'); btn.childNodes[0].textContent = '♥'; }
         else { _fvMyCmtLikes.delete(commentId); _fvCmtLikes[commentId] = Math.max(0,(_fvCmtLikes[commentId]||1)-1); btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡'; }
         if (span) span.textContent = _fvCmtLikes[commentId] ? ' ' + _fvCmtLikes[commentId] : '';
