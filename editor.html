@@ -4403,15 +4403,13 @@ function togglePubFileCard(fileId) {
 function loadPublicFile(fileId) {
     const file = _pubFilesData[fileId];
     if (!file) return;
-    if (hasUnsavedChanges) {
-        showUnsavedChangesModal(
-            () => { _loadPublicFile(file.filename, file.code); closePublicProfile(); },
-            () => { _loadPublicFile(file.filename, file.code); closePublicProfile(); }
-        );
-        return;
-    }
-    _loadPublicFile(file.filename, file.code);
-    closePublicProfile();
+    const isOwn = currentUser && _pubProfileUserId === currentUser.id;
+    const doOpen = () => {
+        if (isOwn) { _loadPublicFile(file.filename, file.code); closePublicProfile(); }
+        else { forkToEditor(file.filename, file.code, closePublicProfile); }
+    };
+    if (hasUnsavedChanges) { showUnsavedChangesModal(doOpen, doOpen); return; }
+    doOpen();
 }
 
 function _loadPublicFile(filename, fileCode) {
@@ -4422,6 +4420,38 @@ function _loadPublicFile(filename, fileCode) {
     const r = document.querySelector('input[name="view"][value="code"]');
     if (r) { r.checked = true; handleViewSwitch('code'); }
     showToast(`${filename} yüklendi`);
+}
+
+// Başkasının dosyasını Supabase'e kopyalayarak aç (fork)
+async function forkToEditor(filename, fileCode, ...closeFns) {
+    if (!currentUser) {
+        // Giriş yoksa eskisi gibi yükle
+        _loadPublicFile(filename, fileCode);
+        closeFns.forEach(fn => fn && fn());
+        return;
+    }
+    const forkName = filename.replace(/(\.[^.]+)?$/, m => '_kopya' + m);
+    showToast('Fork ediliyor...');
+    const { data, error } = await sb.from('files')
+        .insert({ user_id: currentUser.id, filename: forkName, code: fileCode })
+        .select().single();
+    if (error) {
+        showToast('Fork başarısız: ' + error.message);
+        _loadPublicFile(filename, fileCode);
+        closeFns.forEach(fn => fn && fn());
+        return;
+    }
+    // Editöre yükle
+    code = data.code; loadedFilename = data.filename;
+    currentOpenFileId = data.id; hasUnsavedChanges = false;
+    // Dosyalar listesine ekle
+    savedFiles.unshift({ id: data.id, filename: data.filename, code: data.code, timestamp: data.updated_at, cloud: true, isPublic: false });
+    updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
+    setSaveButtonState('idle'); renderSavedFiles(); saveToStorage();
+    const r = document.querySelector('input[name="view"][value="code"]');
+    if (r) { r.checked = true; handleViewSwitch('code'); }
+    closeFns.forEach(fn => fn && fn());
+    showToast(`${data.filename} fork edildi`);
 }
 
 // ── BEĞEN ─────────────────────────────────────────────────────────────
@@ -4866,11 +4896,17 @@ async function loadExploreFiles() {
 }
 
 function loadExploreFile(fileId) {
+    const isOwn = currentUser && _exploreDataMap[fileId]?.userId === currentUser.id;
     const cached = _pubFilesData[fileId];
-    if (cached) { _loadPublicFile(cached.filename, cached.code); closeExplorePanel(); return; }
+    if (cached) {
+        if (isOwn) { _loadPublicFile(cached.filename, cached.code); closeExplorePanel(); }
+        else { forkToEditor(cached.filename, cached.code, closeExplorePanel); }
+        return;
+    }
     sb.from('files').select('filename, code').eq('id', fileId).single().then(({ data }) => {
-        if (data) { _loadPublicFile(data.filename, data.code); }
-        closeExplorePanel();
+        if (!data) { closeExplorePanel(); return; }
+        if (isOwn) { _loadPublicFile(data.filename, data.code); closeExplorePanel(); }
+        else { forkToEditor(data.filename, data.code, closeExplorePanel); }
     });
 }
 
@@ -5663,15 +5699,14 @@ function fvGoProfile() {
 function fvLoadInEditor() {
     const data = _pubFilesData[_fvFileId] || _exploreDataMap[_fvFileId];
     if (!data) return;
-    const doLoad = () => {
-        _loadPublicFile(data.filename, data.code);
-        closeFileView();
-        closeExplorePanel();
-        closeSearchPanel();
-        closeFeedPanel();
+    const isOwn = currentUser && _fvUserId === currentUser.id;
+    const close = () => { closeFileView(); closeExplorePanel(); closeSearchPanel(); closeFeedPanel(); };
+    const doOpen = () => {
+        if (isOwn) { _loadPublicFile(data.filename, data.code); close(); }
+        else { forkToEditor(data.filename, data.code, close); }
     };
-    if (hasUnsavedChanges) { showUnsavedChangesModal(doLoad, doLoad); return; }
-    doLoad();
+    if (hasUnsavedChanges) { showUnsavedChangesModal(doOpen, doOpen); return; }
+    doOpen();
 }
 
 function _fvUpdateLike() {
