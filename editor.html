@@ -1782,6 +1782,10 @@ body.preview-mode .file-title-bar { display: none !important; }
 }
 .feed-comment-toggle span { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
 .feed-like-text { padding: 0 12px 6px; font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+.fork-count-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.fork-count-badge:empty { display: none; }
+.explore-card-stats { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.pub-file-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .feed-comments-wrap { border-top: 1px solid var(--glass-border); padding: 8px 12px 10px; }
 .feed-comment-item { display: flex; align-items: flex-start; gap: 7px; padding: 5px 0; }
 .feed-cmt-avatar { font-size: 16px; flex-shrink: 0; }
@@ -2641,6 +2645,9 @@ let _profMyCmtLikes  = new Set();  // current user liked comment IDs
 // Yorum beğeni state — akış yorumları
 let _feedCmtLikes    = {};
 let _feedMyCmtLikes  = new Set();
+
+// Fork sayıları
+let _forkCounts = {}; // fileId -> fork count
 
 const PROFILE_EMOJIS = [
     '👤','😀','😎','🤓','🧑‍💻','👨‍💻','👩‍💻','🦊','🐼','🐨','🦁','🐸',
@@ -4118,6 +4125,7 @@ async function doFileSearch() {
         (allLikes || []).forEach(l => { counts[l.file_id] = (counts[l.file_id] || 0) + 1; });
         (myL || []).forEach(l => { _myLikes.add(l.file_id); Object.assign(_likeCounts, counts); });
         Object.assign(_likeCounts, counts);
+        await _loadForkCounts(files.map(f => f.id));
 
         container.innerHTML = '<div class="search-file-grid" id="searchFileGrid">' + files.map(f => {
             const prof   = pMap[f.user_id] || {};
@@ -4138,10 +4146,13 @@ async function doFileSearch() {
                             <div class="explore-file-name">${escapeHtml(f.filename)}</div>
                             <div class="explore-file-author">${emoji} ${escapeHtml(author)}</div>
                         </div>
-                        <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
-                            onclick="event.stopPropagation();toggleLike(${f.id})" style="font-size:12px;padding:4px 8px;">
-                            ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
-                        </button>
+                        <div class="explore-card-stats">
+                            <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
+                                onclick="event.stopPropagation();toggleLike(${f.id})" style="font-size:12px;padding:4px 8px;">
+                                ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
+                            </button>
+                            ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : `<span class="fork-count-badge" id="forkcount-${f.id}"></span>`}
+                        </div>
                     </div>
                 </div>
             </div>`;
@@ -4247,6 +4258,7 @@ async function openPublicProfile(userId) {
                 currentUser ? sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds) : { data: [] },
                 sb.from('comments').select('file_id').in('file_id', fileIds)
             ]);
+            await _loadForkCounts(fileIds);
             const _freshCounts = {};
             (fileLikes || []).forEach(l => { _freshCounts[l.file_id] = (_freshCounts[l.file_id] || 0) + 1; });
             Object.assign(_likeCounts, _freshCounts);
@@ -4277,10 +4289,13 @@ async function openPublicProfile(userId) {
                             <div class="pub-file-name">${escapeHtml(f.filename)}</div>
                             <div class="pub-file-meta">${date} · ${lines} satır</div>
                         </div>
-                        <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
-                            onclick="event.stopPropagation();toggleLike(${f.id})">
-                            ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
-                        </button>
+                        <div class="pub-file-right">
+                            <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
+                                onclick="event.stopPropagation();toggleLike(${f.id})">
+                                ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
+                            </button>
+                            ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : `<span class="fork-count-badge" id="forkcount-${f.id}"></span>`}
+                        </div>
                     </div>
                     <div class="pub-file-expand-body" id="pfbody-${f.id}">
                         <div class="file-preview-box">
@@ -4406,7 +4421,7 @@ function loadPublicFile(fileId) {
     const isOwn = currentUser && _pubProfileUserId === currentUser.id;
     const doOpen = () => {
         if (isOwn) { _loadPublicFile(file.filename, file.code); closePublicProfile(); }
-        else { forkToEditor(file.filename, file.code, closePublicProfile); }
+        else { forkToEditor(fileId, file.filename, file.code, closePublicProfile); }
     };
     if (hasUnsavedChanges) { showUnsavedChangesModal(doOpen, doOpen); return; }
     doOpen();
@@ -4423,9 +4438,8 @@ function _loadPublicFile(filename, fileCode) {
 }
 
 // Başkasının dosyasını Supabase'e kopyalayarak aç (fork)
-async function forkToEditor(filename, fileCode, ...closeFns) {
+async function forkToEditor(sourceFileId, filename, fileCode, ...closeFns) {
     if (!currentUser) {
-        // Giriş yoksa eskisi gibi yükle
         _loadPublicFile(filename, fileCode);
         closeFns.forEach(fn => fn && fn());
         return;
@@ -4433,7 +4447,7 @@ async function forkToEditor(filename, fileCode, ...closeFns) {
     const forkName = filename.replace(/(\.[^.]+)?$/, m => '_kopya' + m);
     showToast('Fork ediliyor...');
     const { data, error } = await sb.from('files')
-        .insert({ user_id: currentUser.id, filename: forkName, code: fileCode })
+        .insert({ user_id: currentUser.id, filename: forkName, code: fileCode, forked_from_id: sourceFileId || null })
         .select().single();
     if (error) {
         showToast('Fork başarısız: ' + error.message);
@@ -4450,8 +4464,21 @@ async function forkToEditor(filename, fileCode, ...closeFns) {
     setSaveButtonState('idle'); renderSavedFiles(); saveToStorage();
     const r = document.querySelector('input[name="view"][value="code"]');
     if (r) { r.checked = true; handleViewSwitch('code'); }
+    // Fork sayacını güncelle
+    if (sourceFileId) {
+        _forkCounts[sourceFileId] = (_forkCounts[sourceFileId] || 0) + 1;
+        const forkEl = document.getElementById('forkcount-' + sourceFileId);
+        if (forkEl) forkEl.textContent = _forkCounts[sourceFileId] || '';
+    }
     closeFns.forEach(fn => fn && fn());
     showToast(`${data.filename} fork edildi`);
+}
+
+// Fork sayılarını Supabase'den çek ve _forkCounts'a yaz
+async function _loadForkCounts(fileIds) {
+    if (!fileIds.length) return;
+    const { data } = await sb.from('files').select('forked_from_id').in('forked_from_id', fileIds);
+    (data || []).forEach(r => { _forkCounts[r.forked_from_id] = (_forkCounts[r.forked_from_id] || 0) + 1; });
 }
 
 // ── BEĞEN ─────────────────────────────────────────────────────────────
@@ -4542,6 +4569,7 @@ async function loadFeed() {
         sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds),
         sb.from('likes').select('user_id,file_id').in('file_id', fileIds).limit(200)
     ]);
+    await _loadForkCounts(fileIds);
 
     const pMap = {};
     (profiles || []).forEach(p => { pMap[p.id] = p; });
@@ -4602,6 +4630,7 @@ async function loadFeed() {
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                     <span id="fcmtcnt-${f.id}"></span>
                 </button>
+                <span class="fork-count-badge" id="forkcount-${f.id}" title="Fork sayısı">${_forkCounts[f.id] ? `<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}` : ''}</span>
             </div>
             ${likeText ? `<div class="feed-like-text" id="fliketext-${f.id}">${likeText}</div>` : `<div class="feed-like-text" id="fliketext-${f.id}" style="display:none;"></div>`}
             <div class="feed-comments-wrap" id="fcmtwrap-${f.id}" style="display:none;">
@@ -4850,6 +4879,10 @@ async function loadExploreFiles() {
         (allLikes || []).forEach(l => { counts[l.file_id] = (counts[l.file_id] || 0) + 1; });
         Object.assign(_likeCounts, counts);
 
+        // Fork sayılarını çek
+        const fileIds = (files || []).map(f => f.id);
+        await _loadForkCounts(fileIds);
+
         // En çok beğenilene göre sırala
         const sorted = (files || []).sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
 
@@ -4880,10 +4913,13 @@ async function loadExploreFiles() {
                             <div class="explore-file-name">${escapeHtml(f.filename)}</div>
                             <div class="explore-file-author">${emoji} ${escapeHtml(author)}</div>
                         </div>
-                        <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
-                            onclick="event.stopPropagation();toggleLike(${f.id})" style="font-size:12px;padding:4px 8px;">
-                            ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
-                        </button>
+                        <div class="explore-card-stats">
+                            <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
+                                onclick="event.stopPropagation();toggleLike(${f.id})" style="font-size:12px;padding:4px 8px;">
+                                ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
+                            </button>
+                            ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : `<span class="fork-count-badge" id="forkcount-${f.id}"></span>`}
+                        </div>
                     </div>
                 </div>
             </div>`;
@@ -4900,13 +4936,13 @@ function loadExploreFile(fileId) {
     const cached = _pubFilesData[fileId];
     if (cached) {
         if (isOwn) { _loadPublicFile(cached.filename, cached.code); closeExplorePanel(); }
-        else { forkToEditor(cached.filename, cached.code, closeExplorePanel); }
+        else { forkToEditor(fileId, cached.filename, cached.code, closeExplorePanel); }
         return;
     }
     sb.from('files').select('filename, code').eq('id', fileId).single().then(({ data }) => {
         if (!data) { closeExplorePanel(); return; }
         if (isOwn) { _loadPublicFile(data.filename, data.code); closeExplorePanel(); }
-        else { forkToEditor(data.filename, data.code, closeExplorePanel); }
+        else { forkToEditor(fileId, data.filename, data.code, closeExplorePanel); }
     });
 }
 
@@ -5636,8 +5672,9 @@ async function openFileView(fileId) {
     document.getElementById('fvFrame').srcdoc = '';
     document.getElementById('fvFrame').dataset.code = code || '';
 
-    // Beğeni
+    // Beğeni + fork sayısı
     _fvUpdateLike();
+    _fvUpdateForkCount();
 }
 
 function _fvDetectMode(filename) {
@@ -5703,7 +5740,7 @@ function fvLoadInEditor() {
     const close = () => { closeFileView(); closeExplorePanel(); closeSearchPanel(); closeFeedPanel(); };
     const doOpen = () => {
         if (isOwn) { _loadPublicFile(data.filename, data.code); close(); }
-        else { forkToEditor(data.filename, data.code, close); }
+        else { forkToEditor(_fvFileId, data.filename, data.code, close); }
     };
     if (hasUnsavedChanges) { showUnsavedChangesModal(doOpen, doOpen); return; }
     doOpen();
@@ -5717,6 +5754,17 @@ function _fvUpdateLike() {
     btn.classList.toggle('liked', liked);
     document.getElementById('fvLikeIcon').textContent  = liked ? '♥' : '♡';
     document.getElementById('fvLikeCount').textContent = cnt;
+}
+
+async function _fvUpdateForkCount() {
+    if (!_fvFileId) return;
+    await _loadForkCounts([_fvFileId]);
+    const cnt = _forkCounts[_fvFileId] || 0;
+    const el  = document.getElementById('fvForkCount');
+    const num = document.getElementById('fvForkCountNum');
+    if (!el || !num) return;
+    if (cnt > 0) { num.textContent = cnt; el.style.display = ''; }
+    else { el.style.display = 'none'; }
 }
 
 async function fvToggleLike() {
@@ -6083,6 +6131,10 @@ function _fmtTime(iso) {
             <span id="fvLikeIcon">♡</span>
             <span id="fvLikeCount">0</span>
         </button>
+        <span class="fork-count-badge" id="fvForkCount" style="display:none;">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>
+            <span id="fvForkCountNum">0</span>
+        </span>
         <button class="fv-edit-btn" onclick="fvLoadInEditor()">Editörde Aç</button>
     </div>
     <div class="fv-tabs">
