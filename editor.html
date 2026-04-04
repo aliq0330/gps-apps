@@ -4477,6 +4477,8 @@ async function forkToEditor(sourceFileId, filename, fileCode, ...closeFns) {
 // Fork sayılarını Supabase'den çek ve _forkCounts'a yaz
 async function _loadForkCounts(fileIds) {
     if (!fileIds.length) return;
+    // Önce sorgulanacak ID'leri sıfırla (tekrar çağrılınca birikmemesi için)
+    fileIds.forEach(id => { _forkCounts[id] = 0; });
     const { data } = await sb.from('files').select('forked_from_id').in('forked_from_id', fileIds);
     (data || []).forEach(r => { _forkCounts[r.forked_from_id] = (_forkCounts[r.forked_from_id] || 0) + 1; });
 }
