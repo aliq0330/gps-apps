@@ -1187,8 +1187,11 @@ body.preview-mode .toast { bottom: 80px; }
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 14px; background: rgba(0,122,255,0.08);
     border: 1px solid rgba(0,122,255,0.2); border-radius: 12px; margin-top: 8px;
+    transition: background 0.25s, border-color 0.25s;
 }
-.public-toggle-label { font-size: 12px; font-weight: 600; color: #007aff; display: flex; align-items: center; gap: 6px; }
+.public-toggle-row.on { background: rgba(52,199,89,0.12); border-color: rgba(52,199,89,0.35); }
+.public-toggle-label { font-size: 12px; font-weight: 600; color: #007aff; display: flex; align-items: center; gap: 6px; transition: color 0.25s; }
+.public-toggle-row.on .public-toggle-label { color: #34c759; }
 .toggle-switch {
     width: 44px; height: 26px; border-radius: 13px;
     background: rgba(120,120,128,0.3); border: none; cursor: pointer;
@@ -1201,7 +1204,7 @@ body.preview-mode .toast { bottom: 80px; }
     transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1);
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
-.toggle-switch.on { background: #007aff; }
+.toggle-switch.on { background: #34c759; }
 .toggle-switch.on::after { transform: translateX(18px); }
 
 @media (max-width: 480px) {
@@ -3502,12 +3505,12 @@ function renderSavedFiles() {
                     </button>
                 </div>
                 ${file.cloud ? `
-                <div class="public-toggle-row" onclick="event.stopPropagation()">
+                <div class="public-toggle-row ${file.isPublic ? 'on' : ''}" onclick="event.stopPropagation()">
                     <span class="public-toggle-label">
                         <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
                         </svg>
-                        ${file.isPublic ? 'Herkese Açık' : 'Sadece Ben'}
+                        <span class="pub-toggle-text">${file.isPublic ? 'Herkese Açık' : 'Sadece Ben'}</span>
                     </span>
                     <button class="toggle-switch ${file.isPublic ? 'on' : ''}"
                         onclick="toggleFilePublic(${file.id}, ${file.isPublic}, event)"></button>
@@ -4348,8 +4351,12 @@ async function _loadExploreComments(fileId) {
 async function toggleFilePublic(fileId, currentState, event) {
     event.stopPropagation();
     const btn     = event.currentTarget;
+    const row     = btn.closest('.public-toggle-row');
+    const label   = row?.querySelector('.pub-toggle-text');
     const newState = !currentState;
     btn.classList.toggle('on', newState);
+    if (row) row.classList.toggle('on', newState);
+    if (label) label.textContent = newState ? 'Herkese Açık' : 'Sadece Ben';
     const idx = savedFiles.findIndex(f => f.id === fileId);
     if (idx !== -1) savedFiles[idx].isPublic = newState;
     try {
@@ -4360,7 +4367,9 @@ async function toggleFilePublic(fileId, currentState, event) {
         showToast(newState ? '🌐 Dosya herkese açık' : '🔒 Dosya gizlendi');
     } catch(e) {
         console.error('Toggle public error:', e);
-        btn.classList.toggle('on', currentState); // geri al
+        btn.classList.toggle('on', currentState);
+        if (row) row.classList.toggle('on', currentState);
+        if (label) label.textContent = currentState ? 'Herkese Açık' : 'Sadece Ben';
         showToast('İşlem başarısız');
     }
 }
