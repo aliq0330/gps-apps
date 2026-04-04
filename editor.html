@@ -1736,6 +1736,69 @@ body.preview-mode .file-title-bar { display: none !important; }
 .comment-item.cmt-reply .comment-avatar { font-size: 16px; }
 .comment-item.cmt-reply .comment-text { font-size: 13px; }
 
+/* ── AKIŞ KARTLARI ────────────────────────────────────── */
+.feed-card {
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    border-radius: 16px; margin-bottom: 14px; overflow: hidden;
+}
+.feed-card-header {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    cursor: pointer;
+}
+.feed-card-avatar { font-size: 22px; flex-shrink: 0; }
+.feed-card-meta { flex: 1; min-width: 0; }
+.feed-card-username { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.feed-card-date { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+.feed-open-btn {
+    padding: 6px 12px; background: rgba(0,122,255,0.12); color: #007aff;
+    border: 1px solid rgba(0,122,255,0.25); border-radius: 10px;
+    font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; flex-shrink: 0;
+}
+.feed-thumb-wrap {
+    position: relative; width: 100%; height: 220px; overflow: hidden;
+    background: #f0f0f0; border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border);
+}
+@media (prefers-color-scheme: dark) { .feed-thumb-wrap { background: #1a1a1a; } }
+.feed-thumb-loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.feed-thumb-frame {
+    position: absolute; top: 0; left: 0; width: 390px; height: 844px;
+    border: none; pointer-events: none; transform-origin: top left;
+    opacity: 0; transition: opacity 0.3s;
+}
+.feed-thumb-frame.loaded { opacity: 1; }
+.feed-card-actions { display: flex; gap: 6px; padding: 8px 12px 4px; }
+.feed-like-btn {
+    background: none; border: none; cursor: pointer; font-size: 18px;
+    color: var(--text-secondary); padding: 4px 8px; border-radius: 8px;
+    font-family: inherit; display: flex; align-items: center; gap: 4px; transition: color 0.15s;
+}
+.feed-like-btn.liked { color: #ff3b30; }
+.feed-like-btn span { font-size: 13px; font-weight: 600; }
+.feed-comment-toggle {
+    background: none; border: none; cursor: pointer; font-size: 15px;
+    color: var(--text-secondary); padding: 4px 8px; border-radius: 8px; font-family: inherit;
+    display: flex; align-items: center; gap: 4px;
+}
+.feed-comment-toggle span { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.feed-like-text { padding: 0 12px 6px; font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+.feed-comments-wrap { border-top: 1px solid var(--glass-border); padding: 8px 12px 10px; }
+.feed-comment-item { display: flex; align-items: flex-start; gap: 7px; padding: 5px 0; }
+.feed-cmt-avatar { font-size: 16px; flex-shrink: 0; }
+.feed-cmt-body { flex: 1; font-size: 13px; line-height: 1.4; }
+.feed-cmt-username { font-weight: 700; color: var(--text-primary); margin-right: 5px; }
+.feed-cmt-text { color: var(--text-primary); }
+.feed-cmt-input-row { display: flex; gap: 6px; margin-top: 8px; align-items: flex-end; }
+.feed-cmt-textarea {
+    flex: 1; resize: none; border: 1px solid var(--glass-border); border-radius: 10px;
+    padding: 6px 10px; font-size: 13px; background: var(--glass-bg);
+    color: var(--text-primary); font-family: inherit; min-height: 32px; max-height: 80px; outline: none;
+}
+.feed-cmt-send {
+    width: 32px; height: 32px; background: #007aff; color: #fff; border: none;
+    border-radius: 50%; font-size: 16px; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+}
+
 /* ── BİLDİRİMLER ──────────────────────────────────────── */
 .notif-btn {
     position: relative; width: 34px; height: 34px; border-radius: 50%;
@@ -4411,25 +4474,20 @@ async function loadFeed() {
     const listEl = document.getElementById('feedList');
     listEl.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
 
-    // Takip edilenleri çek
     const { data: followRows } = await sb.from('follows').select('following_id').eq('follower_id', currentUser.id);
     const followingIds = (followRows || []).map(r => r.following_id);
 
     if (!followingIds.length) {
-        listEl.innerHTML = '<div class="search-empty" style="padding:40px 0;">Henüz kimseyi takip etmiyorsunuz.<br>Keşfet\'ten kullanıcı profillerine gidip takip edebilirsiniz.</div>';
+        listEl.innerHTML = '<div class="search-empty" style="padding:40px 0;">Henüz kimseyi takip etmiyorsunuz.<br>Keşfet\'ten profillere gidip takip edebilirsiniz.</div>';
         document.getElementById('feedSubtitle').textContent = '0 takip edilen';
         return;
     }
-
     document.getElementById('feedSubtitle').textContent = followingIds.length + ' takip edilen';
 
-    // Takip edilenlerin public dosyalarını çek
     const { data: files } = await sb.from('files')
         .select('id, filename, code, updated_at, user_id')
-        .in('user_id', followingIds)
-        .eq('is_public', true)
-        .order('updated_at', { ascending: false })
-        .limit(60);
+        .in('user_id', followingIds).eq('is_public', true)
+        .order('updated_at', { ascending: false }).limit(60);
 
     if (!files || !files.length) {
         listEl.innerHTML = '<div class="search-empty" style="padding:40px 0;">Takip ettiklerinizin henüz paylaştığı dosya yok</div>';
@@ -4437,88 +4495,182 @@ async function loadFeed() {
     }
 
     const uids = [...new Set(files.map(f => f.user_id))];
-    const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const fileIds = files.map(f => f.id);
+
+    const [{ data: profiles }, { data: allLikes }, { data: myLikesData }, { data: likerProfiles }] = await Promise.all([
+        sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
+        sb.from('likes').select('file_id,user_id').in('file_id', fileIds),
+        sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds),
+        sb.from('likes').select('user_id,file_id').in('file_id', fileIds).limit(200)
+    ]);
+
     const pMap = {};
     (profiles || []).forEach(p => { pMap[p.id] = p; });
-
-    const fileIds = files.map(f => f.id);
-    const [{ data: allLikes }, { data: myLikesData }] = await Promise.all([
-        sb.from('likes').select('file_id').in('file_id', fileIds),
-        sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds)
-    ]);
     const likeCounts = {};
     (allLikes || []).forEach(l => { likeCounts[l.file_id] = (likeCounts[l.file_id] || 0) + 1; });
-    (myLikesData || []).forEach(l => { _myLikes.add(l.file_id); Object.assign(_likeCounts, likeCounts); });
+    (myLikesData || []).forEach(l => { _myLikes.add(l.file_id); });
     Object.assign(_likeCounts, likeCounts);
+
+    // Beğenenler haritası: fileId -> [userId, ...]
+    const likerMap = {};
+    (likerProfiles || []).forEach(l => { if (!likerMap[l.file_id]) likerMap[l.file_id] = []; likerMap[l.file_id].push(l.user_id); });
+
+    // Liker kullanıcı adlarını çek
+    const likerUids = [...new Set((likerProfiles||[]).map(l => l.user_id))].filter(id => !pMap[id]);
+    if (likerUids.length) {
+        const { data: lp } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', likerUids);
+        (lp||[]).forEach(p => { pMap[p.id] = p; });
+    }
 
     files.forEach(f => {
         const p = pMap[f.user_id] || {};
         _exploreDataMap[f.id] = { userId: f.user_id, username: p.username || 'Kullanıcı', emoji: p.avatar_emoji || '👤', filename: f.filename, code: f.code };
     });
 
-    listEl.innerHTML = '<div class="explore-grid" id="feedGrid">' + files.map(f => {
+    listEl.innerHTML = files.map(f => {
         const p = pMap[f.user_id] || {};
         const liked = _myLikes.has(f.id);
         const cnt = likeCounts[f.id] || 0;
         const d = new Date(f.updated_at);
-        const dateStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
-        return `<div class="explore-card-wrap" id="fewrap-${f.id}">
-            <div class="explore-file-card" onclick="toggleFeedCard('${f.id}')">
-                <div class="explore-card-thumb">
-                    <div class="explore-thumb-loader" id="feload-${f.id}">⏳</div>
-                    <iframe class="explore-card-frame" id="feprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
+        const dateStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+        // Beğenen metni
+        let likeText = '';
+        const likers = (likerMap[f.id] || []).filter(id => id !== currentUser.id);
+        if (liked && cnt === 1) likeText = 'Sen beğendin';
+        else if (liked && cnt > 1) { const others = cnt - 1; likeText = `Sen ve ${others} kişi daha beğendi`; }
+        else if (!liked && cnt > 0) {
+            const firstLiker = likers[0] ? (pMap[likers[0]]?.username || 'biri') : 'biri';
+            likeText = cnt === 1 ? `${escapeHtml(firstLiker)} beğendi` : `${escapeHtml(firstLiker)} ve ${cnt-1} kişi daha beğendi`;
+        }
+        return `<div class="feed-card" id="fcard-${f.id}">
+            <div class="feed-card-header" onclick="openPublicProfile('${f.user_id}')">
+                <span class="feed-card-avatar">${p.avatar_emoji || '👤'}</span>
+                <div class="feed-card-meta">
+                    <div class="feed-card-username">${escapeHtml(p.username || 'Kullanıcı')}</div>
+                    <div class="feed-card-date">${escapeHtml(f.filename || 'dosya.html')} · ${dateStr}</div>
                 </div>
-                <div class="explore-card-row">
-                    <span class="explore-card-emoji">${p.avatar_emoji || '👤'}</span>
-                    <div class="explore-card-info">
-                        <div class="explore-card-name">${escapeHtml(f.filename || 'dosya.html')}</div>
-                        <div class="explore-card-user">${escapeHtml(p.username || 'Kullanıcı')} · ${dateStr}</div>
-                    </div>
-                </div>
+                <button class="feed-open-btn" onclick="event.stopPropagation();openFileView('${f.id}')">Aç</button>
             </div>
-            <div class="explore-card-body" id="febody-${f.id}">
-                <div class="explore-card-actions">
-                    <button class="explore-edit-btn" onclick="event.stopPropagation();openFileView('${f.id}')">Aç</button>
-                    <button class="like-btn${liked ? ' liked' : ''}" onclick="event.stopPropagation();toggleLike('${f.id}');this.classList.toggle('liked');this.querySelector('span').textContent=(_likeCounts['${f.id}']||0)" style="padding:6px 12px;font-size:13px;">
-                        ${liked ? '♥' : '♡'} <span>${cnt || ''}</span>
-                    </button>
-                    <button class="explore-edit-btn" style="background:rgba(120,120,128,0.12);color:var(--text-primary);border:1px solid var(--glass-border);" onclick="event.stopPropagation();openPublicProfile('${f.user_id}')">Profil</button>
-                </div>
+            <div class="feed-thumb-wrap">
+                <div class="feed-thumb-loader" id="feload-${f.id}">⏳</div>
+                <iframe class="feed-thumb-frame" id="feprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
+            </div>
+            <div class="feed-card-actions">
+                <button class="feed-like-btn${liked ? ' liked' : ''}" id="flike-${f.id}" onclick="feedToggleLike('${f.id}')">
+                    ${liked ? '♥' : '♡'} <span id="flikecnt-${f.id}">${cnt || ''}</span>
+                </button>
+                <button class="feed-comment-toggle" onclick="feedToggleComments('${f.id}')">
+                    💬 <span id="fcmtcnt-${f.id}"></span>
+                </button>
+            </div>
+            ${likeText ? `<div class="feed-like-text" id="fliketext-${f.id}">${likeText}</div>` : `<div class="feed-like-text" id="fliketext-${f.id}" style="display:none;"></div>`}
+            <div class="feed-comments-wrap" id="fcmtwrap-${f.id}" style="display:none;">
+                <div class="feed-comments-list" id="fcmtlist-${f.id}"><div class="search-empty" style="padding:8px 0;font-size:12px;">Yükleniyor...</div></div>
+                ${currentUser ? `<div class="feed-cmt-input-row">
+                    <textarea class="feed-cmt-textarea" id="fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button class="feed-cmt-send" onclick="feedSubmitComment('${f.id}')">↑</button>
+                </div>` : ''}
             </div>
         </div>`;
-    }).join('') + '</div>';
+    }).join('');
 
     // Lazy load thumbnails
     const obs = new IntersectionObserver(entries => {
-        entries.forEach(e => { if (e.isIntersecting) _loadFeedThumb(e.target.id.replace('fewrap-',''), obs); });
+        entries.forEach(e => { if (e.isIntersecting) _loadFeedThumb(e.target.id.replace('fcard-',''), obs); });
     }, { rootMargin: '200px' });
-    document.querySelectorAll('#feedGrid [id^="fewrap-"]').forEach(el => obs.observe(el));
+    document.querySelectorAll('#feedList [id^="fcard-"]').forEach(el => obs.observe(el));
 }
 
-function toggleFeedCard(fileId) {
-    const wrap = document.getElementById('fewrap-' + fileId);
-    const body = document.getElementById('febody-' + fileId);
-    if (!wrap || !body) return;
-    const isExp = wrap.classList.contains('expanded');
-    document.querySelectorAll('#feedGrid .explore-card-wrap.expanded').forEach(w => {
-        w.classList.remove('expanded');
-        const b = w.querySelector('.explore-card-body');
-        if (b) b.classList.remove('open');
-    });
-    if (!isExp) { wrap.classList.add('expanded'); body.classList.add('open'); _loadFeedThumb(fileId); }
+async function feedToggleLike(fileId) {
+    const liked = _myLikes.has(fileId);
+    const btn = document.getElementById('flike-' + fileId);
+    const cntEl = document.getElementById('flikecnt-' + fileId);
+    const textEl = document.getElementById('fliketext-' + fileId);
+    if (liked) { _myLikes.delete(fileId); _likeCounts[fileId] = Math.max(0,(_likeCounts[fileId]||1)-1); }
+    else { _myLikes.add(fileId); _likeCounts[fileId] = (_likeCounts[fileId]||0)+1; }
+    const cnt = _likeCounts[fileId] || 0;
+    if (btn) { btn.classList.toggle('liked', !liked); btn.childNodes[0].textContent = !liked ? '♥ ' : '♡ '; }
+    if (cntEl) cntEl.textContent = cnt || '';
+    if (textEl) {
+        if (cnt === 0) { textEl.style.display='none'; textEl.textContent=''; }
+        else { textEl.style.display=''; textEl.textContent = !liked ? `Sen ve ${cnt-1 > 0 ? cnt-1+' kişi daha' : ''} beğendi`.replace(' ve  beğendi',' beğendi') : (cnt===1 ? '1 kişi beğendi' : cnt+' kişi beğendi'); }
+    }
+    try {
+        if (liked) await sb.from('likes').delete().eq('user_id',currentUser.id).eq('file_id',fileId);
+        else await sb.from('likes').insert({user_id:currentUser.id,file_id:fileId});
+    } catch(e) {
+        if (liked) { _myLikes.add(fileId); _likeCounts[fileId]++; } else { _myLikes.delete(fileId); _likeCounts[fileId]=Math.max(0,(_likeCounts[fileId]||1)-1); }
+        showToast('Beğeni kaydedilemedi');
+    }
+}
+
+async function feedToggleComments(fileId) {
+    const wrap = document.getElementById('fcmtwrap-' + fileId);
+    if (!wrap) return;
+    const isOpen = wrap.style.display !== 'none';
+    wrap.style.display = isOpen ? 'none' : '';
+    if (!isOpen && !wrap.dataset.loaded) {
+        wrap.dataset.loaded = '1';
+        await feedLoadComments(fileId);
+    }
+}
+
+async function feedLoadComments(fileId) {
+    const listEl = document.getElementById('fcmtlist-' + fileId);
+    if (!listEl) return;
+    const { data: comments } = await sb.from('comments').select('*').eq('file_id', fileId).is('parent_id', null).order('created_at', { ascending: false });
+    const cntEl = document.getElementById('fcmtcnt-' + fileId);
+    if (cntEl) cntEl.textContent = (comments||[]).length || '';
+    if (!comments || !comments.length) { listEl.innerHTML = '<div class="search-empty" style="padding:8px 0;font-size:12px;">Henüz yorum yok</div>'; return; }
+    const uids = [...new Set(comments.map(c => c.user_id))];
+    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
+    const fileOwnerId = _exploreDataMap[fileId]?.userId || '';
+    listEl.innerHTML = comments.map(c => {
+        const p = pm[c.user_id] || {};
+        const canDel = currentUser && (currentUser.id === c.user_id || currentUser.id === fileOwnerId);
+        return `<div class="feed-comment-item" id="feedcmt-${c.id}">
+            <span class="feed-cmt-avatar">${p.avatar_emoji||'👤'}</span>
+            <div class="feed-cmt-body">
+                <span class="feed-cmt-username">${escapeHtml(p.username||'Kullanıcı')}</span>
+                <span class="feed-cmt-text">${escapeHtml(c.content)}</span>
+            </div>
+            ${canDel ? `<button onclick="feedDeleteComment('${c.id}','${fileId}')" style="background:none;border:none;color:var(--text-secondary);font-size:12px;cursor:pointer;padding:0 4px;">✕</button>` : ''}
+        </div>`;
+    }).join('');
+}
+
+async function feedSubmitComment(fileId) {
+    if (!currentUser) return;
+    const inp = document.getElementById('fcmtinput-' + fileId);
+    const content = inp?.value.trim();
+    if (!content) return;
+    inp.value = ''; inp.style.height = 'auto';
+    const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content });
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    const wrap = document.getElementById('fcmtwrap-' + fileId);
+    if (wrap) wrap.dataset.loaded = '';
+    await feedLoadComments(fileId);
+}
+
+async function feedDeleteComment(commentId, fileId) {
+    const el = document.getElementById('feedcmt-' + commentId);
+    if (el) { el.style.opacity='0'; el.style.transition='opacity 0.2s'; setTimeout(()=>el.remove(),200); }
+    await sb.from('comments').delete().eq('id', commentId);
 }
 
 async function _loadFeedThumb(fileId, obs) {
     const frame = document.getElementById('feprev-' + fileId);
     if (!frame || frame.dataset.loaded) return;
     frame.dataset.loaded = '1';
-    if (obs) obs.unobserve(document.getElementById('fewrap-' + fileId));
+    if (obs) { const card = document.getElementById('fcard-' + fileId); if (card) obs.unobserve(card); }
     const d = _exploreDataMap[fileId];
-    if (!d?.code) { const { data } = await sb.from('files').select('code').eq('id', fileId).single(); if (data?.code) { _exploreDataMap[fileId] = { ...(d||{}), code: data.code }; frame.srcdoc = data.code; } return; }
-    frame.srcdoc = d.code;
+    const code = d?.code || (await sb.from('files').select('code').eq('id',fileId).single()).data?.code;
+    if (!code) return;
+    if (!d?.code && _exploreDataMap[fileId]) _exploreDataMap[fileId].code = code;
+    frame.srcdoc = code;
     frame.onload = () => {
-        const box = frame.closest('.explore-card-thumb');
-        if (box) frame.style.transform = `scale(${box.offsetWidth / 390})`;
+        frame.style.transform = `scale(${frame.parentElement.offsetWidth / 390})`;
         frame.classList.add('loaded');
         const loader = document.getElementById('feload-' + fileId);
         if (loader) loader.style.display = 'none';
