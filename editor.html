@@ -1340,9 +1340,9 @@ body.preview-mode .file-title-bar { display: none !important; }
 .explore-file-author { font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-top: 1px; }
 
 /* Genişletilmiş hâl */
-.explore-card-wrap.expanded .explore-file-card { border-radius: 14px 14px 0 0; flex-direction: row; align-items: center; padding: 10px 12px; }
-.explore-card-wrap.expanded .explore-card-thumb { display: none; }
-.explore-card-wrap.expanded .explore-card-row { border-top: none; padding: 0; flex: 1; }
+.explore-card-wrap.expanded .explore-file-card { border-radius: 14px 14px 0 0; }
+.explore-card-wrap.expanded .explore-card-thumb { aspect-ratio: unset; height: 200px; }
+.explore-card-wrap.expanded .explore-card-row { }
 .explore-card-body { display: none; border: 1px solid var(--glass-border); border-top: none; border-radius: 0 0 14px 14px; padding: 12px 14px 14px; background: var(--glass-bg); }
 .explore-card-body.open { display: block; }
 .explore-card-actions { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
@@ -4153,6 +4153,13 @@ function loadExploreFile(fileId) {
     });
 }
 
+function _rescaleThumb(fileId) {
+    const frame = document.getElementById('eprev-' + fileId);
+    if (!frame || !frame.classList.contains('loaded')) return;
+    const box = frame.closest('.explore-card-thumb');
+    if (box) frame.style.transform = `scale(${box.offsetWidth / 390})`;
+}
+
 function toggleExploreCard(fileId) {
     const wrap = document.getElementById('ewrap-' + fileId);
     const body = document.getElementById('ebody-' + fileId);
@@ -4161,18 +4168,20 @@ function toggleExploreCard(fileId) {
     if (isOpen) {
         wrap.classList.remove('expanded');
         body.classList.remove('open');
+        setTimeout(() => _rescaleThumb(fileId), 20);
     } else {
-        // Close any other expanded card
         document.querySelectorAll('.explore-card-wrap.expanded').forEach(w => {
+            const id = w.id.replace('ewrap-', '');
             w.classList.remove('expanded');
-            const b = document.getElementById('ebody-' + w.id.replace('ewrap-', ''));
+            const b = document.getElementById('ebody-' + id);
             if (b) b.classList.remove('open');
+            setTimeout(() => _rescaleThumb(id), 20);
         });
         wrap.classList.add('expanded');
         body.classList.add('open');
-        // Load thumb if not yet loaded
         _loadExploreThumb(fileId);
         _loadExploreComments(fileId);
+        setTimeout(() => _rescaleThumb(fileId), 20);
     }
 }
 
