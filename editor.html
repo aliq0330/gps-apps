@@ -1393,7 +1393,8 @@ body.preview-mode .file-title-bar { display: none !important; }
 .CodeMirror-selected, .CodeMirror-focused .CodeMirror-selected {
     background: rgba(0,122,255,0.18) !important;
 }
-.CodeMirror-gutters { background: transparent !important; border-right: 1px solid var(--glass-border) !important; }
+.CodeMirror-gutters { background: #f2f2f7 !important; border-right: 1px solid var(--glass-border) !important; z-index: 4 !important; }
+@media (prefers-color-scheme: dark) { .CodeMirror-gutters { background: #000 !important; } }
 .CodeMirror-linenumber { color: var(--text-secondary); font-size: 12px; padding: 0 8px 0 6px; min-width: 28px; text-align: right; }
 .CodeMirror-scroll::-webkit-scrollbar { width: 8px; }
 .CodeMirror-scroll::-webkit-scrollbar-track { background: transparent; }
