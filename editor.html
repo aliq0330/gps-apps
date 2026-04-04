@@ -5823,6 +5823,12 @@ function _initFileViewSwipeBack() {
     let sx = 0, sy = 0, decided = false, isHoriz = false, active = false;
 
     body.addEventListener('touchstart', e => {
+        // Önizleme panelinden başlayan dokunuşlarda swipe'ı devre dışı bırak
+        // — iframe dikey kaydırması engellenmesi
+        const previewPane = document.getElementById('fvPanePreview');
+        if (previewPane && previewPane.contains(e.target)) {
+            active = false; return;
+        }
         sx = e.touches[0].clientX; sy = e.touches[0].clientY;
         decided = false; isHoriz = false; active = true;
         slider.classList.add('no-transition');
