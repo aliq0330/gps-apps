@@ -1576,11 +1576,30 @@ body.preview-mode .file-title-bar { display: none !important; }
     background: rgba(0,122,255,0.1); color: #007aff;
     border: 1.5px solid rgba(0,122,255,0.3); border-radius: 14px;
     padding: 12px 20px; font-size: 14px; font-weight: 700;
-    cursor: pointer; width: 100%; margin-bottom: 16px;
+    cursor: pointer; width: 100%; margin-bottom: 0;
     font-family: inherit; transition: all 0.2s;
     backdrop-filter: blur(8px);
 }
 .msg-btn:active { background: rgba(0,122,255,0.2); transform: scale(0.97); }
+.follow-btn {
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 14px; padding: 12px 20px; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: all 0.2s; white-space: nowrap;
+    background: #007aff; color: #fff; border: none; flex: 1;
+}
+.follow-btn.following {
+    background: rgba(120,120,128,0.12); color: var(--text-primary);
+    border: 1.5px solid var(--glass-border);
+}
+.follow-btn:active { transform: scale(0.97); opacity: 0.85; }
+.follow-list-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 0;
+    border-bottom: 1px solid var(--glass-border); cursor: pointer;
+}
+.follow-list-item:last-child { border-bottom: none; }
+.follow-list-item:active { opacity: 0.7; }
+.follow-list-avatar { font-size: 22px; }
+.follow-list-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
 .msg-panel-header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 8px 20px 12px; flex-shrink: 0;
@@ -2059,13 +2078,32 @@ body.preview-mode .file-title-bar { display: none !important; }
                 <div class="profile-stat-value" id="pubStatLines">0</div>
                 <div class="profile-stat-label">Satır</div>
             </div>
+            <div class="profile-stat" style="cursor:pointer;" onclick="_openFollowList('followers')">
+                <div class="profile-stat-value" id="pubStatFollowers">0</div>
+                <div class="profile-stat-label">Takipçi</div>
+            </div>
+            <div class="profile-stat" style="cursor:pointer;" onclick="_openFollowList('following')">
+                <div class="profile-stat-value" id="pubStatFollowing">0</div>
+                <div class="profile-stat-label">Takip</div>
+            </div>
         </div>
-        <button class="msg-btn" id="pubProfileMsgBtn" onclick="startMessageWithUser()" style="display:none;">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-            </svg>
-            Mesaj Gönder
-        </button>
+        <div style="display:flex;gap:10px;margin-bottom:16px;" id="pubProfileActions">
+            <button class="follow-btn" id="pubFollowBtn" onclick="toggleFollow()" style="display:none;"></button>
+            <button class="msg-btn" id="pubProfileMsgBtn" onclick="startMessageWithUser()" style="display:none;flex:1;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                </svg>
+                Mesaj Gönder
+            </button>
+        </div>
+        <!-- Takipçi/Takip listesi -->
+        <div id="followListWrap" style="display:none;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <span class="profile-section-title" style="margin:0;" id="followListTitle">Takipçiler</span>
+                <button onclick="document.getElementById('followListWrap').style.display='none'" style="background:none;border:none;font-size:18px;color:var(--text-secondary);cursor:pointer;">✕</button>
+            </div>
+            <div id="followListItems"></div>
+        </div>
         <div class="profile-section-title">Public Dosyalar</div>
         <div id="pubFilesList"></div>
     </div>
@@ -2499,6 +2537,11 @@ let _exploreDataMap = {}; // fileId -> { userId, username, emoji, filename }
 let _myLikes      = new Set(); // current user's liked file IDs
 let _likeCounts   = {};        // file_id -> like count
 let _myLikesLoaded = false;
+
+// Takip state
+let _followingSet  = new Set(); // current user's following IDs
+let _followLoaded  = false;
+let _pubProfileUserId = null;   // currently viewed profile userId
 
 const PROFILE_EMOJIS = [
     '👤','😀','😎','🤓','🧑‍💻','👨‍💻','👩‍💻','🦊','🐼','🐨','🦁','🐸',
@@ -4029,25 +4072,42 @@ function _initSearchFileLazy() {
 async function openPublicProfile(userId) {
     closeSearchPanel();
     _sheetReset('pubProfilePanel');
+    _pubProfileUserId = userId;
     document.getElementById('pubProfileOverlay').classList.add('open');
     document.getElementById('pubProfileEmoji').textContent  = '⏳';
     document.getElementById('pubProfileUsername').textContent = 'Yükleniyor...';
     document.getElementById('pubProfileSince').textContent   = '';
     document.getElementById('pubFilesList').innerHTML = '';
     document.getElementById('pubProfileBioBox').style.display = 'none';
+    document.getElementById('followListWrap').style.display = 'none';
+    document.getElementById('pubStatFollowers').textContent = '0';
+    document.getElementById('pubStatFollowing').textContent = '0';
+    const followBtn = document.getElementById('pubFollowBtn');
+    followBtn.style.display = 'none';
 
     try {
-        // Profil bilgisi
-        const { data: prof } = await sb.from('profiles')
-            .select('username, bio, avatar_emoji, created_at')
-            .eq('id', userId).single();
+        // Profil bilgisi + dosyalar + takip verileri paralel çek
+        const [{ data: prof }, { data: files }, { data: followers }, { data: followings }, { data: myFollow }] = await Promise.all([
+            sb.from('profiles').select('username, bio, avatar_emoji, created_at').eq('id', userId).single(),
+            sb.from('files').select('id, filename, code, updated_at').eq('user_id', userId).eq('is_public', true).order('updated_at', { ascending: false }),
+            sb.from('follows').select('follower_id').eq('following_id', userId),
+            sb.from('follows').select('following_id').eq('follower_id', userId),
+            currentUser && currentUser.id !== userId
+                ? sb.from('follows').select('id').eq('follower_id', currentUser.id).eq('following_id', userId).maybeSingle()
+                : { data: null }
+        ]);
 
-        // Public dosyalar
-        const { data: files } = await sb.from('files')
-            .select('id, filename, code, updated_at')
-            .eq('user_id', userId)
-            .eq('is_public', true)
-            .order('updated_at', { ascending: false });
+        const followerCount  = (followers  || []).length;
+        const followingCount = (followings || []).length;
+        const isFollowing    = !!myFollow;
+
+        document.getElementById('pubStatFollowers').textContent = followerCount;
+        document.getElementById('pubStatFollowing').textContent = followingCount;
+
+        if (currentUser && currentUser.id !== userId) {
+            if (isFollowing) _followingSet.add(userId); else _followingSet.delete(userId);
+            _updateFollowBtn(userId, isFollowing);
+        }
 
         if (prof) {
             document.getElementById('pubProfileEmoji').textContent    = prof.avatar_emoji || '👤';
@@ -4161,6 +4221,65 @@ function closePublicProfile() {
 
 function handlePubProfileOverlayClick(e) {
     if (e.target.id === 'pubProfileOverlay') closePublicProfile();
+}
+
+// ── TAKİP SİSTEMİ ──────────────────────────────────────────────────────
+function _updateFollowBtn(userId, isFollowing) {
+    const btn = document.getElementById('pubFollowBtn');
+    if (!btn) return;
+    btn.style.display = '';
+    btn.classList.toggle('following', isFollowing);
+    btn.textContent = isFollowing ? 'Takip Ediliyor' : 'Takip Et';
+}
+
+async function toggleFollow() {
+    if (!currentUser) { showToast('Takip etmek için giriş yapın'); return; }
+    const userId = _pubProfileUserId;
+    if (!userId || userId === currentUser.id) return;
+    const isFollowing = _followingSet.has(userId);
+    const newState = !isFollowing;
+    // Optimistic
+    if (newState) _followingSet.add(userId); else _followingSet.delete(userId);
+    _updateFollowBtn(userId, newState);
+    const cntEl = document.getElementById('pubStatFollowers');
+    const cnt = parseInt(cntEl.textContent) || 0;
+    cntEl.textContent = newState ? cnt + 1 : Math.max(0, cnt - 1);
+    try {
+        if (isFollowing) {
+            await sb.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', userId);
+        } else {
+            await sb.from('follows').insert({ follower_id: currentUser.id, following_id: userId });
+        }
+    } catch(e) {
+        // Geri al
+        if (newState) _followingSet.delete(userId); else _followingSet.add(userId);
+        _updateFollowBtn(userId, isFollowing);
+        cntEl.textContent = cnt;
+        showToast('Hata oluştu');
+    }
+}
+
+async function _openFollowList(type) {
+    const userId = _pubProfileUserId;
+    if (!userId) return;
+    const wrap = document.getElementById('followListWrap');
+    const title = document.getElementById('followListTitle');
+    const items = document.getElementById('followListItems');
+    title.textContent = type === 'followers' ? 'Takipçiler' : 'Takip Edilenler';
+    items.innerHTML = '<div class="search-empty" style="padding:12px 0;">Yükleniyor...</div>';
+    wrap.style.display = '';
+
+    const col = type === 'followers' ? 'follower_id' : 'following_id';
+    const { data } = await sb.from('follows').select(col).eq(type === 'followers' ? 'following_id' : 'follower_id', userId);
+    const ids = (data || []).map(r => r[col]);
+    if (!ids.length) { items.innerHTML = '<div class="search-empty" style="padding:12px 0;">Henüz yok</div>'; return; }
+    const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', ids);
+    items.innerHTML = (profiles || []).map(p =>
+        `<div class="follow-list-item" onclick="openPublicProfile('${p.id}')">
+            <span class="follow-list-avatar">${p.avatar_emoji || '👤'}</span>
+            <span class="follow-list-name">${escapeHtml(p.username || 'Kullanıcı')}</span>
+        </div>`
+    ).join('');
 }
 
 function togglePubFileCard(fileId) {
