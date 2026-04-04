@@ -5501,6 +5501,7 @@ function fvLoadInEditor() {
         closeFileView();
         closeExplorePanel();
         closeSearchPanel();
+        closeFeedPanel();
     };
     if (hasUnsavedChanges) { showUnsavedChangesModal(doLoad, doLoad); return; }
     doLoad();
