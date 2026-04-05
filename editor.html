@@ -4590,10 +4590,26 @@ async function forkToEditor(sourceFileId, filename, fileCode, ...closeFns) {
 // Fork sayılarını Supabase'den çek ve _forkCounts'a yaz
 async function _loadForkCounts(fileIds) {
     if (!fileIds.length) return;
-    // Önce sorgulanacak ID'leri sıfırla (tekrar çağrılınca birikmemesi için)
     fileIds.forEach(id => { _forkCounts[id] = 0; });
-    const { data } = await sb.from('files').select('forked_from_id').in('forked_from_id', fileIds);
+    // is_public filtresi: RLS başka kullanıcıların özel dosyalarını gizler,
+    // bu yüzden yalnızca public fork'lar sayılabilir
+    const { data } = await sb.from('files').select('forked_from_id').in('forked_from_id', fileIds).eq('is_public', true);
     (data || []).forEach(r => { _forkCounts[r.forked_from_id] = (_forkCounts[r.forked_from_id] || 0) + 1; });
+}
+
+// ── BİLDİRİM HELPER ───────────────────────────────────────────────────
+// type: 'like' | 'comment' | 'reply' | 'reply_on_file' | 'fork' | 'comment_like'
+async function _sendNotif(type, toUserId, fileId, extra = {}) {
+    if (!currentUser || !toUserId || toUserId === currentUser.id) return;
+    const base = { to_user_id: toUserId, from_user_id: currentUser.id, file_id: fileId || null, type };
+    const { error } = await sb.from('like_notifications').insert({ ...base, ...extra });
+    if (error && Object.keys(extra).length > 0) {
+        // Opsiyonel alan yoksa yeniden dene
+        const { error: e2 } = await sb.from('like_notifications').insert(base);
+        if (e2) console.warn('Bildirim gönderilemedi:', e2.message);
+    } else if (error) {
+        console.warn('Bildirim gönderilemedi:', error.message);
+    }
 }
 
 // ── BEĞEN ─────────────────────────────────────────────────────────────
@@ -4862,7 +4878,7 @@ async function feedLoadComments(fileId) {
         const liked = _feedMyCmtLikes.has(c.id);
         const likeCnt = _feedCmtLikes[c.id] || 0;
         const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderFC(r, true)).join('') : '';
-        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="feedcmt-${c.id}">
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="feedcmt-${c.id}" data-user-id="${c.user_id}">
             <div class="comment-avatar">${p.avatar_emoji||'👤'}</div>
             <div class="comment-body">
                 <div class="comment-header">
@@ -4896,6 +4912,7 @@ async function feedSubmitComment(fileId) {
     inp.value = ''; inp.style.height = 'auto';
     const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100) });
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await feedLoadComments(fileId);
@@ -4935,6 +4952,7 @@ async function feedToggleCmtLike(commentId, btn) {
         if (span) span.textContent = _feedCmtLikes[commentId] ? ' '+_feedCmtLikes[commentId] : '';
         showToast('Beğeni kaydedilemedi');
     }
+    if (!liked && !_fe) { const _cl = document.getElementById('feedcmt-' + commentId); if (_cl) { const _fid = btn.closest('[id^="fcmtlist-"]')?.id.replace('fcmtlist-',''); _sendNotif('comment_like', _cl.dataset.userId, _fid || null); } }
 }
 
 function feedShowReply(commentId, fileId) {
@@ -4954,6 +4972,12 @@ async function feedSubmitReply(parentId, fileId) {
     document.getElementById('feedri-' + parentId).style.display = 'none';
     const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    // Yorum sahibine: "yorumuna yanıt verildi"
+    const _rvp = document.getElementById('feedcmt-' + parentId);
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100) });
+    // Dosya sahibine: "dosyandaki yoruma yanıt verildi" (yorum sahibinden farklıysa)
+    const _fileOwner = _exploreDataMap[fileId]?.userId;
+    if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100) });
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await feedLoadComments(fileId);
@@ -5623,7 +5647,7 @@ async function loadComments(fileId) {
         const liked = _profMyCmtLikes.has(c.id);
         const likeCnt = _profCmtLikes[c.id] || 0;
         const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderC(r, true)).join('') : '';
-        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="profcmt-${c.id}">
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="profcmt-${c.id}" data-user-id="${c.user_id}">
             <div class="comment-avatar">${p.avatar_emoji || '👤'}</div>
             <div class="comment-body">
                 <div class="comment-header">
@@ -5662,6 +5686,7 @@ async function submitComment(fileId) {
         content
     });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    _sendNotif('comment', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100) });
     await loadComments(fileId);
 }
 
@@ -5704,6 +5729,7 @@ async function profToggleCmtLike(commentId, btn) {
         if (span) span.textContent = _profCmtLikes[commentId] ? ' ' + _profCmtLikes[commentId] : '';
         showToast('Beğeni kaydedilemedi');
     }
+    if (!liked && !_pe) { const _cl = document.getElementById('profcmt-' + commentId); if (_cl) _sendNotif('comment_like', _cl.dataset.userId, null); }
 }
 
 function profShowReply(commentId) {
@@ -5723,6 +5749,11 @@ async function profSubmitReply(parentId, fileId) {
     document.getElementById('profri-' + parentId).style.display = 'none';
     const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    // Yorum sahibine: "yorumuna yanıt verildi"
+    const _rvp = document.getElementById('profcmt-' + parentId);
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100) });
+    // Dosya sahibine (yorum sahibinden farklıysa)
+    if (_pubProfileUserId && _pubProfileUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100) });
     await loadComments(fileId);
 }
 
@@ -6097,7 +6128,7 @@ async function fvLoadComments() {
         const liked = _fvMyCmtLikes.has(c.id);
         const likeCnt = _fvCmtLikes[c.id] || 0;
         const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderCmt(r, true)).join('') : '';
-        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="fvcmt-${c.id}">
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="fvcmt-${c.id}" data-user-id="${c.user_id}">
             <div class="comment-avatar">${p.avatar_emoji || '👤'}</div>
             <div class="comment-body">
                 <div class="comment-header">
@@ -6131,6 +6162,7 @@ async function fvSubmitComment() {
     inp.value = ''; inp.style.height = 'auto';
     const { error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    _sendNotif('comment', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100) });
     _fvCmtLoaded = false;
     fvLoadComments();
 }
@@ -6168,6 +6200,7 @@ async function fvToggleCmtLike(commentId, btn) {
         if (span) span.textContent = _fvCmtLikes[commentId] ? ' ' + _fvCmtLikes[commentId] : '';
         showToast('Beğeni kaydedilemedi');
     }
+    if (!liked && !_fve) { const _cl = document.getElementById('fvcmt-' + commentId); if (_cl) _sendNotif('comment_like', _cl.dataset.userId, _fvFileId); }
 }
 
 function fvShowReply(commentId) {
@@ -6187,6 +6220,11 @@ async function fvSubmitReply(parentId) {
     document.getElementById('fvri-' + parentId).style.display = 'none';
     const { error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content, parent_id: parentId });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    // Yorum sahibine: "yorumuna yanıt verildi"
+    const _rvp = document.getElementById('fvcmt-' + parentId);
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, _fvFileId, { comment_preview: content.substring(0, 100) });
+    // Dosya sahibine (yorum sahibinden farklıysa): "dosyandaki yoruma yanıt verildi"
+    if (_fvUserId && _fvUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100) });
     _fvCmtLoaded = false;
     fvLoadComments();
 }
@@ -6292,18 +6330,26 @@ async function loadNotifications() {
         const prof = pMap[n.from_user_id] || {};
         const file = fMap[n.file_id] || {};
         const fname = escapeHtml((file.filename || 'dosya') + '.html');
-        const isComment = n.type === 'comment';
-        const isFork    = n.type === 'fork';
-        const icon = isComment
-            ? `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>`
-            : isFork
-            ? `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#007aff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>`
-            : `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#ff3b30"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`;
+        const isComment     = n.type === 'comment';
+        const isReply       = n.type === 'reply';
+        const isReplyOnFile = n.type === 'reply_on_file';
+        const isFork        = n.type === 'fork';
+        const isCmtLike     = n.type === 'comment_like';
+        const _cmtSVG  = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>`;
+        const _forkSVG = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#007aff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>`;
+        const _heartSVG = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#ff3b30"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`;
+        const _preview = n.comment_preview ? `: <em style="opacity:.8">${escapeHtml(n.comment_preview)}</em>` : '';
         const action = isComment
-            ? `&nbsp;${icon} <span class="notif-file">${fname}</span> dosyana yorum yaptı${n.comment_preview ? `: <em style="opacity:.8">${escapeHtml(n.comment_preview)}</em>` : ''}`
+            ? `&nbsp;${_cmtSVG} <span class="notif-file">${fname}</span> dosyana yorum yaptı${_preview}`
+            : isReply
+            ? `&nbsp;${_cmtSVG} yorumuna yanıt verdi${_preview}`
+            : isReplyOnFile
+            ? `&nbsp;${_cmtSVG} <span class="notif-file">${fname}</span> dosyandaki bir yoruma yanıt verdi${_preview}`
+            : isCmtLike
+            ? `&nbsp;${_heartSVG} bir yorumunu beğendi`
             : isFork
-            ? `&nbsp;${icon} <span class="notif-file">${fname}</span> dosyanı fork etti`
-            : `&nbsp;${icon} <span class="notif-file">${fname}</span> dosyanı beğendi`;
+            ? `&nbsp;${_forkSVG} <span class="notif-file">${fname}</span> dosyanı fork etti`
+            : `&nbsp;${_heartSVG} <span class="notif-file">${fname}</span> dosyanı beğendi`;
         return `<div class="notif-item" id="notif-${n.id}">
             <div class="notif-avatar">${prof.avatar_emoji || '👤'}</div>
             <div class="notif-info">
