@@ -4601,10 +4601,10 @@ async function _loadForkCounts(fileIds) {
 // type: 'like' | 'comment' | 'reply' | 'reply_on_file' | 'fork' | 'comment_like'
 async function _sendNotif(type, toUserId, fileId, extra = {}) {
     if (!currentUser || !toUserId || toUserId === currentUser.id) return;
-    const base = { to_user_id: toUserId, from_user_id: currentUser.id, file_id: fileId || null, type };
+    const base = { to_user_id: toUserId, from_user_id: currentUser.id, file_id: fileId || null, type, seen: false };
     const { error } = await sb.from('like_notifications').insert({ ...base, ...extra });
     if (error && Object.keys(extra).length > 0) {
-        // Opsiyonel alan yoksa yeniden dene
+        // comment_preview gibi opsiyonel kolon yoksa sadece temel alanlarla dene
         const { error: e2 } = await sb.from('like_notifications').insert(base);
         if (e2) console.warn('Bildirim gönderilemedi:', e2.message);
     } else if (error) {
