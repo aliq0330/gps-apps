@@ -2830,6 +2830,7 @@ function toggleEmojiPicker() {
 }
 
 function openProfilePanel() {
+    _closeAllPanels('profile');
     // Input alanlarını doldur
     const username = currentProfile?.username || currentUser?.email?.split('@')[0] || '';
     const bio      = currentProfile?.bio || '';
@@ -3606,6 +3607,7 @@ async function updateExistingFile() {
 
 // ── Saved Files Panel ──────────────────────────────────────────────────
 function openSavedFilesPanel() {
+    _closeAllPanels('savedFiles');
     renderSavedFiles();
     document.getElementById('savedFilesOverlay').classList.add('open');
     document.getElementById('savedFilesPanel').classList.add('open');
@@ -4117,6 +4119,7 @@ let searchDebounceTimer = null;
 let _searchTab = 'users';
 
 function openSearchPanel() {
+    _closeAllPanels('search');
     document.getElementById('searchPanelOverlay').classList.add('open');
     document.getElementById('userSearchInput').value = '';
     document.getElementById('searchResults').innerHTML = '<div class="search-empty">Aramak istediğiniz kişi veya dosya adını yazın</div>';
@@ -4625,10 +4628,30 @@ async function toggleLike(fileId) {
     }
 }
 
+// ── PANEL YÖNETİMİ ─────────────────────────────────────────────────────
+// Ana paneller açılınca diğerlerini kapat (alt paneller hariç: fvOverlay, convOverlay, pubProfileOverlay)
+function _closeAllPanels(skip) {
+    const panels = [
+        { id: 'feedOverlay',         key: 'feed',       close: closeFeedPanel },
+        { id: 'exploreOverlay',      key: 'explore',    close: closeExplorePanel },
+        { id: 'messagesOverlay',     key: 'messages',   close: closeMessagesPanel },
+        { id: 'notifOverlay',        key: 'notif',      close: closeNotifPanel },
+        { id: 'profilePanelOverlay', key: 'profile',    close: closeProfilePanel },
+        { id: 'searchPanelOverlay',  key: 'search',     close: closeSearchPanel },
+        { id: 'savedFilesOverlay',   key: 'savedFiles', close: closeSavedFilesPanel },
+    ];
+    panels.forEach(p => {
+        if (p.key === skip) return;
+        const el = document.getElementById(p.id);
+        if (el && el.classList.contains('open')) p.close();
+    });
+}
+
 // ── AKIŞ ───────────────────────────────────────────────────────────────
 let _feedLoaded = false;
 
 function openFeedPanel() {
+    _closeAllPanels('feed');
     const overlay = document.getElementById('feedOverlay');
     overlay.classList.add('open');
     if (!currentUser) {
@@ -4941,6 +4964,7 @@ async function _loadFeedThumb(fileId, obs) {
 
 // ── KEŞFET ─────────────────────────────────────────────────────────────
 function openExplorePanel() {
+    _closeAllPanels('explore');
     document.getElementById('exploreOverlay').classList.add('open');
     loadExploreFiles();
 }
@@ -5132,6 +5156,7 @@ let _convOtherUser  = null;   // { id, username, emoji }
 let _msgRealtime    = null;
 
 function openMessagesPanel() {
+    _closeAllPanels('messages');
     document.getElementById('messagesOverlay').classList.add('open');
     loadConversations();
 }
@@ -6197,6 +6222,7 @@ function _initFileViewSwipeBack() {
 
 // ── BİLDİRİMLER ────────────────────────────────────────────────────────
 function openNotifPanel() {
+    _closeAllPanels('notif');
     _sheetReset('notifPanel');
     document.getElementById('notifOverlay').classList.add('open');
     loadNotifications();
