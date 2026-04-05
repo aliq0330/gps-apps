@@ -1701,7 +1701,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 .feed-thumb-frame.loaded { opacity: 1; }
 .feed-card-actions { display: flex; gap: 6px; padding: 8px 12px 4px; align-items: center; }
 .feed-card-desc {
-    padding: 0 14px 10px;
+    padding: 10px 14px 4px;
     font-size: 14px; font-weight: 400;
     color: var(--text-secondary);
     line-height: 1.5; letter-spacing: -0.01em;
@@ -4758,6 +4758,7 @@ async function loadFeed() {
                 <iframe class="feed-thumb-frame" id="feprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
                 <div class="feed-thumb-overlay" onclick="openFileView('${f.id}')"></div>
             </div>
+            ${f.description ? `<div class="feed-card-desc" id="fdesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
             <div class="feed-card-actions">
                 <button class="feed-like-btn${liked ? ' liked' : ''}" id="flike-${f.id}" onclick="feedToggleLike('${f.id}')">
                     ${liked ? '♥' : '♡'} <span id="flikecnt-${f.id}">${cnt || ''}</span>
@@ -4769,7 +4770,6 @@ async function loadFeed() {
                 </button>
             </div>
             ${likeText ? `<div class="feed-like-text" id="fliketext-${f.id}">${likeText}</div>` : `<div class="feed-like-text" id="fliketext-${f.id}" style="display:none;"></div>`}
-            ${f.description ? `<div class="feed-card-desc" id="fdesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
             <div class="feed-comments-wrap" id="fcmtwrap-${f.id}" style="display:none;">
                 <div class="feed-comments-list" id="fcmtlist-${f.id}"><div class="search-empty" style="padding:8px 0;font-size:12px;">Yükleniyor...</div></div>
                 ${currentUser ? `<div class="feed-cmt-input-row">
@@ -5045,6 +5045,7 @@ async function loadExploreFiles() {
                     <iframe class="feed-thumb-frame" id="eprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
                     <div class="feed-thumb-overlay" onclick="openFileView('${f.id}')"></div>
                 </div>
+                ${f.description ? `<div class="feed-card-desc" id="edesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
                 <div class="feed-card-actions">
                     <button class="feed-like-btn${liked ? ' liked' : ''}" id="flike-${f.id}" onclick="feedToggleLike('${f.id}')">
                         ${liked ? '♥' : '♡'} <span id="flikecnt-${f.id}">${cnt || ''}</span>
@@ -5055,7 +5056,6 @@ async function loadExploreFiles() {
                         <span id="fcmtcnt-${f.id}"></span>
                     </button>
                 </div>
-                ${f.description ? `<div class="feed-card-desc" id="edesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
                 <div id="fcmtwrap-${f.id}" style="display:none;">
                     <div class="feed-comments-wrap">
                         <div id="fcmtlist-${f.id}"></div>
