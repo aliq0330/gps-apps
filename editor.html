@@ -4232,7 +4232,7 @@ async function doFileSearch() {
         ]);
         const counts = {};
         (allLikes || []).forEach(l => { counts[l.file_id] = (counts[l.file_id] || 0) + 1; });
-        (myL || []).forEach(l => { _myLikes.add(l.file_id); Object.assign(_likeCounts, counts); });
+        (myL || []).forEach(l => { _myLikes.add(String(l.file_id)); Object.assign(_likeCounts, counts); });
         Object.assign(_likeCounts, counts);
         await _loadForkCounts(files.map(f => f.id));
 
@@ -4367,7 +4367,7 @@ async function openPublicProfile(userId) {
             const _freshCounts = {};
             (fileLikes || []).forEach(l => { _freshCounts[l.file_id] = (_freshCounts[l.file_id] || 0) + 1; });
             Object.assign(_likeCounts, _freshCounts);
-            (myFileLikes || []).forEach(l => { _myLikes.add(l.file_id); });
+            (myFileLikes || []).forEach(l => { _myLikes.add(String(l.file_id)); });
             (commentRows || []).forEach(c => { _commentCountMap[c.file_id] = (_commentCountMap[c.file_id] || 0) + 1; });
         }
 
@@ -4611,6 +4611,7 @@ async function _sendNotif(type, toUserId, fileId, extra = {}) {
 // ── BEĞEN ─────────────────────────────────────────────────────────────
 async function toggleLike(fileId) {
     if (!currentUser) { showToast('Beğenmek için giriş yapın'); return; }
+    fileId = String(fileId);
     const liked = _myLikes.has(fileId);
     // Optimistik güncelle
     if (liked) {
@@ -4726,7 +4727,7 @@ async function loadFeed() {
     (profiles || []).forEach(p => { pMap[p.id] = p; });
     const likeCounts = {};
     (allLikes || []).forEach(l => { likeCounts[l.file_id] = (likeCounts[l.file_id] || 0) + 1; });
-    (myLikesData || []).forEach(l => { _myLikes.add(l.file_id); });
+    (myLikesData || []).forEach(l => { _myLikes.add(String(l.file_id)); });
     Object.assign(_likeCounts, likeCounts);
 
     // Beğenenler haritası: fileId -> [userId, ...]
@@ -4810,6 +4811,7 @@ async function loadFeed() {
 }
 
 async function feedToggleLike(fileId) {
+    fileId = String(fileId);
     const liked = _myLikes.has(fileId);
     const btn = document.getElementById('flike-' + fileId);
     const cntEl = document.getElementById('flikecnt-' + fileId);
@@ -5031,7 +5033,7 @@ async function loadExploreFiles() {
         const { data: allLikes } = await sb.from('likes').select('file_id');
         if (currentUser && !_myLikesLoaded) {
             const { data: myL } = await sb.from('likes').select('file_id').eq('user_id', currentUser.id);
-            (myL || []).forEach(l => _myLikes.add(l.file_id));
+            (myL || []).forEach(l => _myLikes.add(String(l.file_id)));
             _myLikesLoaded = true;
         }
         const counts = {};
@@ -5890,7 +5892,7 @@ function fvLoadInEditor() {
 }
 
 function _fvUpdateLike() {
-    const liked = _myLikes.has(_fvFileId);
+    const liked = _myLikes.has(String(_fvFileId));
     const cnt   = _likeCounts[_fvFileId] || 0;
     const btn   = document.getElementById('fvLikeBtn');
     if (!btn) return;
