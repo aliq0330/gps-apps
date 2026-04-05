@@ -4698,13 +4698,17 @@ async function loadFeed() {
     const uids = [...new Set(files.map(f => f.user_id))];
     const fileIds = files.map(f => f.id);
 
-    const [{ data: profiles }, { data: allLikes }, { data: myLikesData }, { data: likerProfiles }] = await Promise.all([
+    const [{ data: profiles }, { data: allLikes }, { data: myLikesData }, { data: likerProfiles }, { data: allCommentRows }] = await Promise.all([
         sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
         sb.from('likes').select('file_id,user_id').in('file_id', fileIds),
         sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds),
-        sb.from('likes').select('user_id,file_id').in('file_id', fileIds).limit(200)
+        sb.from('likes').select('user_id,file_id').in('file_id', fileIds).limit(200),
+        sb.from('comments').select('file_id').in('file_id', fileIds).is('parent_id', null)
     ]);
     await _loadForkCounts(fileIds);
+
+    const commentCounts = {};
+    (allCommentRows || []).forEach(c => { commentCounts[c.file_id] = (commentCounts[c.file_id] || 0) + 1; });
 
     const pMap = {};
     (profiles || []).forEach(p => { pMap[p.id] = p; });
@@ -4779,6 +4783,12 @@ async function loadFeed() {
             </div>
         </div>`;
     }).join('');
+
+    // Yorum sayılarını doldur
+    fileIds.forEach(id => {
+        const el = document.getElementById('fcmtcnt-' + id);
+        if (el && commentCounts[id]) el.textContent = commentCounts[id];
+    });
 
     // Lazy load thumbnails
     const obs = new IntersectionObserver(entries => {
@@ -5011,6 +5021,12 @@ async function loadExploreFiles() {
         const fileIds = (files || []).map(f => f.id);
         await _loadForkCounts(fileIds);
 
+        const { data: exploreCmtRows } = fileIds.length
+            ? await sb.from('comments').select('file_id').in('file_id', fileIds).is('parent_id', null)
+            : { data: [] };
+        const exploreCmtCounts = {};
+        (exploreCmtRows || []).forEach(c => { exploreCmtCounts[c.file_id] = (exploreCmtCounts[c.file_id] || 0) + 1; });
+
         const sorted = (files || []).sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
         const subtitle = document.getElementById('exploreSubtitle');
         if (subtitle) subtitle.textContent = sorted.length + ' dosya';
@@ -5071,6 +5087,12 @@ async function loadExploreFiles() {
                 </div>
             </div>`;
         }).join('');
+        // Yorum sayılarını doldur
+        fileIds.forEach(id => {
+            const el = document.getElementById('fcmtcnt-' + id);
+            if (el && exploreCmtCounts[id]) el.textContent = exploreCmtCounts[id];
+        });
+
         _initExploreLazy();
     } catch(e) {
         console.error('Explore error:', e);
