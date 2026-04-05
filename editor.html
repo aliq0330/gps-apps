@@ -2162,7 +2162,7 @@ body.preview-mode .file-title-bar { display: none !important; }
                 <div class="profile-stat-value" id="pubStatLines">0</div>
                 <div class="profile-stat-label">Satır</div>
             </div>
-            <div class="profile-stat">
+            <div class="profile-stat" style="cursor:pointer" onclick="openProfileForkList()">
                 <div class="profile-stat-value" id="pubStatForks">0</div>
                 <div class="profile-stat-label">Fork</div>
             </div>
@@ -2669,7 +2669,8 @@ let _myLikesLoaded = false;
 // Takip state
 let _followingSet  = new Set(); // current user's following IDs
 let _followLoaded  = false;
-let _pubProfileUserId = null;   // currently viewed profile userId
+let _pubProfileUserId  = null;  // currently viewed profile userId
+let _pubProfileFileIds = [];    // currently viewed profile's file ID'leri (fork listesi için)
 
 // Yorum beğeni state — profil sayfası yorumları
 let _profCmtLikes    = {};         // commentId -> count
@@ -4346,9 +4347,9 @@ async function openPublicProfile(userId) {
         document.getElementById('pubStatFiles').textContent = pubFiles.length;
         document.getElementById('pubStatLines').textContent = fmt(totalLines);
         document.getElementById('pubStatForks').textContent = '0';
-        if (pubFiles.length > 0) {
-            const fIds = pubFiles.map(f => f.id);
-            sb.from('files').select('forked_from_id').in('forked_from_id', fIds).then(({ data }) => {
+        _pubProfileFileIds = pubFiles.map(f => f.id);
+        if (_pubProfileFileIds.length > 0) {
+            sb.from('files').select('forked_from_id').in('forked_from_id', _pubProfileFileIds).eq('is_public', true).then(({ data }) => {
                 document.getElementById('pubStatForks').textContent = (data||[]).length;
             });
         }
@@ -4574,14 +4575,9 @@ async function forkToEditor(sourceFileId, filename, fileCode, ...closeFns) {
         _forkCounts[sourceFileId] = (_forkCounts[sourceFileId] || 0) + 1;
         const forkEl = document.getElementById('forkcount-' + sourceFileId);
         if (forkEl) forkEl.textContent = _forkCounts[sourceFileId] || '';
-        // Dosya sahibine fork bildirimi gönder (kendi dosyasını forklamamışsa)
-        const { data: srcFile } = await sb.from('files').select('user_id').eq('id', sourceFileId).single();
-        if (srcFile && srcFile.user_id !== currentUser.id) {
-            await sb.from('like_notifications').insert({
-                to_user_id: srcFile.user_id, from_user_id: currentUser.id,
-                file_id: sourceFileId, type: 'fork', seen: false
-            });
-        }
+        // Dosya sahibine fork bildirimi gönder
+        const _fOwner = _exploreDataMap[sourceFileId]?.userId || _pubProfileUserId;
+        _sendNotif('fork', _fOwner, sourceFileId);
     }
     closeFns.forEach(fn => fn && fn());
     showToast(`${data.filename} fork edildi`);
@@ -6028,6 +6024,57 @@ async function openForkListModal(fileId) {
 }
 function closeForkListModal() {
     document.getElementById('forkListOverlay').classList.remove('open');
+}
+
+// Profil sayfasındaki "Fork" istatistiğine tıklanınca:
+// Profilin tüm dosyalarını kim, hangi dosyayı fork etmiş göster
+async function openProfileForkList() {
+    if (!_pubProfileFileIds.length) return;
+    const overlay = document.getElementById('forkListOverlay');
+    const content = document.getElementById('forkListContent');
+    const title   = document.getElementById('forkListTitle');
+    overlay.classList.add('open');
+    content.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
+
+    // Profilin dosyalarını fork eden herkesi çek
+    const { data: forks } = await sb.from('files')
+        .select('id, filename, user_id, created_at, forked_from_id')
+        .in('forked_from_id', _pubProfileFileIds)
+        .eq('is_public', true)
+        .order('created_at', { ascending: false });
+
+    if (!forks || !forks.length) {
+        title.textContent = '⑂ Fork Yok';
+        content.innerHTML = '<div class="search-empty">Henüz hiç fork yok</div>';
+        return;
+    }
+
+    title.textContent = `⑂ ${forks.length} Fork`;
+
+    // Forklayan kullanıcıların profillerini çek
+    const uids = [...new Set(forks.map(f => f.user_id))];
+    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
+
+    // Orijinal dosya isimlerini eşleştir
+    const origMap = {};
+    _pubProfileFileIds.forEach(id => {
+        const d = _pubFilesData[id] || _exploreDataMap[id];
+        if (d) origMap[id] = d.filename || '';
+    });
+
+    content.innerHTML = forks.map(f => {
+        const p = pm[f.user_id] || {};
+        const origName = origMap[f.forked_from_id] || '';
+        return `<div class="fork-list-item" onclick="closeForkListModal();openFileView('${f.id}')">
+            <div class="fork-list-avatar">${p.avatar_emoji||'👤'}</div>
+            <div class="fork-list-info">
+                <div class="fork-list-username">${escapeHtml(p.username||'Kullanıcı')}</div>
+                <div class="fork-list-filename">${origName ? `<span style="opacity:.6;font-size:11px;">${escapeHtml(origName)} →</span> ` : ''}${escapeHtml(f.filename)}</div>
+            </div>
+            <div class="fork-list-time">${_fmtTime(f.created_at)}</div>
+        </div>`;
+    }).join('');
 }
 
 // Fork ağacı modal
