@@ -4416,8 +4416,8 @@ async function openPublicProfile(userId) {
         const _profEmoji    = prof?.avatar_emoji || '👤';
         const _profUsername = prof?.username     || 'Kullanıcı';
         pubFiles.forEach(f => {
-            _pubFilesData[f.id]    = { filename: f.filename, code: f.code };
-            _exploreDataMap[f.id]  = { userId: userId, username: _profUsername, emoji: _profEmoji, filename: f.filename, code: f.code };
+            _pubFilesData[f.id]    = { filename: f.filename, code: f.code, description: f.description || '' };
+            _exploreDataMap[f.id]  = { userId: userId, username: _profUsername, emoji: _profEmoji, filename: f.filename, code: f.code, description: f.description || '' };
         });
         const totalLines = pubFiles.reduce((s, f) => s + (f.code.match(/\n/g)||[]).length + 1, 0);
         const fmt = n => n >= 1000 ? (n/1000).toFixed(1) + 'k' : n;
@@ -4744,7 +4744,7 @@ async function loadFeed() {
     document.getElementById('feedSubtitle').textContent = followingIds.length + ' takip edilen';
 
     const { data: files } = await sb.from('files')
-        .select('id, filename, code, updated_at, user_id')
+        .select('id, filename, code, updated_at, user_id, description')
         .in('user_id', followingIds).eq('is_public', true)
         .order('updated_at', { ascending: false }).limit(60);
 
@@ -4784,7 +4784,7 @@ async function loadFeed() {
 
     files.forEach(f => {
         const p = pMap[f.user_id] || {};
-        _exploreDataMap[f.id] = { userId: f.user_id, username: p.username || 'Kullanıcı', emoji: p.avatar_emoji || '👤', filename: f.filename, code: f.code };
+        _exploreDataMap[f.id] = { userId: f.user_id, username: p.username || 'Kullanıcı', emoji: p.avatar_emoji || '👤', filename: f.filename, code: f.code, description: f.description || '' };
     });
 
     listEl.innerHTML = files.map(f => {
@@ -4808,6 +4808,7 @@ async function loadFeed() {
                 <div class="feed-card-meta">
                     <div class="feed-card-username">${escapeHtml(p.username || 'Kullanıcı')}</div>
                     <div class="feed-card-date">${escapeHtml(f.filename || 'dosya.html')} · ${dateStr}</div>
+                    ${f.description ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${escapeHtml(f.description)}</div>` : ''}
                 </div>
                 <button class="feed-open-btn" onclick="event.stopPropagation();openFileView('${f.id}')">Aç</button>
             </div>
@@ -5044,7 +5045,7 @@ async function loadExploreFiles() {
     try {
         // Public dosyaları çek (join olmadan)
         const { data: files, error: filesErr } = await sb.from('files')
-            .select('id, filename, updated_at, user_id')
+            .select('id, filename, updated_at, user_id, description')
             .eq('is_public', true)
             .limit(100);
         if (filesErr) throw filesErr;
@@ -5092,7 +5093,7 @@ async function loadExploreFiles() {
             const cnt    = counts[f.id] || 0;
             const liked  = _myLikes.has(f.id);
             const rank   = i < 3 ? ['🥇','🥈','🥉'][i] : `${i+1}.`;
-            _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, filename: f.filename };
+            _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, filename: f.filename, description: f.description || '' };
             return `
             <div class="explore-card-wrap" id="ewrap-${f.id}">
                 <div class="explore-file-card" onclick="openFileView(${f.id})">
