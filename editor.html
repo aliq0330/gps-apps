@@ -734,7 +734,36 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .edit-icon { width: 14px; height: 14px; opacity: 0.4; transition: all 0.2s ease; flex-shrink: 0; color: var(--text-secondary); }
 .saved-file-name:hover .edit-icon { color: var(--accent); }
 
-.saved-file-date { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+.saved-file-date { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+.saved-file-desc {
+    font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;
+    line-height: 1.4; display: flex; align-items: flex-start; gap: 6px;
+}
+.saved-file-desc-text { flex: 1; font-style: italic; }
+.saved-file-desc-text.empty { opacity: 0.45; font-style: normal; }
+.saved-file-desc-edit { background: none; border: none; padding: 2px 4px; cursor: pointer;
+    color: var(--text-secondary); border-radius: 5px; flex-shrink: 0; display: flex; opacity: 0.6; }
+.saved-file-desc-edit:hover { opacity: 1; color: var(--accent); }
+.saved-file-desc-input-wrap { display: flex; gap: 6px; margin-bottom: 10px; align-items: flex-start; }
+.saved-file-desc-input { flex: 1; background: var(--glass-bg); border: 1px solid var(--glass-border);
+    border-radius: 10px; padding: 7px 10px; font-size: 12px; color: var(--text-primary);
+    font-family: inherit; resize: none; outline: none; min-height: 36px; }
+.saved-file-desc-input:focus { border-color: var(--accent); }
+.saved-file-desc-save { background: var(--accent); border: none; border-radius: 8px; padding: 7px 12px;
+    color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.fv-desc { padding: 6px 14px 0; font-size: 13px; color: var(--text-secondary); line-height: 1.4;
+    display: flex; align-items: flex-start; gap: 6px; }
+.fv-desc-text { flex: 1; }
+.fv-desc-edit-btn { background: none; border: none; padding: 2px 4px; cursor: pointer;
+    color: var(--text-secondary); border-radius: 5px; display: flex; opacity: 0.6; flex-shrink: 0; }
+.fv-desc-edit-btn:hover { opacity: 1; color: var(--accent); }
+.fv-desc-input-wrap { display: flex; gap: 6px; padding: 6px 14px 0; align-items: flex-start; }
+.fv-desc-input { flex: 1; background: var(--glass-bg); border: 1px solid var(--glass-border);
+    border-radius: 10px; padding: 7px 10px; font-size: 13px; color: var(--text-primary);
+    font-family: inherit; resize: none; outline: none; min-height: 36px; }
+.fv-desc-input:focus { border-color: var(--accent); }
+.fv-desc-save-btn { background: var(--accent); border: none; border-radius: 8px; padding: 7px 12px;
+    color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
 .saved-file-cloud-badge {
     display: inline-flex; align-items: center; gap: 3px;
     font-size: 10px; font-weight: 700; color: #007aff;
@@ -2506,6 +2535,44 @@ body.preview-mode .file-title-bar { display: none !important; }
     </div>
 </div>
 
+<!-- Yeni Kaydet Modalı (dosya adı + açıklama) -->
+<div id="newSaveModalOverlay" class="modal-overlay" onclick="if(event.target.id==='newSaveModalOverlay')closeNewSaveModal()">
+    <div class="modal-box" style="max-width:400px;">
+        <div class="modal-header">
+            <div class="modal-icon-wrap" style="background:rgba(0,122,255,0.12);border-color:rgba(0,122,255,0.25);">
+                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+            </div>
+            <div class="modal-title">Yeni Dosya Kaydet</div>
+            <div class="modal-subtitle">Dosya adı ve açıklama ekleyin</div>
+        </div>
+        <div class="modal-field">
+            <label class="modal-label" for="newSaveFilename">Dosya Adı</label>
+            <div class="modal-input-wrap">
+                <input type="text" id="newSaveFilename" class="modal-input" placeholder="dosya-adi"
+                       onkeypress="if(event.key==='Enter')document.getElementById('newSaveDesc').focus()">
+                <span class="modal-input-suffix">.html</span>
+            </div>
+        </div>
+        <div class="modal-field" style="margin-top:12px;">
+            <label class="modal-label" for="newSaveDesc">Açıklama <span style="font-weight:400;opacity:.6">(isteğe bağlı)</span></label>
+            <textarea id="newSaveDesc" class="modal-input" placeholder="Bu dosya ne işe yarıyor?"
+                      rows="3" style="resize:none;line-height:1.5;"
+                      onkeypress="if(event.key==='Enter'&&event.ctrlKey)confirmNewSave()"></textarea>
+        </div>
+        <div class="modal-actions" style="margin-top:20px;">
+            <button onclick="closeNewSaveModal()" class="modal-btn">İptal</button>
+            <button onclick="confirmNewSave()" class="modal-btn modal-btn-save">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                Kaydet
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Kaydetme Seçenekleri Modalı -->
 
 <div id="saveOptionsModalOverlay" class="modal-overlay" onclick="handleSaveOptionsOverlayClick(event)">
@@ -3177,7 +3244,8 @@ async function loadSavedFilesFromCloud() {
         if (error) throw error;
         savedFiles = (data || []).map(r => ({
             id: r.id, filename: r.filename, code: r.code,
-            timestamp: r.updated_at, cloud: true, isPublic: r.is_public || false
+            timestamp: r.updated_at, cloud: true, isPublic: r.is_public || false,
+            description: r.description || ''
         }));
         setSyncStatus('synced');
     } catch(e) {
@@ -3210,7 +3278,7 @@ async function saveFileToCloud(file) {
         const isCloudId = typeof file.id === 'number' && file.id < 9999999999999;
         if (isCloudId && file.cloud) {
             const { data, error } = await sb.from('files')
-                .update({ filename: file.filename, code: file.code, updated_at: new Date().toISOString() })
+                .update({ filename: file.filename, code: file.code, description: file.description ?? null, updated_at: new Date().toISOString() })
                 .eq('id', file.id)
                 .eq('user_id', currentUser.id)
                 .select().single();
@@ -3219,7 +3287,7 @@ async function saveFileToCloud(file) {
             return data;
         } else {
             const { data, error } = await sb.from('files')
-                .insert({ user_id: currentUser.id, filename: file.filename, code: file.code })
+                .insert({ user_id: currentUser.id, filename: file.filename, code: file.code, description: file.description ?? null })
                 .select().single();
             if (error) throw error;
             setSyncStatus('synced');
@@ -3515,9 +3583,9 @@ async function confirmDuplicateSave() {
 }
 
 // ── Core Save Logic ────────────────────────────────────────────────────
-async function _doSave(filename) {
+async function _doSave(filename, description = '') {
     const localFile = {
-        id: Date.now(), filename, code,
+        id: Date.now(), filename, code, description,
         timestamp: new Date().toISOString(), cloud: false
     };
     savedFiles.push(localFile);
@@ -3531,7 +3599,8 @@ async function _doSave(filename) {
             savedFiles[idx] = {
                 id: cloudResult.id, filename: cloudResult.filename,
                 code: cloudResult.code, timestamp: cloudResult.updated_at,
-                cloud: true, isPublic: cloudResult.is_public || false
+                cloud: true, isPublic: cloudResult.is_public || false,
+                description: cloudResult.description || description
             };
             currentOpenFileId = cloudResult.id;
         }
@@ -3552,11 +3621,37 @@ async function _doSave(filename) {
 async function createNewSave() {
     closeSaveOptionsModal();
     if (!code.trim()) { showToast('Kaydedilecek kod yok'); return; }
+    openNewSaveModal();
+}
+
+function openNewSaveModal() {
     const baseName   = getBaseFilename();
     const uniqueName = generateUniqueFilename(baseName);
-    const duplicate  = findDuplicateContent(code);
-    if (duplicate) { openDuplicateModal(duplicate, uniqueName); return; }
-    await _doSave(uniqueName);
+    const inp = document.getElementById('newSaveFilename');
+    inp.value = uniqueName;
+    document.getElementById('newSaveDesc').value = '';
+    document.getElementById('newSaveModalOverlay').classList.add('open');
+    setTimeout(() => { inp.focus(); inp.select(); }, 100);
+}
+
+function closeNewSaveModal() {
+    document.getElementById('newSaveModalOverlay').classList.remove('open');
+}
+
+async function confirmNewSave() {
+    let fn = document.getElementById('newSaveFilename').value.trim();
+    if (!fn) {
+        showToast('Lütfen bir dosya adı girin');
+        const inp = document.getElementById('newSaveFilename'); inp.focus();
+        ['-5px','5px','-5px','0'].forEach((x, i) => setTimeout(() => inp.style.transform = `translateX(${x})`, i * 50));
+        return;
+    }
+    fn = fn.replace(/\.html$/i, '');
+    const description = document.getElementById('newSaveDesc').value.trim();
+    const duplicate = findDuplicateContent(code);
+    closeNewSaveModal();
+    if (duplicate) { openDuplicateModal(duplicate, fn); return; }
+    await _doSave(fn, description);
 }
 
 function handleQuickSave() {
@@ -3773,6 +3868,12 @@ function renderSavedFiles() {
                     </svg>
                 </div>
                 <div class="saved-file-date">${dateStr}</div>
+                <div class="saved-file-desc" id="filedesc-${file.id}" onclick="event.stopPropagation()">
+                    <span class="saved-file-desc-text${file.description ? '' : ' empty'}">${file.description ? escapeHtml(file.description) : 'Açıklama ekle...'}</span>
+                    <button class="saved-file-desc-edit" title="Açıklamayı düzenle" onclick="editFileDesc(${file.id})">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
                 <div class="saved-file-actions">
                     <button class="saved-file-btn preview" onclick="event.stopPropagation();previewSavedFile(${file.id})">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3834,6 +3935,37 @@ function renderSavedFiles() {
 }
 
 function openSavedFileItem(event, fileId) { viewSavedFileCode(fileId); }
+
+function editFileDesc(fileId) {
+    const file = savedFiles.find(f => f.id === fileId);
+    if (!file) return;
+    const descEl = document.getElementById('filedesc-' + fileId);
+    if (!descEl) return;
+    descEl.innerHTML = `
+        <div class="saved-file-desc-input-wrap" style="width:100%">
+            <textarea class="saved-file-desc-input" id="filedescInput-${fileId}" rows="2"
+                placeholder="Kısa bir açıklama..."
+                onkeydown="if(event.key==='Escape')renderSavedFiles();if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();saveFileDesc(${fileId});}"
+            >${escapeHtml(file.description || '')}</textarea>
+            <button class="saved-file-desc-save" onclick="saveFileDesc(${fileId})">Kaydet</button>
+        </div>`;
+    const ta = document.getElementById('filedescInput-' + fileId);
+    ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+}
+
+async function saveFileDesc(fileId) {
+    const file = savedFiles.find(f => f.id === fileId);
+    if (!file) return;
+    const ta = document.getElementById('filedescInput-' + fileId);
+    if (!ta) return;
+    const desc = ta.value.trim();
+    file.description = desc;
+    renderSavedFiles();
+    if (file.cloud && currentUser) {
+        await sb.from('files').update({ description: desc || null }).eq('id', fileId).eq('user_id', currentUser.id);
+    }
+    saveToStorage();
+}
 
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -4242,7 +4374,7 @@ async function openPublicProfile(userId) {
         // Profil bilgisi + dosyalar + takip verileri paralel çek
         const [{ data: prof }, { data: files }, { data: followers }, { data: followings }, { data: myFollow }] = await Promise.all([
             sb.from('profiles').select('username, bio, avatar_emoji, created_at').eq('id', userId).single(),
-            sb.from('files').select('id, filename, code, updated_at').eq('user_id', userId).eq('is_public', true).order('updated_at', { ascending: false }),
+            sb.from('files').select('id, filename, code, updated_at, description').eq('user_id', userId).eq('is_public', true).order('updated_at', { ascending: false }),
             sb.from('follows').select('follower_id').eq('following_id', userId),
             sb.from('follows').select('following_id').eq('follower_id', userId),
             currentUser && currentUser.id !== userId
@@ -4337,6 +4469,7 @@ async function openPublicProfile(userId) {
                         </div>
                         <div class="pub-file-info">
                             <div class="pub-file-name">${escapeHtml(f.filename)}</div>
+                            ${f.description ? `<div class="pub-file-desc" style="font-size:12px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(f.description)}</div>` : ''}
                             <div class="pub-file-meta">${date} · ${lines} satır</div>
                         </div>
                         <div class="pub-file-right">
@@ -5707,17 +5840,19 @@ async function openFileView(fileId) {
     // Kod: önce cache'den bak
     let code = d.code || pub.code || null;
     if (!code) {
-        const { data: fd } = await sb.from('files').select('filename, code, user_id, forked_from_id').eq('id', fileId).single();
+        const { data: fd } = await sb.from('files').select('filename, code, user_id, forked_from_id, description').eq('id', fileId).single();
         if (fd) {
             code = fd.code;
-            _pubFilesData[fileId] = { filename: fd.filename, code: fd.code, forked_from_id: fd.forked_from_id };
+            _pubFilesData[fileId] = { filename: fd.filename, code: fd.code, forked_from_id: fd.forked_from_id, description: fd.description || '' };
             if (!d.filename) {
                 const { data: pr } = await sb.from('profiles').select('username,avatar_emoji').eq('id', fd.user_id).single();
-                _exploreDataMap[fileId] = { ..._exploreDataMap[fileId], filename: fd.filename, userId: fd.user_id, username: pr?.username || 'Kullanıcı', emoji: pr?.avatar_emoji || '👤', code, forked_from_id: fd.forked_from_id };
+                _exploreDataMap[fileId] = { ..._exploreDataMap[fileId], filename: fd.filename, userId: fd.user_id, username: pr?.username || 'Kullanıcı', emoji: pr?.avatar_emoji || '👤', code, forked_from_id: fd.forked_from_id, description: fd.description || '' };
                 _fvUserId = fd.user_id;
                 document.getElementById('fvFilename').textContent  = fd.filename;
                 document.getElementById('fvAuthorBtn').textContent = (_exploreDataMap[fileId].emoji) + ' ' + (_exploreDataMap[fileId].username);
             }
+            _fvDescCurrent = fd.description || '';
+            _fvRenderDesc(_fvDescCurrent, fd.user_id);
             if (fd.forked_from_id) _fvLoadForkChain(fd.forked_from_id);
             else { document.getElementById('fvForkBanner').style.display = 'none'; }
         }
@@ -5727,6 +5862,9 @@ async function openFileView(fileId) {
         const ffi = _exploreDataMap[fileId]?.forked_from_id || pub.forked_from_id || null;
         if (ffi) _fvLoadForkChain(ffi);
         else { document.getElementById('fvForkBanner').style.display = 'none'; }
+        const desc = _exploreDataMap[fileId]?.description || pub.description || '';
+        _fvDescCurrent = desc;
+        _fvRenderDesc(desc, _fvUserId);
     }
 
     // CodeMirror
@@ -5836,6 +5974,59 @@ async function fvToggleLike() {
     if (!_fvFileId) return;
     await toggleLike(_fvFileId);
     _fvUpdateLike();
+}
+
+// Dosya görüntüleyici açıklama
+function _fvRenderDesc(desc, fileOwnerId) {
+    const area = document.getElementById('fvDescArea');
+    if (!area) return;
+    const isOwn = currentUser && currentUser.id === fileOwnerId;
+    if (!desc && !isOwn) { area.style.display = 'none'; return; }
+    area.style.display = '';
+    const editSvg = `<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>`;
+    if (desc) {
+        area.innerHTML = `<div class="fv-desc">
+            <span class="fv-desc-text">${escapeHtml(desc)}</span>
+            ${isOwn ? `<button class="fv-desc-edit-btn" onclick="_fvEditDesc('${escapeHtml(desc).replace(/'/g,"\\'")}',  '${fileOwnerId}')">${editSvg}</button>` : ''}
+        </div>`;
+    } else {
+        area.innerHTML = `<div class="fv-desc">
+            <span class="fv-desc-text" style="opacity:.45;font-style:italic">Açıklama ekle...</span>
+            <button class="fv-desc-edit-btn" onclick="_fvEditDesc('', '${fileOwnerId}')">${editSvg}</button>
+        </div>`;
+    }
+}
+
+function _fvEditDesc(currentDesc, fileOwnerId) {
+    const area = document.getElementById('fvDescArea');
+    if (!area) return;
+    area.innerHTML = `<div class="fv-desc-input-wrap">
+        <textarea class="fv-desc-input" id="fvDescInput" rows="2" placeholder="Kısa bir açıklama..."
+            onkeydown="if(event.key==='Escape')_fvRenderDesc(_fvDescCurrent,'${fileOwnerId}');if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();_fvSaveDesc('${fileOwnerId}');}"
+        >${escapeHtml(currentDesc)}</textarea>
+        <button class="fv-desc-save-btn" onclick="_fvSaveDesc('${fileOwnerId}')">Kaydet</button>
+    </div>`;
+    const ta = document.getElementById('fvDescInput');
+    ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+}
+
+let _fvDescCurrent = '';
+
+async function _fvSaveDesc(fileOwnerId) {
+    if (!_fvFileId || !currentUser) return;
+    const ta = document.getElementById('fvDescInput');
+    if (!ta) return;
+    const desc = ta.value.trim();
+    _fvDescCurrent = desc;
+    // Cache güncelle
+    if (_exploreDataMap[_fvFileId]) _exploreDataMap[_fvFileId].description = desc;
+    if (_pubFilesData[_fvFileId]) _pubFilesData[_fvFileId].description = desc;
+    // kendi dosyalarımda da güncelle
+    const sf = savedFiles.find(f => f.id === _fvFileId);
+    if (sf) { sf.description = desc; saveToStorage(); renderSavedFiles(); }
+    _fvRenderDesc(desc, fileOwnerId);
+    await sb.from('files').update({ description: desc || null }).eq('id', _fvFileId).eq('user_id', currentUser.id);
+    showToast('Açıklama kaydedildi');
 }
 
 // Fork zinciri banner
@@ -6334,6 +6525,7 @@ function _fmtTime(iso) {
         <button class="fv-edit-btn" onclick="fvLoadInEditor()">Editörde Aç</button>
     </div>
     <div class="fv-fork-banner" id="fvForkBanner" style="display:none;"></div>
+    <div id="fvDescArea" style="display:none;"></div>
     <div class="fv-tabs">
         <button class="fv-tab active" id="fvTabCode"    onclick="fvSwitchTab('code')">Kod</button>
         <button class="fv-tab"        id="fvTabPreview" onclick="fvSwitchTab('preview')">Önizleme</button>
