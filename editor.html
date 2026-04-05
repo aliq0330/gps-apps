@@ -734,36 +734,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .edit-icon { width: 14px; height: 14px; opacity: 0.4; transition: all 0.2s ease; flex-shrink: 0; color: var(--text-secondary); }
 .saved-file-name:hover .edit-icon { color: var(--accent); }
 
-.saved-file-date { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
-.saved-file-desc {
-    font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;
-    line-height: 1.4; display: flex; align-items: flex-start; gap: 6px;
-}
-.saved-file-desc-text { flex: 1; font-style: italic; }
-.saved-file-desc-text.empty { opacity: 0.45; font-style: normal; }
-.saved-file-desc-edit { background: none; border: none; padding: 2px 4px; cursor: pointer;
-    color: var(--text-secondary); border-radius: 5px; flex-shrink: 0; display: flex; opacity: 0.6; }
-.saved-file-desc-edit:hover { opacity: 1; color: var(--accent); }
-.saved-file-desc-input-wrap { display: flex; gap: 6px; margin-bottom: 10px; align-items: flex-start; }
-.saved-file-desc-input { flex: 1; background: var(--glass-bg); border: 1px solid var(--glass-border);
-    border-radius: 10px; padding: 7px 10px; font-size: 12px; color: var(--text-primary);
-    font-family: inherit; resize: none; outline: none; min-height: 36px; }
-.saved-file-desc-input:focus { border-color: var(--accent); }
-.saved-file-desc-save { background: var(--accent); border: none; border-radius: 8px; padding: 7px 12px;
-    color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.fv-desc { padding: 6px 14px 0; font-size: 13px; color: var(--text-secondary); line-height: 1.4;
-    display: flex; align-items: flex-start; gap: 6px; }
-.fv-desc-text { flex: 1; }
-.fv-desc-edit-btn { background: none; border: none; padding: 2px 4px; cursor: pointer;
-    color: var(--text-secondary); border-radius: 5px; display: flex; opacity: 0.6; flex-shrink: 0; }
-.fv-desc-edit-btn:hover { opacity: 1; color: var(--accent); }
-.fv-desc-input-wrap { display: flex; gap: 6px; padding: 6px 14px 0; align-items: flex-start; }
-.fv-desc-input { flex: 1; background: var(--glass-bg); border: 1px solid var(--glass-border);
-    border-radius: 10px; padding: 7px 10px; font-size: 13px; color: var(--text-primary);
-    font-family: inherit; resize: none; outline: none; min-height: 36px; }
-.fv-desc-input:focus { border-color: var(--accent); }
-.fv-desc-save-btn { background: var(--accent); border: none; border-radius: 8px; padding: 7px 12px;
-    color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
+.saved-file-date { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
 .saved-file-cloud-badge {
     display: inline-flex; align-items: center; gap: 3px;
     font-size: 10px; font-weight: 700; color: #007aff;
@@ -948,10 +919,6 @@ body.preview-mode .toast { bottom: 80px; }
     font-size: 11px; color: var(--text-secondary); margin-top: 4px;
     font-weight: 500;
 }
-.pub-follow-inline {
-    font-size: 12px; font-weight: 500; display: flex; align-items: center;
-    flex-shrink: 0;
-}
 
 .profile-stats {
     display: flex; gap: 12px; margin-bottom: 24px;
@@ -1088,9 +1055,8 @@ body.preview-mode .toast { bottom: 80px; }
 .search-tab.active { background: #007aff; color: #fff; border-color: #007aff; }
 .search-results { flex: 1; overflow-y: auto; }
 .search-results::-webkit-scrollbar { display: none; }
-/* Dosya arama listesi — profil kartı stili */
-.search-file-list { display: flex; flex-direction: column; gap: 0; }
-.search-file-list .pub-file-wrap .pub-file-card { border-radius: 16px; }
+/* Dosya arama ızgarası (keşfet ile aynı) */
+.search-file-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; grid-auto-flow: dense; }
 .search-result-item {
     display: flex; align-items: center; gap: 14px; padding: 14px;
     border-radius: 18px; cursor: pointer; transition: all 0.2s ease;
@@ -1311,17 +1277,96 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 /* ── KEŞFET PANELİ ───────────────────────────────────────── */
 .explore-overlay {
-    position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0;
-    z-index: 5800; background: #f2f2f7;
-    transform: translateX(100%);
-    transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
-    display: flex; flex-direction: column; overflow: hidden;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(20px); z-index: 5800;
+    display: none; align-items: flex-end; justify-content: center;
+    opacity: 0; transition: opacity 0.3s ease;
 }
-@media (prefers-color-scheme: dark) { .explore-overlay { background: #1c1c1e; } }
-.explore-overlay.open { transform: translateX(0); }
-.explore-panel { display: contents; }
-#exploreList { flex: 1; overflow-y: auto; padding: 12px 16px 20px; }
+.explore-overlay.open { display: flex; opacity: 1; animation: fadeIn 0.3s ease; }
+.explore-panel {
+    background: var(--glass-bg);
+    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    border: 1px solid var(--glass-border); border-radius: 32px 32px 0 0;
+    padding: 12px 16px 40px; width: 100%; max-width: 520px;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+    height: 50vh; overflow-y: hidden;
+    transition: height 0.35s cubic-bezier(0.25,0.8,0.25,1); will-change: height;
+}
+.explore-panel::-webkit-scrollbar { width: 4px; }
+.explore-panel::-webkit-scrollbar-track { background: transparent; }
+.explore-panel::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+.explore-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; flex-shrink: 0;
+}
+.explore-panel-title { font-size: 20px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; display: flex; align-items: center; }
+.explore-close-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    color: var(--text-primary); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: var(--transition);
+}
+.explore-close-btn:hover { background: rgba(255,69,58,0.15); border-color: rgba(255,69,58,0.3); }
 
+/* Grid layout */
+#exploreList { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-bottom: 20px; grid-auto-flow: dense; }
+.explore-card-wrap { grid-column: span 1; }
+.explore-card-wrap.expanded { grid-column: 1 / -1; }
+
+/* Kare kart (collapsed) */
+.explore-file-card {
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    border-radius: 14px; overflow: hidden; cursor: pointer;
+    display: flex; flex-direction: column; transition: border-radius 0.2s;
+}
+.explore-file-card:active { opacity: 0.85; }
+
+/* Küçük resim (thumbnail) alanı */
+.explore-card-thumb {
+    width: 100%; aspect-ratio: 1; overflow: hidden;
+    background: #fff; position: relative; flex-shrink: 0;
+}
+.explore-thumb-loader {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; font-size: 11px; color: #888;
+    background: #f0f0f0; z-index: 1;
+}
+.explore-thumb-frame {
+    position: absolute; top: 0; left: 0;
+    width: 390px; height: 390px; border: none; pointer-events: none;
+    transform-origin: top left; opacity: 0; transition: opacity 0.3s;
+}
+.explore-thumb-frame.loaded { opacity: 1; }
+.explore-rank-badge {
+    position: absolute; top: 6px; left: 6px;
+    font-size: 15px; z-index: 2; line-height: 1;
+}
+
+/* Kart alt bilgi satırı */
+.explore-card-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 10px; border-top: 1px solid var(--glass-border); flex-shrink: 0;
+}
+.explore-file-info { flex: 1; min-width: 0; }
+.explore-file-name {
+    font-size: 12px; font-weight: 700; color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.explore-file-author { font-size: 11px; color: var(--text-secondary); font-weight: 500; margin-top: 1px; }
+
+/* Genişletilmiş hâl */
+.explore-card-wrap.expanded .explore-file-card { border-radius: 14px 14px 0 0; }
+.explore-card-wrap.expanded .explore-card-thumb { aspect-ratio: unset; height: 200px; }
+.explore-card-wrap.expanded .explore-card-row { }
+.explore-card-body { display: none; border: 1px solid var(--glass-border); border-top: none; border-radius: 0 0 14px 14px; padding: 12px 14px 14px; background: var(--glass-bg); }
+.explore-card-body.open { display: block; }
+.explore-card-actions { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.explore-edit-btn { padding: 7px 16px; background: #007aff; color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+.explore-edit-btn:active { opacity: 0.75; }
+.explore-author-btn { font-size: 13px; color: var(--text-secondary); cursor: pointer; border: none; background: none; font-family: inherit; padding: 0; text-decoration: underline; text-underline-offset: 2px; margin-left: auto; }
+.explore-cmt-count { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-bottom: 8px; }
 
 /* ── BEĞEN BUTONU ────────────────────────────────────────── */
 .like-btn {
@@ -1384,15 +1429,26 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 /* ── MESAJLAR ─────────────────────────────────────── */
 .messages-overlay {
-    position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0;
-    z-index: 300; background: #f2f2f7;
-    transform: translateX(100%);
-    transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
-    display: flex; flex-direction: column; overflow: hidden;
+    position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.3); backdrop-filter: blur(6px);
+    display: none; align-items: flex-end;
 }
-@media (prefers-color-scheme: dark) { .messages-overlay { background: #1c1c1e; } }
-.messages-overlay.open { transform: translateX(0); }
-.messages-panel { display: contents; }
+.messages-overlay.open { display: flex; }
+.messages-panel {
+    width: 100%;
+    background: rgba(18,18,22,0.93);
+    backdrop-filter: saturate(180%) blur(28px);
+    -webkit-backdrop-filter: saturate(180%) blur(28px);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px 24px 0 0;
+    height: 50%; display: flex; flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    transition: height 0.35s cubic-bezier(0.25,0.8,0.25,1);
+    overflow: hidden;
+}
+@media (prefers-color-scheme: light) {
+    .messages-panel { background: rgba(235,235,240,0.95); border-top-color: rgba(0,0,0,0.08); }
+}
 .conv-overlay {
     position: fixed; inset: 0; z-index: 350;
     background: var(--glass-bg);
@@ -1548,6 +1604,17 @@ body.preview-mode .file-title-bar { display: none !important; }
 .follow-list-item:active { opacity: 0.7; }
 .follow-list-avatar { font-size: 22px; }
 .follow-list-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.msg-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 20px 12px; flex-shrink: 0;
+}
+.msg-panel-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.msg-panel-close {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(120,120,128,0.15); border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-secondary);
+}
 /* Conv context menu */
 .conv-ctx-menu {
     position: fixed; z-index: 600; min-width: 180px;
@@ -1582,7 +1649,6 @@ body.preview-mode .file-title-bar { display: none !important; }
     transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
     background: #f2f2f7;
 }
-#feedOverlay { bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
 @media (prefers-color-scheme: dark) { .fv-overlay { background: #1c1c1e; } }
 .fv-overlay.open { transform: translateX(0); }
 .fv-header {
@@ -1700,22 +1766,8 @@ body.preview-mode .file-title-bar { display: none !important; }
     border: none; pointer-events: none; transform-origin: top left;
     opacity: 0; transition: opacity 0.3s;
 }
-.feed-thumb-overlay {
-    position: absolute; inset: 0; z-index: 2; cursor: pointer;
-}
 .feed-thumb-frame.loaded { opacity: 1; }
-.feed-card-actions { display: flex; gap: 6px; padding: 8px 12px 4px; align-items: center; }
-.feed-card-desc {
-    padding: 10px 14px 4px;
-    font-size: 14px; font-weight: 400;
-    color: var(--text-secondary);
-    line-height: 1.5; letter-spacing: -0.01em;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-    overflow: hidden; cursor: pointer;
-}
-.feed-card-desc.expanded {
-    display: block; -webkit-line-clamp: unset; overflow: visible;
-}
+.feed-card-actions { display: flex; gap: 6px; padding: 8px 12px 4px; }
 .feed-like-btn {
     background: none; border: none; cursor: pointer; font-size: 18px;
     color: var(--text-secondary); padding: 4px 8px; border-radius: 8px;
@@ -1732,35 +1784,46 @@ body.preview-mode .file-title-bar { display: none !important; }
 .feed-like-text { padding: 0 12px 6px; font-size: 12px; color: var(--text-secondary); font-weight: 500; }
 .fork-count-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 .fork-count-badge:empty { display: none; }
-.fv-fork-banner { display:flex; align-items:center; gap:4px; padding:7px 14px; background:rgba(0,122,255,0.07); border-bottom:1px solid rgba(0,122,255,0.12); font-size:12px; color:#007aff; overflow-x:auto; white-space:nowrap; flex-shrink:0; }
-.fv-fork-banner-node { display:inline-flex; align-items:center; gap:4px; cursor:pointer; }
-.fv-fork-banner-node:hover { text-decoration:underline; }
-.fv-fork-banner-sep { color:var(--text-secondary); margin:0 3px; }
-.fork-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9100; display:none; align-items:flex-end; justify-content:center; }
-.fork-modal-overlay.open { display:flex; }
-.fork-modal-panel { background:var(--glass-bg); backdrop-filter:saturate(var(--saturation)) blur(var(--blur)); -webkit-backdrop-filter:saturate(var(--saturation)) blur(var(--blur)); border-top:1px solid var(--glass-border); border-radius:16px 16px 0 0; width:100%; max-width:430px; max-height:72vh; display:flex; flex-direction:column; padding-bottom:env(safe-area-inset-bottom,16px); }
-.fork-modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 16px 12px; border-bottom:1px solid var(--glass-border); flex-shrink:0; }
-.fork-modal-title { font-size:16px; font-weight:700; color:var(--text-primary); }
-.fork-modal-close { background:none; border:none; padding:6px; cursor:pointer; color:var(--text-secondary); border-radius:8px; display:flex; }
-.fork-modal-list { overflow-y:auto; flex:1; padding:6px 0; }
-.fork-list-item { display:flex; align-items:center; gap:10px; padding:10px 16px; cursor:pointer; }
-.fork-list-item:active { background:rgba(120,120,128,0.08); }
-.fork-list-avatar { font-size:22px; flex-shrink:0; }
-.fork-list-info { flex:1; min-width:0; }
-.fork-list-username { font-size:13px; font-weight:600; color:var(--text-primary); }
-.fork-list-filename { font-size:12px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.fork-list-time { font-size:11px; color:var(--text-secondary); flex-shrink:0; }
-.fork-tree-node { display:flex; align-items:center; gap:8px; padding:9px 16px; cursor:pointer; }
-.fork-tree-node:active { background:rgba(120,120,128,0.08); }
-.fork-tree-node.depth-0 { font-weight:700; background:rgba(0,122,255,0.05); }
-.fork-tree-indent { display:flex; align-items:center; gap:8px; }
-.fork-tree-line { width:18px; height:1px; background:rgba(120,120,128,0.3); flex-shrink:0; }
-.fork-tree-emoji { font-size:18px; flex-shrink:0; }
-.fork-tree-info { flex:1; min-width:0; }
-.fork-tree-name { font-size:13px; color:var(--text-primary); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.fork-tree-user { font-size:11px; color:var(--text-secondary); }
+.fv-fork-clickable { cursor: pointer; padding: 4px 6px; border-radius: 8px; transition: background 0.15s; }
+.fv-fork-clickable:hover { background: rgba(120,120,128,0.12); }
 .explore-card-stats { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .pub-file-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+/* Fork zinciri banner */
+.fv-fork-banner {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 16px; font-size: 12px; font-weight: 500;
+    background: rgba(120,120,128,0.1); color: var(--text-secondary);
+    border-bottom: 1px solid var(--glass-border); flex-shrink: 0;
+}
+.fv-fork-banner-btn {
+    margin-left: auto; background: none; border: none; cursor: pointer;
+    font-size: 12px; font-weight: 600; color: #007aff; font-family: inherit; padding: 0;
+}
+.fv-fork-banner-btn + .fv-fork-banner-btn { margin-left: 12px; }
+/* Fork listesi satırı */
+.fork-list-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--glass-border); cursor: pointer;
+}
+.fork-list-item:last-child { border-bottom: none; }
+.fork-list-avatar { font-size: 22px; flex-shrink: 0; }
+.fork-list-info { flex: 1; min-width: 0; }
+.fork-list-username { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.fork-list-filename { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fork-list-date { font-size: 11px; color: var(--text-secondary); flex-shrink: 0; }
+/* Fork ağacı */
+.fork-tree-node {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 8px 0; cursor: pointer;
+}
+.fork-tree-node:hover .fork-tree-filename { color: #007aff; }
+.fork-tree-indent { padding-left: 20px; border-left: 2px solid var(--glass-border); margin-left: 10px; }
+.fork-tree-badge { font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: 700; flex-shrink: 0; }
+.fork-tree-badge.original { background: rgba(52,199,89,0.15); color: #34c759; }
+.fork-tree-badge.current { background: rgba(0,122,255,0.15); color: #007aff; }
+.fork-tree-badge.fork { background: rgba(120,120,128,0.12); color: var(--text-secondary); }
+.fork-tree-filename { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.fork-tree-author { font-size: 12px; color: var(--text-secondary); }
 .feed-comments-wrap { border-top: 1px solid var(--glass-border); padding: 8px 12px 10px; }
 .feed-comment-item { display: flex; align-items: flex-start; gap: 7px; padding: 5px 0; }
 .feed-cmt-avatar { font-size: 16px; flex-shrink: 0; }
@@ -2034,21 +2097,16 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <!-- ── KEŞFET PANELİ ───────────────────────────────────────────────────── -->
 
-<div class="explore-overlay" id="exploreOverlay">
+<div class="explore-overlay" id="exploreOverlay" onclick="handleExploreOverlayClick(event)">
     <div class="explore-panel" id="explorePanel">
-        <div class="fv-header">
-            <button class="fv-back-btn" onclick="closeExplorePanel()">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+        <div class="profile-drag-bar"></div>
+        <div class="explore-panel-header">
+            <div class="explore-panel-title"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;margin-right:6px;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Keşfet</div>
+            <button class="explore-close-btn" onclick="closeExplorePanel()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
-            <div class="fv-header-info">
-                <div class="fv-filename" style="display:flex;align-items:center;gap:6px;">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                    Keşfet
-                </div>
-                <div style="font-size:12px;color:var(--text-secondary);" id="exploreSubtitle"></div>
-            </div>
         </div>
         <div id="exploreList">
             <div class="search-empty">Yükleniyor...</div>
@@ -2058,19 +2116,18 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <!-- ── MESAJLAR PANELİ ─────────────────────────────────────────────────── -->
 
-<div class="messages-overlay" id="messagesOverlay">
+<div class="messages-overlay" id="messagesOverlay" onclick="handleMsgOverlayClick(event)">
     <div class="messages-panel" id="messagesPanel">
-        <div class="fv-header">
-            <button class="fv-back-btn" onclick="closeMessagesPanel()">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+        <div class="profile-drag-bar"></div>
+        <div class="msg-panel-header">
+            <div class="msg-panel-title">Mesajlar</div>
+            <button class="msg-panel-close" onclick="closeMessagesPanel()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
-            <div class="fv-header-info">
-                <div class="fv-filename">Mesajlar</div>
-            </div>
         </div>
-        <div id="conversationsList" style="overflow-y:auto;flex:1;padding:8px 0;">
+        <div id="conversationsList" style="overflow-y:auto;flex:1;">
             <div class="search-empty">Yükleniyor...</div>
         </div>
     </div>
@@ -2132,20 +2189,7 @@ body.preview-mode .file-title-bar { display: none !important; }
                 <span id="pubProfileEmoji">👤</span>
             </div>
             <div class="profile-header-info">
-                <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
-                    <div class="profile-username-display" id="pubProfileUsername">—</div>
-                    <div class="pub-follow-inline">
-                        <span onclick="_openFollowList('followers')" style="cursor:pointer;">
-                            <span id="pubStatFollowers" style="font-weight:700;color:var(--text-primary);">0</span>
-                            <span style="color:var(--text-secondary);"> takipçi</span>
-                        </span>
-                        <span style="color:var(--glass-border);margin:0 4px;">·</span>
-                        <span onclick="_openFollowList('following')" style="cursor:pointer;">
-                            <span id="pubStatFollowing" style="font-weight:700;color:var(--text-primary);">0</span>
-                            <span style="color:var(--text-secondary);"> takip</span>
-                        </span>
-                    </div>
-                </div>
+                <div class="profile-username-display" id="pubProfileUsername">—</div>
                 <div class="profile-member-since" id="pubProfileSince"></div>
             </div>
         </div>
@@ -2155,15 +2199,23 @@ body.preview-mode .file-title-bar { display: none !important; }
         <div class="profile-stats" style="margin-bottom:20px;">
             <div class="profile-stat">
                 <div class="profile-stat-value" id="pubStatFiles">0</div>
-                <div class="profile-stat-label">Dosya</div>
+                <div class="profile-stat-label">Public Dosya</div>
             </div>
             <div class="profile-stat">
                 <div class="profile-stat-value" id="pubStatLines">0</div>
                 <div class="profile-stat-label">Satır</div>
             </div>
-            <div class="profile-stat">
+            <div class="profile-stat" style="cursor:pointer;" onclick="_openFollowList('followers')">
+                <div class="profile-stat-value" id="pubStatFollowers">0</div>
+                <div class="profile-stat-label">Takipçi</div>
+            </div>
+            <div class="profile-stat" style="cursor:pointer;" onclick="_openFollowList('following')">
+                <div class="profile-stat-value" id="pubStatFollowing">0</div>
+                <div class="profile-stat-label">Takip</div>
+            </div>
+            <div class="profile-stat" style="cursor:pointer;" onclick="openProfileForkList()">
                 <div class="profile-stat-value" id="pubStatForks">0</div>
-                <div class="profile-stat-label">Fork</div>
+                <div class="profile-stat-label">Fork Aldı</div>
             </div>
         </div>
         <div style="display:flex;gap:10px;margin-bottom:16px;" id="pubProfileActions">
@@ -2221,10 +2273,6 @@ body.preview-mode .file-title-bar { display: none !important; }
         <div class="profile-stat">
             <div class="profile-stat-value" id="statTotalChars">0</div>
             <div class="profile-stat-label">Karakter</div>
-        </div>
-        <div class="profile-stat">
-            <div class="profile-stat-value" id="statTotalForks">0</div>
-            <div class="profile-stat-label">Fork Aldı</div>
         </div>
     </div>
 
@@ -2329,7 +2377,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     </button>
     <button class="bottom-bar-btn" onclick="openExplorePanel()">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
         </svg>
         Keşfet
     </button>
@@ -2460,44 +2508,6 @@ body.preview-mode .file-title-bar { display: none !important; }
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
                 İndir
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Yeni Kaydet Modalı (dosya adı + açıklama) -->
-<div id="newSaveModalOverlay" class="modal-overlay" onclick="if(event.target.id==='newSaveModalOverlay')closeNewSaveModal()">
-    <div class="modal-box" style="max-width:400px;">
-        <div class="modal-header">
-            <div class="modal-icon-wrap" style="background:rgba(0,122,255,0.12);border-color:rgba(0,122,255,0.25);">
-                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
-            </div>
-            <div class="modal-title">Yeni Dosya Kaydet</div>
-            <div class="modal-subtitle">Dosya adı ve açıklama ekleyin</div>
-        </div>
-        <div class="modal-field">
-            <label class="modal-label" for="newSaveFilename">Dosya Adı</label>
-            <div class="modal-input-wrap">
-                <input type="text" id="newSaveFilename" class="modal-input" placeholder="dosya-adi"
-                       onkeypress="if(event.key==='Enter')document.getElementById('newSaveDesc').focus()">
-                <span class="modal-input-suffix">.html</span>
-            </div>
-        </div>
-        <div class="modal-field" style="margin-top:12px;">
-            <label class="modal-label" for="newSaveDesc">Açıklama <span style="font-weight:400;opacity:.6">(isteğe bağlı)</span></label>
-            <textarea id="newSaveDesc" class="modal-input" placeholder="Bu dosya ne işe yarıyor?"
-                      rows="3" style="resize:none;line-height:1.5;"
-                      onkeypress="if(event.key==='Enter'&&event.ctrlKey)confirmNewSave()"></textarea>
-        </div>
-        <div class="modal-actions" style="margin-top:20px;">
-            <button onclick="closeNewSaveModal()" class="modal-btn">İptal</button>
-            <button onclick="confirmNewSave()" class="modal-btn modal-btn-save">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
-                Kaydet
             </button>
         </div>
     </div>
@@ -2812,14 +2822,6 @@ function updateProfileStats() {
     if (el1) el1.textContent = fileCount;
     if (el2) el2.textContent = fmt(totalLines);
     if (el3) el3.textContent = fmt(totalChars);
-    // Fork sayısı (async)
-    if (currentUser && savedFiles.length > 0) {
-        const ids = savedFiles.map(f => f.id).filter(Boolean);
-        sb.from('files').select('forked_from_id').in('forked_from_id', ids).then(({ data }) => {
-            const el4 = document.getElementById('statTotalForks');
-            if (el4) el4.textContent = (data||[]).length;
-        });
-    }
 }
 
 function renderEmojiPicker() {
@@ -2845,7 +2847,6 @@ function toggleEmojiPicker() {
 }
 
 function openProfilePanel() {
-    _closeAllPanels('profile');
     // Input alanlarını doldur
     const username = currentProfile?.username || currentUser?.email?.split('@')[0] || '';
     const bio      = currentProfile?.bio || '';
@@ -3175,8 +3176,7 @@ async function loadSavedFilesFromCloud() {
         if (error) throw error;
         savedFiles = (data || []).map(r => ({
             id: r.id, filename: r.filename, code: r.code,
-            timestamp: r.updated_at, cloud: true, isPublic: r.is_public || false,
-            description: r.description || ''
+            timestamp: r.updated_at, cloud: true, isPublic: r.is_public || false
         }));
         setSyncStatus('synced');
     } catch(e) {
@@ -3209,7 +3209,7 @@ async function saveFileToCloud(file) {
         const isCloudId = typeof file.id === 'number' && file.id < 9999999999999;
         if (isCloudId && file.cloud) {
             const { data, error } = await sb.from('files')
-                .update({ filename: file.filename, code: file.code, description: file.description ?? null, updated_at: new Date().toISOString() })
+                .update({ filename: file.filename, code: file.code, updated_at: new Date().toISOString() })
                 .eq('id', file.id)
                 .eq('user_id', currentUser.id)
                 .select().single();
@@ -3218,7 +3218,7 @@ async function saveFileToCloud(file) {
             return data;
         } else {
             const { data, error } = await sb.from('files')
-                .insert({ user_id: currentUser.id, filename: file.filename, code: file.code, description: file.description ?? null })
+                .insert({ user_id: currentUser.id, filename: file.filename, code: file.code })
                 .select().single();
             if (error) throw error;
             setSyncStatus('synced');
@@ -3298,7 +3298,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     _initCodeMirror();
     _initBottomSheet('profilePanel',   closeProfilePanel);
     _initBottomSheet('pubProfilePanel', closePublicProfile);
-    // messagesPanel converted to full-screen slide — no bottom sheet
+    _initBottomSheet('explorePanel',   closeExplorePanel);
+    _initBottomSheet('messagesPanel',  closeMessagesPanel);
     _initBottomSheet('notifPanel',     closeNotifPanel);
     _initConvSwipeBack();
     _initFileViewSwipeBack();
@@ -3513,9 +3514,9 @@ async function confirmDuplicateSave() {
 }
 
 // ── Core Save Logic ────────────────────────────────────────────────────
-async function _doSave(filename, description = '') {
+async function _doSave(filename) {
     const localFile = {
-        id: Date.now(), filename, code, description,
+        id: Date.now(), filename, code,
         timestamp: new Date().toISOString(), cloud: false
     };
     savedFiles.push(localFile);
@@ -3529,8 +3530,7 @@ async function _doSave(filename, description = '') {
             savedFiles[idx] = {
                 id: cloudResult.id, filename: cloudResult.filename,
                 code: cloudResult.code, timestamp: cloudResult.updated_at,
-                cloud: true, isPublic: cloudResult.is_public || false,
-                description: cloudResult.description || description
+                cloud: true, isPublic: cloudResult.is_public || false
             };
             currentOpenFileId = cloudResult.id;
         }
@@ -3551,37 +3551,11 @@ async function _doSave(filename, description = '') {
 async function createNewSave() {
     closeSaveOptionsModal();
     if (!code.trim()) { showToast('Kaydedilecek kod yok'); return; }
-    openNewSaveModal();
-}
-
-function openNewSaveModal() {
     const baseName   = getBaseFilename();
     const uniqueName = generateUniqueFilename(baseName);
-    const inp = document.getElementById('newSaveFilename');
-    inp.value = uniqueName;
-    document.getElementById('newSaveDesc').value = '';
-    document.getElementById('newSaveModalOverlay').classList.add('open');
-    setTimeout(() => { inp.focus(); inp.select(); }, 100);
-}
-
-function closeNewSaveModal() {
-    document.getElementById('newSaveModalOverlay').classList.remove('open');
-}
-
-async function confirmNewSave() {
-    let fn = document.getElementById('newSaveFilename').value.trim();
-    if (!fn) {
-        showToast('Lütfen bir dosya adı girin');
-        const inp = document.getElementById('newSaveFilename'); inp.focus();
-        ['-5px','5px','-5px','0'].forEach((x, i) => setTimeout(() => inp.style.transform = `translateX(${x})`, i * 50));
-        return;
-    }
-    fn = fn.replace(/\.html$/i, '');
-    const description = document.getElementById('newSaveDesc').value.trim();
-    const duplicate = findDuplicateContent(code);
-    closeNewSaveModal();
-    if (duplicate) { openDuplicateModal(duplicate, fn); return; }
-    await _doSave(fn, description);
+    const duplicate  = findDuplicateContent(code);
+    if (duplicate) { openDuplicateModal(duplicate, uniqueName); return; }
+    await _doSave(uniqueName);
 }
 
 function handleQuickSave() {
@@ -3622,7 +3596,6 @@ async function updateExistingFile() {
 
 // ── Saved Files Panel ──────────────────────────────────────────────────
 function openSavedFilesPanel() {
-    _closeAllPanels('savedFiles');
     renderSavedFiles();
     document.getElementById('savedFilesOverlay').classList.add('open');
     document.getElementById('savedFilesPanel').classList.add('open');
@@ -3799,12 +3772,6 @@ function renderSavedFiles() {
                     </svg>
                 </div>
                 <div class="saved-file-date">${dateStr}</div>
-                <div class="saved-file-desc" id="filedesc-${file.id}" onclick="event.stopPropagation()">
-                    <span class="saved-file-desc-text${file.description ? '' : ' empty'}">${file.description ? escapeHtml(file.description) : 'Açıklama ekle...'}</span>
-                    <button class="saved-file-desc-edit" title="Açıklamayı düzenle" onclick="editFileDesc(${file.id})">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                    </button>
-                </div>
                 <div class="saved-file-actions">
                     <button class="saved-file-btn preview" onclick="event.stopPropagation();previewSavedFile(${file.id})">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3866,37 +3833,6 @@ function renderSavedFiles() {
 }
 
 function openSavedFileItem(event, fileId) { viewSavedFileCode(fileId); }
-
-function editFileDesc(fileId) {
-    const file = savedFiles.find(f => f.id === fileId);
-    if (!file) return;
-    const descEl = document.getElementById('filedesc-' + fileId);
-    if (!descEl) return;
-    descEl.innerHTML = `
-        <div class="saved-file-desc-input-wrap" style="width:100%">
-            <textarea class="saved-file-desc-input" id="filedescInput-${fileId}" rows="2"
-                placeholder="Kısa bir açıklama..."
-                onkeydown="if(event.key==='Escape')renderSavedFiles();if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();saveFileDesc(${fileId});}"
-            >${escapeHtml(file.description || '')}</textarea>
-            <button class="saved-file-desc-save" onclick="saveFileDesc(${fileId})">Kaydet</button>
-        </div>`;
-    const ta = document.getElementById('filedescInput-' + fileId);
-    ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
-}
-
-async function saveFileDesc(fileId) {
-    const file = savedFiles.find(f => f.id === fileId);
-    if (!file) return;
-    const ta = document.getElementById('filedescInput-' + fileId);
-    if (!ta) return;
-    const desc = ta.value.trim();
-    file.description = desc;
-    renderSavedFiles();
-    if (file.cloud && currentUser) {
-        await sb.from('files').update({ description: desc || null }).eq('id', fileId).eq('user_id', currentUser.id);
-    }
-    saveToStorage();
-}
 
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -4134,7 +4070,6 @@ let searchDebounceTimer = null;
 let _searchTab = 'users';
 
 function openSearchPanel() {
-    _closeAllPanels('search');
     document.getElementById('searchPanelOverlay').classList.add('open');
     document.getElementById('userSearchInput').value = '';
     document.getElementById('searchResults').innerHTML = '<div class="search-empty">Aramak istediğiniz kişi veya dosya adını yazın</div>';
@@ -4212,7 +4147,7 @@ async function doFileSearch() {
     container.innerHTML = '<div class="search-empty"><div class="spinner" style="margin:0 auto;"></div></div>';
     try {
         const { data: files, error } = await sb.from('files')
-            .select('id, filename, updated_at, user_id, description')
+            .select('id, filename, updated_at, user_id')
             .eq('is_public', true)
             .ilike('filename', `%${q}%`)
             .limit(40);
@@ -4234,45 +4169,56 @@ async function doFileSearch() {
         Object.assign(_likeCounts, counts);
         await _loadForkCounts(files.map(f => f.id));
 
-        const pad = n => String(n).padStart(2, '0');
-        container.innerHTML = '<div class="search-file-list">' + files.map(f => {
+        container.innerHTML = '<div class="search-file-grid" id="searchFileGrid">' + files.map(f => {
             const prof   = pMap[f.user_id] || {};
             const author = prof.username || 'Kullanıcı';
             const emoji  = prof.avatar_emoji || '👤';
             const cnt    = counts[f.id] || 0;
             const liked  = _myLikes.has(f.id);
-            const d      = new Date(f.updated_at);
-            const date   = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
-            if (!_exploreDataMap[f.id]) _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, filename: f.filename, description: f.description || '' };
+            if (!_exploreDataMap[f.id]) _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, filename: f.filename };
             return `
-            <div class="pub-file-wrap">
-                <div class="pub-file-card" onclick="openFileView('${f.id}')">
-                    <div class="pub-file-icon">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                        </svg>
+            <div class="explore-card-wrap" id="ewrap-${f.id}">
+                <div class="explore-file-card" onclick="openFileView(${f.id})">
+                    <div class="explore-card-thumb">
+                        <div class="explore-thumb-loader" id="eload-${f.id}">···</div>
+                        <iframe class="explore-thumb-frame" id="eprev-${f.id}" sandbox="allow-scripts allow-same-origin"></iframe>
                     </div>
-                    <div class="pub-file-info">
-                        <div class="pub-file-name">${escapeHtml(f.filename)}</div>
-                        ${f.description ? `<div class="pub-file-desc" style="font-size:12px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(f.description)}</div>` : ''}
-                        <div class="pub-file-meta">${emoji} ${escapeHtml(author)} · ${date}</div>
-                    </div>
-                    <div class="pub-file-right">
-                        <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
-                            onclick="event.stopPropagation();toggleLike('${f.id}')">
-                            ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt || ''}</span>
-                        </button>
-                        ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}" style="margin-left:4px;"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : ''}
+                    <div class="explore-card-row">
+                        <div class="explore-file-info">
+                            <div class="explore-file-name">${escapeHtml(f.filename)}</div>
+                            <div class="explore-file-author">${emoji} ${escapeHtml(author)}</div>
+                        </div>
+                        <div class="explore-card-stats">
+                            <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
+                                onclick="event.stopPropagation();toggleLike(${f.id})" style="font-size:12px;padding:4px 8px;">
+                                ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
+                            </button>
+                            ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : `<span class="fork-count-badge" id="forkcount-${f.id}"></span>`}
+                        </div>
                     </div>
                 </div>
             </div>`;
         }).join('') + '</div>';
+        _initSearchFileLazy();
     } catch(e) {
         console.error('File search error:', e);
         container.innerHTML = '<div class="search-empty">Arama başarısız</div>';
     }
 }
 
+function _initSearchFileLazy() {
+    const root = document.getElementById('searchResults');
+    if (!root) return;
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (!e.isIntersecting) return;
+            const fileId = e.target.id.replace('ewrap-', '');
+            _loadExploreThumb(fileId);
+            obs.unobserve(e.target);
+        });
+    }, { root, rootMargin: '200px' });
+    document.querySelectorAll('#searchFileGrid [id^="ewrap-"]').forEach(el => obs.observe(el));
+}
 
 // ── PUBLIC PROFİL ──────────────────────────────────────────────────────
 async function openPublicProfile(userId) {
@@ -4288,6 +4234,8 @@ async function openPublicProfile(userId) {
     document.getElementById('followListWrap').style.display = 'none';
     document.getElementById('pubStatFollowers').textContent = '0';
     document.getElementById('pubStatFollowing').textContent = '0';
+    document.getElementById('pubStatForks').textContent = '0';
+    _profileForkFileIds = [];
     const followBtn = document.getElementById('pubFollowBtn');
     followBtn.style.display = 'none';
 
@@ -4295,7 +4243,7 @@ async function openPublicProfile(userId) {
         // Profil bilgisi + dosyalar + takip verileri paralel çek
         const [{ data: prof }, { data: files }, { data: followers }, { data: followings }, { data: myFollow }] = await Promise.all([
             sb.from('profiles').select('username, bio, avatar_emoji, created_at').eq('id', userId).single(),
-            sb.from('files').select('id, filename, code, updated_at, description').eq('user_id', userId).eq('is_public', true).order('updated_at', { ascending: false }),
+            sb.from('files').select('id, filename, code, updated_at').eq('user_id', userId).eq('is_public', true).order('updated_at', { ascending: false }),
             sb.from('follows').select('follower_id').eq('following_id', userId),
             sb.from('follows').select('following_id').eq('follower_id', userId),
             currentUser && currentUser.id !== userId
@@ -4337,20 +4285,13 @@ async function openPublicProfile(userId) {
         const _profEmoji    = prof?.avatar_emoji || '👤';
         const _profUsername = prof?.username     || 'Kullanıcı';
         pubFiles.forEach(f => {
-            _pubFilesData[f.id]    = { filename: f.filename, code: f.code, description: f.description || '' };
-            _exploreDataMap[f.id]  = { userId: userId, username: _profUsername, emoji: _profEmoji, filename: f.filename, code: f.code, description: f.description || '' };
+            _pubFilesData[f.id]    = { filename: f.filename, code: f.code };
+            _exploreDataMap[f.id]  = { userId: userId, username: _profUsername, emoji: _profEmoji, filename: f.filename, code: f.code };
         });
         const totalLines = pubFiles.reduce((s, f) => s + (f.code.match(/\n/g)||[]).length + 1, 0);
         const fmt = n => n >= 1000 ? (n/1000).toFixed(1) + 'k' : n;
         document.getElementById('pubStatFiles').textContent = pubFiles.length;
         document.getElementById('pubStatLines').textContent = fmt(totalLines);
-        document.getElementById('pubStatForks').textContent = '0';
-        if (pubFiles.length > 0) {
-            const fIds = pubFiles.map(f => f.id);
-            sb.from('files').select('forked_from_id').in('forked_from_id', fIds).then(({ data }) => {
-                document.getElementById('pubStatForks').textContent = (data||[]).length;
-            });
-        }
 
         // Beğeni ve yorum sayılarını çek
         let _commentCountMap = {};
@@ -4362,6 +4303,9 @@ async function openPublicProfile(userId) {
                 sb.from('comments').select('file_id').in('file_id', fileIds)
             ]);
             await _loadForkCounts(fileIds);
+            _profileForkFileIds = fileIds;
+            const totalForks = fileIds.reduce((s, id) => s + (_forkCounts[id] || 0), 0);
+            document.getElementById('pubStatForks').textContent = totalForks;
             const _freshCounts = {};
             (fileLikes || []).forEach(l => { _freshCounts[l.file_id] = (_freshCounts[l.file_id] || 0) + 1; });
             Object.assign(_likeCounts, _freshCounts);
@@ -4390,7 +4334,6 @@ async function openPublicProfile(userId) {
                         </div>
                         <div class="pub-file-info">
                             <div class="pub-file-name">${escapeHtml(f.filename)}</div>
-                            ${f.description ? `<div class="pub-file-desc" style="font-size:12px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(f.description)}</div>` : ''}
                             <div class="pub-file-meta">${date} · ${lines} satır</div>
                         </div>
                         <div class="pub-file-right">
@@ -4572,14 +4515,14 @@ async function forkToEditor(sourceFileId, filename, fileCode, ...closeFns) {
     if (sourceFileId) {
         _forkCounts[sourceFileId] = (_forkCounts[sourceFileId] || 0) + 1;
         const forkEl = document.getElementById('forkcount-' + sourceFileId);
-        if (forkEl) forkEl.textContent = _forkCounts[sourceFileId] || '';
-        // Dosya sahibine fork bildirimi gönder (kendi dosyasını forklamamışsa)
-        const { data: srcFile } = await sb.from('files').select('user_id').eq('id', sourceFileId).single();
-        if (srcFile && srcFile.user_id !== currentUser.id) {
-            await sb.from('like_notifications').insert({
-                to_user_id: srcFile.user_id, from_user_id: currentUser.id,
-                file_id: sourceFileId, type: 'fork', seen: false
-            });
+        if (forkEl) forkEl.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[sourceFileId]}`;
+        // Fork bildirimi gönder (dosya sahibine)
+        const ownerUserId = _exploreDataMap[sourceFileId]?.userId || _fvUserId;
+        if (ownerUserId && ownerUserId !== currentUser.id) {
+            sb.from('like_notifications').insert({
+                to_user_id: ownerUserId, from_user_id: currentUser.id,
+                file_id: sourceFileId, type: 'fork'
+            }).then();
         }
     }
     closeFns.forEach(fn => fn && fn());
@@ -4593,6 +4536,17 @@ async function _loadForkCounts(fileIds) {
     fileIds.forEach(id => { _forkCounts[id] = 0; });
     const { data } = await sb.from('files').select('forked_from_id').in('forked_from_id', fileIds);
     (data || []).forEach(r => { _forkCounts[r.forked_from_id] = (_forkCounts[r.forked_from_id] || 0) + 1; });
+}
+
+// ── BİLDİRİM HELPER ───────────────────────────────────────────────────
+// type: 'like' | 'comment' | 'fork' | 'comment_like'
+async function _sendNotif(type, toUserId, fileId, extra = {}) {
+    if (!currentUser || !toUserId || toUserId === currentUser.id) return;
+    const { error } = await sb.from('like_notifications').insert({
+        to_user_id: toUserId, from_user_id: currentUser.id,
+        file_id: fileId || null, type, ...extra
+    });
+    if (error) console.warn('Bildirim gönderilemedi:', error.message);
 }
 
 // ── BEĞEN ─────────────────────────────────────────────────────────────
@@ -4632,30 +4586,10 @@ async function toggleLike(fileId) {
     }
 }
 
-// ── PANEL YÖNETİMİ ─────────────────────────────────────────────────────
-// Ana paneller açılınca diğerlerini kapat (alt paneller hariç: fvOverlay, convOverlay, pubProfileOverlay)
-function _closeAllPanels(skip) {
-    const panels = [
-        { id: 'feedOverlay',         key: 'feed',       close: closeFeedPanel },
-        { id: 'exploreOverlay',      key: 'explore',    close: closeExplorePanel },
-        { id: 'messagesOverlay',     key: 'messages',   close: closeMessagesPanel },
-        { id: 'notifOverlay',        key: 'notif',      close: closeNotifPanel },
-        { id: 'profilePanelOverlay', key: 'profile',    close: closeProfilePanel },
-        { id: 'searchPanelOverlay',  key: 'search',     close: closeSearchPanel },
-        { id: 'savedFilesOverlay',   key: 'savedFiles', close: closeSavedFilesPanel },
-    ];
-    panels.forEach(p => {
-        if (p.key === skip) return;
-        const el = document.getElementById(p.id);
-        if (el && el.classList.contains('open')) p.close();
-    });
-}
-
 // ── AKIŞ ───────────────────────────────────────────────────────────────
 let _feedLoaded = false;
 
 function openFeedPanel() {
-    _closeAllPanels('feed');
     const overlay = document.getElementById('feedOverlay');
     overlay.classList.add('open');
     if (!currentUser) {
@@ -4685,7 +4619,7 @@ async function loadFeed() {
     document.getElementById('feedSubtitle').textContent = followingIds.length + ' takip edilen';
 
     const { data: files } = await sb.from('files')
-        .select('id, filename, code, updated_at, user_id, description')
+        .select('id, filename, code, updated_at, user_id')
         .in('user_id', followingIds).eq('is_public', true)
         .order('updated_at', { ascending: false }).limit(60);
 
@@ -4697,17 +4631,13 @@ async function loadFeed() {
     const uids = [...new Set(files.map(f => f.user_id))];
     const fileIds = files.map(f => f.id);
 
-    const [{ data: profiles }, { data: allLikes }, { data: myLikesData }, { data: likerProfiles }, { data: allCommentRows }] = await Promise.all([
+    const [{ data: profiles }, { data: allLikes }, { data: myLikesData }, { data: likerProfiles }] = await Promise.all([
         sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
         sb.from('likes').select('file_id,user_id').in('file_id', fileIds),
         sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds),
-        sb.from('likes').select('user_id,file_id').in('file_id', fileIds).limit(200),
-        sb.from('comments').select('file_id').in('file_id', fileIds).is('parent_id', null)
+        sb.from('likes').select('user_id,file_id').in('file_id', fileIds).limit(200)
     ]);
     await _loadForkCounts(fileIds);
-
-    const commentCounts = {};
-    (allCommentRows || []).forEach(c => { commentCounts[c.file_id] = (commentCounts[c.file_id] || 0) + 1; });
 
     const pMap = {};
     (profiles || []).forEach(p => { pMap[p.id] = p; });
@@ -4729,7 +4659,7 @@ async function loadFeed() {
 
     files.forEach(f => {
         const p = pMap[f.user_id] || {};
-        _exploreDataMap[f.id] = { userId: f.user_id, username: p.username || 'Kullanıcı', emoji: p.avatar_emoji || '👤', filename: f.filename, code: f.code, description: f.description || '' };
+        _exploreDataMap[f.id] = { userId: f.user_id, username: p.username || 'Kullanıcı', emoji: p.avatar_emoji || '👤', filename: f.filename, code: f.code };
     });
 
     listEl.innerHTML = files.map(f => {
@@ -4759,18 +4689,16 @@ async function loadFeed() {
             <div class="feed-thumb-wrap">
                 <div class="feed-thumb-loader" id="feload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
                 <iframe class="feed-thumb-frame" id="feprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
-                <div class="feed-thumb-overlay" onclick="openFileView('${f.id}')"></div>
             </div>
-            ${f.description ? `<div class="feed-card-desc" id="fdesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
             <div class="feed-card-actions">
                 <button class="feed-like-btn${liked ? ' liked' : ''}" id="flike-${f.id}" onclick="feedToggleLike('${f.id}')">
                     ${liked ? '♥' : '♡'} <span id="flikecnt-${f.id}">${cnt || ''}</span>
                 </button>
-                ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : `<span class="fork-count-badge" id="forkcount-${f.id}"></span>`}
                 <button class="feed-comment-toggle" onclick="feedToggleComments('${f.id}')">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                     <span id="fcmtcnt-${f.id}"></span>
                 </button>
+                <span class="fork-count-badge" id="forkcount-${f.id}" title="Fork sayısı">${_forkCounts[f.id] ? `<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}` : ''}</span>
             </div>
             ${likeText ? `<div class="feed-like-text" id="fliketext-${f.id}">${likeText}</div>` : `<div class="feed-like-text" id="fliketext-${f.id}" style="display:none;"></div>`}
             <div class="feed-comments-wrap" id="fcmtwrap-${f.id}" style="display:none;">
@@ -4782,12 +4710,6 @@ async function loadFeed() {
             </div>
         </div>`;
     }).join('');
-
-    // Yorum sayılarını doldur
-    fileIds.forEach(id => {
-        const el = document.getElementById('fcmtcnt-' + id);
-        if (el && commentCounts[id]) el.textContent = commentCounts[id];
-    });
 
     // Lazy load thumbnails
     const obs = new IntersectionObserver(entries => {
@@ -4861,7 +4783,7 @@ async function feedLoadComments(fileId) {
         const liked = _feedMyCmtLikes.has(c.id);
         const likeCnt = _feedCmtLikes[c.id] || 0;
         const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderFC(r, true)).join('') : '';
-        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="feedcmt-${c.id}">
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="feedcmt-${c.id}" data-user-id="${c.user_id}">
             <div class="comment-avatar">${p.avatar_emoji||'👤'}</div>
             <div class="comment-body">
                 <div class="comment-header">
@@ -4895,6 +4817,7 @@ async function feedSubmitComment(fileId) {
     inp.value = ''; inp.style.height = 'auto';
     const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100) });
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await feedLoadComments(fileId);
@@ -4934,6 +4857,7 @@ async function feedToggleCmtLike(commentId, btn) {
         if (span) span.textContent = _feedCmtLikes[commentId] ? ' '+_feedCmtLikes[commentId] : '';
         showToast('Beğeni kaydedilemedi');
     }
+    if (!liked && !_fe) { const _cl = document.getElementById('feedcmt-' + commentId); if (_cl) { const _fid = btn.closest('[id^="fcmtlist-"]')?.id.replace('fcmtlist-',''); _sendNotif('comment_like', _cl.dataset.userId, _fid || null); } }
 }
 
 function feedShowReply(commentId, fileId) {
@@ -4953,6 +4877,8 @@ async function feedSubmitReply(parentId, fileId) {
     document.getElementById('feedri-' + parentId).style.display = 'none';
     const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    const _rvp = document.getElementById('feedcmt-' + parentId);
+    if (_rvp) _sendNotif('comment', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100) });
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await feedLoadComments(fileId);
@@ -4978,7 +4904,7 @@ async function _loadFeedThumb(fileId, obs) {
 
 // ── KEŞFET ─────────────────────────────────────────────────────────────
 function openExplorePanel() {
-    _closeAllPanels('explore');
+    _sheetReset('explorePanel');
     document.getElementById('exploreOverlay').classList.add('open');
     loadExploreFiles();
 }
@@ -4995,11 +4921,14 @@ async function loadExploreFiles() {
     const list = document.getElementById('exploreList');
     list.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
     try {
+        // Public dosyaları çek (join olmadan)
         const { data: files, error: filesErr } = await sb.from('files')
-            .select('id, filename, updated_at, user_id, description')
-            .eq('is_public', true).limit(100);
+            .select('id, filename, updated_at, user_id')
+            .eq('is_public', true)
+            .limit(100);
         if (filesErr) throw filesErr;
 
+        // Profilleri ayrı çek
         const userIds = [...new Set((files || []).map(f => f.user_id))];
         const { data: profiles } = userIds.length
             ? await sb.from('profiles').select('id, username, avatar_emoji').in('id', userIds)
@@ -5007,28 +4936,27 @@ async function loadExploreFiles() {
         const profileMap = {};
         (profiles || []).forEach(p => { profileMap[p.id] = p; });
 
+        // Tüm beğenileri çek
         const { data: allLikes } = await sb.from('likes').select('file_id');
+
+        // Kullanıcının beğenilerini çek
         if (currentUser && !_myLikesLoaded) {
             const { data: myL } = await sb.from('likes').select('file_id').eq('user_id', currentUser.id);
             (myL || []).forEach(l => _myLikes.add(l.file_id));
             _myLikesLoaded = true;
         }
+
+        // Beğeni sayısını hesapla
         const counts = {};
         (allLikes || []).forEach(l => { counts[l.file_id] = (counts[l.file_id] || 0) + 1; });
         Object.assign(_likeCounts, counts);
 
+        // Fork sayılarını çek
         const fileIds = (files || []).map(f => f.id);
         await _loadForkCounts(fileIds);
 
-        const { data: exploreCmtRows } = fileIds.length
-            ? await sb.from('comments').select('file_id').in('file_id', fileIds).is('parent_id', null)
-            : { data: [] };
-        const exploreCmtCounts = {};
-        (exploreCmtRows || []).forEach(c => { exploreCmtCounts[c.file_id] = (exploreCmtCounts[c.file_id] || 0) + 1; });
-
+        // En çok beğenilene göre sırala
         const sorted = (files || []).sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
-        const subtitle = document.getElementById('exploreSubtitle');
-        if (subtitle) subtitle.textContent = sorted.length + ' dosya';
 
         if (sorted.length === 0) {
             list.innerHTML = '<div class="search-empty">Henüz public dosya yok</div>';
@@ -5042,56 +4970,32 @@ async function loadExploreFiles() {
             const emoji  = prof?.avatar_emoji || '👤';
             const cnt    = counts[f.id] || 0;
             const liked  = _myLikes.has(f.id);
-            const rank   = i < 3 ? ['🥇','🥈','🥉'][i] : '';
-            const d      = new Date(f.updated_at);
-            const dateStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
-            _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, filename: f.filename, description: f.description || '' };
-            return `<div class="feed-card" id="ewrap-${f.id}">
-                <div class="feed-card-header" onclick="openPublicProfile('${f.user_id}')">
-                    <span class="feed-card-avatar">${emoji}</span>
-                    <div class="feed-card-meta">
-                        <div class="feed-card-username">${rank ? rank + ' ' : ''}${escapeHtml(author)}</div>
-                        <div class="feed-card-date">${escapeHtml(f.filename)} · ${dateStr}</div>
+            const rank   = i < 3 ? ['🥇','🥈','🥉'][i] : `${i+1}.`;
+            _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, filename: f.filename };
+            return `
+            <div class="explore-card-wrap" id="ewrap-${f.id}">
+                <div class="explore-file-card" onclick="openFileView(${f.id})">
+                    <div class="explore-card-thumb">
+                        <span class="explore-rank-badge">${rank}</span>
+                        <div class="explore-thumb-loader" id="eload-${f.id}">···</div>
+                        <iframe class="explore-thumb-frame" id="eprev-${f.id}" sandbox="allow-scripts allow-same-origin"></iframe>
                     </div>
-                    <button class="feed-open-btn" onclick="event.stopPropagation();openFileView('${f.id}')">Aç</button>
-                </div>
-                <div class="feed-thumb-wrap">
-                    <div class="feed-thumb-loader" id="eload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
-                    <iframe class="feed-thumb-frame" id="eprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
-                    <div class="feed-thumb-overlay" onclick="openFileView('${f.id}')"></div>
-                </div>
-                ${f.description ? `<div class="feed-card-desc" id="edesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
-                <div class="feed-card-actions">
-                    <button class="feed-like-btn${liked ? ' liked' : ''}" id="flike-${f.id}" onclick="feedToggleLike('${f.id}')">
-                        ${liked ? '♥' : '♡'} <span id="flikecnt-${f.id}">${cnt || ''}</span>
-                    </button>
-                    ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : `<span class="fork-count-badge" id="forkcount-${f.id}"></span>`}
-                    <button class="feed-comment-toggle" onclick="feedToggleComments('${f.id}')">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                        <span id="fcmtcnt-${f.id}"></span>
-                    </button>
-                </div>
-                <div id="fcmtwrap-${f.id}" style="display:none;">
-                    <div class="feed-comments-wrap">
-                        <div id="fcmtlist-${f.id}"></div>
-                        ${currentUser ? `<div class="feed-cmt-input-row" style="margin-top:8px;">
-                            <textarea class="feed-cmt-textarea" id="fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1"
-                                oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
-                                style="font-size:13px;"></textarea>
-                            <button class="feed-cmt-send" onclick="feedSubmitComment('${f.id}')" style="width:30px;height:30px;">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    <div class="explore-card-row">
+                        <div class="explore-file-info">
+                            <div class="explore-file-name">${escapeHtml(f.filename)}</div>
+                            <div class="explore-file-author">${emoji} ${escapeHtml(author)}</div>
+                        </div>
+                        <div class="explore-card-stats">
+                            <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
+                                onclick="event.stopPropagation();toggleLike(${f.id})" style="font-size:12px;padding:4px 8px;">
+                                ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
                             </button>
-                        </div>` : ''}
+                            ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : `<span class="fork-count-badge" id="forkcount-${f.id}"></span>`}
+                        </div>
                     </div>
                 </div>
             </div>`;
         }).join('');
-        // Yorum sayılarını doldur
-        fileIds.forEach(id => {
-            const el = document.getElementById('fcmtcnt-' + id);
-            if (el && exploreCmtCounts[id]) el.textContent = exploreCmtCounts[id];
-        });
-
         _initExploreLazy();
     } catch(e) {
         console.error('Explore error:', e);
@@ -5114,6 +5018,37 @@ function loadExploreFile(fileId) {
     });
 }
 
+function _rescaleThumb(fileId) {
+    const frame = document.getElementById('eprev-' + fileId);
+    if (!frame || !frame.classList.contains('loaded')) return;
+    const box = frame.closest('.explore-card-thumb');
+    if (box) frame.style.transform = `scale(${box.offsetWidth / 390})`;
+}
+
+function toggleExploreCard(fileId) {
+    const wrap = document.getElementById('ewrap-' + fileId);
+    const body = document.getElementById('ebody-' + fileId);
+    if (!wrap || !body) return;
+    const isOpen = wrap.classList.contains('expanded');
+    if (isOpen) {
+        wrap.classList.remove('expanded');
+        body.classList.remove('open');
+        setTimeout(() => _rescaleThumb(fileId), 20);
+    } else {
+        document.querySelectorAll('.explore-card-wrap.expanded').forEach(w => {
+            const id = w.id.replace('ewrap-', '');
+            w.classList.remove('expanded');
+            const b = document.getElementById('ebody-' + id);
+            if (b) b.classList.remove('open');
+            setTimeout(() => _rescaleThumb(id), 20);
+        });
+        wrap.classList.add('expanded');
+        body.classList.add('open');
+        _loadExploreThumb(fileId);
+        _loadExploreComments(fileId);
+        setTimeout(() => _rescaleThumb(fileId), 20);
+    }
+}
 
 function _initExploreLazy() {
     const root = document.getElementById('exploreList');
@@ -5125,7 +5060,7 @@ function _initExploreLazy() {
             _loadExploreThumb(fileId);
             obs.unobserve(e.target);
         });
-    }, { rootMargin: '400px' });
+    }, { root, rootMargin: '300px' });
     document.querySelectorAll('[id^="ewrap-"]').forEach(el => obs.observe(el));
 }
 
@@ -5138,14 +5073,43 @@ async function _loadExploreThumb(fileId) {
     const d = _exploreDataMap[fileId] || {};
     d.code = data.code;
     _exploreDataMap[fileId] = d;
-    if (!_pubFilesData[fileId]) _pubFilesData[fileId] = { filename: d.filename || '', code: data.code, description: d.description || '' };
+    if (!_pubFilesData[fileId]) _pubFilesData[fileId] = { filename: d.filename || '', code: data.code };
     frame.srcdoc = data.code;
     frame.onload = () => {
-        frame.style.transform = `scale(${frame.parentElement.offsetWidth / 390})`;
+        const box = frame.closest('.explore-card-thumb');
+        if (box) frame.style.transform = `scale(${box.offsetWidth / 390})`;
         frame.classList.add('loaded');
         const loader = document.getElementById('eload-' + fileId);
         if (loader) loader.style.display = 'none';
     };
+}
+
+async function _loadExploreComments(fileId) {
+    const countEl = document.getElementById('ecmt-count-' + fileId);
+    const listEl  = document.getElementById('ecmt-list-'  + fileId);
+    if (!listEl) return;
+    listEl.innerHTML = '<div style="font-size:12px;color:var(--text-secondary);padding:4px 0;">Yükleniyor...</div>';
+    const { data: comments } = await sb.from('comments').select('*').eq('file_id', fileId).order('created_at', { ascending: true });
+    const cnt = (comments || []).length;
+    if (countEl) countEl.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:3px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>${cnt} yorum`;
+    if (!comments || cnt === 0) { listEl.innerHTML = '<div style="font-size:12px;color:var(--text-secondary);padding:4px 0;">Henüz yorum yok</div>'; return; }
+    const uids = [...new Set(comments.map(c => c.user_id))];
+    const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const pMap = {};
+    (profiles || []).forEach(p => { pMap[p.id] = p; });
+    listEl.innerHTML = comments.map(c => {
+        const p = pMap[c.user_id] || {};
+        return `<div class="comment-item">
+            <div class="comment-avatar">${p.avatar_emoji || '👤'}</div>
+            <div class="comment-body">
+                <div class="comment-header">
+                    <span class="comment-username">${escapeHtml(p.username || 'Kullanıcı')}</span>
+                    <span class="comment-time">${_fmtTime(c.created_at)}</span>
+                </div>
+                <div class="comment-text">${escapeHtml(c.content)}</div>
+            </div>
+        </div>`;
+    }).join('');
 }
 
 // ── PUBLIC DOSYA TOGGLE ────────────────────────────────────────────────
@@ -5182,12 +5146,15 @@ let _convOtherUser  = null;   // { id, username, emoji }
 let _msgRealtime    = null;
 
 function openMessagesPanel() {
-    _closeAllPanels('messages');
+    _sheetReset('messagesPanel');
     document.getElementById('messagesOverlay').classList.add('open');
     loadConversations();
 }
 function closeMessagesPanel() {
     document.getElementById('messagesOverlay').classList.remove('open');
+}
+function handleMsgOverlayClick(e) {
+    if (e.target.id === 'messagesOverlay') closeMessagesPanel();
 }
 
 async function loadConversations() {
@@ -5231,9 +5198,9 @@ async function loadConversations() {
             </div>
             <div class="conv-item" data-conv-id="${c.id}" data-other-id="${otherId}" data-username="${escapeHtml(prof.username||'Kullanıcı')}" data-emoji="${prof.avatar_emoji||'👤'}"
                 onclick="openConversation('${otherId}','${escapeHtml(prof.username||'Kullanıcı')}','${prof.avatar_emoji||'👤'}','${c.id}')">
-                <div class="conv-avatar">${prof.avatar_emoji||'👤'}</div>
+                <div class="conv-avatar" onclick="event.stopPropagation();openPublicProfile('${otherId}')" style="cursor:pointer;">${prof.avatar_emoji||'👤'}</div>
                 <div class="conv-item-info">
-                    <div class="conv-item-name">${escapeHtml(prof.username||'Kullanıcı')}</div>
+                    <div class="conv-item-name" onclick="event.stopPropagation();openPublicProfile('${otherId}')" style="cursor:pointer;">${escapeHtml(prof.username||'Kullanıcı')}</div>
                     <div class="conv-item-preview ${unread > 0 ? 'unread' : ''}">${escapeHtml(preview)}</div>
                 </div>
                 <div class="conv-item-right">
@@ -5622,7 +5589,7 @@ async function loadComments(fileId) {
         const liked = _profMyCmtLikes.has(c.id);
         const likeCnt = _profCmtLikes[c.id] || 0;
         const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderC(r, true)).join('') : '';
-        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="profcmt-${c.id}">
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="profcmt-${c.id}" data-user-id="${c.user_id}">
             <div class="comment-avatar">${p.avatar_emoji || '👤'}</div>
             <div class="comment-body">
                 <div class="comment-header">
@@ -5656,11 +5623,10 @@ async function submitComment(fileId) {
     inp.value = ''; inp.style.height = 'auto';
 
     const { error } = await sb.from('comments').insert({
-        file_id: fileId,
-        user_id: currentUser.id,
-        content
+        file_id: fileId, user_id: currentUser.id, content
     });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    _sendNotif('comment', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100) });
     await loadComments(fileId);
 }
 
@@ -5703,6 +5669,7 @@ async function profToggleCmtLike(commentId, btn) {
         if (span) span.textContent = _profCmtLikes[commentId] ? ' ' + _profCmtLikes[commentId] : '';
         showToast('Beğeni kaydedilemedi');
     }
+    if (!liked && !_pe) { const _cl = document.getElementById('profcmt-' + commentId); if (_cl) _sendNotif('comment_like', _cl.dataset.userId, null); }
 }
 
 function profShowReply(commentId) {
@@ -5722,6 +5689,8 @@ async function profSubmitReply(parentId, fileId) {
     document.getElementById('profri-' + parentId).style.display = 'none';
     const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    const _rvp = document.getElementById('profcmt-' + parentId);
+    if (_rvp) _sendNotif('comment', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100) });
     await loadComments(fileId);
 }
 
@@ -5733,10 +5702,15 @@ let _fvTab     = 'code';
 let _fvCmtLoaded = false;
 let _fvCmtLikes = {};
 let _fvMyCmtLikes = new Set();
+let _fvForkedFromId   = null; // bu dosyanın fork edildiği orijinal ID
+let _fvForkedFromData = null; // { filename, username, emoji, fileId }
 
 async function openFileView(fileId) {
     _fvFileId    = fileId;
     _fvCmtLoaded = false;
+    _fvForkedFromId   = null;
+    _fvForkedFromData = null;
+    document.getElementById('fvForkBanner').style.display = 'none';
     const d   = _exploreDataMap[fileId] || {};
     const pub = _pubFilesData[fileId]   || {};
     _fvUserId = d.userId || '';
@@ -5751,32 +5725,29 @@ async function openFileView(fileId) {
 
     // Kod: önce cache'den bak
     let code = d.code || pub.code || null;
+    let forkedFromId = d.forkedFromId || null;
     if (!code) {
-        const { data: fd } = await sb.from('files').select('filename, code, user_id, forked_from_id, description').eq('id', fileId).single();
+        const { data: fd } = await sb.from('files').select('filename, code, user_id, forked_from_id').eq('id', fileId).single();
         if (fd) {
             code = fd.code;
-            _pubFilesData[fileId] = { filename: fd.filename, code: fd.code, forked_from_id: fd.forked_from_id, description: fd.description || '' };
+            forkedFromId = fd.forked_from_id || null;
+            _pubFilesData[fileId] = { filename: fd.filename, code: fd.code };
             if (!d.filename) {
                 const { data: pr } = await sb.from('profiles').select('username,avatar_emoji').eq('id', fd.user_id).single();
-                _exploreDataMap[fileId] = { ..._exploreDataMap[fileId], filename: fd.filename, userId: fd.user_id, username: pr?.username || 'Kullanıcı', emoji: pr?.avatar_emoji || '👤', code, forked_from_id: fd.forked_from_id, description: fd.description || '' };
+                _exploreDataMap[fileId] = { ..._exploreDataMap[fileId], filename: fd.filename, userId: fd.user_id, username: pr?.username || 'Kullanıcı', emoji: pr?.avatar_emoji || '👤', code, forkedFromId };
                 _fvUserId = fd.user_id;
                 document.getElementById('fvFilename').textContent  = fd.filename;
                 document.getElementById('fvAuthorBtn').textContent = (_exploreDataMap[fileId].emoji) + ' ' + (_exploreDataMap[fileId].username);
             }
-            _fvDescCurrent = fd.description || '';
-            _fvRenderDesc(_fvDescCurrent, fd.user_id);
-            if (fd.forked_from_id) _fvLoadForkChain(fd.forked_from_id);
-            else { document.getElementById('fvForkBanner').style.display = 'none'; }
         }
     } else {
         if (!_exploreDataMap[fileId]) _exploreDataMap[fileId] = { ...d, code };
         else _exploreDataMap[fileId].code = code;
-        const ffi = _exploreDataMap[fileId]?.forked_from_id || pub.forked_from_id || null;
-        if (ffi) _fvLoadForkChain(ffi);
-        else { document.getElementById('fvForkBanner').style.display = 'none'; }
-        const desc = _exploreDataMap[fileId]?.description || pub.description || '';
-        _fvDescCurrent = desc;
-        _fvRenderDesc(desc, _fvUserId);
+    }
+    // Fork zinciri: orijinal dosyayı çek
+    if (forkedFromId) {
+        _fvForkedFromId = forkedFromId;
+        _fvShowForkBanner(forkedFromId);
     }
 
     // CodeMirror
@@ -5888,181 +5859,149 @@ async function fvToggleLike() {
     _fvUpdateLike();
 }
 
-// Dosya görüntüleyici açıklama
-function _fvRenderDesc(desc, fileOwnerId) {
-    const area = document.getElementById('fvDescArea');
-    if (!area) return;
-    const isOwn = currentUser && currentUser.id === fileOwnerId;
-    if (!desc && !isOwn) { area.style.display = 'none'; return; }
-    area.style.display = '';
-    const editSvg = `<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>`;
-    if (desc) {
-        area.innerHTML = `<div class="fv-desc">
-            <span class="fv-desc-text">${escapeHtml(desc)}</span>
-            ${isOwn ? `<button class="fv-desc-edit-btn" onclick="_fvEditDesc('${escapeHtml(desc).replace(/'/g,"\\'")}',  '${fileOwnerId}')">${editSvg}</button>` : ''}
-        </div>`;
-    } else {
-        area.innerHTML = `<div class="fv-desc">
-            <span class="fv-desc-text" style="opacity:.45;font-style:italic">Açıklama ekle...</span>
-            <button class="fv-desc-edit-btn" onclick="_fvEditDesc('', '${fileOwnerId}')">${editSvg}</button>
-        </div>`;
-    }
-}
-
-function _fvEditDesc(currentDesc, fileOwnerId) {
-    const area = document.getElementById('fvDescArea');
-    if (!area) return;
-    area.innerHTML = `<div class="fv-desc-input-wrap">
-        <textarea class="fv-desc-input" id="fvDescInput" rows="2" placeholder="Kısa bir açıklama..."
-            onkeydown="if(event.key==='Escape')_fvRenderDesc(_fvDescCurrent,'${fileOwnerId}');if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();_fvSaveDesc('${fileOwnerId}');}"
-        >${escapeHtml(currentDesc)}</textarea>
-        <button class="fv-desc-save-btn" onclick="_fvSaveDesc('${fileOwnerId}')">Kaydet</button>
-    </div>`;
-    const ta = document.getElementById('fvDescInput');
-    ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
-}
-
-let _fvDescCurrent = '';
-
-async function _fvSaveDesc(fileOwnerId) {
-    if (!_fvFileId || !currentUser) return;
-    const ta = document.getElementById('fvDescInput');
-    if (!ta) return;
-    const desc = ta.value.trim();
-    _fvDescCurrent = desc;
-    // Cache güncelle
-    if (_exploreDataMap[_fvFileId]) _exploreDataMap[_fvFileId].description = desc;
-    if (_pubFilesData[_fvFileId]) _pubFilesData[_fvFileId].description = desc;
-    // kendi dosyalarımda da güncelle
-    const sf = savedFiles.find(f => f.id === _fvFileId);
-    if (sf) { sf.description = desc; saveToStorage(); renderSavedFiles(); }
-    _fvRenderDesc(desc, fileOwnerId);
-    await sb.from('files').update({ description: desc || null }).eq('id', _fvFileId).eq('user_id', currentUser.id);
-    showToast('Açıklama kaydedildi');
-}
-
-// Fork zinciri banner
-async function _fvLoadForkChain(rootForkedFromId) {
+// ── FORK ZİNCİRİ BANNER ────────────────────────────────────────────────
+async function _fvShowForkBanner(originalId) {
     const banner = document.getElementById('fvForkBanner');
-    if (!banner) return;
-    banner.innerHTML = '<span style="opacity:.6">⑂ Yükleniyor...</span>';
+    const textEl = document.getElementById('fvForkBannerText');
     banner.style.display = 'flex';
-    // Zinciri yukarı doğru takip et
-    const chain = [];
-    let currentId = rootForkedFromId;
-    for (let i = 0; i < 5 && currentId; i++) {
-        const { data: f } = await sb.from('files').select('id,filename,user_id,forked_from_id').eq('id', currentId).single();
-        if (!f) break;
-        const { data: p } = await sb.from('profiles').select('username,avatar_emoji').eq('id', f.user_id).single();
-        chain.unshift({ id: f.id, filename: f.filename, username: p?.username || 'Kullanıcı', emoji: p?.avatar_emoji || '👤', forked_from_id: f.forked_from_id });
-        currentId = f.forked_from_id;
-    }
-    if (!chain.length) { banner.style.display = 'none'; return; }
-    const forkSvg = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>`;
-    banner.innerHTML = forkSvg + ' ' + chain.map((n, i) =>
-        `${i > 0 ? '<span class="fv-fork-banner-sep">→</span>' : ''}<span class="fv-fork-banner-node" onclick="openFileView('${n.id}')">${n.emoji} ${escapeHtml(n.username)} / ${escapeHtml(n.filename)}</span>`
-    ).join('') + '<span class="fv-fork-banner-sep">→</span><span style="opacity:.5">bu dosya</span>';
-}
-
-// Fork listesi modal
-async function openForkListModal(fileId) {
-    if (!fileId) return;
-    const overlay = document.getElementById('forkListOverlay');
-    const content = document.getElementById('forkListContent');
-    const title   = document.getElementById('forkListTitle');
-    overlay.classList.add('open');
-    content.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
-    const { data: forks } = await sb.from('files').select('id,filename,user_id,created_at').eq('forked_from_id', fileId).order('created_at', { ascending: false });
-    if (!forks || !forks.length) {
-        content.innerHTML = '<div class="search-empty">Henüz fork yok</div>';
-        title.textContent = '⑂ 0 Fork';
+    textEl.textContent = 'Fork yükleniyor...';
+    // Cache'de varsa kullan
+    if (_exploreDataMap[originalId]?.filename) {
+        const od = _exploreDataMap[originalId];
+        _fvForkedFromData = od;
+        textEl.textContent = `${od.emoji || '👤'} ${od.username || 'Kullanıcı'} / ${od.filename}`;
         return;
     }
-    title.textContent = `⑂ ${forks.length} Fork`;
+    const { data: orig } = await sb.from('files').select('filename, user_id').eq('id', originalId).single();
+    if (!orig) { banner.style.display = 'none'; return; }
+    const { data: pr } = await sb.from('profiles').select('username,avatar_emoji').eq('id', orig.user_id).single();
+    _fvForkedFromData = { fileId: originalId, filename: orig.filename, userId: orig.user_id, username: pr?.username || 'Kullanıcı', emoji: pr?.avatar_emoji || '👤' };
+    textEl.textContent = `${_fvForkedFromData.emoji} ${_fvForkedFromData.username} / ${_fvForkedFromData.filename}`;
+}
+
+function openForkOriginal() {
+    if (!_fvForkedFromId) return;
+    openFileView(_fvForkedFromId);
+}
+
+// ── FORKLAYAN LİSTESİ ──────────────────────────────────────────────────
+async function openForkList(fileId) {
+    if (!fileId) return;
+    document.getElementById('forkListOverlay').classList.add('open');
+    const el = document.getElementById('forkListContent');
+    el.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
+    const { data: forks } = await sb.from('files')
+        .select('id, filename, user_id, updated_at')
+        .eq('forked_from_id', fileId)
+        .order('created_at', { ascending: false });
+    if (!forks || !forks.length) { el.innerHTML = '<div class="search-empty">Henüz forklayan yok</div>'; return; }
     const uids = [...new Set(forks.map(f => f.user_id))];
     const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
     const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
-    content.innerHTML = forks.map(f => {
+    el.innerHTML = forks.map(f => {
         const p = pm[f.user_id] || {};
-        return `<div class="fork-list-item" onclick="closeForkListModal();openFileView('${f.id}')">
-            <div class="fork-list-avatar">${p.avatar_emoji||'👤'}</div>
+        return `<div class="fork-list-item" onclick="closeForkList();openFileView(${f.id})">
+            <div class="fork-list-avatar">${p.avatar_emoji || '👤'}</div>
             <div class="fork-list-info">
-                <div class="fork-list-username">${escapeHtml(p.username||'Kullanıcı')}</div>
+                <div class="fork-list-username">${escapeHtml(p.username || 'Kullanıcı')}</div>
                 <div class="fork-list-filename">${escapeHtml(f.filename)}</div>
             </div>
-            <div class="fork-list-time">${_fmtTime(f.created_at)}</div>
+            <div class="fork-list-date">${_fmtTime(f.updated_at)}</div>
         </div>`;
     }).join('');
 }
-function closeForkListModal() {
-    document.getElementById('forkListOverlay').classList.remove('open');
-}
+function closeForkList() { document.getElementById('forkListOverlay').classList.remove('open'); }
 
-// Fork ağacı modal
-async function openForkTreeModal(fileId) {
-    if (!fileId) return;
-    const overlay = document.getElementById('forkTreeOverlay');
-    const content = document.getElementById('forkTreeContent');
-    overlay.classList.add('open');
-    content.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
-    // Köke git
-    let rootId = fileId;
-    let safety = 0;
-    while (safety++ < 6) {
-        const { data: f } = await sb.from('files').select('id,forked_from_id').eq('id', rootId).single();
-        if (!f || !f.forked_from_id) break;
-        rootId = f.forked_from_id;
-    }
-    // Ağacı yükle (max 2 seviye)
-    const { data: rootFile } = await sb.from('files').select('id,filename,user_id').eq('id', rootId).single();
-    if (!rootFile) { content.innerHTML = '<div class="search-empty">Yüklenemedi</div>'; return; }
-    // Tüm dosyaları bir seferde çek
-    const { data: allForks } = await sb.from('files').select('id,filename,user_id,forked_from_id,created_at').eq('forked_from_id', rootId);
-    const level2Ids = (allForks||[]).map(f => f.id);
-    const { data: level2Forks } = level2Ids.length
-        ? await sb.from('files').select('id,filename,user_id,forked_from_id,created_at').in('forked_from_id', level2Ids)
-        : { data: [] };
-    const allNodes = [rootFile, ...(allForks||[]), ...(level2Forks||[])];
-    const uids = [...new Set(allNodes.map(f => f.user_id))];
+// Profil sayfasından açılan fork listesi
+let _profileForkFileIds = [];
+async function openProfileForkList() {
+    if (!_profileForkFileIds.length) return;
+    document.getElementById('forkListOverlay').classList.add('open');
+    const el = document.getElementById('forkListContent');
+    el.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
+    const { data: forks } = await sb.from('files')
+        .select('id, filename, user_id, updated_at, forked_from_id')
+        .in('forked_from_id', _profileForkFileIds)
+        .order('created_at', { ascending: false });
+    if (!forks || !forks.length) { el.innerHTML = '<div class="search-empty">Henüz forklayan yok</div>'; return; }
+    const uids = [...new Set(forks.map(f => f.user_id))];
     const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
     const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
-    const l2Map = {};
-    (level2Forks||[]).forEach(f => { if (!l2Map[f.forked_from_id]) l2Map[f.forked_from_id]=[]; l2Map[f.forked_from_id].push(f); });
-    const rootP = pm[rootFile.user_id] || {};
-    const forkSvg = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>`;
-    let html = `<div class="fork-tree-node depth-0" onclick="closeForkTreeModal();openFileView('${rootFile.id}')">
-        <span style="font-size:20px">${rootP.avatar_emoji||'👤'}</span>
-        <div class="fork-tree-info"><div class="fork-tree-name">${escapeHtml(rootFile.filename)}</div><div class="fork-tree-user">${escapeHtml(rootP.username||'Kullanıcı')} · Orijinal</div></div>
-        ${forkSvg}<span style="font-size:12px;color:var(--text-secondary);margin-left:2px;">${(allForks||[]).length}</span>
-    </div>`;
-    (allForks||[]).forEach(f => {
+    el.innerHTML = forks.map(f => {
         const p = pm[f.user_id] || {};
-        const children = l2Map[f.id] || [];
-        html += `<div style="padding-left:20px;border-left:2px solid rgba(0,122,255,0.2);margin-left:18px;">
-            <div class="fork-tree-node" onclick="closeForkTreeModal();openFileView('${f.id}')">
-                <div class="fork-tree-indent">${forkSvg}</div>
-                <span style="font-size:18px">${p.avatar_emoji||'👤'}</span>
-                <div class="fork-tree-info"><div class="fork-tree-name">${escapeHtml(f.filename)}</div><div class="fork-tree-user">${escapeHtml(p.username||'Kullanıcı')}</div></div>
-                ${children.length ? `${forkSvg}<span style="font-size:12px;color:var(--text-secondary);margin-left:2px;">${children.length}</span>` : ''}
-            </div>`;
-        children.forEach(c => {
-            const cp = pm[c.user_id] || {};
-            html += `<div style="padding-left:20px;border-left:2px solid rgba(0,122,255,0.1);margin-left:18px;">
-                <div class="fork-tree-node" onclick="closeForkTreeModal();openFileView('${c.id}')">
-                    <div class="fork-tree-indent">${forkSvg}</div>
-                    <span style="font-size:16px">${cp.avatar_emoji||'👤'}</span>
-                    <div class="fork-tree-info"><div class="fork-tree-name">${escapeHtml(c.filename)}</div><div class="fork-tree-user">${escapeHtml(cp.username||'Kullanıcı')}</div></div>
+        const origName = _pubFilesData[f.forked_from_id]?.filename || `#${f.forked_from_id}`;
+        return `<div class="fork-list-item" onclick="closeForkList();openFileView(${f.id})">
+            <div class="fork-list-avatar">${p.avatar_emoji || '👤'}</div>
+            <div class="fork-list-info">
+                <div class="fork-list-username">${escapeHtml(p.username || 'Kullanıcı')}</div>
+                <div class="fork-list-filename">${escapeHtml(f.filename)} ← ${escapeHtml(origName)}</div>
+            </div>
+            <div class="fork-list-date">${_fmtTime(f.updated_at)}</div>
+        </div>`;
+    }).join('');
+}
+
+// ── FORK AĞACI ─────────────────────────────────────────────────────────
+async function openForkTree(fileId) {
+    if (!fileId) return;
+    document.getElementById('forkTreeOverlay').classList.add('open');
+    const el = document.getElementById('forkTreeContent');
+    el.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
+
+    // Orijinali ve tüm fork zincirini çek (2 seviye derinlik)
+    const { data: thisFile } = await sb.from('files').select('id,filename,user_id,forked_from_id').eq('id', fileId).single();
+    if (!thisFile) { el.innerHTML = '<div class="search-empty">Yüklenemedi</div>'; return; }
+
+    // Orijinal dosyayı bul (forked_from_id varsa)
+    let rootId = fileId;
+    let rootFile = thisFile;
+    if (thisFile.forked_from_id) {
+        const { data: orig } = await sb.from('files').select('id,filename,user_id,forked_from_id').eq('id', thisFile.forked_from_id).single();
+        if (orig) { rootId = orig.id; rootFile = orig; }
+    }
+
+    // Root'un tüm fork'larını çek (1. seviye)
+    const { data: forks1 } = await sb.from('files').select('id,filename,user_id,forked_from_id').eq('forked_from_id', rootId);
+    // 2. seviye fork'lar
+    const fork1Ids = (forks1||[]).map(f => f.id);
+    const { data: forks2 } = fork1Ids.length
+        ? await sb.from('files').select('id,filename,user_id,forked_from_id').in('forked_from_id', fork1Ids)
+        : { data: [] };
+
+    // Tüm user ID'leri topla
+    const allFiles = [rootFile, ...(forks1||[]), ...(forks2||[])];
+    const uids = [...new Set(allFiles.map(f => f.user_id))];
+    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
+
+    const fork2Map = {};
+    (forks2||[]).forEach(f => { if (!fork2Map[f.forked_from_id]) fork2Map[f.forked_from_id] = []; fork2Map[f.forked_from_id].push(f); });
+
+    const renderNode = (f, badge, indent = false) => {
+        const p = pm[f.user_id] || {};
+        const isCurrent = f.id == fileId;
+        const children = (fork2Map[f.id] || []).map(c => renderNode(c, 'fork', true)).join('');
+        return `<div style="${indent ? 'padding-left:18px;border-left:2px solid var(--glass-border);margin-left:12px;' : ''}">
+            <div class="fork-tree-node" onclick="closeForkTree();openFileView(${f.id})">
+                <div>
+                    <div class="fork-tree-filename">${escapeHtml(f.filename)}${isCurrent ? ' <span style="font-size:10px;color:#007aff;">(bu dosya)</span>' : ''}</div>
+                    <div class="fork-tree-author">${p.avatar_emoji || '👤'} ${escapeHtml(p.username || 'Kullanıcı')}</div>
                 </div>
-            </div>`;
-        });
-        html += '</div>';
+                <span class="fork-tree-badge ${badge}" style="margin-left:auto;">${badge === 'original' ? 'Orijinal' : badge === 'current' ? 'Bu' : 'Fork'}</span>
+            </div>
+            ${children}
+        </div>`;
+    };
+
+    const rootBadge = rootId === fileId ? 'current' : 'original';
+    let html = renderNode(rootFile, rootBadge);
+    (forks1||[]).forEach(f => {
+        const badge = f.id == fileId ? 'current' : 'fork';
+        html += renderNode(f, badge, true);
     });
-    if (!(allForks||[]).length) html += '<div class="search-empty" style="padding:16px;">Henüz fork yok</div>';
-    content.innerHTML = html;
+    el.innerHTML = html || '<div class="search-empty">Ağaç bulunamadı</div>';
 }
-function closeForkTreeModal() {
-    document.getElementById('forkTreeOverlay').classList.remove('open');
-}
+function closeForkTree() { document.getElementById('forkTreeOverlay').classList.remove('open'); }
 
 async function fvLoadComments() {
     _fvCmtLoaded = true;
@@ -6096,7 +6035,7 @@ async function fvLoadComments() {
         const liked = _fvMyCmtLikes.has(c.id);
         const likeCnt = _fvCmtLikes[c.id] || 0;
         const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderCmt(r, true)).join('') : '';
-        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="fvcmt-${c.id}">
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="fvcmt-${c.id}" data-user-id="${c.user_id}">
             <div class="comment-avatar">${p.avatar_emoji || '👤'}</div>
             <div class="comment-body">
                 <div class="comment-header">
@@ -6130,6 +6069,7 @@ async function fvSubmitComment() {
     inp.value = ''; inp.style.height = 'auto';
     const { error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    _sendNotif('comment', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100) });
     _fvCmtLoaded = false;
     fvLoadComments();
 }
@@ -6167,6 +6107,7 @@ async function fvToggleCmtLike(commentId, btn) {
         if (span) span.textContent = _fvCmtLikes[commentId] ? ' ' + _fvCmtLikes[commentId] : '';
         showToast('Beğeni kaydedilemedi');
     }
+    if (!liked && !_fve) { const _cl = document.getElementById('fvcmt-' + commentId); if (_cl) _sendNotif('comment_like', _cl.dataset.userId, _fvFileId); }
 }
 
 function fvShowReply(commentId) {
@@ -6186,6 +6127,8 @@ async function fvSubmitReply(parentId) {
     document.getElementById('fvri-' + parentId).style.display = 'none';
     const { error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content, parent_id: parentId });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    const _rvp = document.getElementById('fvcmt-' + parentId);
+    if (_rvp) _sendNotif('comment', _rvp.dataset.userId, _fvFileId, { comment_preview: content.substring(0, 100) });
     _fvCmtLoaded = false;
     fvLoadComments();
 }
@@ -6248,7 +6191,6 @@ function _initFileViewSwipeBack() {
 
 // ── BİLDİRİMLER ────────────────────────────────────────────────────────
 function openNotifPanel() {
-    _closeAllPanels('notif');
     _sheetReset('notifPanel');
     document.getElementById('notifOverlay').classList.add('open');
     loadNotifications();
@@ -6291,17 +6233,20 @@ async function loadNotifications() {
         const prof = pMap[n.from_user_id] || {};
         const file = fMap[n.file_id] || {};
         const fname = escapeHtml((file.filename || 'dosya') + '.html');
-        const isComment = n.type === 'comment';
-        const isFork    = n.type === 'fork';
+        const isFork        = n.type === 'fork';
+        const isComment     = n.type === 'comment';
+        const isCommentLike = n.type === 'comment_like';
         const icon = isComment
             ? `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>`
             : isFork
-            ? `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#007aff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>`
+            ? `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#5856d6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>`
             : `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#ff3b30"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`;
         const action = isComment
             ? `&nbsp;${icon} <span class="notif-file">${fname}</span> dosyana yorum yaptı${n.comment_preview ? `: <em style="opacity:.8">${escapeHtml(n.comment_preview)}</em>` : ''}`
             : isFork
             ? `&nbsp;${icon} <span class="notif-file">${fname}</span> dosyanı fork etti`
+            : isCommentLike
+            ? `&nbsp;${icon} bir yorumunu beğendi${n.file_id ? ` (<span class="notif-file">${fname}</span>)` : ''}`
             : `&nbsp;${icon} <span class="notif-file">${fname}</span> dosyanı beğendi`;
         return `<div class="notif-item" id="notif-${n.id}">
             <div class="notif-avatar">${prof.avatar_emoji || '👤'}</div>
@@ -6381,6 +6326,38 @@ function _fmtTime(iso) {
 </script>
 
 <!-- ── BİLDİRİMLER PANELİ ──────────────────────────────────────────────── -->
+<!-- ── FORK LİSTESİ MODALİ ───────────────────────────────────────────── -->
+<div class="search-panel-overlay" id="forkListOverlay" onclick="if(event.target.id==='forkListOverlay')closeForkList()">
+    <div class="search-panel" id="forkListPanel">
+        <div class="search-input-row" style="align-items:center;">
+            <div style="font-size:17px;font-weight:700;flex:1;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>
+                Forklayan Kullanıcılar
+            </div>
+            <button class="search-close-btn" onclick="closeForkList()">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="search-results" id="forkListContent"><div class="search-empty">Yükleniyor...</div></div>
+    </div>
+</div>
+
+<!-- ── FORK AĞACI MODALİ ─────────────────────────────────────────────── -->
+<div class="search-panel-overlay" id="forkTreeOverlay" onclick="if(event.target.id==='forkTreeOverlay')closeForkTree()">
+    <div class="search-panel" id="forkTreePanel">
+        <div class="search-input-row" style="align-items:center;">
+            <div style="font-size:17px;font-weight:700;flex:1;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>
+                Fork Ağacı
+            </div>
+            <button class="search-close-btn" onclick="closeForkTree()">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="search-results" id="forkTreeContent"><div class="search-empty">Yükleniyor...</div></div>
+    </div>
+</div>
+
 <div class="notif-overlay" id="notifOverlay" onclick="handleNotifOverlayClick(event)">
     <div class="notif-panel" id="notifPanel">
         <div class="profile-drag-bar"></div>
@@ -6428,17 +6405,19 @@ function _fmtTime(iso) {
             <span id="fvLikeIcon">♡</span>
             <span id="fvLikeCount">0</span>
         </button>
-        <button class="fork-count-badge" id="fvForkCount" style="display:none;background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:8px;" onclick="openForkListModal(_fvFileId)">
+        <span class="fork-count-badge fv-fork-clickable" id="fvForkCount" style="display:none;" onclick="openForkList(_fvFileId)" title="Forklayan listesi">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>
             <span id="fvForkCountNum">0</span>
-        </button>
-        <button class="fv-edit-btn" style="padding:7px 8px;" title="Fork Ağacı" onclick="openForkTreeModal(_fvFileId)">
-            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>
-        </button>
+        </span>
         <button class="fv-edit-btn" onclick="fvLoadInEditor()">Editörde Aç</button>
     </div>
-    <div class="fv-fork-banner" id="fvForkBanner" style="display:none;"></div>
-    <div id="fvDescArea" style="display:none;"></div>
+    <!-- Fork zinciri banneri -->
+    <div class="fv-fork-banner" id="fvForkBanner" style="display:none;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>
+        <span id="fvForkBannerText">Fork</span>
+        <button class="fv-fork-banner-btn" id="fvForkOriginalBtn" onclick="openForkOriginal()">Orijinale Git →</button>
+        <button class="fv-fork-banner-btn" onclick="openForkTree(_fvFileId)">Ağaç →</button>
+    </div>
     <div class="fv-tabs">
         <button class="fv-tab active" id="fvTabCode"    onclick="fvSwitchTab('code')">Kod</button>
         <button class="fv-tab"        id="fvTabPreview" onclick="fvSwitchTab('preview')">Önizleme</button>
@@ -6465,32 +6444,6 @@ function _fmtTime(iso) {
                 </div>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- ── FORK LİSTESİ MODALİ ──────────────────────────────────────────── -->
-<div class="fork-modal-overlay" id="forkListOverlay" onclick="if(event.target.id==='forkListOverlay')closeForkListModal()">
-    <div class="fork-modal-panel">
-        <div class="fork-modal-header">
-            <div class="fork-modal-title" id="forkListTitle">⑂ Forklar</div>
-            <button class="fork-modal-close" onclick="closeForkListModal()">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <div class="fork-modal-list" id="forkListContent"><div class="search-empty">Yükleniyor...</div></div>
-    </div>
-</div>
-
-<!-- ── FORK AĞACI MODALİ ────────────────────────────────────────────── -->
-<div class="fork-modal-overlay" id="forkTreeOverlay" onclick="if(event.target.id==='forkTreeOverlay')closeForkTreeModal()">
-    <div class="fork-modal-panel">
-        <div class="fork-modal-header">
-            <div class="fork-modal-title">⑂ Fork Ağacı</div>
-            <button class="fork-modal-close" onclick="closeForkTreeModal()">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <div class="fork-modal-list" id="forkTreeContent"><div class="search-empty">Yükleniyor...</div></div>
     </div>
 </div>
 
