@@ -1713,8 +1713,11 @@ body.preview-mode .file-title-bar { display: none !important; }
 .feed-thumb-loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; }
 .feed-thumb-frame {
     position: absolute; top: 0; left: 0; width: 390px; height: 844px;
-    border: none; pointer-events: auto; transform-origin: top left;
-    opacity: 0; transition: opacity 0.3s; cursor: pointer;
+    border: none; pointer-events: none; transform-origin: top left;
+    opacity: 0; transition: opacity 0.3s;
+}
+.feed-thumb-overlay {
+    position: absolute; inset: 0; z-index: 2; cursor: pointer;
 }
 .feed-thumb-frame.loaded { opacity: 1; }
 .feed-card-actions { display: flex; gap: 6px; padding: 8px 12px 4px; align-items: center; }
@@ -4744,7 +4747,8 @@ async function loadFeed() {
             </div>
             <div class="feed-thumb-wrap">
                 <div class="feed-thumb-loader" id="feload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
-                <iframe class="feed-thumb-frame" id="feprev-${f.id}" sandbox="allow-scripts" scrolling="no" onclick="openFileView('${f.id}')"></iframe>
+                <iframe class="feed-thumb-frame" id="feprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
+                <div class="feed-thumb-overlay" onclick="openFileView('${f.id}')"></div>
             </div>
             ${f.description ? `<div class="feed-card-desc" id="fdesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
             <div class="feed-card-actions">
@@ -5029,7 +5033,8 @@ async function loadExploreFiles() {
                 </div>
                 <div class="feed-thumb-wrap">
                     <div class="feed-thumb-loader" id="eload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
-                    <iframe class="feed-thumb-frame" id="eprev-${f.id}" sandbox="allow-scripts" scrolling="no" onclick="openFileView('${f.id}')"></iframe>
+                    <iframe class="feed-thumb-frame" id="eprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
+                    <div class="feed-thumb-overlay" onclick="openFileView('${f.id}')"></div>
                 </div>
                 ${f.description ? `<div class="feed-card-desc" id="edesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
                 <div class="feed-card-actions">
