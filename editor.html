@@ -5785,6 +5785,7 @@ let _fvCM      = null;
 let _fvTab     = 'code';
 let _fvCmtLoaded = false;
 let _fvScrollToCommentId = null;
+let _fvOpenOnComments    = false;
 let _fvCmtLikes = {};
 let _fvMyCmtLikes = new Set();
 
@@ -5800,7 +5801,9 @@ async function openFileView(fileId) {
     document.getElementById('fvAuthorBtn').textContent = (d.emoji || '👤') + ' ' + (d.username || '...');
 
     // Overlay aç, ilk sekme (bildirimden gelince direkt comments sekmesi)
-    fvSwitchTab(_fvScrollToCommentId ? 'comments' : 'code', false);
+    const _startOnComments = _fvOpenOnComments;
+    _fvOpenOnComments = false;
+    fvSwitchTab(_startOnComments ? 'comments' : 'code', false);
     document.getElementById('fvOverlay').classList.add('open');
 
     // Kod: önce cache'den bak
@@ -6169,8 +6172,9 @@ function closeForkTreeModal() {
     document.getElementById('forkTreeOverlay').classList.remove('open');
 }
 
-async function openFileViewAtComment(fileId, commentId) {
-    _fvScrollToCommentId = commentId;
+function openFileViewAtComment(fileId, commentId) {
+    _fvScrollToCommentId = commentId || null;
+    _fvOpenOnComments    = true;
     openFileView(fileId);
 }
 
@@ -6430,8 +6434,14 @@ async function loadNotifications() {
         const _forkSVG = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#007aff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>`;
         const _heartSVG = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#ff3b30"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`;
         const _preview = n.comment_preview ? `: <em style="opacity:.8">${escapeHtml(n.comment_preview)}</em>` : '';
-        const _goto = n.file_id ? (n.comment_id ? `openFileViewAtComment('${n.file_id}','${n.comment_id}')` : `openFileView('${n.file_id}')`) : '';
-        const _fileClick = n.file_id ? `style="cursor:pointer" onclick="closeNotifPanel();${_goto}"` : '';
+        const _isCommentNotif = isComment || isReply || isReplyOnFile || isCmtLike;
+        const _cid = n.comment_id ? `'${n.comment_id}'` : 'null';
+        const _goto = n.file_id
+            ? (_isCommentNotif
+                ? `openFileViewAtComment('${n.file_id}',${_cid})`
+                : `openFileView('${n.file_id}')`)
+            : '';
+        const _fileClick = n.file_id ? `style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();${_goto}"` : '';
         const _itemClick = _goto ? `onclick="closeNotifPanel();${_goto}" style="cursor:pointer"` : '';
         const action = isComment
             ? `&nbsp;${_cmtSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyana yorum yaptı${_preview}`
