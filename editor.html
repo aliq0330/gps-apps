@@ -5237,7 +5237,7 @@ async function loadConversations() {
     const items = convs.map(c => {
         const otherId = c.user1_id === currentUser.id ? c.user2_id : c.user1_id;
         const prof = pMap[otherId] || {};
-        const msgs = c.messages || [];
+        const msgs = (c.messages || []).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         const lastMsg = msgs[msgs.length - 1];
         const unread = msgs.filter(m => !m.read && m.sender_id !== currentUser.id).length;
         totalUnread += unread;
@@ -5396,6 +5396,11 @@ function _subscribeConv() {
             if (!mine) {
                 sb.from('messages').update({ read: true }).eq('id', m.id);
             }
+            // Mesaj listesi önizlemesini güncelle
+            const _previewEl = document.querySelector(`.conv-item[data-conv-id="${_activeConvId}"] .conv-item-preview`);
+            const _timeEl    = document.querySelector(`.conv-item[data-conv-id="${_activeConvId}"] .conv-item-time`);
+            if (_previewEl) { _previewEl.textContent = (mine ? 'Sen: ' : '') + m.content; _previewEl.classList.remove('unread'); }
+            if (_timeEl)    { _timeEl.textContent = _fmtTime(m.created_at); }
         })
         .subscribe();
 }
@@ -5416,6 +5421,11 @@ async function sendMessage() {
         await sb.from('conversations')
             .update({ last_message_at: new Date().toISOString() })
             .eq('id', _activeConvId);
+        // Mesaj listesi önizlemesini güncelle
+        const _pEl = document.querySelector(`.conv-item[data-conv-id="${_activeConvId}"] .conv-item-preview`);
+        const _tEl = document.querySelector(`.conv-item[data-conv-id="${_activeConvId}"] .conv-item-time`);
+        if (_pEl) { _pEl.textContent = 'Sen: ' + content; _pEl.classList.remove('unread'); }
+        if (_tEl) { _tEl.textContent = _fmtTime(new Date().toISOString()); }
     } catch(e) {
         showToast('Mesaj gönderilemedi');
         inp.value = content;
