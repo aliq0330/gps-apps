@@ -6433,10 +6433,11 @@ async function loadNotifications() {
         const _preview = n.comment_preview ? `: <em style="opacity:.8">${escapeHtml(n.comment_preview)}</em>` : '';
         const _goto = n.file_id ? (n.comment_id ? `openFileViewAtComment('${n.file_id}','${n.comment_id}')` : `openFileView('${n.file_id}')`) : '';
         const _fileClick = n.file_id ? `style="cursor:pointer" onclick="closeNotifPanel();${_goto}"` : '';
+        const _itemClick = _goto ? `onclick="closeNotifPanel();${_goto}" style="cursor:pointer"` : '';
         const action = isComment
             ? `&nbsp;${_cmtSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyana yorum yaptı${_preview}`
             : isReply
-            ? `&nbsp;${_cmtSVG} yorumuna yanıt verdi${_preview}`
+            ? `&nbsp;${_cmtSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyandaki yorumuna yanıt verdi${_preview}`
             : isReplyOnFile
             ? `&nbsp;${_cmtSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyandaki bir yoruma yanıt verdi${_preview}`
             : isCmtLike
@@ -6444,15 +6445,15 @@ async function loadNotifications() {
             : isFork
             ? `&nbsp;${_forkSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyanı fork etti`
             : `&nbsp;${_heartSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyanı beğendi`;
-        return `<div class="notif-item" id="notif-${n.id}">
-            <div class="notif-avatar" style="cursor:pointer" onclick="closeNotifPanel();openPublicProfile('${n.from_user_id}')">${prof.avatar_emoji || '👤'}</div>
+        return `<div class="notif-item" id="notif-${n.id}" ${_itemClick}>
+            <div class="notif-avatar" style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${prof.avatar_emoji || '👤'}</div>
             <div class="notif-info">
                 <div class="notif-text">
-                    <strong style="cursor:pointer" onclick="closeNotifPanel();openPublicProfile('${n.from_user_id}')">${escapeHtml(prof.username || 'Biri')}</strong>${action}
+                    <strong style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${escapeHtml(prof.username || 'Biri')}</strong>${action}
                 </div>
                 <div class="notif-time">${_fmtTime(n.created_at)}</div>
             </div>
-            <button class="notif-delete-btn" onclick="deleteNotif('${n.id}')">
+            <button class="notif-delete-btn" onclick="event.stopPropagation();deleteNotif('${n.id}')">
                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
