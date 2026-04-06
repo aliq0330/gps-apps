@@ -4903,9 +4903,9 @@ async function feedSubmitComment(fileId) {
     const content = inp?.value.trim();
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
-    const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content });
+    const { data: _nc, error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content }).select('id').single();
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100) });
+    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _nc?.id });
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await feedLoadComments(fileId);
@@ -4945,7 +4945,7 @@ async function feedToggleCmtLike(commentId, btn) {
         if (span) span.textContent = _feedCmtLikes[commentId] ? ' '+_feedCmtLikes[commentId] : '';
         showToast('Beğeni kaydedilemedi');
     }
-    if (!liked && !_fe) { const _cl = document.getElementById('feedcmt-' + commentId); if (_cl) { const _fid = btn.closest('[id^="fcmtlist-"]')?.id.replace('fcmtlist-',''); _sendNotif('comment_like', _cl.dataset.userId, _fid || null); } }
+    if (!liked && !_fe) { const _cl = document.getElementById('feedcmt-' + commentId); if (_cl) { const _fid = btn.closest('[id^="fcmtlist-"]')?.id.replace('fcmtlist-',''); _sendNotif('comment_like', _cl.dataset.userId, _fid || null, { comment_id: commentId }); } }
 }
 
 function feedShowReply(commentId, fileId) {
@@ -4963,14 +4963,14 @@ async function feedSubmitReply(parentId, fileId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('feedri-' + parentId).style.display = 'none';
-    const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
+    const { data: _nr, error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId }).select('id').single();
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     // Yorum sahibine: "yorumuna yanıt verildi"
     const _rvp = document.getElementById('feedcmt-' + parentId);
-    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100) });
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _nr?.id });
     // Dosya sahibine: "dosyandaki yoruma yanıt verildi" (yorum sahibinden farklıysa)
     const _fileOwner = _exploreDataMap[fileId]?.userId;
-    if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100) });
+    if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100), comment_id: _nr?.id });
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await feedLoadComments(fileId);
@@ -5701,13 +5701,13 @@ async function submitComment(fileId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
 
-    const { error } = await sb.from('comments').insert({
+    const { data: _nc, error } = await sb.from('comments').insert({
         file_id: fileId,
         user_id: currentUser.id,
         content
-    });
+    }).select('id').single();
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100) });
+    _sendNotif('comment', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100), comment_id: _nc?.id });
     await loadComments(fileId);
 }
 
@@ -5750,7 +5750,7 @@ async function profToggleCmtLike(commentId, btn) {
         if (span) span.textContent = _profCmtLikes[commentId] ? ' ' + _profCmtLikes[commentId] : '';
         showToast('Beğeni kaydedilemedi');
     }
-    if (!liked && !_pe) { const _cl = document.getElementById('profcmt-' + commentId); if (_cl) _sendNotif('comment_like', _cl.dataset.userId, _cl.dataset.fileId || null); }
+    if (!liked && !_pe) { const _cl = document.getElementById('profcmt-' + commentId); if (_cl) _sendNotif('comment_like', _cl.dataset.userId, _cl.dataset.fileId || null, { comment_id: commentId }); }
 }
 
 function profShowReply(commentId) {
@@ -5768,13 +5768,13 @@ async function profSubmitReply(parentId, fileId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('profri-' + parentId).style.display = 'none';
-    const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
+    const { data: _nr, error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId }).select('id').single();
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     // Yorum sahibine: "yorumuna yanıt verildi"
     const _rvp = document.getElementById('profcmt-' + parentId);
-    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100) });
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _nr?.id });
     // Dosya sahibine (yorum sahibinden farklıysa)
-    if (_pubProfileUserId && _pubProfileUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100) });
+    if (_pubProfileUserId && _pubProfileUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100), comment_id: _nr?.id });
     await loadComments(fileId);
 }
 
@@ -5784,6 +5784,7 @@ let _fvUserId  = null;
 let _fvCM      = null;
 let _fvTab     = 'code';
 let _fvCmtLoaded = false;
+let _fvScrollToCommentId = null;
 let _fvCmtLikes = {};
 let _fvMyCmtLikes = new Set();
 
@@ -6168,6 +6169,12 @@ function closeForkTreeModal() {
     document.getElementById('forkTreeOverlay').classList.remove('open');
 }
 
+async function openFileViewAtComment(fileId, commentId) {
+    _fvScrollToCommentId = commentId;
+    await openFileView(fileId);
+    fvSwitchTab('comments');
+}
+
 async function fvLoadComments() {
     _fvCmtLoaded = true;
     const listEl = document.getElementById('fvCmtList');
@@ -6224,6 +6231,19 @@ async function fvLoadComments() {
         </div>`;
     };
     listEl.innerHTML = topLevel.map(c => renderCmt(c)).join('');
+    // Bildirimden gelince ilgili yoruma scroll et
+    if (_fvScrollToCommentId) {
+        const _sid = _fvScrollToCommentId; _fvScrollToCommentId = null;
+        setTimeout(() => {
+            const el = document.getElementById('fvcmt-' + _sid);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.style.transition = 'background 0.4s';
+                el.style.background = 'rgba(0,122,255,0.15)';
+                setTimeout(() => { el.style.background = ''; }, 2500);
+            }
+        }, 150);
+    }
 }
 
 async function fvSubmitComment() {
@@ -6232,9 +6252,9 @@ async function fvSubmitComment() {
     const content = inp.value.trim();
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
-    const { error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content });
+    const { data: _nc, error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content }).select('id').single();
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100) });
+    _sendNotif('comment', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _nc?.id });
     _fvCmtLoaded = false;
     fvLoadComments();
 }
@@ -6272,7 +6292,7 @@ async function fvToggleCmtLike(commentId, btn) {
         if (span) span.textContent = _fvCmtLikes[commentId] ? ' ' + _fvCmtLikes[commentId] : '';
         showToast('Beğeni kaydedilemedi');
     }
-    if (!liked && !_fve) { const _cl = document.getElementById('fvcmt-' + commentId); if (_cl) _sendNotif('comment_like', _cl.dataset.userId, _fvFileId); }
+    if (!liked && !_fve) { const _cl = document.getElementById('fvcmt-' + commentId); if (_cl) _sendNotif('comment_like', _cl.dataset.userId, _fvFileId, { comment_id: commentId }); }
 }
 
 function fvShowReply(commentId) {
@@ -6290,13 +6310,13 @@ async function fvSubmitReply(parentId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('fvri-' + parentId).style.display = 'none';
-    const { error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content, parent_id: parentId });
+    const { data: _nr, error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content, parent_id: parentId }).select('id').single();
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     // Yorum sahibine: "yorumuna yanıt verildi"
     const _rvp = document.getElementById('fvcmt-' + parentId);
-    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, _fvFileId, { comment_preview: content.substring(0, 100) });
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _nr?.id });
     // Dosya sahibine (yorum sahibinden farklıysa): "dosyandaki yoruma yanıt verildi"
-    if (_fvUserId && _fvUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100) });
+    if (_fvUserId && _fvUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _nr?.id });
     _fvCmtLoaded = false;
     fvLoadComments();
 }
@@ -6411,7 +6431,8 @@ async function loadNotifications() {
         const _forkSVG = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#007aff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>`;
         const _heartSVG = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#ff3b30"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`;
         const _preview = n.comment_preview ? `: <em style="opacity:.8">${escapeHtml(n.comment_preview)}</em>` : '';
-        const _fileClick = n.file_id ? `style="cursor:pointer" onclick="closeNotifPanel();openFileView(${n.file_id})"` : '';
+        const _goto = n.file_id ? (n.comment_id ? `openFileViewAtComment('${n.file_id}','${n.comment_id}')` : `openFileView('${n.file_id}')`) : '';
+        const _fileClick = n.file_id ? `style="cursor:pointer" onclick="closeNotifPanel();${_goto}"` : '';
         const action = isComment
             ? `&nbsp;${_cmtSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyana yorum yaptı${_preview}`
             : isReply
