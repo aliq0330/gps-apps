@@ -1897,11 +1897,12 @@ body.preview-mode .file-title-bar { display: none !important; }
 }
 .coll-add-btn:active { background: rgba(0,122,255,0.22); transform: scale(0.88); }
 .coll-dropdown {
-    position: absolute; top: calc(100% + 6px); right: 0; z-index: 9999;
-    background: var(--card-bg); border: 1px solid var(--glass-border);
+    position: fixed; z-index: 99999;
+    background: #f2f2f7; border: 1px solid var(--glass-border);
     border-radius: 14px; min-width: 180px; max-height: 280px; overflow-y: auto;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.2); display: none; padding: 6px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25); display: none; padding: 6px;
 }
+@media (prefers-color-scheme: dark) { .coll-dropdown { background: #2c2c2e; } }
 .coll-dropdown.open { display: block; }
 .coll-dropdown-item {
     display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 9px;
@@ -1927,11 +1928,12 @@ body.preview-mode .file-title-bar { display: none !important; }
     background: rgba(0,122,255,0.12); color: #007aff; border: 1px solid rgba(0,122,255,0.22);
 }
 .sf-coll-dropdown {
-    position: absolute; left: 0; z-index: 9999; top: calc(100% + 4px);
-    background: var(--card-bg); border: 1px solid var(--glass-border);
+    position: fixed; z-index: 99999;
+    background: #f2f2f7; border: 1px solid var(--glass-border);
     border-radius: 12px; min-width: 180px; max-height: 220px; overflow-y: auto;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.18); display: none; padding: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.22); display: none; padding: 6px;
 }
+@media (prefers-color-scheme: dark) { .sf-coll-dropdown { background: #2c2c2e; } }
 .sf-coll-dropdown.open { display: block; }
 .sf-coll-item {
     display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px;
@@ -1998,10 +2000,11 @@ body.preview-mode .file-title-bar { display: none !important; }
 .coll-card-actions { display: flex; align-items: center; gap: 6px; padding: 8px 14px 10px; }
 /* Collection overlay */
 .coll-overlay {
-    position: fixed; inset: 0; z-index: 8000; background: var(--bg);
+    position: fixed; inset: 0; z-index: 8000; background: #f2f2f7;
     transform: translateX(100%); transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
     display: flex; flex-direction: column; overflow: hidden;
 }
+@media (prefers-color-scheme: dark) { .coll-overlay { background: #1c1c1e; } }
 .coll-overlay.open { transform: translateX(0); }
 .coll-overlay-list { flex: 1; overflow-y: auto; padding: 12px 16px 100px; }
 /* Save modal collection section */
@@ -3307,6 +3310,7 @@ function onUserLoggedIn(user) {
     updateUserUI(user);
     loadSavedFilesFromCloud();
     loadProfile();
+    loadCollections();
 }
 
 function showAuthScreen() {
@@ -3789,27 +3793,33 @@ async function createNewSave() {
     openNewSaveModal();
 }
 
-function openNewSaveModal() {
+async function openNewSaveModal() {
     const baseName   = getBaseFilename();
     const uniqueName = generateUniqueFilename(baseName);
     const inp = document.getElementById('newSaveFilename');
     inp.value = uniqueName;
     document.getElementById('newSaveDesc').value = '';
     _pendingSaveColls.clear();
-    // Render collection chips
-    const sec = document.getElementById('newSaveCollSection');
-    const list = document.getElementById('newSaveCollList');
-    if (_collections.length && sec && list) {
-        sec.style.display = '';
-        list.innerHTML = _collections.map(c => `
-            <label class="new-save-coll-chip" id="nscc-${c.id}" onclick="_toggleSaveColl('${c.id}',this)">
-                <input type="checkbox"> ${escapeHtml(c.name)}
-            </label>`).join('');
-    } else if (sec) { sec.style.display = 'none'; }
     document.getElementById('newSaveModalOverlay').classList.add('open');
     setTimeout(() => { inp.focus(); inp.select(); }, 100);
+    // Koleksiyonlar henüz yüklenmemişse yükle
+    if (!_collections.length && currentUser) await loadCollections();
+    _renderNewSaveCollChips();
 }
-function _toggleSaveColl(collId, el) {
+function _renderNewSaveCollChips() {
+    const sec = document.getElementById('newSaveCollSection');
+    const list = document.getElementById('newSaveCollList');
+    if (!sec || !list) return;
+    if (!_collections.length) { sec.style.display = 'none'; return; }
+    sec.style.display = '';
+    list.innerHTML = _collections.map(c => `
+        <div class="new-save-coll-chip${_pendingSaveColls.has(c.id) ? ' selected' : ''}" id="nscc-${c.id}"
+            onclick="_toggleSaveColl(event,'${c.id}',this)">
+            ${escapeHtml(c.name)}
+        </div>`).join('');
+}
+function _toggleSaveColl(event, collId, el) {
+    event.preventDefault();
     if (_pendingSaveColls.has(collId)) { _pendingSaveColls.delete(collId); el.classList.remove('selected'); }
     else { _pendingSaveColls.add(collId); el.classList.add('selected'); }
 }
@@ -3871,11 +3881,11 @@ async function updateExistingFile() {
 }
 
 // ── Saved Files Panel ──────────────────────────────────────────────────
-function openSavedFilesPanel() {
+async function openSavedFilesPanel() {
     _closeAllPanels('savedFiles');
-    renderSavedFiles();
     document.getElementById('savedFilesPanel').classList.add('open');
-    loadCollections();
+    await loadCollections();
+    renderSavedFiles();
 }
 
 function closeSavedFilesPanel() {
@@ -6900,9 +6910,15 @@ function renderCollectionHeader() {
 
 function toggleCollDropdown() {
     const dd = document.getElementById('collDropdownList');
-    if (!dd) return;
+    const btn = document.getElementById('collDropdownBtn');
+    if (!dd || !btn) return;
+    const isOpen = dd.classList.contains('open');
     dd.classList.toggle('open');
-    if (dd.classList.contains('open')) {
+    if (!isOpen) {
+        const rect = btn.getBoundingClientRect();
+        dd.style.top = (rect.bottom + 4) + 'px';
+        dd.style.right = (window.innerWidth - rect.right) + 'px';
+        dd.style.left = 'auto';
         setTimeout(() => document.addEventListener('click', _closeCollDropOutside, { once: true }), 10);
     }
 }
@@ -6954,6 +6970,17 @@ function openFileCollectionMenu(fileId, btnEl) {
                 ${escapeHtml(c.name)}
             </label>`).join('')
         : '<div style="padding:8px 10px;font-size:12px;color:var(--text-secondary);">Önce koleksiyon oluşturun</div>';
+    // Position fixed under button
+    const rect = btnEl.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    if (spaceBelow < 200 && rect.top > 200) {
+        menu.style.top = (rect.top - 8) + 'px';
+        menu.style.transform = 'translateY(-100%)';
+    } else {
+        menu.style.top = (rect.bottom + 4) + 'px';
+        menu.style.transform = '';
+    }
+    menu.style.left = rect.left + 'px';
     menu.classList.add('open');
     setTimeout(() => {
         document.addEventListener('click', function handler(e) {
