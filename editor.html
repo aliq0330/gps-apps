@@ -5799,8 +5799,8 @@ async function openFileView(fileId) {
     document.getElementById('fvFilename').textContent  = d.filename || pub.filename || '...';
     document.getElementById('fvAuthorBtn').textContent = (d.emoji || '👤') + ' ' + (d.username || '...');
 
-    // Overlay aç, ilk sekme
-    fvSwitchTab('code', false);
+    // Overlay aç, ilk sekme (bildirimden gelince direkt comments sekmesi)
+    fvSwitchTab(_fvScrollToCommentId ? 'comments' : 'code', false);
     document.getElementById('fvOverlay').classList.add('open');
 
     // Kod: önce cache'den bak
@@ -6171,8 +6171,7 @@ function closeForkTreeModal() {
 
 async function openFileViewAtComment(fileId, commentId) {
     _fvScrollToCommentId = commentId;
-    await openFileView(fileId);
-    fvSwitchTab('comments');
+    openFileView(fileId);
 }
 
 async function fvLoadComments() {
