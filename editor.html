@@ -3310,6 +3310,7 @@ function onUserLoggedIn(user) {
     updateUserUI(user);
     loadSavedFilesFromCloud();
     loadProfile();
+    loadCollections();
 }
 
 function showAuthScreen() {
@@ -3792,27 +3793,33 @@ async function createNewSave() {
     openNewSaveModal();
 }
 
-function openNewSaveModal() {
+async function openNewSaveModal() {
     const baseName   = getBaseFilename();
     const uniqueName = generateUniqueFilename(baseName);
     const inp = document.getElementById('newSaveFilename');
     inp.value = uniqueName;
     document.getElementById('newSaveDesc').value = '';
     _pendingSaveColls.clear();
-    // Render collection chips
-    const sec = document.getElementById('newSaveCollSection');
-    const list = document.getElementById('newSaveCollList');
-    if (_collections.length && sec && list) {
-        sec.style.display = '';
-        list.innerHTML = _collections.map(c => `
-            <label class="new-save-coll-chip" id="nscc-${c.id}" onclick="_toggleSaveColl('${c.id}',this)">
-                <input type="checkbox"> ${escapeHtml(c.name)}
-            </label>`).join('');
-    } else if (sec) { sec.style.display = 'none'; }
     document.getElementById('newSaveModalOverlay').classList.add('open');
     setTimeout(() => { inp.focus(); inp.select(); }, 100);
+    // Koleksiyonlar henüz yüklenmemişse yükle
+    if (!_collections.length && currentUser) await loadCollections();
+    _renderNewSaveCollChips();
 }
-function _toggleSaveColl(collId, el) {
+function _renderNewSaveCollChips() {
+    const sec = document.getElementById('newSaveCollSection');
+    const list = document.getElementById('newSaveCollList');
+    if (!sec || !list) return;
+    if (!_collections.length) { sec.style.display = 'none'; return; }
+    sec.style.display = '';
+    list.innerHTML = _collections.map(c => `
+        <div class="new-save-coll-chip${_pendingSaveColls.has(c.id) ? ' selected' : ''}" id="nscc-${c.id}"
+            onclick="_toggleSaveColl(event,'${c.id}',this)">
+            ${escapeHtml(c.name)}
+        </div>`).join('');
+}
+function _toggleSaveColl(event, collId, el) {
+    event.preventDefault();
     if (_pendingSaveColls.has(collId)) { _pendingSaveColls.delete(collId); el.classList.remove('selected'); }
     else { _pendingSaveColls.add(collId); el.classList.add('selected'); }
 }
@@ -3874,11 +3881,11 @@ async function updateExistingFile() {
 }
 
 // ── Saved Files Panel ──────────────────────────────────────────────────
-function openSavedFilesPanel() {
+async function openSavedFilesPanel() {
     _closeAllPanels('savedFiles');
-    renderSavedFiles();
     document.getElementById('savedFilesPanel').classList.add('open');
-    loadCollections();
+    await loadCollections();
+    renderSavedFiles();
 }
 
 function closeSavedFilesPanel() {
