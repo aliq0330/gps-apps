@@ -813,6 +813,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .saved-file-btn.download:hover { background: rgba(52,199,89,0.15); border-color: rgba(52,199,89,0.3); color: #34c759; }
 .saved-file-btn.preview:hover { background: rgba(0,122,255,0.15); border-color: rgba(0,122,255,0.3); color: #007aff; }
 .saved-file-btn.code:hover { background: rgba(175,82,222,0.15); border-color: rgba(175,82,222,0.3); color: #af52de; }
+.saved-file-btn.view:hover { background: rgba(255,159,10,0.15); border-color: rgba(255,159,10,0.3); color: #ff9f0a; }
 
 .saved-files-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); backdrop-filter: blur(4px); z-index: 140; display: none; opacity: 0; transition: opacity 0.3s ease; }
 .saved-files-overlay.open { display: block; opacity: 1; }
@@ -3862,6 +3863,13 @@ function renderSavedFiles() {
                         </svg>
                         Sil
                     </button>
+                    ${file.cloud && file.isPublic ? `
+                    <button class="saved-file-btn view" onclick="event.stopPropagation();closeSavedFiles();openFileView('${file.id}')">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                        Görüntüleyici
+                    </button>` : ''}
                 </div>
                 ${file.cloud ? `
                 <div class="public-toggle-row ${file.isPublic ? 'on' : ''}" onclick="event.stopPropagation()">
