@@ -348,6 +348,33 @@ svg { display: block; flex-shrink: 0; }
 /* Önizleme modunda header ve title bar gizli */
 body.preview-mode .header { display: none !important; }
 body.preview-mode .file-title-bar { display: none !important; }
+body.preview-mode .bottom-bar { display: none !important; }
+body.preview-mode .toast { bottom: 20px; }
+
+.preview-close-btn {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 12px 7px 10px;
+    border-radius: 20px;
+    border: none;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    transition: background 0.15s;
+}
+.preview-close-btn:active { background: rgba(0,0,0,0.75); }
+body.preview-mode .preview-close-btn { display: flex; }
 
 /* ── BOTTOM BAR ──────────────────────────────────────────── */
 .bottom-bar {
@@ -865,7 +892,6 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     opacity: 0; transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
 }
 .toast.open { display: flex; opacity: 1; transform: translateX(-50%) translateY(0); }
-body.preview-mode .toast { bottom: 80px; }
 
 /* ── LOADING SPINNER ─────────────────────────────────────── */
 .spinner {
@@ -2384,6 +2410,12 @@ body.preview-mode .file-title-bar { display: none !important; }
     </div>
     <div class="preview-area" id="previewArea">
         <iframe id="previewFrameInline" class="preview-frame-inline"></iframe>
+        <button class="preview-close-btn" onclick="handleViewSwitch('code')" title="Kodu görüntüle">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            </svg>
+            Kod
+        </button>
     </div>
 </main>
 
