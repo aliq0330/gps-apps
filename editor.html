@@ -5668,7 +5668,7 @@ async function loadComments(fileId) {
         const liked = _profMyCmtLikes.has(c.id);
         const likeCnt = _profCmtLikes[c.id] || 0;
         const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderC(r, true)).join('') : '';
-        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="profcmt-${c.id}" data-user-id="${c.user_id}">
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="profcmt-${c.id}" data-user-id="${c.user_id}" data-file-id="${c.file_id}">
             <div class="comment-avatar" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${p.avatar_emoji || '👤'}</div>
             <div class="comment-body">
                 <div class="comment-header">
@@ -5750,7 +5750,7 @@ async function profToggleCmtLike(commentId, btn) {
         if (span) span.textContent = _profCmtLikes[commentId] ? ' ' + _profCmtLikes[commentId] : '';
         showToast('Beğeni kaydedilemedi');
     }
-    if (!liked && !_pe) { const _cl = document.getElementById('profcmt-' + commentId); if (_cl) _sendNotif('comment_like', _cl.dataset.userId, null); }
+    if (!liked && !_pe) { const _cl = document.getElementById('profcmt-' + commentId); if (_cl) _sendNotif('comment_like', _cl.dataset.userId, _cl.dataset.fileId || null); }
 }
 
 function profShowReply(commentId) {
@@ -6419,7 +6419,7 @@ async function loadNotifications() {
             : isReplyOnFile
             ? `&nbsp;${_cmtSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyandaki bir yoruma yanıt verdi${_preview}`
             : isCmtLike
-            ? `&nbsp;${_heartSVG} bir yorumunu beğendi`
+            ? `&nbsp;${_heartSVG}${n.file_id ? ` <span class="notif-file" ${_fileClick}>${fname}</span> dosyandaki` : ''} bir yorumunu beğendi`
             : isFork
             ? `&nbsp;${_forkSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyanı fork etti`
             : `&nbsp;${_heartSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyanı beğendi`;
