@@ -4903,9 +4903,10 @@ async function feedSubmitComment(fileId) {
     const content = inp?.value.trim();
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
-    const { data: _nc, error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content }).select('id').single();
+    const _cid = crypto.randomUUID();
+    const { error } = await sb.from('comments').insert({ id: _cid, file_id: fileId, user_id: currentUser.id, content });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _nc?.id });
+    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _cid });
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await feedLoadComments(fileId);
@@ -4963,14 +4964,15 @@ async function feedSubmitReply(parentId, fileId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('feedri-' + parentId).style.display = 'none';
-    const { data: _nr, error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId }).select('id').single();
+    const _rid = crypto.randomUUID();
+    const { error } = await sb.from('comments').insert({ id: _rid, file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     // Yorum sahibine: "yorumuna yanıt verildi"
     const _rvp = document.getElementById('feedcmt-' + parentId);
-    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _nr?.id });
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
     // Dosya sahibine: "dosyandaki yoruma yanıt verildi" (yorum sahibinden farklıysa)
     const _fileOwner = _exploreDataMap[fileId]?.userId;
-    if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100), comment_id: _nr?.id });
+    if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await feedLoadComments(fileId);
@@ -5701,13 +5703,10 @@ async function submitComment(fileId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
 
-    const { data: _nc, error } = await sb.from('comments').insert({
-        file_id: fileId,
-        user_id: currentUser.id,
-        content
-    }).select('id').single();
+    const _cid = crypto.randomUUID();
+    const { error } = await sb.from('comments').insert({ id: _cid, file_id: fileId, user_id: currentUser.id, content });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100), comment_id: _nc?.id });
+    _sendNotif('comment', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100), comment_id: _cid });
     await loadComments(fileId);
 }
 
@@ -5768,13 +5767,14 @@ async function profSubmitReply(parentId, fileId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('profri-' + parentId).style.display = 'none';
-    const { data: _nr, error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId }).select('id').single();
+    const _rid = crypto.randomUUID();
+    const { error } = await sb.from('comments').insert({ id: _rid, file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     // Yorum sahibine: "yorumuna yanıt verildi"
     const _rvp = document.getElementById('profcmt-' + parentId);
-    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _nr?.id });
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
     // Dosya sahibine (yorum sahibinden farklıysa)
-    if (_pubProfileUserId && _pubProfileUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100), comment_id: _nr?.id });
+    if (_pubProfileUserId && _pubProfileUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
     await loadComments(fileId);
 }
 
@@ -6253,9 +6253,10 @@ async function fvSubmitComment() {
     const content = inp.value.trim();
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
-    const { data: _nc, error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content }).select('id').single();
+    const _cid = crypto.randomUUID();
+    const { error } = await sb.from('comments').insert({ id: _cid, file_id: _fvFileId, user_id: currentUser.id, content });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _nc?.id });
+    _sendNotif('comment', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _cid });
     _fvCmtLoaded = false;
     fvLoadComments();
 }
@@ -6311,13 +6312,14 @@ async function fvSubmitReply(parentId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('fvri-' + parentId).style.display = 'none';
-    const { data: _nr, error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content, parent_id: parentId }).select('id').single();
+    const _rid = crypto.randomUUID();
+    const { error } = await sb.from('comments').insert({ id: _rid, file_id: _fvFileId, user_id: currentUser.id, content, parent_id: parentId });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     // Yorum sahibine: "yorumuna yanıt verildi"
     const _rvp = document.getElementById('fvcmt-' + parentId);
-    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _nr?.id });
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
     // Dosya sahibine (yorum sahibinden farklıysa): "dosyandaki yoruma yanıt verildi"
-    if (_fvUserId && _fvUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _nr?.id });
+    if (_fvUserId && _fvUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
     _fvCmtLoaded = false;
     fvLoadComments();
 }
