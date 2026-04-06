@@ -5201,6 +5201,8 @@ async function toggleFilePublic(fileId, currentState, event) {
 let _activeConvId   = null;
 let _convOtherUser  = null;   // { id, username, emoji }
 let _msgRealtime    = null;
+let _msgPollTimer   = null;
+let _renderedMsgIds = new Set();
 
 function openMessagesPanel() {
     _closeAllPanels('messages');
@@ -5302,7 +5304,8 @@ async function openConversation(otherId, username, emoji, existingConvId) {
 function closeConversation() {
     document.getElementById('convOverlay').classList.remove('open');
     if (_msgRealtime) { sb.removeChannel(_msgRealtime); _msgRealtime = null; }
-    _activeConvId = null; _convOtherUser = null;
+    if (_msgPollTimer) { clearInterval(_msgPollTimer); _msgPollTimer = null; }
+    _activeConvId = null; _convOtherUser = null; _renderedMsgIds = new Set();
 }
 
 function _initConvSwipeBack() {
@@ -5361,11 +5364,13 @@ async function loadMessages() {
 
 function _renderMessages(msgs) {
     const el = document.getElementById('convMessages');
+    _renderedMsgIds = new Set();
     if (msgs.length === 0) {
         el.innerHTML = '<div class="search-empty" style="margin-top:40px;">İlk mesajı sen gönder 👋</div>';
         return;
     }
     el.innerHTML = msgs.map(m => {
+        _renderedMsgIds.add(m.id);
         const mine = m.sender_id === currentUser.id;
         const side = mine ? 'mine' : 'theirs';
         return `<div class="conv-bubble-wrap ${side}">
@@ -5376,33 +5381,46 @@ function _renderMessages(msgs) {
     el.scrollTop = el.scrollHeight;
 }
 
+function _appendMsg(m) {
+    if (_renderedMsgIds.has(m.id)) return;
+    _renderedMsgIds.add(m.id);
+    const el = document.getElementById('convMessages');
+    if (!el) return;
+    const empty = el.querySelector('.search-empty');
+    if (empty) empty.remove();
+    const mine = m.sender_id === currentUser.id;
+    const side = mine ? 'mine' : 'theirs';
+    const div = document.createElement('div');
+    div.className = `conv-bubble-wrap ${side}`;
+    div.innerHTML = `<div class="conv-bubble ${side}">${escapeHtml(m.content)}</div><div class="conv-bubble-time">${_fmtTime(m.created_at)}</div>`;
+    el.appendChild(div);
+    el.scrollTop = el.scrollHeight;
+    if (!mine) sb.from('messages').update({ read: true }).eq('id', m.id);
+    const _pEl = document.querySelector(`.conv-item[data-conv-id="${_activeConvId}"] .conv-item-preview`);
+    const _tEl = document.querySelector(`.conv-item[data-conv-id="${_activeConvId}"] .conv-item-time`);
+    if (_pEl) { _pEl.textContent = (mine ? 'Sen: ' : '') + m.content; _pEl.classList.remove('unread'); }
+    if (_tEl) { _tEl.textContent = _fmtTime(m.created_at); }
+}
+
 function _subscribeConv() {
-    if (_msgRealtime) sb.removeChannel(_msgRealtime);
-    _msgRealtime = sb.channel('conv-' + _activeConvId)
+    if (_msgRealtime) { sb.removeChannel(_msgRealtime); _msgRealtime = null; }
+    if (_msgPollTimer) { clearInterval(_msgPollTimer); _msgPollTimer = null; }
+    const convId = _activeConvId;
+    // Realtime (anlık)
+    _msgRealtime = sb.channel('conv-' + convId)
         .on('postgres_changes', {
             event: 'INSERT', schema: 'public', table: 'messages',
-            filter: `conversation_id=eq.${_activeConvId}`
-        }, payload => {
-            const el = document.getElementById('convMessages');
-            const m = payload.new;
-            const mine = m.sender_id === currentUser.id;
-            const side = mine ? 'mine' : 'theirs';
-            const div = document.createElement('div');
-            div.className = `conv-bubble-wrap ${side}`;
-            div.innerHTML = `<div class="conv-bubble ${side}">${escapeHtml(m.content)}</div>
-                <div class="conv-bubble-time">${_fmtTime(m.created_at)}</div>`;
-            el.appendChild(div);
-            el.scrollTop = el.scrollHeight;
-            if (!mine) {
-                sb.from('messages').update({ read: true }).eq('id', m.id);
-            }
-            // Mesaj listesi önizlemesini güncelle
-            const _previewEl = document.querySelector(`.conv-item[data-conv-id="${_activeConvId}"] .conv-item-preview`);
-            const _timeEl    = document.querySelector(`.conv-item[data-conv-id="${_activeConvId}"] .conv-item-time`);
-            if (_previewEl) { _previewEl.textContent = (mine ? 'Sen: ' : '') + m.content; _previewEl.classList.remove('unread'); }
-            if (_timeEl)    { _timeEl.textContent = _fmtTime(m.created_at); }
-        })
+            filter: `conversation_id=eq.${convId}`
+        }, payload => { _appendMsg(payload.new); })
         .subscribe();
+    // Polling yedek (3sn'de bir yeni mesaj kontrol)
+    _msgPollTimer = setInterval(async () => {
+        if (!_activeConvId || _activeConvId !== convId) return;
+        const { data } = await sb.from('messages')
+            .select('*').eq('conversation_id', convId)
+            .order('created_at', { ascending: true });
+        (data || []).forEach(m => _appendMsg(m));
+    }, 3000);
 }
 
 async function sendMessage() {
