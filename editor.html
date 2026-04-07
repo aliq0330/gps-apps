@@ -7138,19 +7138,16 @@ async function _loadCollectionOverlayFiles(collId) {
             </div>
         </div>`;
     }).join('');
-    // Lazy load thumbs — root:listEl transform container içinde doğru çalışır
-    const obs = new IntersectionObserver(entries => {
-        entries.forEach(e => {
-            if (!e.isIntersecting) return;
-            const fid = e.target.id.replace('cowrap-', '');
-            const fr = document.getElementById('coprev-' + fid);
-            const ld = document.getElementById('coload-' + fid);
-            const data = _exploreDataMap[fid];
-            if (fr && data?.code && !fr.srcdoc) { fr.srcdoc = data.code; fr.onload = () => { if (ld) ld.style.display = 'none'; }; }
-            obs.unobserve(e.target);
-        });
-    }, { root: listEl, rootMargin: '200px' });
-    listEl.querySelectorAll('[id^="cowrap-"]').forEach(el => obs.observe(el));
+    // Overlay açık olduğundan tüm iframeleri doğrudan yükle
+    files.forEach(f => {
+        const fr = document.getElementById('coprev-' + f.id);
+        const ld = document.getElementById('coload-' + f.id);
+        const data = _exploreDataMap[f.id];
+        if (fr && data?.code) {
+            fr.srcdoc = data.code;
+            fr.onload = () => { if (ld) ld.style.display = 'none'; };
+        }
+    });
 }
 
 // ── Akış & Keşfet: Koleksiyon kartları ───────────────────────────────
