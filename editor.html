@@ -2006,7 +2006,16 @@ body.preview-mode .file-title-bar { display: none !important; }
     display: flex; flex-direction: column; overflow: hidden;
 }
 .coll-overlay.open { transform: translateX(0); }
+.coll-tab-viewport { flex: 1; overflow: hidden; position: relative; display: flex; }
+.coll-tab-track {
+    display: flex; width: 200%; height: 100%;
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.coll-tab-track.on-comments { transform: translateX(-50%); }
+.coll-tab-pane { width: 50%; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; overflow: hidden; }
 .coll-overlay-list { flex: 1; overflow-y: auto; padding: 12px 16px 100px; }
+.coll-comments-list { flex: 1; overflow-y: auto; padding: 12px 16px 8px; }
+.coll-comments-input { display: flex; gap: 8px; align-items: flex-end; padding: 8px 16px; padding-bottom: max(8px, env(safe-area-inset-bottom, 8px)); border-top: 1px solid var(--glass-border); flex-shrink: 0; background: var(--card-bg); }
 /* Save modal collection section */
 .new-save-coll-section { margin-top: 14px; }
 .new-save-coll-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
@@ -2521,15 +2530,21 @@ body.preview-mode .file-title-bar { display: none !important; }
         <button id="collTabFiles" onclick="collSwitchTab('files')" style="padding:10px 14px;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:#007aff;border-bottom:2px solid #007aff;margin-bottom:-1px;">Dosyalar</button>
         <button id="collTabComments" onclick="collSwitchTab('comments')" style="padding:10px 14px;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;">Yorumlar <span id="collCmtCount"></span></button>
     </div>
-    <div class="coll-overlay-list" id="collOverlayList"></div>
-    <div id="collOverlayComments" style="display:none;flex:1;overflow-y:auto;padding:12px 16px;">
-        <div id="ccmtlist-overlay"></div>
-        <div id="ccmt-input-wrap" style="margin-top:12px;display:flex;gap:8px;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom,12px);">
-            <textarea id="ccmtinput-overlay" class="feed-cmt-textarea" placeholder="Yorum yaz..." rows="1"
-                oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-            <button class="feed-cmt-send" onclick="collSubmitComment(_colOverlayId,'ccmtinput-overlay','ccmtlist-overlay')">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-            </button>
+    <div class="coll-tab-viewport">
+        <div class="coll-tab-track" id="collTabTrack">
+            <div class="coll-tab-pane">
+                <div class="coll-overlay-list" id="collOverlayList"></div>
+            </div>
+            <div class="coll-tab-pane">
+                <div class="coll-comments-list" id="ccmtlist-overlay"></div>
+                <div class="coll-comments-input">
+                    <textarea id="ccmtinput-overlay" class="feed-cmt-textarea" placeholder="Yorum yaz..." rows="1"
+                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button class="feed-cmt-send" onclick="collSubmitComment(_colOverlayId,'ccmtinput-overlay','ccmtlist-overlay')">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -7289,10 +7304,10 @@ function _attachCollSwipe() {
         const dx = e.changedTouches[0].clientX - _sx;
         const dy = e.changedTouches[0].clientY - _sy;
         if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
-        const filesList = document.getElementById('collOverlayList');
-        const onFiles = filesList.style.display !== 'none';
-        if (dx < 0 && onFiles) collSwitchTab('comments');
-        else if (dx > 0 && !onFiles) collSwitchTab('files');
+        const track = document.getElementById('collTabTrack');
+        const onComments = track?.classList.contains('on-comments');
+        if (dx < 0 && !onComments) collSwitchTab('comments');
+        else if (dx > 0 && onComments) collSwitchTab('files');
     }, { passive: true });
 }
 
@@ -7367,20 +7382,16 @@ async function deleteCollection(collId) {
 // ── Koleksiyon Yorumları ──────────────────────────────────────────────
 
 function collSwitchTab(tab) {
-    const filesList = document.getElementById('collOverlayList');
-    const cmtSection = document.getElementById('collOverlayComments');
+    const track = document.getElementById('collTabTrack');
     const tabFiles = document.getElementById('collTabFiles');
     const tabCmts = document.getElementById('collTabComments');
-    if (tab === 'files') {
-        filesList.style.display = ''; cmtSection.style.display = 'none';
-        tabFiles.style.color = '#007aff'; tabFiles.style.borderBottomColor = '#007aff';
-        tabCmts.style.color = 'var(--text-secondary)'; tabCmts.style.borderBottomColor = 'transparent';
-    } else {
-        filesList.style.display = 'none'; cmtSection.style.display = 'flex'; cmtSection.style.flexDirection = 'column';
-        tabFiles.style.color = 'var(--text-secondary)'; tabFiles.style.borderBottomColor = 'transparent';
-        tabCmts.style.color = '#007aff'; tabCmts.style.borderBottomColor = '#007aff';
-        collLoadComments(_colOverlayId, 'ccmtlist-overlay', 'collCmtCount');
-    }
+    const onComments = tab === 'comments';
+    if (track) track.classList.toggle('on-comments', onComments);
+    tabFiles.style.color = onComments ? 'var(--text-secondary)' : '#007aff';
+    tabFiles.style.borderBottomColor = onComments ? 'transparent' : '#007aff';
+    tabCmts.style.color = onComments ? '#007aff' : 'var(--text-secondary)';
+    tabCmts.style.borderBottomColor = onComments ? '#007aff' : 'transparent';
+    if (onComments) collLoadComments(_colOverlayId, 'ccmtlist-overlay', 'collCmtCount');
 }
 
 async function collToggleComments(collId) {
