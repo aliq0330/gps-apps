@@ -2205,7 +2205,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 <div class="explore-overlay" id="exploreOverlay">
     <div class="explore-panel" id="explorePanel">
         <div class="fv-header">
-            <button class="fv-back-btn" onclick="closeExplorePanel()">
+            <button class="fv-back-btn" onclick="_goBack()||closeExplorePanel()">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -2229,7 +2229,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 <div class="messages-overlay" id="messagesOverlay">
     <div class="messages-panel" id="messagesPanel">
         <div class="fv-header">
-            <button class="fv-back-btn" onclick="closeMessagesPanel()">
+            <button class="fv-back-btn" onclick="_goBack()||closeMessagesPanel()">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -2275,7 +2275,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 <!-- ── AKIŞ PANELİ ──────────────────────────────────────────────────────── -->
 <div class="fv-overlay" id="feedOverlay" style="z-index:6000;">
     <div class="fv-header">
-        <button class="fv-back-btn" onclick="closeFeedPanel()">
+        <button class="fv-back-btn" onclick="_goBack()||closeFeedPanel()">
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -2441,7 +2441,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <div class="fv-overlay" id="savedFilesPanel" style="z-index:6000;">
     <div class="fv-header">
-        <button class="fv-back-btn" onclick="closeSavedFilesPanel()">
+        <button class="fv-back-btn" onclick="_goBack()||closeSavedFilesPanel()">
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -2495,7 +2495,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <div class="coll-overlay" id="collOverlay">
     <div class="fv-header">
-        <button class="fv-back-btn" onclick="closeCollectionOverlay()">
+        <button class="fv-back-btn" onclick="_goBack()||closeCollectionOverlay()">
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -4971,7 +4971,37 @@ async function toggleLike(fileId) {
 
 // ── PANEL YÖNETİMİ ─────────────────────────────────────────────────────
 // Ana paneller açılınca diğerlerini kapat (alt paneller hariç: fvOverlay, convOverlay, pubProfileOverlay)
+let _panelHistory = [];
+let _historyBlocked = false;
+
+function _getPanelReopener() {
+    const panels = [
+        { id: 'feedOverlay',         fn: () => openFeedPanel() },
+        { id: 'exploreOverlay',      fn: () => openExplorePanel() },
+        { id: 'messagesOverlay',     fn: () => openMessagesPanel() },
+        { id: 'notifOverlay',        fn: () => openNotifPanel() },
+        { id: 'profilePanelOverlay', fn: () => openProfilePanel() },
+        { id: 'searchPanelOverlay',  fn: () => openSearchPanel() },
+        { id: 'savedFilesPanel',     fn: () => openSavedFilesPanel() },
+        { id: 'collOverlay',         fn: () => { if (_colOverlayId) openCollectionOverlay(_colOverlayId); } },
+    ];
+    const open = panels.find(p => document.getElementById(p.id)?.classList.contains('open'));
+    return open ? open.fn : null;
+}
+
+function _goBack() {
+    const prev = _panelHistory.pop();
+    if (!prev) return;
+    _historyBlocked = true;
+    prev();
+    _historyBlocked = false;
+}
+
 function _closeAllPanels(skip) {
+    if (!_historyBlocked) {
+        const reopener = _getPanelReopener();
+        if (reopener) _panelHistory.push(reopener);
+    }
     const panels = [
         { id: 'feedOverlay',         key: 'feed',       close: closeFeedPanel },
         { id: 'exploreOverlay',      key: 'explore',    close: closeExplorePanel },
