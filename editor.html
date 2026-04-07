@@ -39,6 +39,8 @@
     --transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
     --glass-reflex-light: 1;
     --glass-reflex-dark: 1;
+    --bg: #f2f2f7;
+    --card-bg: rgba(255,255,255,0.95);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -51,6 +53,8 @@
         --text-secondary: rgba(235,235,245,0.6);
         --glass-reflex-light: 0.3;
         --glass-reflex-dark: 2;
+        --bg: #000000;
+        --card-bg: rgba(28,28,30,0.98);
     }
 }
 
@@ -1926,13 +1930,12 @@ body.preview-mode .file-title-bar { display: none !important; }
     padding: 2px 8px; border-radius: 8px; font-size: 11px;
     background: rgba(0,122,255,0.12); color: #007aff; border: 1px solid rgba(0,122,255,0.22);
 }
-.sf-coll-dropdown {
-    position: absolute; left: 0; z-index: 9999; top: calc(100% + 4px);
+.sf-coll-dropdown-float {
+    position: fixed; z-index: 10000;
     background: var(--card-bg); border: 1px solid var(--glass-border);
     border-radius: 12px; min-width: 180px; max-height: 220px; overflow-y: auto;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.18); display: none; padding: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25); padding: 6px; display: none;
 }
-.sf-coll-dropdown.open { display: block; }
 .sf-coll-item {
     display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px;
     cursor: pointer; font-size: 13px; color: var(--text-primary); transition: background 0.1s;
@@ -2481,6 +2484,8 @@ body.preview-mode .file-title-bar { display: none !important; }
 </div>
 
 <!-- Koleksiyon Görüntüleyici Overlay -->
+<div class="sf-coll-dropdown-float" id="sfCollDropdown"></div>
+
 <div class="coll-overlay" id="collOverlay">
     <div class="fv-header">
         <button class="fv-back-btn" onclick="closeCollectionOverlay()">
@@ -3796,8 +3801,8 @@ function _renderNewSaveCollChips() {
     if (_collections.length) {
         sec.style.display = '';
         list.innerHTML = _collections.map(c => `
-            <label class="new-save-coll-chip" id="nscc-${c.id}" onclick="_toggleSaveColl('${c.id}',this)">
-                <input type="checkbox"> ${escapeHtml(c.name)}
+            <label class="new-save-coll-chip" id="nscc-${c.id}">
+                <input type="checkbox" onchange="_toggleSaveColl('${c.id}',this.closest('label'))"> ${escapeHtml(c.name)}
             </label>`).join('');
     } else {
         sec.style.display = 'none';
@@ -4116,7 +4121,6 @@ function renderSavedFiles() {
                             Koleksiyona ekle
                         </button>
                         <div class="sf-coll-tags" id="sfcolltags-${file.id}">${colTags}</div>
-                        <div class="sf-coll-dropdown" id="sfcolldd-${file.id}"></div>
                     </div>`;
                 })() : ''}
                 ${file.cloud ? `
@@ -6952,9 +6956,15 @@ async function confirmCreateCollection() {
 }
 
 function openFileCollectionMenu(fileId, btnEl) {
-    document.querySelectorAll('.sf-coll-dropdown.open').forEach(el => el.classList.remove('open'));
-    const menu = document.getElementById('sfcolldd-' + fileId);
+    const menu = document.getElementById('sfCollDropdown');
     if (!menu) return;
+    // Aynı butona tekrar tıklanırsa kapat
+    if (menu._openFileId === fileId && menu.style.display === 'block') {
+        menu.style.display = 'none';
+        menu._openFileId = null;
+        return;
+    }
+    menu._openFileId = fileId;
     const fileCols = _fileCollectionMap[fileId] || new Set();
     menu.innerHTML = _collections.length
         ? _collections.map(c => `
@@ -6964,11 +6974,21 @@ function openFileCollectionMenu(fileId, btnEl) {
                 ${escapeHtml(c.name)}
             </label>`).join('')
         : '<div style="padding:8px 10px;font-size:12px;color:var(--text-secondary);">Önce koleksiyon oluşturun</div>';
-    menu.classList.add('open');
+    // Butona göre konumlandır
+    const rect = btnEl.getBoundingClientRect();
+    menu.style.display = 'block';
+    menu.style.top = (rect.bottom + 4) + 'px';
+    menu.style.left = rect.left + 'px';
+    // Ekran taşmasını önle
+    requestAnimationFrame(() => {
+        const mRect = menu.getBoundingClientRect();
+        if (mRect.right > window.innerWidth - 8) menu.style.left = (window.innerWidth - mRect.width - 8) + 'px';
+    });
     setTimeout(() => {
         document.addEventListener('click', function handler(e) {
             if (!menu.contains(e.target) && !btnEl.contains(e.target)) {
-                menu.classList.remove('open');
+                menu.style.display = 'none';
+                menu._openFileId = null;
                 document.removeEventListener('click', handler, true);
             }
         }, true);
