@@ -7468,14 +7468,17 @@ async function loadPublicCollectionsForFeed() {
     const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
     const pMap = {};
     (profs || []).forEach(p => { pMap[p.id] = p; });
-    // Load likes
+    // Load likes + comment counts
     const collIds = cols.map(c => c.id);
-    const [{ data: allColLikes }, { data: myColLikes }] = await Promise.all([
+    const [{ data: allColLikes }, { data: myColLikes }, { data: cmtRows }] = await Promise.all([
         sb.from('collection_likes').select('collection_id').in('collection_id', collIds),
-        currentUser ? sb.from('collection_likes').select('collection_id').eq('user_id', currentUser.id).in('collection_id', collIds) : Promise.resolve({ data: [] })
+        currentUser ? sb.from('collection_likes').select('collection_id').eq('user_id', currentUser.id).in('collection_id', collIds) : Promise.resolve({ data: [] }),
+        sb.from('collection_comments').select('collection_id').in('collection_id', collIds)
     ]);
     (allColLikes || []).forEach(l => { _colLikeCounts[l.collection_id] = (_colLikeCounts[l.collection_id] || 0) + 1; });
     (myColLikes || []).forEach(l => _colMyLikes.add(l.collection_id));
+    const _colCmtCountsMap = {};
+    (cmtRows || []).forEach(c => { _colCmtCountsMap[c.collection_id] = (_colCmtCountsMap[c.collection_id] || 0) + 1; });
     // Load first 4 files per collection (parallelized)
     const results = await Promise.all(cols.map(async col => {
         const { data: cf } = await sb.from('collection_files').select('file_id').eq('collection_id', col.id).limit(4);
@@ -7485,7 +7488,7 @@ async function loadPublicCollectionsForFeed() {
             const { data: fs } = await sb.from('files').select('id,code').in('id', fileIds).eq('is_public', true).limit(4);
             fileObjs = fs || [];
         }
-        return { ...col, prof: pMap[col.user_id] || {}, files: fileObjs, fileCount: fileIds.length };
+        return { ...col, prof: pMap[col.user_id] || {}, files: fileObjs, fileCount: fileIds.length, cmtCount: _colCmtCountsMap[col.id] || 0 };
     }));
     // Koleksiyon sahiplerini cache'e al
     results.forEach(col => { _colOwnerMap[col.id] = col.user_id; });
@@ -7518,20 +7521,18 @@ function _renderCollectionCard(col) {
             </button>
             <button class="feed-comment-toggle" onclick="collToggleComments('${col.id}')">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                <span id="ccmtcnt-${col.id}"></span>
+                <span id="ccmtcnt-${col.id}">${col.cmtCount || ''}</span>
             </button>
         </div>
-        <div id="ccmtwrap-${col.id}" style="display:none;padding:0 12px 12px;">
-            <div class="feed-comments-wrap">
-                <div class="feed-comments-list" id="ccmtlist-${col.id}"></div>
-                ${currentUser ? `<div class="feed-cmt-input-row" style="margin-top:8px;">
-                    <textarea class="feed-cmt-textarea" id="ccmtinput-${col.id}" placeholder="Yorum yaz..." rows="1"
-                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                    <button class="feed-cmt-send" onclick="collSubmitComment('${col.id}','ccmtinput-${col.id}','ccmtlist-${col.id}')">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                    </button>
-                </div>` : ''}
-            </div>
+        <div class="feed-comments-wrap" id="ccmtwrap-${col.id}" style="display:none;">
+            <div class="feed-comments-list" id="ccmtlist-${col.id}"></div>
+            ${currentUser ? `<div class="feed-cmt-input-row">
+                <textarea class="feed-cmt-textarea" id="ccmtinput-${col.id}" placeholder="Yorum yaz..." rows="1"
+                    oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                <button class="feed-cmt-send" onclick="collSubmitComment('${col.id}','ccmtinput-${col.id}','ccmtlist-${col.id}')">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                </button>
+            </div>` : ''}
         </div>
     </div>`;
 }
