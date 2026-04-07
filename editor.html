@@ -2458,6 +2458,14 @@ body.preview-mode .file-title-bar { display: none !important; }
                 </button>
             </div>
             <button class="coll-add-btn" onclick="openCreateCollectionModal()" title="Koleksiyon oluştur">+</button>
+            <button id="collDeleteActiveBtn" onclick="deleteCollection(_collectionFilter)" title="Koleksiyonu sil" style="display:none;
+                width:30px;height:30px;border-radius:50%;flex-shrink:0;
+                border:1px solid rgba(255,69,58,0.4);background:rgba(255,69,58,0.1);
+                color:#ff453a;display:none;align-items:center;justify-content:center;cursor:pointer;">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </button>
             <button class="delete-all-btn" id="deleteAllBtn" onclick="deleteAllFiles()" style="display:none;">
                 <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -6918,6 +6926,10 @@ function renderCollectionHeader() {
         const activeName = _collections.find(c => c.id === _collectionFilter)?.name || 'Koleksiyonlar';
         btn.querySelector('.coll-active-name').textContent = activeName;
     }
+    const delBtn = document.getElementById('collDeleteActiveBtn');
+    if (delBtn) {
+        delBtn.style.display = _collectionFilter ? 'flex' : 'none';
+    }
 }
 
 function toggleCollDropdown() {
@@ -6993,6 +7005,16 @@ function openFileCollectionMenu(fileId, btnEl) {
     }, 10);
 }
 
+// Dosyanın herkese açık olup olmayacağını bağlı koleksiyonlara göre hesapla ve güncelle
+async function _syncFilePublicStatus(fileId) {
+    const fileCols = _fileCollectionMap[fileId] || new Set();
+    const shouldBePublic = [...fileCols].some(cid => _collections.find(c => c.id === cid)?.is_public);
+    const idx = savedFiles.findIndex(f => String(f.id) === String(fileId));
+    if (idx === -1 || savedFiles[idx].isPublic === shouldBePublic) return;
+    await sb.from('files').update({ is_public: shouldBePublic }).eq('id', fileId);
+    savedFiles[idx].isPublic = shouldBePublic;
+}
+
 async function toggleFileInCollection(fileId, collId, checked) {
     if (!_fileCollectionMap[fileId]) _fileCollectionMap[fileId] = new Set();
     if (checked) {
@@ -7002,12 +7024,15 @@ async function toggleFileInCollection(fileId, collId, checked) {
         _fileCollectionMap[fileId].delete(collId);
         await sb.from('collection_files').delete().eq('collection_id', collId).eq('file_id', fileId);
     }
+    // Dosyanın paylaşım durumunu koleksiyon durumuna göre güncelle
+    await _syncFilePublicStatus(fileId);
     const tagsEl = document.getElementById('sfcolltags-' + fileId);
     if (tagsEl) {
         const colNames = _collections.filter(c => (_fileCollectionMap[fileId]||new Set()).has(c.id));
         tagsEl.innerHTML = colNames.map(c => `<span class="sf-coll-tag">${escapeHtml(c.name)}</span>`).join('');
     }
     renderCollectionHeader();
+    renderSavedFiles();
 }
 
 async function toggleCollectionPublic(collId, currentVal, event) {
@@ -7017,7 +7042,10 @@ async function toggleCollectionPublic(collId, currentVal, event) {
     if (error) { showToast('Hata'); return; }
     const col = _collections.find(c => c.id === collId);
     if (col) col.is_public = newVal;
-    showToast(newVal ? 'Koleksiyon herkese açık' : 'Koleksiyon gizlendi');
+    // Koleksiyondaki tüm dosyaların paylaşım durumunu güncelle
+    const fileIds = Object.keys(_fileCollectionMap).filter(fid => _fileCollectionMap[fid].has(collId));
+    await Promise.all(fileIds.map(fid => _syncFilePublicStatus(fid)));
+    showToast(newVal ? 'Koleksiyon ve dosyalar herkese açık' : 'Koleksiyon gizlendi');
     renderSavedFiles();
 }
 
@@ -7047,15 +7075,19 @@ async function deleteCollection(collId) {
     if (!collId) return;
     if (!confirm('Bu koleksiyonu silmek istediğinizden emin misiniz?\nİçindeki dosyalar silinmez.')) return;
     showToast('Koleksiyon siliniyor...');
-    // Önce collection_files bağlantılarını sil (dosyalar silinmez)
+    // Silinmeden önce koleksiyondaki dosyaları kaydet (paylaşım durumu güncellemek için)
+    const affectedFiles = Object.keys(_fileCollectionMap).filter(fid => _fileCollectionMap[fid]?.has(collId));
+    // collection_files bağlantılarını sil (dosyalar silinmez)
     await sb.from('collection_files').delete().eq('collection_id', collId);
     // Koleksiyonu sil
     const { error } = await sb.from('collections').delete().eq('id', collId);
     if (error) { showToast('Hata: ' + error.message); return; }
     // Yerel state güncelle
     _collections = _collections.filter(c => c.id !== collId);
-    Object.keys(_fileCollectionMap).forEach(fid => _fileCollectionMap[fid]?.delete(collId));
+    affectedFiles.forEach(fid => _fileCollectionMap[fid]?.delete(collId));
     if (_collectionFilter === collId) _collectionFilter = null;
+    // Etkilenen dosyaların paylaşım durumunu güncelle
+    await Promise.all(affectedFiles.map(fid => _syncFilePublicStatus(fid)));
     closeCollectionOverlay();
     renderCollectionHeader();
     renderSavedFiles();
