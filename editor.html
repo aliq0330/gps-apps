@@ -5286,10 +5286,9 @@ async function feedSubmitComment(fileId) {
     const content = inp?.value.trim();
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
-    const _cid = crypto.randomUUID();
-    const { error } = await sb.from('comments').insert({ id: _cid, file_id: fileId, user_id: currentUser.id, content });
+    const { data: _ins, error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content }).select('id').single();
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _cid });
+    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _ins.id });
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await feedLoadComments(fileId);
@@ -6097,10 +6096,9 @@ async function submitComment(fileId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
 
-    const _cid = crypto.randomUUID();
-    const { error } = await sb.from('comments').insert({ id: _cid, file_id: fileId, user_id: currentUser.id, content });
+    const { data: _ins, error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content }).select('id').single();
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100), comment_id: _cid });
+    _sendNotif('comment', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100), comment_id: _ins.id });
     await loadComments(fileId);
 }
 
@@ -6161,9 +6159,9 @@ async function profSubmitReply(parentId, fileId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('profri-' + parentId).style.display = 'none';
-    const _rid = crypto.randomUUID();
-    const { error } = await sb.from('comments').insert({ id: _rid, file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
+    const { data: _ins, error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId }).select('id').single();
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    const _rid = _ins.id;
     // Yorum sahibine: "yorumuna yanıt verildi"
     const _rvp = document.getElementById('profcmt-' + parentId);
     if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
@@ -6647,10 +6645,9 @@ async function fvSubmitComment() {
     const content = inp.value.trim();
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
-    const _cid = crypto.randomUUID();
-    const { error } = await sb.from('comments').insert({ id: _cid, file_id: _fvFileId, user_id: currentUser.id, content });
+    const { data: _ins, error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content }).select('id').single();
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _cid });
+    _sendNotif('comment', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _ins.id });
     _fvCmtLoaded = false;
     fvLoadComments();
 }
@@ -6706,9 +6703,9 @@ async function fvSubmitReply(parentId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('fvri-' + parentId).style.display = 'none';
-    const _rid = crypto.randomUUID();
-    const { error } = await sb.from('comments').insert({ id: _rid, file_id: _fvFileId, user_id: currentUser.id, content, parent_id: parentId });
+    const { data: _ins, error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content, parent_id: parentId }).select('id').single();
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    const _rid = _ins.id;
     // Yorum sahibine: "yorumuna yanıt verildi"
     const _rvp = document.getElementById('fvcmt-' + parentId);
     if (_rvp) _sendNotif('reply', _rvp.dataset.userId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
