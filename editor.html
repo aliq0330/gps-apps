@@ -2929,6 +2929,7 @@ let _colMyLikes        = new Set();
 let _colLikeCounts     = {};
 let _colCmtLikes       = {};         // commentId -> count
 let _colMyCmtLikes     = new Set();  // current user liked collection comment IDs
+let _colOwnerMap       = {};         // collectionId -> owner user_id
 let _pendingSaveColls  = new Set(); // collection IDs selected in new save modal
 let _pubProfileUserId  = null;  // currently viewed profile userId
 let _pubProfileFileIds = [];    // currently viewed profile's file ID'leri (fork listesi için)
@@ -4944,11 +4945,13 @@ async function _sendNotif(type, toUserId, fileId, extra = {}) {
     const base = { to_user_id: toUserId, from_user_id: currentUser.id, file_id: fileId || null, type, seen: false };
     const { error } = await sb.from('like_notifications').insert({ ...base, ...extra });
     if (error && Object.keys(extra).length > 0) {
-        // comment_preview gibi opsiyonel kolon yoksa sadece temel alanlarla dene
-        const { error: e2 } = await sb.from('like_notifications').insert(base);
-        if (e2) console.warn('Bildirim gönderilemedi:', e2.message);
+        // extra'daki opsiyonel kolonlar yoksa sadece temel alanlarla dene
+        const safeExtra = {};
+        if (extra.collection_id !== undefined) safeExtra.collection_id = extra.collection_id;
+        const { error: e2 } = await sb.from('like_notifications').insert({ ...base, ...safeExtra });
+        if (e2) { console.error('Bildirim gönderilemedi:', e2.message); showToast('Bildirim hatası: ' + e2.message); }
     } else if (error) {
-        console.warn('Bildirim gönderilemedi:', error.message);
+        console.error('Bildirim gönderilemedi:', error.message); showToast('Bildirim hatası: ' + error.message);
     }
 }
 
@@ -7133,6 +7136,7 @@ async function openCollectionOverlay(collId) {
     const { data: col } = await sb.from('collections').select('id,name,user_id,is_public').eq('id', collId).single();
     if (!col) { overlay.classList.remove('open'); return; }
     document.getElementById('collOverlayTitle').textContent = '📁 ' + col.name;
+    _colOwnerMap[collId] = col.user_id;
     // Sil butonu sadece koleksiyon sahibine görünsün
     const delBtn = document.getElementById('collOverlayDelBtn');
     if (delBtn) delBtn.style.display = (currentUser && currentUser.id === col.user_id) ? 'flex' : 'none';
@@ -7285,8 +7289,8 @@ async function collSubmitComment(collId, inputId, listElId) {
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     const cntElId = listElId.startsWith('ccmtlist-overlay') ? 'collCmtCount' : 'ccmtcnt-' + collId;
     // Bildirim: koleksiyon sahibine
-    const { data: col } = await sb.from('collections').select('user_id').eq('id', collId).single();
-    if (col) _sendNotif('coll_comment', col.user_id, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
+    const _ownerId = _colOwnerMap[collId];
+    if (_ownerId) _sendNotif('coll_comment', _ownerId, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
     const wrap = document.getElementById('ccmtwrap-' + collId);
     if (wrap) wrap.dataset.loaded = '';
     await collLoadComments(collId, listElId, cntElId);
@@ -7321,8 +7325,8 @@ async function collSubmitReply(parentId, collId, listElId, cntElId) {
     const _rvp = document.getElementById('ccmt-' + parentId);
     if (_rvp) _sendNotif('coll_reply', _rvp.dataset.userId, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
     // Koleksiyon sahibine (yorum sahibinden farklıysa)
-    const { data: col } = await sb.from('collections').select('user_id').eq('id', collId).single();
-    if (col && col.user_id !== _rvp?.dataset.userId) _sendNotif('coll_reply_on_coll', col.user_id, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
+    const _ownerId2 = _colOwnerMap[collId];
+    if (_ownerId2 && _ownerId2 !== _rvp?.dataset.userId) _sendNotif('coll_reply_on_coll', _ownerId2, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
     const wrap = document.getElementById('ccmtwrap-' + collId);
     if (wrap) wrap.dataset.loaded = '';
     await collLoadComments(collId, listElId, cntElId || '');
@@ -7483,6 +7487,8 @@ async function loadPublicCollectionsForFeed() {
         }
         return { ...col, prof: pMap[col.user_id] || {}, files: fileObjs, fileCount: fileIds.length };
     }));
+    // Koleksiyon sahiplerini cache'e al
+    results.forEach(col => { _colOwnerMap[col.id] = col.user_id; });
     return results;
 }
 
@@ -7550,8 +7556,8 @@ async function toggleColLike(collId) {
         _colLikeCounts[collId] = (_colLikeCounts[collId] || 0) + 1;
         await sb.from('collection_likes').insert({ collection_id: collId, user_id: currentUser.id });
         // Bildirim: koleksiyon sahibine
-        const { data: col } = await sb.from('collections').select('user_id').eq('id', collId).single();
-        if (col) _sendNotif('coll_like', col.user_id, null, { collection_id: collId });
+        const _ownerId = _colOwnerMap[collId];
+        if (_ownerId) _sendNotif('coll_like', _ownerId, null, { collection_id: collId });
     }
     // Kart butonu
     const btn = document.getElementById('cclike-' + collId);
