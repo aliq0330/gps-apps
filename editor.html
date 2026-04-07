@@ -7623,6 +7623,7 @@ async function loadPublicCollectionsForFeed() {
         currentUser ? sb.from('collection_likes').select('collection_id').eq('user_id', currentUser.id).in('collection_id', collIds) : Promise.resolve({ data: [] }),
         sb.from('collection_comments').select('collection_id').in('collection_id', collIds)
     ]);
+    collIds.forEach(id => { _colLikeCounts[id] = 0; _colMyLikes.delete(id); });
     (allColLikes || []).forEach(l => { _colLikeCounts[l.collection_id] = (_colLikeCounts[l.collection_id] || 0) + 1; });
     (myColLikes || []).forEach(l => _colMyLikes.add(l.collection_id));
     const _colCmtCountsMap = {};
