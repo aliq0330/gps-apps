@@ -4115,7 +4115,7 @@ function renderSavedFiles() {
                     Sil
                 </div>
             </div>
-            <div class="saved-file-item" onclick="openSavedFileItem(event,${file.id})"
+            <div class="saved-file-item"
                  style="${isOpen ? 'border-color:#34c759;background:rgba(52,199,89,0.1);' : ''}">
                 <div class="saved-file-name" onclick="event.stopPropagation();startEditingName(${file.id})" id="filename-${file.id}">
                     ${escapeHtml(file.filename)}.html
@@ -4230,7 +4230,6 @@ function renderSavedFiles() {
     }
 }
 
-function openSavedFileItem(event, fileId) { viewSavedFileCode(fileId); }
 
 function editFileDesc(fileId) {
     const file = savedFiles.find(f => f.id === fileId);
