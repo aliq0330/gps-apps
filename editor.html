@@ -2496,6 +2496,15 @@ body.preview-mode .file-title-bar { display: none !important; }
             <div class="fv-filename" id="collOverlayTitle">Koleksiyon</div>
             <div style="font-size:12px;color:var(--text-secondary);" id="collOverlaySubtitle"></div>
         </div>
+        <button onclick="deleteCollection(_colOverlayId)" style="
+            display:flex;align-items:center;gap:5px;padding:7px 12px;border-radius:12px;
+            border:1px solid rgba(255,69,58,0.35);background:rgba(255,69,58,0.1);
+            color:#ff453a;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            Sil
+        </button>
     </div>
     <div class="coll-overlay-list" id="collOverlayList"></div>
 </div>
@@ -7033,6 +7042,25 @@ async function openCollectionOverlay(collId) {
 function closeCollectionOverlay() {
     document.getElementById('collOverlay')?.classList.remove('open');
     _colOverlayId = null;
+}
+
+async function deleteCollection(collId) {
+    if (!collId) return;
+    if (!confirm('Bu koleksiyonu silmek istediğinizden emin misiniz?\nİçindeki dosyalar silinmez.')) return;
+    showToast('Koleksiyon siliniyor...');
+    // Önce collection_files bağlantılarını sil (dosyalar silinmez)
+    await sb.from('collection_files').delete().eq('collection_id', collId);
+    // Koleksiyonu sil
+    const { error } = await sb.from('collections').delete().eq('id', collId);
+    if (error) { showToast('Hata: ' + error.message); return; }
+    // Yerel state güncelle
+    _collections = _collections.filter(c => c.id !== collId);
+    Object.keys(_fileCollectionMap).forEach(fid => _fileCollectionMap[fid]?.delete(collId));
+    if (_collectionFilter === collId) _collectionFilter = null;
+    closeCollectionOverlay();
+    renderCollectionHeader();
+    renderSavedFiles();
+    showToast('Koleksiyon silindi');
 }
 
 async function _loadCollectionOverlayFiles(collId) {
