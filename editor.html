@@ -713,7 +713,14 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .saved-files-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
 
 /* ── SWIPE TO DELETE ─────────────────────────────────────── */
-.swipe-wrapper { position: relative; margin-bottom: 12px; border-radius: 16px; overflow: hidden; }
+.swipe-wrapper { position: relative; margin-bottom: 12px; border-radius: 16px; }
+.sf-coll-dropdown {
+    position: absolute; left: 0; top: calc(100% + 4px); z-index: 50;
+    background: var(--card-bg); border: 1px solid var(--glass-border);
+    border-radius: 12px; min-width: 180px; max-height: 220px; overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25); display: none; padding: 6px;
+}
+.sf-coll-dropdown.open { display: block; }
 
 .swipe-delete-bg {
     position: absolute; inset: 0;
@@ -2460,10 +2467,6 @@ body.preview-mode .file-title-bar { display: none !important; }
         </div>
     </div>
     <div class="saved-files-list" id="savedFilesList"></div>
-    <div id="sfCollDropdown" style="position:absolute;display:none;z-index:100;
-        background:var(--card-bg);border:1px solid var(--glass-border);border-radius:12px;
-        min-width:180px;max-height:220px;overflow-y:auto;
-        box-shadow:0 8px 24px rgba(0,0,0,0.25);padding:6px;"></div>
 </div>
 
 <!-- Koleksiyon Oluştur Modal -->
@@ -4117,6 +4120,7 @@ function renderSavedFiles() {
                             Koleksiyona ekle
                         </button>
                         <div class="sf-coll-tags" id="sfcolltags-${file.id}">${colTags}</div>
+                        <div class="sf-coll-dropdown" id="sfcolldd-${file.id}"></div>
                     </div>`;
                 })() : ''}
                 ${file.cloud ? `
@@ -6958,15 +6962,9 @@ async function confirmCreateCollection() {
 }
 
 function openFileCollectionMenu(fileId, btnEl) {
-    const menu = document.getElementById('sfCollDropdown');
+    document.querySelectorAll('.sf-coll-dropdown.open').forEach(el => el.classList.remove('open'));
+    const menu = document.getElementById('sfcolldd-' + fileId);
     if (!menu) return;
-    // Aynı butona tekrar tıklanırsa kapat
-    if (menu._openFileId === fileId && menu.style.display === 'block') {
-        menu.style.display = 'none';
-        menu._openFileId = null;
-        return;
-    }
-    menu._openFileId = fileId;
     const fileCols = _fileCollectionMap[fileId] || new Set();
     menu.innerHTML = _collections.length
         ? _collections.map(c => `
@@ -6976,19 +6974,11 @@ function openFileCollectionMenu(fileId, btnEl) {
                 ${escapeHtml(c.name)}
             </label>`).join('')
         : '<div style="padding:8px 10px;font-size:12px;color:var(--text-secondary);">Önce koleksiyon oluşturun</div>';
-    // Panel'e göre konumlandır (absolute)
-    const panel = document.getElementById('savedFilesPanel');
-    const btnRect = btnEl.getBoundingClientRect();
-    const panelRect = panel ? panel.getBoundingClientRect() : { top: 0, left: 0 };
-    menu.style.display = 'block';
-    menu.style.top = (btnRect.bottom - panelRect.top + 4) + 'px';
-    menu.style.left = (btnRect.left - panelRect.left) + 'px';
-    menu.style.right = 'auto';
+    menu.classList.add('open');
     setTimeout(() => {
         document.addEventListener('click', function handler(e) {
             if (!menu.contains(e.target) && !btnEl.contains(e.target)) {
-                menu.style.display = 'none';
-                menu._openFileId = null;
+                menu.classList.remove('open');
                 document.removeEventListener('click', handler, true);
             }
         }, true);
