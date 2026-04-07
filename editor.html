@@ -6447,8 +6447,6 @@ function fvSwitchTab(tab, animate = true) {
     const pct = -idx * (100 / 3);
     slider.style.transform = `translateX(${pct}%)`;
     if (!animate) requestAnimationFrame(() => slider.classList.remove('no-transition'));
-    const guard = document.getElementById('fvSwipeGuard');
-    if (guard) guard.style.display = tab === 'preview' ? '' : 'none';
     if (tab === 'preview') {
         const frame = document.getElementById('fvFrame');
         if (!frame.srcdoc && frame.dataset.code) frame.srcdoc = frame.dataset.code;
@@ -6893,7 +6891,12 @@ function _initFileViewSwipeBack() {
     const overlay = document.getElementById('fvOverlay');
     let sx = 0, sy = 0, decided = false, isHoriz = false, active = false;
 
+    const guard = document.getElementById('fvSwipeGuard');
+    const showGuard  = () => { if (guard && _fvTab === 'preview') guard.style.display = ''; };
+    const hideGuard  = () => { if (guard) guard.style.display = 'none'; };
+
     body.addEventListener('touchstart', e => {
+        showGuard();
         sx = e.touches[0].clientX; sy = e.touches[0].clientY;
         decided = false; isHoriz = false; active = true;
         slider.classList.add('no-transition');
@@ -6906,16 +6909,16 @@ function _initFileViewSwipeBack() {
             if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
             decided = true; isHoriz = Math.abs(dx) > Math.abs(dy);
         }
-        if (!isHoriz) return;
+        if (!isHoriz) { hideGuard(); return; }
         e.preventDefault();
         const idx  = _FV_TABS.indexOf(_fvTab);
-        const base = -idx * (100 / 3);          // % offset için base
+        const base = -idx * (100 / 3);
         const W    = body.offsetWidth;
-        const pct  = (dx / W) * (100 / 3);      // dx'i slider % birimine çevir
         slider.style.transform = `translateX(calc(${base}% + ${dx}px))`;
     }, { passive: false });
 
     body.addEventListener('touchend', e => {
+        hideGuard();
         if (!active) return;
         active = false;
         slider.classList.remove('no-transition');
@@ -6935,6 +6938,7 @@ function _initFileViewSwipeBack() {
             fvSwitchTab(_fvTab); // snap back
         }
     });
+    body.addEventListener('touchcancel', () => { hideGuard(); active = false; slider.classList.remove('no-transition'); });
 }
 
 // ── BİLDİRİMLER ────────────────────────────────────────────────────────
