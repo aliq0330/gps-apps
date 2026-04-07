@@ -2504,7 +2504,11 @@ body.preview-mode .file-title-bar { display: none !important; }
             <div class="fv-filename" id="collOverlayTitle">Koleksiyon</div>
             <div style="font-size:12px;color:var(--text-secondary);" id="collOverlaySubtitle"></div>
         </div>
-        <button onclick="deleteCollection(_colOverlayId)" style="
+        <button class="fv-like-btn" id="collOverlayLikeBtn" onclick="toggleColLike(_colOverlayId)" style="margin-right:4px;">
+            <span id="collOverlayLikeIcon">♡</span>
+            <span id="collOverlayLikeCount"></span>
+        </button>
+        <button id="collOverlayDelBtn" onclick="deleteCollection(_colOverlayId)" style="
             width:34px;height:34px;border-radius:50%;flex-shrink:0;
             border:1px solid rgba(255,69,58,0.4);background:rgba(255,69,58,0.1);
             color:#ff453a;display:flex;align-items:center;justify-content:center;cursor:pointer;">
@@ -2923,6 +2927,8 @@ let _collectionFilter  = null;
 let _fileCollectionMap = {};   // fileId -> Set of collectionIds
 let _colMyLikes        = new Set();
 let _colLikeCounts     = {};
+let _colCmtLikes       = {};         // commentId -> count
+let _colMyCmtLikes     = new Set();  // current user liked collection comment IDs
 let _pendingSaveColls  = new Set(); // collection IDs selected in new save modal
 let _pubProfileUserId  = null;  // currently viewed profile userId
 let _pubProfileFileIds = [];    // currently viewed profile's file ID'leri (fork listesi için)
@@ -6799,31 +6805,46 @@ async function loadNotifications() {
         _setNotifBadge(0); return;
     }
 
-    const fromIds = [...new Set(notifs.map(n => n.from_user_id))];
-    const fileIds  = [...new Set(notifs.map(n => n.file_id))];
-    const [{ data: profiles }, { data: files }] = await Promise.all([
+    const fromIds  = [...new Set(notifs.map(n => n.from_user_id))];
+    const fileIds  = [...new Set(notifs.filter(n => n.file_id).map(n => n.file_id))];
+    const collIds  = [...new Set(notifs.filter(n => n.collection_id).map(n => n.collection_id))];
+    const fetches = [
         sb.from('profiles').select('id,username,avatar_emoji').in('id', fromIds),
-        sb.from('files').select('id,filename').in('id', fileIds)
-    ]);
-    const pMap = {}, fMap = {};
+        fileIds.length ? sb.from('files').select('id,filename').in('id', fileIds) : Promise.resolve({ data: [] }),
+        collIds.length ? sb.from('collections').select('id,name').in('id', collIds) : Promise.resolve({ data: [] })
+    ];
+    const [{ data: profiles }, { data: files }, { data: colls }] = await Promise.all(fetches);
+    const pMap = {}, fMap = {}, cMap = {};
     (profiles || []).forEach(p => { pMap[p.id] = p; });
     (files    || []).forEach(f => { fMap[f.id] = f; });
+    (colls    || []).forEach(c => { cMap[c.id] = c; });
 
     el.innerHTML = notifs.map(n => {
-        const prof = pMap[n.from_user_id] || {};
-        const file = fMap[n.file_id] || {};
+        const prof  = pMap[n.from_user_id] || {};
+        const file  = fMap[n.file_id] || {};
+        const coll  = cMap[n.collection_id] || {};
         const fname = escapeHtml((file.filename || 'dosya') + '.html');
-        const isComment     = n.type === 'comment';
-        const isReply       = n.type === 'reply';
-        const isReplyOnFile = n.type === 'reply_on_file';
-        const isFork        = n.type === 'fork';
-        const isCmtLike     = n.type === 'comment_like';
+        const cname = escapeHtml(coll.name || 'koleksiyon');
+        const isComment        = n.type === 'comment';
+        const isReply          = n.type === 'reply';
+        const isReplyOnFile    = n.type === 'reply_on_file';
+        const isFork           = n.type === 'fork';
+        const isCmtLike        = n.type === 'comment_like';
+        const isCollLike       = n.type === 'coll_like';
+        const isCollComment    = n.type === 'coll_comment';
+        const isCollReply      = n.type === 'coll_reply';
+        const isCollReplyOnColl = n.type === 'coll_reply_on_coll';
+        const isCollCmtLike    = n.type === 'coll_comment_like';
         const _cmtSVG  = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>`;
         const _forkSVG = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#007aff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>`;
         const _heartSVG = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#ff3b30"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`;
         const _preview = n.comment_preview ? `: <em style="opacity:.8">${escapeHtml(n.comment_preview)}</em>` : '';
         const _isCommentNotif = isComment || isReply || isReplyOnFile || isCmtLike;
         const _cid = n.comment_id ? `'${n.comment_id}'` : 'null';
+        // Koleksiyon bildirimleri için tıklama
+        const _collGoto = n.collection_id ? `openCollectionOverlay('${n.collection_id}')` : '';
+        const _collClick = n.collection_id ? `style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();${_collGoto}"` : '';
+        const _collItemClick = _collGoto ? `onclick="closeNotifPanel();${_collGoto}" style="cursor:pointer"` : '';
         const _goto = n.file_id
             ? (_isCommentNotif
                 ? `openFileViewAtComment('${n.file_id}',${_cid})`
@@ -6841,8 +6862,19 @@ async function loadNotifications() {
             ? `&nbsp;${_heartSVG}${n.file_id ? ` <span class="notif-file" ${_fileClick}>${fname}</span> dosyandaki` : ''} bir yorumunu beğendi`
             : isFork
             ? `&nbsp;${_forkSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyanı fork etti`
+            : isCollLike
+            ? `&nbsp;${_heartSVG} <span class="notif-file" ${_collClick}>📁 ${cname}</span> koleksiyonunu beğendi`
+            : isCollComment
+            ? `&nbsp;${_cmtSVG} <span class="notif-file" ${_collClick}>📁 ${cname}</span> koleksiyonuna yorum yaptı${_preview}`
+            : isCollReply
+            ? `&nbsp;${_cmtSVG} <span class="notif-file" ${_collClick}>📁 ${cname}</span> koleksiyonundaki yorumuna yanıt verdi${_preview}`
+            : isCollReplyOnColl
+            ? `&nbsp;${_cmtSVG} <span class="notif-file" ${_collClick}>📁 ${cname}</span> koleksiyonundaki bir yoruma yanıt verdi${_preview}`
+            : isCollCmtLike
+            ? `&nbsp;${_heartSVG} <span class="notif-file" ${_collClick}>📁 ${cname}</span> koleksiyonundaki bir yorumunu beğendi`
             : `&nbsp;${_heartSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyanı beğendi`;
-        return `<div class="notif-item" id="notif-${n.id}" ${_itemClick}>
+        const _finalItemClick = (isCollLike||isCollComment||isCollReply||isCollReplyOnColl||isCollCmtLike) ? _collItemClick : _itemClick;
+        return `<div class="notif-item" id="notif-${n.id}" ${_finalItemClick}>
             <div class="notif-avatar" style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${prof.avatar_emoji || '👤'}</div>
             <div class="notif-info">
                 <div class="notif-text">
@@ -7102,11 +7134,30 @@ async function openCollectionOverlay(collId) {
     if (!col) { overlay.classList.remove('open'); return; }
     document.getElementById('collOverlayTitle').textContent = '📁 ' + col.name;
     // Sil butonu sadece koleksiyon sahibine görünsün
-    const delBtn = overlay.querySelector('button[onclick*="deleteCollection"]');
+    const delBtn = document.getElementById('collOverlayDelBtn');
     if (delBtn) delBtn.style.display = (currentUser && currentUser.id === col.user_id) ? 'flex' : 'none';
+    // Beğeni durumunu yükle (cache'de yoksa çek)
+    if (!_colLikeCounts[collId]) {
+        const [{ data: allL }, { data: myL }] = await Promise.all([
+            sb.from('collection_likes').select('collection_id').eq('collection_id', collId),
+            currentUser ? sb.from('collection_likes').select('collection_id').eq('collection_id', collId).eq('user_id', currentUser.id) : Promise.resolve({ data: [] })
+        ]);
+        _colLikeCounts[collId] = (allL || []).length;
+        if ((myL || []).length) _colMyLikes.add(collId);
+    }
+    _updateCollOverlayLikeBtn(collId);
     // Tab'ı sıfırla — her açılışta Dosyalar sekmesiyle başla
     collSwitchTab('files');
     await _loadCollectionOverlayFiles(collId);
+}
+
+function _updateCollOverlayLikeBtn(collId) {
+    const liked = _colMyLikes.has(collId);
+    const btn = document.getElementById('collOverlayLikeBtn');
+    if (!btn) return;
+    btn.classList.toggle('liked', liked);
+    document.getElementById('collOverlayLikeIcon').textContent = liked ? '♥' : '♡';
+    document.getElementById('collOverlayLikeCount').textContent = _colLikeCounts[collId] || '';
 }
 
 function closeCollectionOverlay() {
@@ -7174,28 +7225,53 @@ async function collLoadComments(collId, listElId, cntElId) {
     const { data: comments } = await sb.from('collection_comments')
         .select('*').eq('collection_id', collId).order('created_at', { ascending: true });
     const all = comments || [];
-    if (cntElId) { const el = document.getElementById(cntElId); if (el) el.textContent = all.length || ''; }
+    const topLevel = all.filter(c => !c.parent_id);
+    if (cntElId) { const el = document.getElementById(cntElId); if (el) el.textContent = topLevel.length || ''; }
     if (!all.length) { listEl.innerHTML = '<div class="search-empty" style="padding:8px 0;font-size:12px;">Henüz yorum yok</div>'; return; }
     const uids = [...new Set(all.map(c => c.user_id))];
-    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const cmtIds = all.map(c => c.id);
+    const [{ data: profs }, { data: allLikes }, { data: myLikes }] = await Promise.all([
+        sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
+        sb.from('collection_comment_likes').select('comment_id').in('comment_id', cmtIds),
+        currentUser ? sb.from('collection_comment_likes').select('comment_id').eq('user_id', currentUser.id).in('comment_id', cmtIds) : Promise.resolve({ data: [] })
+    ]);
     const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
-    listEl.innerHTML = all.map(c => {
+    _colCmtLikes = {};
+    (allLikes||[]).forEach(l => { _colCmtLikes[l.comment_id] = (_colCmtLikes[l.comment_id]||0)+1; });
+    _colMyCmtLikes = new Set((myLikes||[]).map(l => l.comment_id));
+    const repliesMap = {};
+    all.filter(c => c.parent_id).forEach(r => { if (!repliesMap[r.parent_id]) repliesMap[r.parent_id] = []; repliesMap[r.parent_id].push(r); });
+    const _XSVG = `<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>`;
+    const renderC = (c, isReply = false) => {
         const p = pm[c.user_id] || {};
         const canDel = currentUser && currentUser.id === c.user_id;
-        return `<div class="comment-item" id="ccmt-${c.id}" data-user-id="${c.user_id}">
+        const liked = _colMyCmtLikes.has(c.id);
+        const likeCnt = _colCmtLikes[c.id] || 0;
+        const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderC(r, true)).join('') : '';
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="ccmt-${c.id}" data-user-id="${c.user_id}">
             <div class="comment-avatar" onclick="openPublicProfile('${c.user_id}')" style="cursor:pointer">${p.avatar_emoji||'👤'}</div>
             <div class="comment-body">
                 <div class="comment-header">
                     <span class="comment-username" onclick="openPublicProfile('${c.user_id}')" style="cursor:pointer">${escapeHtml(p.username||'Kullanıcı')}</span>
                     <span class="comment-time">${_fmtTime(c.created_at)}</span>
-                    ${canDel ? `<button class="comment-delete-btn" onclick="collDeleteComment('${c.id}','${collId}','${listElId}','${cntElId||''}')">
-                        <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>` : ''}
+                    ${canDel ? `<button class="comment-delete-btn" onclick="collDeleteComment('${c.id}','${collId}','${listElId}','${cntElId||''}')">${_XSVG}</button>` : ''}
                 </div>
                 <div class="comment-text">${escapeHtml(c.content)}</div>
+                <div class="cmt-actions">
+                    <button class="cmt-like-btn${liked ? ' liked' : ''}" onclick="collToggleCmtLike('${c.id}',this,'${collId}','${listElId}','${cntElId||''}')">
+                        ${liked ? '♥' : '♡'}<span id="colcl-${c.id}">${likeCnt ? ' '+likeCnt : ''}</span>
+                    </button>
+                    ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="collShowReply('${c.id}')">Yanıtla</button>` : ''}
+                </div>
+                ${!isReply ? `<div class="cmt-reply-input-wrap" id="collri-${c.id}" style="display:none;">
+                    <textarea class="cmt-reply-textarea" id="collrit-${c.id}" placeholder="Yanıtla..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button class="cmt-reply-send" onclick="collSubmitReply('${c.id}','${collId}','${listElId}','${cntElId||''}')">Gönder</button>
+                </div>` : ''}
+                ${childReplies ? `<div class="cmt-replies-wrap">${childReplies}</div>` : ''}
             </div>
         </div>`;
-    }).join('');
+    };
+    listEl.innerHTML = topLevel.map(c => renderC(c)).join('');
 }
 
 async function collSubmitComment(collId, inputId, listElId) {
@@ -7208,6 +7284,9 @@ async function collSubmitComment(collId, inputId, listElId) {
         .insert({ collection_id: collId, user_id: currentUser.id, content });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     const cntElId = listElId.startsWith('ccmtlist-overlay') ? 'collCmtCount' : 'ccmtcnt-' + collId;
+    // Bildirim: koleksiyon sahibine
+    const { data: col } = await sb.from('collections').select('user_id').eq('id', collId).single();
+    if (col) _sendNotif('coll_comment', col.user_id, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
     const wrap = document.getElementById('ccmtwrap-' + collId);
     if (wrap) wrap.dataset.loaded = '';
     await collLoadComments(collId, listElId, cntElId);
@@ -7218,6 +7297,66 @@ async function collDeleteComment(commentId, collId, listElId, cntElId) {
     if (el) { el.style.opacity = '0'; el.style.transition = 'opacity 0.2s'; setTimeout(() => el.remove(), 200); }
     await sb.from('collection_comments').delete().eq('id', commentId);
     await collLoadComments(collId, listElId, cntElId || '');
+}
+
+function collShowReply(commentId) {
+    const wrap = document.getElementById('collri-' + commentId);
+    if (!wrap) return;
+    const showing = wrap.style.display !== 'none';
+    wrap.style.display = showing ? 'none' : 'flex';
+    if (!showing) document.getElementById('collrit-' + commentId)?.focus();
+}
+
+async function collSubmitReply(parentId, collId, listElId, cntElId) {
+    if (!currentUser) return;
+    const inp = document.getElementById('collrit-' + parentId);
+    const content = inp?.value.trim();
+    if (!content) return;
+    inp.value = ''; inp.style.height = 'auto';
+    document.getElementById('collri-' + parentId).style.display = 'none';
+    const { error } = await sb.from('collection_comments')
+        .insert({ collection_id: collId, user_id: currentUser.id, content, parent_id: parentId });
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    // Yorum sahibine: "yorumuna yanıt verildi"
+    const _rvp = document.getElementById('ccmt-' + parentId);
+    if (_rvp) _sendNotif('coll_reply', _rvp.dataset.userId, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
+    // Koleksiyon sahibine (yorum sahibinden farklıysa)
+    const { data: col } = await sb.from('collections').select('user_id').eq('id', collId).single();
+    if (col && col.user_id !== _rvp?.dataset.userId) _sendNotif('coll_reply_on_coll', col.user_id, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
+    const wrap = document.getElementById('ccmtwrap-' + collId);
+    if (wrap) wrap.dataset.loaded = '';
+    await collLoadComments(collId, listElId, cntElId || '');
+}
+
+async function collToggleCmtLike(commentId, btn, collId, listElId, cntElId) {
+    if (!currentUser) { showToast('Beğenmek için giriş yapın'); return; }
+    const liked = _colMyCmtLikes.has(commentId);
+    const span = document.getElementById('colcl-' + commentId);
+    if (liked) {
+        _colMyCmtLikes.delete(commentId);
+        _colCmtLikes[commentId] = Math.max(0, (_colCmtLikes[commentId]||1)-1);
+        btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡';
+    } else {
+        _colMyCmtLikes.add(commentId);
+        _colCmtLikes[commentId] = (_colCmtLikes[commentId]||0)+1;
+        btn.classList.add('liked'); btn.childNodes[0].textContent = '♥';
+    }
+    if (span) span.textContent = _colCmtLikes[commentId] ? ' '+_colCmtLikes[commentId] : '';
+    const { error } = liked
+        ? await sb.from('collection_comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId)
+        : await sb.from('collection_comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
+    if (error) {
+        // Geri al
+        if (liked) { _colMyCmtLikes.add(commentId); _colCmtLikes[commentId]++; btn.classList.add('liked'); btn.childNodes[0].textContent = '♥'; }
+        else { _colMyCmtLikes.delete(commentId); _colCmtLikes[commentId]=Math.max(0,(_colCmtLikes[commentId]||1)-1); btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡'; }
+        if (span) span.textContent = _colCmtLikes[commentId] ? ' '+_colCmtLikes[commentId] : '';
+        showToast('Hata: ' + error.message); return;
+    }
+    // Bildirim: yorum sahibine beğeni
+    if (!liked) {
+        const _cl = document.getElementById('ccmt-' + commentId);
+        if (_cl) _sendNotif('coll_comment_like', _cl.dataset.userId, null, { collection_id: collId });
+    }
 }
 
 async function _loadCollectionOverlayFiles(collId) {
@@ -7410,7 +7549,11 @@ async function toggleColLike(collId) {
         _colMyLikes.add(collId);
         _colLikeCounts[collId] = (_colLikeCounts[collId] || 0) + 1;
         await sb.from('collection_likes').insert({ collection_id: collId, user_id: currentUser.id });
+        // Bildirim: koleksiyon sahibine
+        const { data: col } = await sb.from('collections').select('user_id').eq('id', collId).single();
+        if (col) _sendNotif('coll_like', col.user_id, null, { collection_id: collId });
     }
+    // Kart butonu
     const btn = document.getElementById('cclike-' + collId);
     if (btn) {
         btn.classList.toggle('liked', _colMyLikes.has(collId));
@@ -7418,6 +7561,8 @@ async function toggleColLike(collId) {
         const span = document.getElementById('cclikecnt-' + collId);
         if (span) span.textContent = _colLikeCounts[collId] || '';
     }
+    // Modal butonu
+    if (_colOverlayId === collId) _updateCollOverlayLikeBtn(collId);
 }
 </script>
 
