@@ -7290,27 +7290,6 @@ async function toggleCollectionPublic(collId, currentVal, event) {
 let _colOverlayId = null;
 let _collSwipeAttached = false;
 
-// iOS klavye açılınca fixed overlay'i visual viewport'a sığdır
-if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', () => {
-        const vp = window.visualViewport;
-        const collOverlay = document.getElementById('collOverlay');
-        const fvOverlay   = document.getElementById('fvOverlay');
-        [collOverlay, fvOverlay].forEach(el => {
-            if (!el) return;
-            if (el.classList.contains('open')) {
-                el.style.height  = vp.height + 'px';
-                el.style.top     = vp.offsetTop + 'px';
-                el.style.bottom  = 'auto';
-            } else {
-                el.style.height = '';
-                el.style.top    = '';
-                el.style.bottom = '';
-            }
-        });
-    });
-}
-
 function _attachCollSwipe() {
     if (_collSwipeAttached) return;
     _collSwipeAttached = true;
@@ -7372,8 +7351,7 @@ function _updateCollOverlayLikeBtn(collId) {
 }
 
 function closeCollectionOverlay() {
-    const el = document.getElementById('collOverlay');
-    if (el) { el.classList.remove('open'); el.style.height = ''; el.style.top = ''; el.style.bottom = ''; }
+    document.getElementById('collOverlay')?.classList.remove('open');
     _colOverlayId = null;
 }
 
