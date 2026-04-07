@@ -6891,34 +6891,7 @@ function _initFileViewSwipeBack() {
     const overlay = document.getElementById('fvOverlay');
     let sx = 0, sy = 0, decided = false, isHoriz = false, active = false;
 
-    const guard = document.getElementById('fvSwipeGuard');
-    const showGuard  = () => { if (guard && _fvTab === 'preview') guard.style.display = ''; };
-    const hideGuard  = () => { if (guard) guard.style.display = 'none'; };
-
-    body.addEventListener('touchstart', e => {
-        showGuard();
-        sx = e.touches[0].clientX; sy = e.touches[0].clientY;
-        decided = false; isHoriz = false; active = true;
-        slider.classList.add('no-transition');
-    }, { passive: true });
-
-    body.addEventListener('touchmove', e => {
-        if (!active) return;
-        const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
-        if (!decided) {
-            if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-            decided = true; isHoriz = Math.abs(dx) > Math.abs(dy);
-        }
-        if (!isHoriz) { hideGuard(); return; }
-        e.preventDefault();
-        const idx  = _FV_TABS.indexOf(_fvTab);
-        const base = -idx * (100 / 3);
-        const W    = body.offsetWidth;
-        slider.style.transform = `translateX(calc(${base}% + ${dx}px))`;
-    }, { passive: false });
-
-    body.addEventListener('touchend', e => {
-        hideGuard();
+    const onEnd = e => {
         if (!active) return;
         active = false;
         slider.classList.remove('no-transition');
@@ -6930,15 +6903,60 @@ function _initFileViewSwipeBack() {
         } else if (dx > 50 && idx > 0) {
             fvSwitchTab(_FV_TABS[idx - 1]);
         } else if (dx > 80 && idx === 0) {
-            // İlk sekmede sağa kaydır → modalı kapat
             overlay.style.transition = 'transform 0.3s cubic-bezier(0.25,0.8,0.25,1)';
             overlay.style.transform  = 'translateX(100%)';
             setTimeout(() => { overlay.style.transition = ''; overlay.style.transform = ''; closeFileView(); }, 300);
         } else {
-            fvSwitchTab(_fvTab); // snap back
+            fvSwitchTab(_fvTab);
         }
+    };
+    const onCancel = () => { active = false; slider.classList.remove('no-transition'); };
+
+    // Kod ve yorumlar bölmelerinde body'den swipe al
+    body.addEventListener('touchstart', e => {
+        if (_fvTab === 'preview') return; // preview'da kenar şeritler halleder
+        sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+        decided = false; isHoriz = false; active = true;
+        slider.classList.add('no-transition');
+    }, { passive: true });
+    body.addEventListener('touchmove', e => {
+        if (!active) return;
+        const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
+        if (!decided) {
+            if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+            decided = true; isHoriz = Math.abs(dx) > Math.abs(dy);
+        }
+        if (!isHoriz) return;
+        e.preventDefault();
+        const idx = _FV_TABS.indexOf(_fvTab);
+        slider.style.transform = `translateX(calc(${-idx * (100/3)}% + ${dx}px))`;
+    }, { passive: false });
+    body.addEventListener('touchend', onEnd);
+    body.addEventListener('touchcancel', onCancel);
+
+    // Preview sekmesi: sol ve sağ kenar şeritlerden swipe al
+    [document.getElementById('fvSwipeGuardL'), document.getElementById('fvSwipeGuardR')].forEach(guard => {
+        if (!guard) return;
+        guard.addEventListener('touchstart', e => {
+            sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+            decided = false; isHoriz = false; active = true;
+            slider.classList.add('no-transition');
+        }, { passive: true });
+        guard.addEventListener('touchmove', e => {
+            if (!active) return;
+            const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
+            if (!decided) {
+                if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+                decided = true; isHoriz = Math.abs(dx) > Math.abs(dy);
+            }
+            if (!isHoriz) return;
+            e.preventDefault();
+            const idx = _FV_TABS.indexOf(_fvTab);
+            slider.style.transform = `translateX(calc(${-idx * (100/3)}% + ${dx}px))`;
+        }, { passive: false });
+        guard.addEventListener('touchend', onEnd);
+        guard.addEventListener('touchcancel', onCancel);
     });
-    body.addEventListener('touchcancel', () => { hideGuard(); active = false; slider.classList.remove('no-transition'); });
 }
 
 // ── BİLDİRİMLER ────────────────────────────────────────────────────────
@@ -7825,7 +7843,8 @@ async function toggleColLike(collId) {
             </div>
             <div class="fv-pane fv-preview-pane" id="fvPanePreview" style="position:relative;">
                 <iframe class="fv-preview-frame" id="fvFrame" sandbox="allow-scripts allow-same-origin"></iframe>
-                <div id="fvSwipeGuard" style="position:absolute;inset:0;z-index:1;display:none;"></div>
+                <div id="fvSwipeGuardL" style="position:absolute;top:0;left:0;width:28px;height:100%;z-index:2;"></div>
+                <div id="fvSwipeGuardR" style="position:absolute;top:0;right:0;width:28px;height:100%;z-index:2;"></div>
             </div>
             <div class="fv-pane fv-comments-pane" id="fvPaneComments">
                 <div class="fv-cmt-list" id="fvCmtList">
