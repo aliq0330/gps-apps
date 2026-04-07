@@ -7145,7 +7145,11 @@ async function _loadCollectionOverlayFiles(collId) {
         const data = _exploreDataMap[f.id];
         if (fr && data?.code) {
             fr.srcdoc = data.code;
-            fr.onload = () => { if (ld) ld.style.display = 'none'; };
+            fr.onload = () => {
+                fr.style.transform = `scale(${fr.parentElement.offsetWidth / 390})`;
+                fr.classList.add('loaded');
+                if (ld) ld.style.display = 'none';
+            };
         }
     });
 }
