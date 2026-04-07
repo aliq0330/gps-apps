@@ -7237,7 +7237,12 @@ async function confirmCreateCollection() {
 }
 
 function openFileCollectionMenu(fileId, btnEl) {
-    document.querySelectorAll('.sf-coll-dropdown.open').forEach(el => el.classList.remove('open'));
+    // Önceki açık menüleri kapat ve wrapper z-index'lerini sıfırla
+    document.querySelectorAll('.sf-coll-dropdown.open').forEach(el => {
+        el.classList.remove('open');
+        const w = el.closest('.swipe-wrapper');
+        if (w) w.style.zIndex = '';
+    });
     const menu = document.getElementById('sfcolldd-' + fileId);
     if (!menu) return;
     const fileCols = _fileCollectionMap[fileId] || new Set();
@@ -7250,10 +7255,14 @@ function openFileCollectionMenu(fileId, btnEl) {
             </label>`).join('')
         : '<div style="padding:8px 10px;font-size:12px;color:var(--text-secondary);">Önce koleksiyon oluşturun</div>';
     menu.classList.add('open');
+    // Bu kartın wrapper'ını öne çıkar
+    const wrapper = menu.closest('.swipe-wrapper');
+    if (wrapper) wrapper.style.zIndex = '10';
     setTimeout(() => {
         document.addEventListener('click', function handler(e) {
             if (!menu.contains(e.target) && !btnEl.contains(e.target)) {
                 menu.classList.remove('open');
+                if (wrapper) wrapper.style.zIndex = '';
                 document.removeEventListener('click', handler, true);
             }
         }, true);
