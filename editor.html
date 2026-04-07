@@ -3890,6 +3890,14 @@ function openSavedFilesPanel() {
     renderSavedFiles();
     document.getElementById('savedFilesPanel').classList.add('open');
     loadCollections();
+    const list = document.getElementById('savedFilesList');
+    if (list && !list._collScrollListener) {
+        list._collScrollListener = () => {
+            const m = document.getElementById('sfCollDropdown');
+            if (m) m.style.display = 'none';
+        };
+        list.addEventListener('scroll', list._collScrollListener, { passive: true });
+    }
 }
 
 function closeSavedFilesPanel() {
