@@ -2513,7 +2513,21 @@ body.preview-mode .file-title-bar { display: none !important; }
             </svg>
         </button>
     </div>
+    <div style="display:flex;border-bottom:1px solid var(--glass-border);padding:0 16px;gap:4px;flex-shrink:0;background:var(--card-bg);">
+        <button id="collTabFiles" onclick="collSwitchTab('files')" style="padding:10px 14px;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:#007aff;border-bottom:2px solid #007aff;margin-bottom:-1px;">Dosyalar</button>
+        <button id="collTabComments" onclick="collSwitchTab('comments')" style="padding:10px 14px;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;">Yorumlar <span id="collCmtCount"></span></button>
+    </div>
     <div class="coll-overlay-list" id="collOverlayList"></div>
+    <div id="collOverlayComments" style="display:none;flex:1;overflow-y:auto;padding:12px 16px;">
+        <div id="ccmtlist-overlay"></div>
+        <div id="ccmt-input-wrap" style="margin-top:12px;display:flex;gap:8px;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom,12px);">
+            <textarea id="ccmtinput-overlay" class="feed-cmt-textarea" placeholder="Yorum yaz..." rows="1"
+                oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+            <button class="feed-cmt-send" onclick="collSubmitComment(_colOverlayId,'ccmtinput-overlay','ccmtlist-overlay')">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- Önizleme modunda sol üstte sabit switcher -->
@@ -7096,6 +7110,8 @@ async function openCollectionOverlay(collId) {
     // Sil butonu sadece koleksiyon sahibine görünsün
     const delBtn = overlay.querySelector('button[onclick*="deleteCollection"]');
     if (delBtn) delBtn.style.display = (currentUser && currentUser.id === col.user_id) ? 'flex' : 'none';
+    // Tab'ı sıfırla — her açılışta Dosyalar sekmesiyle başla
+    collSwitchTab('files');
     await _loadCollectionOverlayFiles(collId);
 }
 
@@ -7125,6 +7141,89 @@ async function deleteCollection(collId) {
     renderCollectionHeader();
     renderSavedFiles();
     showToast('Koleksiyon silindi');
+}
+
+// ── Koleksiyon Yorumları ──────────────────────────────────────────────
+
+function collSwitchTab(tab) {
+    const filesList = document.getElementById('collOverlayList');
+    const cmtSection = document.getElementById('collOverlayComments');
+    const tabFiles = document.getElementById('collTabFiles');
+    const tabCmts = document.getElementById('collTabComments');
+    if (tab === 'files') {
+        filesList.style.display = ''; cmtSection.style.display = 'none';
+        tabFiles.style.color = '#007aff'; tabFiles.style.borderBottomColor = '#007aff';
+        tabCmts.style.color = 'var(--text-secondary)'; tabCmts.style.borderBottomColor = 'transparent';
+    } else {
+        filesList.style.display = 'none'; cmtSection.style.display = 'flex'; cmtSection.style.flexDirection = 'column';
+        tabFiles.style.color = 'var(--text-secondary)'; tabFiles.style.borderBottomColor = 'transparent';
+        tabCmts.style.color = '#007aff'; tabCmts.style.borderBottomColor = '#007aff';
+        collLoadComments(_colOverlayId, 'ccmtlist-overlay', 'collCmtCount');
+    }
+}
+
+async function collToggleComments(collId) {
+    const wrap = document.getElementById('ccmtwrap-' + collId);
+    if (!wrap) return;
+    const isOpen = wrap.style.display !== 'none';
+    wrap.style.display = isOpen ? 'none' : '';
+    if (!isOpen && !wrap.dataset.loaded) {
+        wrap.dataset.loaded = '1';
+        await collLoadComments(collId, 'ccmtlist-' + collId, 'ccmtcnt-' + collId);
+    }
+}
+
+async function collLoadComments(collId, listElId, cntElId) {
+    const listEl = document.getElementById(listElId);
+    if (!listEl) return;
+    listEl.innerHTML = '<div class="search-empty" style="padding:8px 0;font-size:12px;">Yükleniyor...</div>';
+    const { data: comments } = await sb.from('collection_comments')
+        .select('*').eq('collection_id', collId).order('created_at', { ascending: true });
+    const all = comments || [];
+    if (cntElId) { const el = document.getElementById(cntElId); if (el) el.textContent = all.length || ''; }
+    if (!all.length) { listEl.innerHTML = '<div class="search-empty" style="padding:8px 0;font-size:12px;">Henüz yorum yok</div>'; return; }
+    const uids = [...new Set(all.map(c => c.user_id))];
+    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
+    listEl.innerHTML = all.map(c => {
+        const p = pm[c.user_id] || {};
+        const canDel = currentUser && currentUser.id === c.user_id;
+        return `<div class="comment-item" id="ccmt-${c.id}" data-user-id="${c.user_id}">
+            <div class="comment-avatar" onclick="openPublicProfile('${c.user_id}')" style="cursor:pointer">${p.avatar_emoji||'👤'}</div>
+            <div class="comment-body">
+                <div class="comment-header">
+                    <span class="comment-username" onclick="openPublicProfile('${c.user_id}')" style="cursor:pointer">${escapeHtml(p.username||'Kullanıcı')}</span>
+                    <span class="comment-time">${_fmtTime(c.created_at)}</span>
+                    ${canDel ? `<button class="comment-delete-btn" onclick="collDeleteComment('${c.id}','${collId}','${listElId}','${cntElId||''}')">
+                        <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>` : ''}
+                </div>
+                <div class="comment-text">${escapeHtml(c.content)}</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function collSubmitComment(collId, inputId, listElId) {
+    if (!currentUser) { showToast('Yorum yazmak için giriş yapın'); return; }
+    const inp = document.getElementById(inputId);
+    const content = inp?.value.trim();
+    if (!content) return;
+    inp.value = ''; inp.style.height = 'auto';
+    const { error } = await sb.from('collection_comments')
+        .insert({ collection_id: collId, user_id: currentUser.id, content });
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    const cntElId = listElId.startsWith('ccmtlist-overlay') ? 'collCmtCount' : 'ccmtcnt-' + collId;
+    const wrap = document.getElementById('ccmtwrap-' + collId);
+    if (wrap) wrap.dataset.loaded = '';
+    await collLoadComments(collId, listElId, cntElId);
+}
+
+async function collDeleteComment(commentId, collId, listElId, cntElId) {
+    const el = document.getElementById('ccmt-' + commentId);
+    if (el) { el.style.opacity = '0'; el.style.transition = 'opacity 0.2s'; setTimeout(() => el.remove(), 200); }
+    await sb.from('collection_comments').delete().eq('id', commentId);
+    await collLoadComments(collId, listElId, cntElId || '');
 }
 
 async function _loadCollectionOverlayFiles(collId) {
@@ -7278,9 +7377,22 @@ function _renderCollectionCard(col) {
             <button class="feed-like-btn${liked ? ' liked' : ''}" id="cclike-${col.id}" onclick="toggleColLike('${col.id}')">
                 ${liked ? '♥' : '♡'} <span id="cclikecnt-${col.id}">${cnt || ''}</span>
             </button>
-            <button class="feed-comment-toggle" onclick="openCollectionOverlay('${col.id}')">
+            <button class="feed-comment-toggle" onclick="collToggleComments('${col.id}')">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                <span id="ccmtcnt-${col.id}"></span>
             </button>
+        </div>
+        <div id="ccmtwrap-${col.id}" style="display:none;padding:0 12px 12px;">
+            <div class="feed-comments-wrap">
+                <div class="feed-comments-list" id="ccmtlist-${col.id}"></div>
+                ${currentUser ? `<div class="feed-cmt-input-row" style="margin-top:8px;">
+                    <textarea class="feed-cmt-textarea" id="ccmtinput-${col.id}" placeholder="Yorum yaz..." rows="1"
+                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button class="feed-cmt-send" onclick="collSubmitComment('${col.id}','ccmtinput-${col.id}','ccmtlist-${col.id}')">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    </button>
+                </div>` : ''}
+            </div>
         </div>
     </div>`;
 }
