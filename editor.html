@@ -3789,25 +3789,35 @@ async function createNewSave() {
     openNewSaveModal();
 }
 
-function openNewSaveModal() {
+function _renderNewSaveCollChips() {
+    const sec = document.getElementById('newSaveCollSection');
+    const list = document.getElementById('newSaveCollList');
+    if (!sec || !list) return;
+    if (_collections.length) {
+        sec.style.display = '';
+        list.innerHTML = _collections.map(c => `
+            <label class="new-save-coll-chip" id="nscc-${c.id}" onclick="_toggleSaveColl('${c.id}',this)">
+                <input type="checkbox"> ${escapeHtml(c.name)}
+            </label>`).join('');
+    } else {
+        sec.style.display = 'none';
+    }
+}
+async function openNewSaveModal() {
     const baseName   = getBaseFilename();
     const uniqueName = generateUniqueFilename(baseName);
     const inp = document.getElementById('newSaveFilename');
     inp.value = uniqueName;
     document.getElementById('newSaveDesc').value = '';
     _pendingSaveColls.clear();
-    // Render collection chips
-    const sec = document.getElementById('newSaveCollSection');
-    const list = document.getElementById('newSaveCollList');
-    if (_collections.length && sec && list) {
-        sec.style.display = '';
-        list.innerHTML = _collections.map(c => `
-            <label class="new-save-coll-chip" id="nscc-${c.id}" onclick="_toggleSaveColl('${c.id}',this)">
-                <input type="checkbox"> ${escapeHtml(c.name)}
-            </label>`).join('');
-    } else if (sec) { sec.style.display = 'none'; }
+    _renderNewSaveCollChips();
     document.getElementById('newSaveModalOverlay').classList.add('open');
     setTimeout(() => { inp.focus(); inp.select(); }, 100);
+    // Koleksiyonlar henüz yüklenmemişse yükle ve chipsleri güncelle
+    if (!_collections.length && currentUser) {
+        await loadCollections();
+        _renderNewSaveCollChips();
+    }
 }
 function _toggleSaveColl(collId, el) {
     if (_pendingSaveColls.has(collId)) { _pendingSaveColls.delete(collId); el.classList.remove('selected'); }
