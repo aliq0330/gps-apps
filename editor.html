@@ -1929,12 +1929,6 @@ body.preview-mode .file-title-bar { display: none !important; }
     padding: 2px 8px; border-radius: 8px; font-size: 11px;
     background: rgba(0,122,255,0.12); color: #007aff; border: 1px solid rgba(0,122,255,0.22);
 }
-.sf-coll-dropdown-float {
-    position: fixed; z-index: 10000;
-    background: var(--card-bg); border: 1px solid var(--glass-border);
-    border-radius: 12px; min-width: 180px; max-height: 220px; overflow-y: auto;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.25); padding: 6px; display: none;
-}
 .sf-coll-item {
     display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px;
     cursor: pointer; font-size: 13px; color: var(--text-primary); transition: background 0.1s;
@@ -2466,6 +2460,10 @@ body.preview-mode .file-title-bar { display: none !important; }
         </div>
     </div>
     <div class="saved-files-list" id="savedFilesList"></div>
+    <div id="sfCollDropdown" style="position:absolute;display:none;z-index:100;
+        background:var(--card-bg);border:1px solid var(--glass-border);border-radius:12px;
+        min-width:180px;max-height:220px;overflow-y:auto;
+        box-shadow:0 8px 24px rgba(0,0,0,0.25);padding:6px;"></div>
 </div>
 
 <!-- Koleksiyon Oluştur Modal -->
@@ -2482,7 +2480,6 @@ body.preview-mode .file-title-bar { display: none !important; }
 </div>
 
 <!-- Koleksiyon Görüntüleyici Overlay -->
-<div class="sf-coll-dropdown-float" id="sfCollDropdown"></div>
 <div class="coll-dropdown" id="collDropdownList" style="position:fixed;display:none;"></div>
 
 <div class="coll-overlay" id="collOverlay">
@@ -3890,14 +3887,6 @@ function openSavedFilesPanel() {
     renderSavedFiles();
     document.getElementById('savedFilesPanel').classList.add('open');
     loadCollections();
-    const list = document.getElementById('savedFilesList');
-    if (list && !list._collScrollListener) {
-        list._collScrollListener = () => {
-            const m = document.getElementById('sfCollDropdown');
-            if (m) m.style.display = 'none';
-        };
-        list.addEventListener('scroll', list._collScrollListener, { passive: true });
-    }
 }
 
 function closeSavedFilesPanel() {
@@ -6987,16 +6976,14 @@ function openFileCollectionMenu(fileId, btnEl) {
                 ${escapeHtml(c.name)}
             </label>`).join('')
         : '<div style="padding:8px 10px;font-size:12px;color:var(--text-secondary);">Önce koleksiyon oluşturun</div>';
-    // Butona göre konumlandır
-    const rect = btnEl.getBoundingClientRect();
+    // Panel'e göre konumlandır (absolute)
+    const panel = document.getElementById('savedFilesPanel');
+    const btnRect = btnEl.getBoundingClientRect();
+    const panelRect = panel ? panel.getBoundingClientRect() : { top: 0, left: 0 };
     menu.style.display = 'block';
-    menu.style.top = (rect.bottom + 4) + 'px';
-    menu.style.left = rect.left + 'px';
-    // Ekran taşmasını önle
-    requestAnimationFrame(() => {
-        const mRect = menu.getBoundingClientRect();
-        if (mRect.right > window.innerWidth - 8) menu.style.left = (window.innerWidth - mRect.width - 8) + 'px';
-    });
+    menu.style.top = (btnRect.bottom - panelRect.top + 4) + 'px';
+    menu.style.left = (btnRect.left - panelRect.left) + 'px';
+    menu.style.right = 'auto';
     setTimeout(() => {
         document.addEventListener('click', function handler(e) {
             if (!menu.contains(e.target) && !btnEl.contains(e.target)) {
