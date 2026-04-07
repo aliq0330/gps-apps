@@ -2942,6 +2942,10 @@ let _profMyCmtLikes  = new Set();  // current user liked comment IDs
 let _feedCmtLikes    = {};
 let _feedMyCmtLikes  = new Set();
 
+// Yorum beğeni state — koleksiyon overlay dosya kartları
+let _coCmtLikes    = {};
+let _coMyCmtLikes  = new Set();
+
 // Fork sayıları
 let _forkCounts = {}; // fileId -> fork count
 
@@ -5232,26 +5236,112 @@ async function _coLoadComments(fileId) {
     if (cntEl) cntEl.textContent = topLevel.length || '';
     if (!all.length) { listEl.innerHTML = '<div class="search-empty" style="padding:8px 0;font-size:12px;">Henüz yorum yok</div>'; return; }
     const uids = [...new Set(all.map(c => c.user_id))];
-    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
-    const pMap = {};
-    (profs || []).forEach(p => { pMap[p.id] = p; });
-    listEl.innerHTML = topLevel.map(c => {
-        const cp = pMap[c.user_id] || {};
-        const replies = all.filter(r => r.parent_id === c.id);
-        const repliesHtml = replies.map(r => {
-            const rp = pMap[r.user_id] || {};
-            return `<div class="feed-comment-item cmt-reply" id="feedcmt-${r.id}" data-user-id="${r.user_id}">
-                <span class="feed-cmt-avatar">${rp.avatar_emoji || '👤'}</span>
-                <div class="feed-cmt-body"><span class="feed-cmt-username">${escapeHtml(rp.username||'?')}</span><span class="feed-cmt-text">${escapeHtml(r.content)}</span></div>
-                ${currentUser?.id === r.user_id ? `<button class="cmt-del-btn" onclick="feedDeleteComment('${r.id}','${fileId}')">×</button>` : ''}
-            </div>`;
-        }).join('');
-        return `<div class="feed-comment-item comment-item" id="feedcmt-${c.id}" data-user-id="${c.user_id}">
-            <span class="feed-cmt-avatar">${cp.avatar_emoji || '👤'}</span>
-            <div class="feed-cmt-body"><span class="feed-cmt-username">${escapeHtml(cp.username||'?')}</span><span class="feed-cmt-text">${escapeHtml(c.content)}</span></div>
-            ${currentUser?.id === c.user_id ? `<button class="cmt-del-btn" onclick="feedDeleteComment('${c.id}','${fileId}')">×</button>` : ''}
-        </div>${repliesHtml}`;
-    }).join('');
+    const cmtIds = all.map(c => c.id);
+    const [{ data: profs }, { data: allLikes }, { data: myLikes }] = await Promise.all([
+        sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
+        sb.from('comment_likes').select('comment_id').in('comment_id', cmtIds),
+        currentUser ? sb.from('comment_likes').select('comment_id').eq('user_id', currentUser.id).in('comment_id', cmtIds) : { data: [] }
+    ]);
+    const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
+    _coCmtLikes = {};
+    (allLikes||[]).forEach(l => { _coCmtLikes[l.comment_id] = (_coCmtLikes[l.comment_id]||0)+1; });
+    _coMyCmtLikes = new Set((myLikes||[]).map(l => l.comment_id));
+    const repliesMap = {};
+    all.filter(c => c.parent_id).forEach(r => { if (!repliesMap[r.parent_id]) repliesMap[r.parent_id] = []; repliesMap[r.parent_id].push(r); });
+    const fileOwnerId = _exploreDataMap[fileId]?.userId || '';
+    const _XSVG = `<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>`;
+    const renderCO = (c, isReply = false) => {
+        const p = pm[c.user_id] || {};
+        const canDel = currentUser && (currentUser.id === c.user_id || currentUser.id === fileOwnerId);
+        const liked = _coMyCmtLikes.has(c.id);
+        const likeCnt = _coCmtLikes[c.id] || 0;
+        const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderCO(r, true)).join('') : '';
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="co-feedcmt-${c.id}" data-user-id="${c.user_id}">
+            <div class="comment-avatar" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${p.avatar_emoji||'👤'}</div>
+            <div class="comment-body">
+                <div class="comment-header">
+                    <span class="comment-username" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${escapeHtml(p.username||'Kullanıcı')}</span>
+                    <span class="comment-time">${_fmtTime(c.created_at)}</span>
+                    ${canDel ? `<button class="comment-delete-btn" onclick="coDeleteComment('${c.id}','${fileId}')">${_XSVG}</button>` : ''}
+                </div>
+                <div class="comment-text">${escapeHtml(c.content)}</div>
+                <div class="cmt-actions">
+                    <button class="cmt-like-btn${liked ? ' liked' : ''}" onclick="coToggleCmtLike('${c.id}',this)">
+                        ${liked ? '♥' : '♡'}<span id="co-feedcl-${c.id}">${likeCnt ? ' '+likeCnt : ''}</span>
+                    </button>
+                    ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="coShowReply('${c.id}','${fileId}')">Yanıtla</button>` : ''}
+                </div>
+                ${!isReply ? `<div class="cmt-reply-input-wrap" id="co-feedri-${c.id}" style="display:none;">
+                    <textarea class="cmt-reply-textarea" id="co-feedrit-${c.id}" placeholder="Yanıtla..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button class="cmt-reply-send" onclick="coSubmitReply('${c.id}','${fileId}')">Gönder</button>
+                </div>` : ''}
+                ${childReplies ? `<div class="cmt-replies-wrap">${childReplies}</div>` : ''}
+            </div>
+        </div>`;
+    };
+    listEl.innerHTML = topLevel.map(c => renderCO(c)).join('');
+}
+
+async function coToggleCmtLike(commentId, btn) {
+    if (!currentUser) { showToast('Beğenmek için giriş yapın'); return; }
+    const liked = _coMyCmtLikes.has(commentId);
+    const span = document.getElementById('co-feedcl-' + commentId);
+    if (liked) {
+        _coMyCmtLikes.delete(commentId);
+        _coCmtLikes[commentId] = Math.max(0, (_coCmtLikes[commentId]||1)-1);
+        btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡';
+    } else {
+        _coMyCmtLikes.add(commentId);
+        _coCmtLikes[commentId] = (_coCmtLikes[commentId]||0)+1;
+        btn.classList.add('liked'); btn.childNodes[0].textContent = '♥';
+    }
+    if (span) span.textContent = _coCmtLikes[commentId] ? ' '+_coCmtLikes[commentId] : '';
+    const { error: _fe } = liked
+        ? await sb.from('comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId)
+        : await sb.from('comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
+    if (_fe) {
+        if (liked) { _coMyCmtLikes.add(commentId); _coCmtLikes[commentId]++; btn.classList.add('liked'); btn.childNodes[0].textContent = '♥'; }
+        else { _coMyCmtLikes.delete(commentId); _coCmtLikes[commentId]=Math.max(0,(_coCmtLikes[commentId]||1)-1); btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡'; }
+        if (span) span.textContent = _coCmtLikes[commentId] ? ' '+_coCmtLikes[commentId] : '';
+        showToast('Beğeni kaydedilemedi');
+    }
+}
+
+function coShowReply(commentId, fileId) {
+    const wrap = document.getElementById('co-feedri-' + commentId);
+    if (!wrap) return;
+    const showing = wrap.style.display !== 'none';
+    wrap.style.display = showing ? 'none' : 'flex';
+    if (!showing) document.getElementById('co-feedrit-' + commentId)?.focus();
+}
+
+async function coSubmitReply(parentId, fileId) {
+    if (!currentUser) return;
+    const inp = document.getElementById('co-feedrit-' + parentId);
+    const content = inp?.value.trim();
+    if (!content) return;
+    inp.value = ''; inp.style.height = 'auto';
+    document.getElementById('co-feedri-' + parentId).style.display = 'none';
+    const { data: inserted, error } = await sb.from('comments')
+        .insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId })
+        .select('id').single();
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    const _rvp = document.getElementById('co-feedcmt-' + parentId);
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: inserted?.id });
+    const _fileOwner = _exploreDataMap[fileId]?.userId;
+    if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100) });
+    const wrap = document.getElementById('co-fcmtwrap-' + fileId);
+    if (wrap) wrap.dataset.loaded = '';
+    await _coLoadComments(fileId);
+}
+
+async function coDeleteComment(commentId, fileId) {
+    const el = document.getElementById('co-feedcmt-' + commentId);
+    if (el) { el.style.opacity='0'; el.style.transition='opacity 0.2s'; setTimeout(()=>el.remove(),200); }
+    await sb.from('comments').delete().eq('id', commentId);
+    const wrap = document.getElementById('co-fcmtwrap-' + fileId);
+    if (wrap) wrap.dataset.loaded = '';
+    await _coLoadComments(fileId);
 }
 
 async function coToggleComments(fileId) {
