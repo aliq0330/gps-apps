@@ -7063,6 +7063,9 @@ async function openCollectionOverlay(collId) {
     const { data: col } = await sb.from('collections').select('id,name,user_id,is_public').eq('id', collId).single();
     if (!col) { overlay.classList.remove('open'); return; }
     document.getElementById('collOverlayTitle').textContent = '📁 ' + col.name;
+    // Sil butonu sadece koleksiyon sahibine görünsün
+    const delBtn = overlay.querySelector('button[onclick*="deleteCollection"]');
+    if (delBtn) delBtn.style.display = (currentUser && currentUser.id === col.user_id) ? 'flex' : 'none';
     await _loadCollectionOverlayFiles(collId);
 }
 
