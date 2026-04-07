@@ -1901,12 +1901,11 @@ body.preview-mode .file-title-bar { display: none !important; }
 }
 .coll-add-btn:active { background: rgba(0,122,255,0.22); transform: scale(0.88); }
 .coll-dropdown {
-    position: absolute; top: calc(100% + 6px); right: 0; z-index: 9999;
+    position: fixed; z-index: 10000;
     background: var(--card-bg); border: 1px solid var(--glass-border);
     border-radius: 14px; min-width: 180px; max-height: 280px; overflow-y: auto;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.2); display: none; padding: 6px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2); padding: 6px;
 }
-.coll-dropdown.open { display: block; }
 .coll-dropdown-item {
     display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 9px;
     cursor: pointer; font-size: 13px; color: var(--text-primary); transition: background 0.1s;
@@ -2456,7 +2455,6 @@ body.preview-mode .file-title-bar { display: none !important; }
                     <span class="coll-active-name">Koleksiyonlar</span>
                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
                 </button>
-                <div class="coll-dropdown" id="collDropdownList"></div>
             </div>
             <button class="coll-add-btn" onclick="openCreateCollectionModal()" title="Koleksiyon oluştur">+</button>
             <button class="delete-all-btn" id="deleteAllBtn" onclick="deleteAllFiles()" style="display:none;">
@@ -2485,6 +2483,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <!-- Koleksiyon Görüntüleyici Overlay -->
 <div class="sf-coll-dropdown-float" id="sfCollDropdown"></div>
+<div class="coll-dropdown" id="collDropdownList" style="position:fixed;display:none;"></div>
 
 <div class="coll-overlay" id="collOverlay">
     <div class="fv-header">
@@ -6914,20 +6913,26 @@ function renderCollectionHeader() {
 
 function toggleCollDropdown() {
     const dd = document.getElementById('collDropdownList');
-    if (!dd) return;
-    dd.classList.toggle('open');
-    if (dd.classList.contains('open')) {
-        setTimeout(() => document.addEventListener('click', _closeCollDropOutside, { once: true }), 10);
-    }
+    const btn = document.getElementById('collDropdownBtn');
+    if (!dd || !btn) return;
+    const isOpen = dd.style.display === 'block';
+    if (isOpen) { dd.style.display = 'none'; return; }
+    const rect = btn.getBoundingClientRect();
+    dd.style.top = (rect.bottom + 6) + 'px';
+    dd.style.left = 'auto';
+    dd.style.right = (window.innerWidth - rect.right) + 'px';
+    dd.style.display = 'block';
+    setTimeout(() => document.addEventListener('click', _closeCollDropOutside, { once: true }), 10);
 }
 function _closeCollDropOutside(e) {
     const dd = document.getElementById('collDropdownList');
-    if (dd && !dd.closest('.coll-dropdown-wrap').contains(e.target)) dd.classList.remove('open');
+    const btn = document.getElementById('collDropdownBtn');
+    if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) dd.style.display = 'none';
 }
 
 function filterByCollection(collId) {
     _collectionFilter = collId;
-    document.getElementById('collDropdownList')?.classList.remove('open');
+    const _cdd = document.getElementById('collDropdownList'); if (_cdd) _cdd.style.display = 'none';
     renderCollectionHeader();
     renderSavedFiles();
 }
