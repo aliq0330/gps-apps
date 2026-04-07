@@ -1901,7 +1901,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 }
 .coll-add-btn:active { background: rgba(0,122,255,0.22); transform: scale(0.88); }
 .coll-dropdown {
-    position: absolute; top: calc(100% + 6px); right: 0; z-index: 9999;
+    position: fixed; z-index: 10000;
     background: var(--card-bg); border: 1px solid var(--glass-border);
     border-radius: 14px; min-width: 180px; max-height: 280px; overflow-y: auto;
     box-shadow: 0 8px 30px rgba(0,0,0,0.2); display: none; padding: 6px;
@@ -6914,9 +6914,15 @@ function renderCollectionHeader() {
 
 function toggleCollDropdown() {
     const dd = document.getElementById('collDropdownList');
-    if (!dd) return;
+    const btn = document.getElementById('collDropdownBtn');
+    if (!dd || !btn) return;
+    const isOpen = dd.classList.contains('open');
     dd.classList.toggle('open');
-    if (dd.classList.contains('open')) {
+    if (!isOpen) {
+        const rect = btn.getBoundingClientRect();
+        dd.style.top = (rect.bottom + 6) + 'px';
+        dd.style.left = 'auto';
+        dd.style.right = (window.innerWidth - rect.right) + 'px';
         setTimeout(() => document.addEventListener('click', _closeCollDropOutside, { once: true }), 10);
     }
 }
