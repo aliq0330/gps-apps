@@ -5221,6 +5221,66 @@ async function feedToggleLike(fileId) {
     }
 }
 
+async function _coLoadComments(fileId) {
+    const listEl = document.getElementById('co-fcmtlist-' + fileId);
+    if (!listEl) return;
+    listEl.innerHTML = '<div class="search-empty" style="padding:8px 0;font-size:12px;">Yükleniyor...</div>';
+    const { data: allComments } = await sb.from('comments').select('*').eq('file_id', fileId).order('created_at', { ascending: true });
+    const all = allComments || [];
+    const topLevel = all.filter(c => !c.parent_id);
+    const cntEl = document.getElementById('cocmtcnt-' + fileId);
+    if (cntEl) cntEl.textContent = topLevel.length || '';
+    if (!all.length) { listEl.innerHTML = '<div class="search-empty" style="padding:8px 0;font-size:12px;">Henüz yorum yok</div>'; return; }
+    const uids = [...new Set(all.map(c => c.user_id))];
+    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const pMap = {};
+    (profs || []).forEach(p => { pMap[p.id] = p; });
+    listEl.innerHTML = topLevel.map(c => {
+        const cp = pMap[c.user_id] || {};
+        const replies = all.filter(r => r.parent_id === c.id);
+        const repliesHtml = replies.map(r => {
+            const rp = pMap[r.user_id] || {};
+            return `<div class="feed-comment-item cmt-reply" id="feedcmt-${r.id}" data-user-id="${r.user_id}">
+                <span class="feed-cmt-avatar">${rp.avatar_emoji || '👤'}</span>
+                <div class="feed-cmt-body"><span class="feed-cmt-username">${escapeHtml(rp.username||'?')}</span><span class="feed-cmt-text">${escapeHtml(r.content)}</span></div>
+                ${currentUser?.id === r.user_id ? `<button class="cmt-del-btn" onclick="feedDeleteComment('${r.id}','${fileId}')">×</button>` : ''}
+            </div>`;
+        }).join('');
+        return `<div class="feed-comment-item comment-item" id="feedcmt-${c.id}" data-user-id="${c.user_id}">
+            <span class="feed-cmt-avatar">${cp.avatar_emoji || '👤'}</span>
+            <div class="feed-cmt-body"><span class="feed-cmt-username">${escapeHtml(cp.username||'?')}</span><span class="feed-cmt-text">${escapeHtml(c.content)}</span></div>
+            ${currentUser?.id === c.user_id ? `<button class="cmt-del-btn" onclick="feedDeleteComment('${c.id}','${fileId}')">×</button>` : ''}
+        </div>${repliesHtml}`;
+    }).join('');
+}
+
+async function coToggleComments(fileId) {
+    const wrap = document.getElementById('co-fcmtwrap-' + fileId);
+    if (!wrap) return;
+    const isOpen = wrap.style.display !== 'none';
+    wrap.style.display = isOpen ? 'none' : '';
+    if (!isOpen && !wrap.dataset.loaded) {
+        wrap.dataset.loaded = '1';
+        await _coLoadComments(fileId);
+    }
+}
+
+async function coSubmitComment(fileId) {
+    if (!currentUser) return;
+    const inp = document.getElementById('co-fcmtinput-' + fileId);
+    const content = inp?.value.trim();
+    if (!content) return;
+    inp.value = ''; inp.style.height = 'auto';
+    const { data: inserted, error } = await sb.from('comments')
+        .insert({ file_id: fileId, user_id: currentUser.id, content })
+        .select('id').single();
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: inserted?.id });
+    const wrap = document.getElementById('co-fcmtwrap-' + fileId);
+    if (wrap) wrap.dataset.loaded = '';
+    await _coLoadComments(fileId);
+}
+
 async function feedToggleComments(fileId) {
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (!wrap) return;
@@ -7420,22 +7480,20 @@ async function _loadCollectionOverlayFiles(collId) {
                 <button class="feed-like-btn${liked ? ' liked' : ''}" id="colike-${f.id}" onclick="feedToggleLike('${f.id}')">
                     ${liked ? '♥' : '♡'} <span id="colikecnt-${f.id}">${cnt || ''}</span>
                 </button>
-                <button class="feed-comment-toggle" onclick="feedToggleComments('${f.id}')">
+                <button class="feed-comment-toggle" onclick="coToggleComments('${f.id}')">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                     <span id="cocmtcnt-${f.id}"></span>
                 </button>
             </div>
-            <div id="fcmtwrap-${f.id}" style="display:none;">
-                <div class="feed-comments-wrap">
-                    <div id="fcmtlist-${f.id}"></div>
-                    ${currentUser ? `<div class="feed-cmt-input-row" style="margin-top:8px;">
-                        <textarea class="feed-cmt-textarea" id="fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1"
-                            oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="font-size:13px;"></textarea>
-                        <button class="feed-cmt-send" onclick="feedSubmitComment('${f.id}')" style="width:30px;height:30px;">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                        </button>
-                    </div>` : ''}
-                </div>
+            <div class="feed-comments-wrap" id="co-fcmtwrap-${f.id}" style="display:none;">
+                <div id="co-fcmtlist-${f.id}"></div>
+                ${currentUser ? `<div class="feed-cmt-input-row">
+                    <textarea class="feed-cmt-textarea" id="co-fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1"
+                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button class="feed-cmt-send" onclick="coSubmitComment('${f.id}')">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    </button>
+                </div>` : ''}
             </div>
         </div>`;
     }).join('');
