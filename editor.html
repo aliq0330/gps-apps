@@ -7146,9 +7146,12 @@ async function _loadCollectionOverlayFiles(collId) {
         if (fr && data?.code) {
             fr.srcdoc = data.code;
             fr.onload = () => {
-                fr.style.transform = `scale(${fr.parentElement.offsetWidth / 390})`;
-                fr.classList.add('loaded');
-                if (ld) ld.style.display = 'none';
+                requestAnimationFrame(() => {
+                    const w = fr.parentElement?.offsetWidth || (window.innerWidth - 32);
+                    fr.style.transform = `scale(${w / 390})`;
+                    fr.classList.add('loaded');
+                    if (ld) ld.style.display = 'none';
+                });
             };
         }
     });
