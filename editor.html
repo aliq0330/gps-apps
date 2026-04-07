@@ -3768,8 +3768,8 @@ async function _doSave(filename, description = '') {
     showToast(`${filename} kaydedildi ☁️`);
 
     // Koleksiyon atamaları
-    if (_pendingSaveColls.size && currentOpenFileId && typeof currentOpenFileId === 'string') {
-        const fid = currentOpenFileId;
+    if (_pendingSaveColls.size && cloudResult && cloudResult.id) {
+        const fid = cloudResult.id;
         if (!_fileCollectionMap[fid]) _fileCollectionMap[fid] = new Set();
         for (const cid of _pendingSaveColls) {
             _fileCollectionMap[fid].add(cid);
@@ -6959,9 +6959,9 @@ function openFileCollectionMenu(fileId, btnEl) {
         document.addEventListener('click', function handler(e) {
             if (!menu.contains(e.target) && !btnEl.contains(e.target)) {
                 menu.classList.remove('open');
-                document.removeEventListener('click', handler);
+                document.removeEventListener('click', handler, true);
             }
-        });
+        }, true);
     }, 10);
 }
 
