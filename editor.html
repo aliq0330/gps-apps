@@ -3086,6 +3086,7 @@ let _colLikeCounts     = {};
 let _colCmtLikes       = {};         // commentId -> count
 let _colMyCmtLikes     = new Set();  // current user liked collection comment IDs
 let _colOwnerMap       = {};         // collectionId -> owner user_id
+let _autoPrivatedColls = new Set();  // oto-kapatılan koleksiyonlar (boş+açık iken)
 let _pendingSaveColls  = new Set(); // collection IDs selected in new save modal
 let _pubProfileUserId  = null;  // currently viewed profile userId
 let _pubProfileFileIds = [];    // currently viewed profile's file ID'leri (fork listesi için)
@@ -7659,9 +7660,28 @@ async function toggleFileInCollection(fileId, collId, checked) {
     if (checked) {
         _fileCollectionMap[fileId].add(collId);
         await sb.from('collection_files').insert({ collection_id: collId, file_id: fileId });
+        // Koleksiyon oto-kapatılmışsa eski açık durumuna döndür
+        if (_autoPrivatedColls.has(collId)) {
+            _autoPrivatedColls.delete(collId);
+            await sb.from('collections').update({ is_public: true }).eq('id', collId);
+            const col = _collections.find(c => c.id === collId);
+            if (col) col.is_public = true;
+            showToast('Koleksiyon tekrar herkese açık');
+        }
     } else {
         _fileCollectionMap[fileId].delete(collId);
         await sb.from('collection_files').delete().eq('collection_id', collId).eq('file_id', fileId);
+        // Koleksiyon açıksa ve artık hiç dosyası kalmadıysa oto-kapat
+        const col = _collections.find(c => c.id === collId);
+        if (col?.is_public) {
+            const hasFiles = Object.values(_fileCollectionMap).some(s => s.has(collId));
+            if (!hasFiles) {
+                _autoPrivatedColls.add(collId);
+                await sb.from('collections').update({ is_public: false }).eq('id', collId);
+                col.is_public = false;
+                showToast('Koleksiyon boş olduğu için gizlendi');
+            }
+        }
     }
     // Dosyanın paylaşım durumunu koleksiyon durumuna göre güncelle
     await _syncFilePublicStatus(fileId);
@@ -7681,6 +7701,8 @@ async function toggleCollectionPublic(collId, currentVal, event) {
     if (error) { showToast('Hata'); return; }
     const col = _collections.find(c => c.id === collId);
     if (col) col.is_public = newVal;
+    // Manuel değişiklikte oto-kapat kaydını temizle
+    _autoPrivatedColls.delete(collId);
     // Koleksiyondaki tüm dosyaların paylaşım durumunu güncelle
     const fileIds = Object.keys(_fileCollectionMap).filter(fid => _fileCollectionMap[fid].has(collId));
     await Promise.all(fileIds.map(fid => _syncFilePublicStatus(fid)));
