@@ -686,6 +686,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     padding: 20px; border-bottom: 1px solid var(--glass-border);
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
 }
+@media (prefers-color-scheme: dark) { .saved-files-header { background: #0b1326; } }
 .saved-files-header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .saved-files-title { font-size: 18px; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
 
@@ -1447,10 +1448,9 @@ body.preview-mode .file-title-bar { display: none !important; }
     display: flex; align-items: center; gap: 12px;
     padding: 14px 20px; border-bottom: 1px solid var(--glass-border);
     padding-top: max(14px, env(safe-area-inset-top, 14px)); flex-shrink: 0;
-    background: var(--glass-bg);
-    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    background: rgba(242,242,247,0.95);
 }
+@media (prefers-color-scheme: dark) { .conv-header { background: #0b1326; } }
 .conv-back-btn {
     width: 34px; height: 34px; border-radius: 50%;
     border: 1px solid var(--glass-border);
@@ -1631,7 +1631,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     background: rgba(242,242,247,0.95);
     flex-shrink: 0; position: relative; z-index: 1;
 }
-@media (prefers-color-scheme: dark) { .fv-header { background: rgba(28,28,30,0.95); } }
+@media (prefers-color-scheme: dark) { .fv-header { background: #0b1326; } }
 .fv-back-btn {
     width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
     border: 1px solid var(--glass-border); background: rgba(120,120,128,0.1);
@@ -1737,11 +1737,6 @@ body.preview-mode .file-title-bar { display: none !important; }
     border: 1px solid rgba(0,122,255,0.25); border-radius: 10px;
     font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; flex-shrink: 0;
 }
-.feed-traffic-bar {
-    display: flex; align-items: center; gap: 6px; padding: 8px 12px;
-    background: #161c2d; flex-shrink: 0;
-}
-.feed-traffic-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
 .feed-thumb-wrap {
     width: 100%; overflow: hidden; background: #0a1225;
     display: flex; flex-direction: column;
@@ -1798,6 +1793,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 .fork-modal-overlay.open { display:flex; }
 .fork-modal-panel { background:var(--glass-bg); backdrop-filter:saturate(var(--saturation)) blur(var(--blur)); -webkit-backdrop-filter:saturate(var(--saturation)) blur(var(--blur)); border-top:1px solid var(--glass-border); border-radius:16px 16px 0 0; width:100%; max-width:430px; max-height:72vh; display:flex; flex-direction:column; padding-bottom:env(safe-area-inset-bottom,16px); }
 .fork-modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 16px 12px; border-bottom:1px solid var(--glass-border); flex-shrink:0; }
+@media (prefers-color-scheme: dark) { .fork-modal-header { background: #0b1326; } }
 .fork-modal-title { font-size:16px; font-weight:700; color:var(--text-primary); }
 .fork-modal-close { background:none; border:none; padding:6px; cursor:pointer; color:var(--text-secondary); border-radius:8px; display:flex; }
 .fork-modal-list { overflow-y:auto; flex:1; padding:6px 0; }
@@ -2025,6 +2021,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     display: flex; flex-direction: column; overflow: hidden;
 }
 .coll-overlay.open { transform: translateX(0); }
+@media (prefers-color-scheme: dark) { .coll-tab-bar { background: #0b1326 !important; } }
 .coll-tab-viewport { flex: 1; overflow: hidden; position: relative; }
 .coll-tab-track {
     display: flex; height: 100%;
@@ -2544,7 +2541,7 @@ body.preview-mode .file-title-bar { display: none !important; }
             </svg>
         </button>
     </div>
-    <div style="display:flex;border-bottom:1px solid var(--glass-border);padding:0 16px;gap:4px;flex-shrink:0;background:var(--card-bg);">
+    <div style="display:flex;border-bottom:1px solid var(--glass-border);padding:0 16px;gap:4px;flex-shrink:0;background:var(--card-bg);" class="coll-tab-bar">
         <button id="collTabFiles" onclick="collSwitchTab('files')" style="padding:10px 14px;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:#007aff;border-bottom:2px solid #007aff;margin-bottom:-1px;">Dosyalar</button>
         <button id="collTabComments" onclick="collSwitchTab('comments')" style="padding:10px 14px;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;">Yorumlar <span id="collCmtCount"></span></button>
     </div>
@@ -5198,11 +5195,6 @@ async function loadFeed() {
             </div>
             ${f.description ? `<div class="feed-card-desc" id="fdesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
             <div class="feed-thumb-wrap">
-                <div class="feed-traffic-bar">
-                    <div class="feed-traffic-dot" style="background:#ff5f57"></div>
-                    <div class="feed-traffic-dot" style="background:#febc2e"></div>
-                    <div class="feed-traffic-dot" style="background:#28c840"></div>
-                </div>
                 <div class="feed-thumb-inner">
                     <div class="feed-thumb-loader" id="feload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
                     <iframe class="feed-thumb-frame" id="feprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
@@ -5675,11 +5667,6 @@ async function loadExploreFiles() {
                 </div>
                 ${f.description ? `<div class="feed-card-desc" id="edesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
                 <div class="feed-thumb-wrap">
-                    <div class="feed-traffic-bar">
-                        <div class="feed-traffic-dot" style="background:#ff5f57"></div>
-                        <div class="feed-traffic-dot" style="background:#febc2e"></div>
-                        <div class="feed-traffic-dot" style="background:#28c840"></div>
-                    </div>
                     <div class="feed-thumb-inner">
                         <div class="feed-thumb-loader" id="eload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
                         <iframe class="feed-thumb-frame" id="eprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
@@ -7667,11 +7654,6 @@ async function _loadCollectionOverlayFiles(collId) {
             </div>
             ${f.description ? `<div class="feed-card-desc" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
             <div class="feed-thumb-wrap">
-                <div class="feed-traffic-bar">
-                    <div class="feed-traffic-dot" style="background:#ff5f57"></div>
-                    <div class="feed-traffic-dot" style="background:#febc2e"></div>
-                    <div class="feed-traffic-dot" style="background:#28c840"></div>
-                </div>
                 <div class="feed-thumb-inner">
                     <div class="feed-thumb-loader" id="coload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
                     <iframe class="feed-thumb-frame" id="coprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
@@ -7780,11 +7762,6 @@ function _renderCollectionCard(col) {
         </div>
         <div class="feed-card-desc" onclick="openCollectionOverlay('${col.id}')">📁 ${escapeHtml(col.name)} · ${col.fileCount} dosya</div>
         <div class="coll-card-grid-wrap">
-            <div class="feed-traffic-bar">
-                <div class="feed-traffic-dot" style="background:#ff5f57"></div>
-                <div class="feed-traffic-dot" style="background:#febc2e"></div>
-                <div class="feed-traffic-dot" style="background:#28c840"></div>
-            </div>
             <div class="coll-card-grid">${gridHtml}</div>
         </div>
         <div class="coll-card-actions">
