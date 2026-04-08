@@ -1462,20 +1462,21 @@ body.preview-mode .file-title-bar { display: none !important; }
     font-size: 15px; line-height: 1.6; letter-spacing: -0.01em;
     color: var(--text-primary); border: none;
 }
-.CodeMirror-scroll { padding: 12px 20px; padding-bottom: 140px; box-sizing: border-box; overflow-x: auto !important; }
+.CodeMirror-scroll { padding-top: 12px; padding-bottom: 140px; box-sizing: border-box; overflow-x: auto !important; }
 .CodeMirror-scroll::-webkit-scrollbar:horizontal { height: 6px; }
 .CodeMirror-hscrollbar::-webkit-scrollbar { height: 6px; }
 .CodeMirror-hscrollbar::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
-.CodeMirror-lines { padding: 0; }
+.CodeMirror-lines { padding: 0 16px 0 4px !important; }
 .CodeMirror-cursor { border-left: 2px solid var(--accent) !important; }
 .CodeMirror-selected, .CodeMirror-focused .CodeMirror-selected {
     background: rgba(0,122,255,0.18) !important;
 }
-.CodeMirror-gutters { background: #f2f2f7 !important; border-right: 1px; solid var(--glass-border) !important; z-index: 4 !important; }
+.CodeMirror-gutters { background: #f2f2f7 !important; border-right: 1px solid var(--glass-border) !important; z-index: 4 !important; }
 @media (prefers-color-scheme: dark) { .CodeMirror-gutters { background: #0a1225 !important; } }
-.CodeMirror-linenumber { color: var(--text-secondary); font-size: 12px; padding: 0 8px 0 6px; min-width: 28px; text-align: right; }
-.CodeMirror-foldgutter { width: 16px; }
-.CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: var(--text-secondary); cursor: pointer; padding: 0 2px; font-size: 13px; line-height: 1; }
+.CodeMirror-linenumber { color: #6e7681 !important; font-size: 12px; padding: 0 8px 0 6px; text-align: right; white-space: nowrap; }
+@media (prefers-color-scheme: dark) { .CodeMirror-linenumber { color: #8b949e !important; } }
+.CodeMirror-foldgutter { width: 14px; }
+.CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: #8b949e; cursor: pointer; padding: 0 2px; font-size: 11px; line-height: 1; }
 .CodeMirror-foldgutter-open:hover, .CodeMirror-foldgutter-folded:hover { color: #007aff; }
 .CodeMirror-foldmarker { color: #007aff; background: rgba(0,122,255,0.12); border-radius: 4px; padding: 0 5px; font-size: 11px; font-family: 'JetBrains Mono',monospace; cursor: pointer; border: 1px solid rgba(0,122,255,0.25); }
 .CodeMirror-scroll::-webkit-scrollbar { width: 8px; }
