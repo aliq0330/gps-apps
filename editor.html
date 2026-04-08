@@ -669,7 +669,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 
 /* ── SAVED FILES PANEL ───────────────────────────────────── */
 .saved-files-panel {
-    position: fixed; top: 0; left: 0; width: 320px; height: 100%; z-index: 6000;
+    position: fixed; top: 0; left: 0; width: 320px; height: 100%;
     background: var(--glass-bg);
     backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
     -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
@@ -1350,7 +1350,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 /* ── KEŞFET PANELİ ───────────────────────────────────────── */
 .explore-overlay {
-    position: fixed; inset: 0;
+    position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0;
     z-index: 5800; background: #f2f2f7;
     transform: translateX(100%);
     transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
@@ -1621,7 +1621,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
     background: #f2f2f7;
 }
-#feedOverlay { bottom: 0; }
+#feedOverlay { bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
 @media (prefers-color-scheme: dark) { .fv-overlay { background: #1c1c1e; } }
 .fv-overlay.open { transform: translateX(0); }
 .fv-header {
