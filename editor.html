@@ -669,7 +669,8 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 
 /* ── SAVED FILES PANEL ───────────────────────────────────── */
 .saved-files-panel {
-    position: fixed; top: 0; left: 0; width: 320px; height: 100%;
+    position: fixed; top: 0; left: 0; width: 320px;
+    height: calc(100% - 60px - env(safe-area-inset-bottom, 0px));
     background: var(--glass-bg);
     backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
     -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
@@ -1615,7 +1616,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 /* ── DOSYA GÖRÜNTÜLEYICI ─────────────────────────────────── */
 .fv-overlay {
-    position: fixed; inset: 0; z-index: 7000;
+    position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0; z-index: 7000;
     display: flex; flex-direction: column;
     transform: translateX(100%);
     transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
@@ -2001,7 +2002,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 .coll-card-actions { display: flex; align-items: center; gap: 6px; padding: 8px 14px 10px; }
 /* Collection overlay */
 .coll-overlay {
-    position: fixed; inset: 0; z-index: 8000; background: var(--bg);
+    position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0; z-index: 8000; background: var(--bg);
     transform: translateX(100%); transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
     display: flex; flex-direction: column; overflow: hidden;
 }
