@@ -1462,11 +1462,10 @@ body.preview-mode .file-title-bar { display: none !important; }
     font-size: 15px; line-height: 1.6; letter-spacing: -0.01em;
     color: var(--text-primary); border: none;
 }
-.CodeMirror-scroll { padding-top: 12px; padding-bottom: 140px; box-sizing: border-box; overflow-x: auto !important; }
+.CodeMirror-scroll { padding-bottom: 140px; box-sizing: border-box; overflow-x: auto !important; }
 .CodeMirror-scroll::-webkit-scrollbar:horizontal { height: 6px; }
 .CodeMirror-hscrollbar::-webkit-scrollbar { height: 6px; }
 .CodeMirror-hscrollbar::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
-.CodeMirror-lines { padding: 0 16px 0 4px !important; }
 .CodeMirror-cursor { border-left: 2px solid var(--accent) !important; }
 .CodeMirror-selected, .CodeMirror-focused .CodeMirror-selected {
     background: rgba(0,122,255,0.18) !important;
@@ -3952,6 +3951,7 @@ function _initCodeMirror() {
         indentWithTabs: false,
         autofocus: false,
         foldGutter: true,
+        fixedGutter: true,
         gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
         extraKeys: {
             Tab: cm => {
