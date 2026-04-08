@@ -602,6 +602,33 @@ body.preview-mode .code-area { opacity: 0; pointer-events: none; transform: scal
 .code-input::-webkit-scrollbar-track { background: transparent; }
 .code-input::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
 
+/* ── Editor Tab Bar ──────────────────────────────────────── */
+.editor-tab-bar {
+    display: flex; align-items: flex-end; gap: 2px;
+    padding: 8px 10px 0; flex-shrink: 0;
+    border-bottom: 1.5px solid var(--glass-border);
+    background: transparent;
+}
+.editor-tab {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 14px; border: 1.5px solid transparent;
+    border-bottom: none; background: transparent;
+    color: var(--text-secondary); font-family: 'JetBrains Mono','SF Mono',monospace;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    border-radius: 8px 8px 0 0; transition: all 0.18s ease;
+    margin-bottom: -1.5px;
+}
+.editor-tab:hover { color: var(--text-primary); background: var(--glass-bg); }
+.editor-tab.active {
+    background: var(--card-bg); color: var(--text-primary);
+    border-color: var(--glass-border);
+    border-bottom-color: var(--card-bg);
+}
+.tab-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.tab-dot-html { background: #f97316; }
+.tab-dot-css  { background: #3b82f6; }
+.tab-dot-js   { background: #eab308; }
+
 .preview-area {
     display: none; position: fixed; inset: 0; z-index: 50;
     background: white; opacity: 0; transform: scale(1.02);
@@ -2652,6 +2679,17 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <main id="appMain" style="display:none;">
     <div class="code-area" id="codeArea">
+        <div class="editor-tab-bar" id="editorTabBar">
+            <button class="editor-tab active" data-tab="html" onclick="_switchEditorTab('html')">
+                <span class="tab-dot tab-dot-html"></span> HTML
+            </button>
+            <button class="editor-tab" data-tab="css" onclick="_switchEditorTab('css')">
+                <span class="tab-dot tab-dot-css"></span> CSS
+            </button>
+            <button class="editor-tab" data-tab="js" onclick="_switchEditorTab('js')">
+                <span class="tab-dot tab-dot-js"></span> JS
+            </button>
+        </div>
         <textarea id="editor" class="code-input" spellcheck="false"
                   oninput="updateCode()" onkeydown="handleKeydown(event)"></textarea>
     </div>
@@ -2919,11 +2957,14 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 // ── State ──────────────────────────────────────────────────────────────
 let currentUser       = null;
 let loadedFilename    = '';
-let code = `<!-- HTML kodunuzu buraya yazın -->
+const _DEFAULT_HTML = `<!-- HTML kodunuzu buraya yazın -->
 <div class="container">
   <h1>Merhaba Dünya!</h1>
   <p>Mobil editöre hoş geldiniz.</p>
 </div>`;
+let code = _DEFAULT_HTML;
+let _tabs = { html: _DEFAULT_HTML, css: '', js: '' };
+let _activeTab = 'html';
 let isFabOpen         = false;
 let currentView       = 'code';
 let savedFiles        = [];
@@ -3589,7 +3630,61 @@ function syncSwitchers(view) {
 }
 
 function buildPage() {
-    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body>${code}</body></html>`;
+    const html = _tabs.html || '';
+    const css  = (_tabs.css  || '').trim();
+    const js   = (_tabs.js   || '').trim();
+    const styleTag  = css ? `<style>\n${css}\n</style>` : '';
+    const scriptTag = js  ? `<script>\n${js}\n<\/script>` : '';
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">${styleTag}</head><body>${html}${scriptTag}</body></html>`;
+}
+
+// ── Tab Split / Merge ──────────────────────────────────────────────────
+function _splitHtmlToTabs(rawHtml) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(rawHtml, 'text/html');
+    const styles = [...doc.querySelectorAll('style')];
+    const cssContent = styles.map(s => s.textContent.trim()).filter(Boolean).join('\n\n');
+    styles.forEach(s => s.remove());
+    const scripts = [...doc.querySelectorAll('script:not([src])')];
+    const jsContent = scripts.map(s => s.textContent.trim()).filter(Boolean).join('\n\n');
+    scripts.forEach(s => s.remove());
+    const htmlContent = doc.body ? doc.body.innerHTML.trim() : '';
+    return { html: htmlContent, css: cssContent, js: jsContent };
+}
+
+function _mergeBodyContent() {
+    const html = _tabs.html || '';
+    const css  = (_tabs.css  || '').trim();
+    const js   = (_tabs.js   || '').trim();
+    const styleTag  = css ? `<style>\n${css}\n</style>\n\n` : '';
+    const scriptTag = js  ? `\n\n<script>\n${js}\n<\/script>` : '';
+    return styleTag + html + scriptTag;
+}
+
+function _buildFullHtml(title) {
+    const html = _tabs.html || '';
+    const css  = (_tabs.css  || '').trim();
+    const js   = (_tabs.js   || '').trim();
+    const t = title || loadedFilename || '';
+    const styleTag  = css ? `\n    <style>\n${css}\n    </style>` : '';
+    const scriptTag = js  ? `\n    <script>\n${js}\n    <\/script>` : '';
+    return `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width,initial-scale=1.0">\n    <title>${t}</title>${styleTag}\n</head>\n<body>\n${html}${scriptTag}\n</body>\n</html>`;
+}
+
+function _switchEditorTab(tab) {
+    if (window.cm) _tabs[_activeTab] = cm.getValue();
+    _activeTab = tab;
+    document.querySelectorAll('.editor-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    if (window.cm) {
+        const modeMap = { html: 'htmlmixed', css: 'css', js: 'javascript' };
+        cm.setOption('mode', modeMap[tab]);
+        cm.setValue(_tabs[tab] || '');
+        cm.clearHistory();
+        setTimeout(() => cm.refresh(), 10);
+    } else {
+        document.getElementById('editor').value = _tabs[tab] || '';
+    }
+    code = _mergeBodyContent();
 }
 
 // ── App Init ───────────────────────────────────────────────────────────
@@ -3643,7 +3738,11 @@ function saveToStorage() {
 function loadFromStorage() {
     try {
         const d = JSON.parse(localStorage.getItem('mobilKodEditor') || '{}');
-        if (d.code     !== undefined) code           = d.code;
+        if (d.code !== undefined) {
+            code = d.code;
+            _tabs = _splitHtmlToTabs(`<html><body>${d.code}</body></html>`);
+            _activeTab = 'html';
+        }
         if (d.filename !== undefined) loadedFilename = d.filename;
     } catch(e) {}
 }
@@ -3727,7 +3826,8 @@ function updateSavedCount() {
 
 // ── Editor ─────────────────────────────────────────────────────────────
 function updateCode() {
-    code = document.getElementById('editor').value;
+    _tabs[_activeTab] = document.getElementById('editor').value;
+    code = _mergeBodyContent();
     hasUnsavedChanges = true;
     saveToStorage(); updateTabDotColor(); updateQuickSaveButton();
 
@@ -3745,12 +3845,17 @@ function _getCMMode(filename) {
     return { html:'htmlmixed', htm:'htmlmixed', js:'javascript', css:'css', xml:'xml', svg:'xml', json:'javascript', md:'markdown', markdown:'markdown' }[ext] || 'htmlmixed';
 }
 function updateEditor() {
+    // Sync tab UI
+    document.querySelectorAll('.editor-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === _activeTab));
+    const content = _tabs[_activeTab] || '';
+    const modeMap = { html: 'htmlmixed', css: 'css', js: 'javascript' };
     if (window.cm) {
-        cm.setValue(code || '');
+        cm.setOption('mode', modeMap[_activeTab] || _getCMMode(loadedFilename || ''));
+        cm.setValue(content);
         cm.clearHistory();
-        cm.setOption('mode', _getCMMode(loadedFilename || ''));
+        setTimeout(() => cm.refresh(), 10);
     } else {
-        document.getElementById('editor').value = code;
+        document.getElementById('editor').value = content;
     }
 }
 
@@ -3783,7 +3888,8 @@ function _initCodeMirror() {
         }
     });
     cm.on('change', () => {
-        code = cm.getValue();
+        _tabs[_activeTab] = cm.getValue();
+        code = _mergeBodyContent();
         hasUnsavedChanges = true;
         saveToStorage(); updateTabDotColor(); updateQuickSaveButton();
         if (saveButtonState === 'saved') setSaveButtonState('idle');
@@ -4344,6 +4450,8 @@ function handleUnsavedDiscard() {
 function continuePreviewSavedFile(fileId) {
     const file = savedFiles.find(f => f.id === fileId);
     if (!file) return;
+    _tabs = _splitHtmlToTabs(`<html><body>${file.code}</body></html>`);
+    _activeTab = 'html';
     code = file.code; loadedFilename = file.filename;
     currentOpenFileId = file.id; hasUnsavedChanges = false;
     updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
@@ -4357,6 +4465,8 @@ function continuePreviewSavedFile(fileId) {
 function continueViewSavedFileCode(fileId) {
     const file = savedFiles.find(f => f.id === fileId);
     if (!file) return;
+    _tabs = _splitHtmlToTabs(`<html><body>${file.code}</body></html>`);
+    _activeTab = 'html';
     code = file.code; loadedFilename = file.filename;
     currentOpenFileId = file.id; hasUnsavedChanges = false;
     updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
@@ -4410,7 +4520,11 @@ async function deleteSavedFile(id) {
 function downloadSavedFile(id) {
     const file = savedFiles.find(f => f.id === id);
     if (!file) return;
-    const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width,initial-scale=1.0">\n    <title>${file.filename}</title>\n</head>\n<body>\n${file.code}\n</body>\n</html>`;
+    const t = _splitHtmlToTabs(`<html><body>${file.code}</body></html>`);
+    const css = t.css.trim(); const js = t.js.trim();
+    const styleTag  = css ? `\n    <style>\n${css}\n    </style>` : '';
+    const scriptTag = js  ? `\n    <script>\n${js}\n    <\/script>` : '';
+    const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width,initial-scale=1.0">\n    <title>${file.filename}</title>${styleTag}\n</head>\n<body>\n${t.html}${scriptTag}\n</body>\n</html>`;
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([full], { type: 'text/html' }));
     a.download = `${file.filename}.html`;
@@ -4438,7 +4552,7 @@ function confirmSaveFromModal() {
         return;
     }
     if (!fn.endsWith('.html')) fn += '.html';
-    const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width,initial-scale=1.0">\n    <title>${fn}</title>\n</head>\n<body>\n${code}\n</body>\n</html>`;
+    const full = _buildFullHtml(fn.replace('.html', ''));
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([full], { type: 'text/html' }));
     a.download = fn; a.click();
@@ -4455,11 +4569,23 @@ function handleFileLoad(event) {
     event.target.value = '';
     loadedFilename = file.name.replace(/\.[^/.]+$/, '');
     currentOpenFileId = null;
-    // Yeni dosya yüklenince idle durumuna geç
     setSaveButtonState('idle');
     const r = new FileReader();
     r.onload = e => {
-        code = e.target.result; hasUnsavedChanges = false;
+        const raw = e.target.result;
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext === 'html' || ext === 'htm') {
+            _tabs = _splitHtmlToTabs(raw);
+        } else if (ext === 'css') {
+            _tabs = { html: '', css: raw, js: '' };
+        } else if (ext === 'js') {
+            _tabs = { html: '', css: '', js: raw };
+        } else {
+            _tabs = _splitHtmlToTabs(`<html><body>${raw}</body></html>`);
+        }
+        _activeTab = 'html';
+        code = _mergeBodyContent();
+        hasUnsavedChanges = false;
         saveToStorage(); updateEditor(); updateFilenameDisplay();
         updateTabDotColor(); updateQuickSaveButton();
         showToast(file.name + ' yüklendi');
@@ -4471,6 +4597,7 @@ function handleFileLoad(event) {
 // ── Misc ───────────────────────────────────────────────────────────────
 function clearCode() {
     if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
+        _tabs = { html: '', css: '', js: '' }; _activeTab = 'html';
         code = ''; loadedFilename = '';
         currentOpenFileId = null; hasUnsavedChanges = false;
         saveToStorage(); updateEditor(); updateFilenameDisplay();
