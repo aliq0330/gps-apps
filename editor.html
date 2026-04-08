@@ -1385,24 +1385,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     padding: 8px 16px;
     display: flex; align-items: center; gap: 8px;
     flex-shrink: 0; position: relative; z-index: 39;
-    overflow: hidden; max-height: 56px;
-    transition: max-height 0.25s cubic-bezier(0.4,0,0.2,1),
-                padding 0.25s cubic-bezier(0.4,0,0.2,1),
-                opacity 0.2s ease, border-color 0.2s ease;
-    opacity: 1;
 }
-.file-title-bar.toolbar-collapsed {
-    max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; border-color: transparent;
-}
-.tab-toolbar-btn {
-    margin-left: auto; height: 26px; width: 26px; border-radius: 7px;
-    border: 1.5px solid var(--glass-border); background: transparent;
-    color: var(--text-secondary); cursor: pointer; display: flex;
-    align-items: center; justify-content: center;
-    transition: all 0.18s ease; flex-shrink: 0;
-}
-.tab-toolbar-btn:hover { background: rgba(120,120,128,0.15); color: var(--text-primary); }
-.tab-toolbar-btn.active { background: rgba(0,122,255,0.12); border-color: rgba(0,122,255,0.4); color: #007aff; }
 body.preview-mode .file-title-bar { display: none !important; }
 .toolbar-btn {
     display: inline-flex; align-items: center; gap: 6px;
@@ -2756,11 +2739,6 @@ body.preview-mode .file-title-bar { display: none !important; }
             <button class="editor-tab" data-tab="js" onclick="_switchEditorTab('js')">
                 <span class="tab-dot tab-dot-js"></span> JS
             </button>
-            <button class="tab-toolbar-btn" id="toolbarToggleBtn" onclick="_toggleToolbar()" title="Araç Çubuğu">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-            </button>
         </div>
         <div class="search-panel" id="searchPanel">
             <div class="search-row">
@@ -3536,9 +3514,7 @@ function hideAuthScreen() {
 
 function showApp() {
     document.getElementById('appHeader').style.display    = '';
-    const _ftb = document.getElementById('fileTitleBar');
-    _ftb.style.display = '';
-    _ftb.classList.add('toolbar-collapsed');
+    document.getElementById('fileTitleBar').style.display = '';
     document.getElementById('bottomBar').style.display    = '';
     document.getElementById('appMain').style.display      = '';
     document.getElementById('fabContainer').style.display = '';
@@ -4722,14 +4698,6 @@ function pasteCode() {
         }
         if (isFabOpen) toggleFabMenu(); showToast('Yapıştırıldı');
     }).catch(() => showToast('Yapıştırma başarısız'));
-}
-
-// ── Toolbar Toggle ─────────────────────────────────────────────────────
-function _toggleToolbar() {
-    const bar = document.getElementById('fileTitleBar');
-    const btn = document.getElementById('toolbarToggleBtn');
-    bar.classList.toggle('toolbar-collapsed');
-    btn.classList.toggle('active', !bar.classList.contains('toolbar-collapsed'));
 }
 
 // ── Search & Replace ───────────────────────────────────────────────────
