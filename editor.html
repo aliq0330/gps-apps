@@ -1471,10 +1471,10 @@ body.preview-mode .file-title-bar { display: none !important; }
 .CodeMirror-selected, .CodeMirror-focused .CodeMirror-selected {
     background: rgba(0,122,255,0.18) !important;
 }
-.CodeMirror-gutters { background: #f2f2f7 !important; border-right: 1px solid var(--glass-border) !important; z-index: 4 !important; }
+.CodeMirror-gutters { background: #f2f2f7 !important; border-right: 1px solid var(--glass-border) !important; z-index: 4 !important; overflow: visible !important; }
 @media (prefers-color-scheme: dark) { .CodeMirror-gutters { background: #0a1225 !important; } }
-.CodeMirror-linenumber { color: var(--text-secondary); font-size: 12px; padding: 0 8px 0 6px; min-width: 28px; text-align: right; }
-.CodeMirror-foldgutter { width: 16px; }
+.CodeMirror-linenumber { color: var(--text-secondary); font-size: 12px; padding: 0 10px 0 8px; text-align: right; white-space: nowrap; }
+.CodeMirror-foldgutter { width: 14px; }
 .CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: var(--text-secondary); cursor: pointer; padding: 0 2px; font-size: 13px; line-height: 1; }
 .CodeMirror-foldgutter-open:hover, .CodeMirror-foldgutter-folded:hover { color: #007aff; }
 .CodeMirror-foldmarker { color: #007aff; background: rgba(0,122,255,0.12); border-radius: 4px; padding: 0 5px; font-size: 11px; font-family: 'JetBrains Mono',monospace; cursor: pointer; border: 1px solid rgba(0,122,255,0.25); }
