@@ -7662,8 +7662,17 @@ async function toggleFileInCollection(fileId, collId, checked) {
     } else {
         _fileCollectionMap[fileId].delete(collId);
         await sb.from('collection_files').delete().eq('collection_id', collId).eq('file_id', fileId);
+        // Koleksiyonda hiç dosya kalmadıysa mecbur gizle
+        const hasFiles = Object.values(_fileCollectionMap).some(s => s.has(collId));
+        if (!hasFiles) {
+            const col = _collections.find(c => c.id === collId);
+            if (col?.is_public) {
+                await sb.from('collections').update({ is_public: false }).eq('id', collId);
+                col.is_public = false;
+                showToast('Koleksiyon boş, otomatik gizlendi');
+            }
+        }
     }
-    // Dosyanın paylaşım durumunu koleksiyon durumuna göre güncelle
     await _syncFilePublicStatus(fileId);
     const tagsEl = document.getElementById('sfcolltags-' + fileId);
     if (tagsEl) {
@@ -7677,11 +7686,15 @@ async function toggleFileInCollection(fileId, collId, checked) {
 async function toggleCollectionPublic(collId, currentVal, event) {
     event && event.stopPropagation();
     const newVal = !currentVal;
+    // Boş koleksiyon herkese açılamaz
+    if (newVal) {
+        const hasFiles = Object.values(_fileCollectionMap).some(s => s.has(collId));
+        if (!hasFiles) { showToast('Koleksiyona önce dosya ekleyin'); return; }
+    }
     const { error } = await sb.from('collections').update({ is_public: newVal }).eq('id', collId);
     if (error) { showToast('Hata'); return; }
     const col = _collections.find(c => c.id === collId);
     if (col) col.is_public = newVal;
-    // Koleksiyondaki tüm dosyaların paylaşım durumunu güncelle
     const fileIds = Object.keys(_fileCollectionMap).filter(fid => _fileCollectionMap[fid].has(collId));
     await Promise.all(fileIds.map(fid => _syncFilePublicStatus(fid)));
     showToast(newVal ? 'Koleksiyon ve dosyalar herkese açık' : 'Koleksiyon gizlendi');
