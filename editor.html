@@ -3752,9 +3752,7 @@ function _switchEditorTab(tab) {
     document.querySelectorAll('.editor-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     if (window.cm) {
         const modeMap = { html: 'htmlmixed', css: 'css', js: 'javascript' };
-        const foldMap = { html: CodeMirror.fold.xml, css: CodeMirror.fold.brace, js: CodeMirror.fold.brace };
         cm.setOption('mode', modeMap[tab]);
-        cm.setOption('foldOptions', { rangeFinder: foldMap[tab] });
         cm.setValue(_tabs[tab] || '');
         cm.clearHistory();
         setTimeout(() => cm.refresh(), 10);
@@ -3946,22 +3944,26 @@ function _initCodeMirror() {
     window.cm = CodeMirror.fromTextArea(document.getElementById('editor'), {
         lineNumbers: true,
         mode: 'htmlmixed',
-        lineWrapping: true,
+        lineWrapping: false,
         tabSize: 2,
         indentWithTabs: false,
         autofocus: false,
-        foldGutter: true,
-        fixedGutter: true,
-        gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
         extraKeys: {
             Tab: cm => {
                 if (cm.somethingSelected()) cm.indentSelection('add');
                 else cm.replaceSelection('  ', 'end');
             },
-            'Shift-Tab': cm => cm.indentSelection('subtract'),
-            'Ctrl-Q': cm => cm.foldCode(cm.getCursor())
+            'Shift-Tab': cm => cm.indentSelection('subtract')
         }
     });
+    // Fold gutter — sadece addon yüklendiyse ekle
+    if (typeof CodeMirror.fold !== 'undefined' && typeof cm.foldCode === 'function') {
+        cm.setOption('foldGutter', true);
+        cm.setOption('gutters', ['CodeMirror-linenumbers', 'CodeMirror-foldgutter']);
+        cm.setOption('extraKeys', Object.assign(cm.getOption('extraKeys') || {}, {
+            'Ctrl-Q': c => c.foldCode(c.getCursor())
+        }));
+    }
     cm.on('change', () => {
         _tabs[_activeTab] = cm.getValue();
         code = _mergeBodyContent();
