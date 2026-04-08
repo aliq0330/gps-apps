@@ -15,6 +15,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/xml-fold.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/brace-fold.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/comment-fold.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/indent-fold.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -1455,7 +1462,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     font-size: 15px; line-height: 1.6; letter-spacing: -0.01em;
     color: var(--text-primary); border: none;
 }
-.CodeMirror-scroll { padding: 12px 50px; padding-bottom: 140px; box-sizing: border-box; overflow-x: auto !important; }
+.CodeMirror-scroll { padding: 12px 12px 40px 10px; padding-bottom: 140px; box-sizing: border-box; overflow-x: auto !important; }
 .CodeMirror-scroll::-webkit-scrollbar:horizontal { height: 6px; }
 .CodeMirror-hscrollbar::-webkit-scrollbar { height: 6px; }
 .CodeMirror-hscrollbar::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
@@ -1467,6 +1474,10 @@ body.preview-mode .file-title-bar { display: none !important; }
 .CodeMirror-gutters { background: #f2f2f7 !important; border-right: 1px solid var(--glass-border) !important; z-index: 4 !important; }
 @media (prefers-color-scheme: dark) { .CodeMirror-gutters { background: #0a1225 !important; } }
 .CodeMirror-linenumber { color: var(--text-secondary); font-size: 12px; padding: 0 8px 0 6px; min-width: 28px; text-align: right; }
+.CodeMirror-foldgutter { width: 16px; }
+.CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: var(--text-secondary); cursor: pointer; padding: 0 2px; font-size: 13px; line-height: 1; }
+.CodeMirror-foldgutter-open:hover, .CodeMirror-foldgutter-folded:hover { color: #007aff; }
+.CodeMirror-foldmarker { color: #007aff; background: rgba(0,122,255,0.12); border-radius: 4px; padding: 0 5px; font-size: 11px; font-family: 'JetBrains Mono',monospace; cursor: pointer; border: 1px solid rgba(0,122,255,0.25); }
 .CodeMirror-scroll::-webkit-scrollbar { width: 8px; }
 .CodeMirror-scroll::-webkit-scrollbar-track { background: transparent; }
 .CodeMirror-scroll::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
@@ -3741,7 +3752,9 @@ function _switchEditorTab(tab) {
     document.querySelectorAll('.editor-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     if (window.cm) {
         const modeMap = { html: 'htmlmixed', css: 'css', js: 'javascript' };
+        const foldMap = { html: CodeMirror.fold.xml, css: CodeMirror.fold.brace, js: CodeMirror.fold.brace };
         cm.setOption('mode', modeMap[tab]);
+        cm.setOption('foldOptions', { rangeFinder: foldMap[tab] });
         cm.setValue(_tabs[tab] || '');
         cm.clearHistory();
         setTimeout(() => cm.refresh(), 10);
@@ -3937,12 +3950,15 @@ function _initCodeMirror() {
         tabSize: 2,
         indentWithTabs: false,
         autofocus: false,
+        foldGutter: true,
+        gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
         extraKeys: {
             Tab: cm => {
                 if (cm.somethingSelected()) cm.indentSelection('add');
                 else cm.replaceSelection('  ', 'end');
             },
-            'Shift-Tab': cm => cm.indentSelection('subtract')
+            'Shift-Tab': cm => cm.indentSelection('subtract'),
+            'Ctrl-Q': cm => cm.foldCode(cm.getCursor())
         }
     });
     cm.on('change', () => {
