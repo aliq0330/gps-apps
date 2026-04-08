@@ -45,16 +45,16 @@
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --glass-bg: rgba(28,28,30,0.4);
-        --glass-border: rgba(255,255,255,0.1);
-        --glass-highlight: rgba(255,255,255,0.15);
-        --glass-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.3), 0 16px 32px rgba(0,0,0,0.4);
-        --text-primary: #ffffff;
-        --text-secondary: rgba(235,235,245,0.6);
+        --glass-bg: rgba(20,28,46,0.88);
+        --glass-border: rgba(255,255,255,0.08);
+        --glass-highlight: rgba(255,255,255,0.12);
+        --glass-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 8px 16px rgba(0,0,0,0.4), 0 16px 32px rgba(0,0,0,0.5);
+        --text-primary: #e6edf3;
+        --text-secondary: rgba(139,148,158,0.9);
         --glass-reflex-light: 0.3;
         --glass-reflex-dark: 2;
-        --bg: #000000;
-        --card-bg: rgba(28,28,30,0.98);
+        --bg: #0a1225;
+        --card-bg: rgba(22,30,48,0.99);
     }
 }
 
@@ -74,9 +74,9 @@ html, body {
 @media (prefers-color-scheme: dark) {
     html, body {
         background:
-            radial-gradient(ellipse at top left, rgba(120,120,128,0.2) 0%, transparent 50%),
-            radial-gradient(ellipse at bottom right, rgba(120,120,128,0.15) 0%, transparent 50%),
-            #000000;
+            radial-gradient(ellipse at top left, rgba(30,50,100,0.3) 0%, transparent 50%),
+            radial-gradient(ellipse at bottom right, rgba(20,40,80,0.2) 0%, transparent 50%),
+            #0a1225;
     }
 }
 
@@ -97,9 +97,9 @@ svg { display: block; flex-shrink: 0; }
 @media (prefers-color-scheme: dark) {
     #authScreen {
         background:
-            radial-gradient(ellipse at top left, rgba(120,120,128,0.2) 0%, transparent 50%),
-            radial-gradient(ellipse at bottom right, rgba(120,120,128,0.15) 0%, transparent 50%),
-            #000000;
+            radial-gradient(ellipse at top left, rgba(30,50,100,0.3) 0%, transparent 50%),
+            radial-gradient(ellipse at bottom right, rgba(20,40,80,0.2) 0%, transparent 50%),
+            #0a1225;
     }
 }
 
@@ -602,6 +602,33 @@ body.preview-mode .code-area { opacity: 0; pointer-events: none; transform: scal
 .code-input::-webkit-scrollbar-track { background: transparent; }
 .code-input::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
 
+/* ── Editor Tab Bar ──────────────────────────────────────── */
+.editor-tab-bar {
+    display: flex; align-items: flex-end; gap: 2px;
+    padding: 8px 10px 0; flex-shrink: 0;
+    border-bottom: 1.5px solid var(--glass-border);
+    background: transparent;
+}
+.editor-tab {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 14px; border: 1.5px solid transparent;
+    border-bottom: none; background: transparent;
+    color: var(--text-secondary); font-family: 'JetBrains Mono','SF Mono',monospace;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    border-radius: 8px 8px 0 0; transition: all 0.18s ease;
+    margin-bottom: -1.5px;
+}
+.editor-tab:hover { color: var(--text-primary); background: var(--glass-bg); }
+.editor-tab.active {
+    background: var(--card-bg); color: var(--text-primary);
+    border-color: var(--glass-border);
+    border-bottom-color: var(--card-bg);
+}
+.tab-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.tab-dot-html { background: #f97316; }
+.tab-dot-css  { background: #3b82f6; }
+.tab-dot-js   { background: #eab308; }
+
 .preview-area {
     display: none; position: fixed; inset: 0; z-index: 50;
     background: white; opacity: 0; transform: scale(1.02);
@@ -669,7 +696,8 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 
 /* ── SAVED FILES PANEL ───────────────────────────────────── */
 .saved-files-panel {
-    position: fixed; top: 0; left: 0; width: 320px; height: 100%;
+    position: fixed; top: 0; left: 0; width: 320px;
+    height: calc(100% - 60px - env(safe-area-inset-bottom, 0px));
     background: var(--glass-bg);
     backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
     -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
@@ -685,6 +713,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     padding: 20px; border-bottom: 1px solid var(--glass-border);
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
 }
+@media (prefers-color-scheme: dark) { .saved-files-header { background: #0b1326; } }
 .saved-files-header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .saved-files-title { font-size: 18px; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
 
@@ -1356,7 +1385,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
     display: flex; flex-direction: column; overflow: hidden;
 }
-@media (prefers-color-scheme: dark) { .explore-overlay { background: #1c1c1e; } }
+@media (prefers-color-scheme: dark) { .explore-overlay { background: #0a1225; } }
 .explore-overlay.open { transform: translateX(0); }
 .explore-panel { display: contents; }
 #exploreList { flex: 1; overflow-y: auto; padding: 12px 16px 20px; }
@@ -1392,7 +1421,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     background: rgba(0,122,255,0.18) !important;
 }
 .CodeMirror-gutters { background: #f2f2f7 !important; border-right: 1px solid var(--glass-border) !important; z-index: 4 !important; }
-@media (prefers-color-scheme: dark) { .CodeMirror-gutters { background: #000 !important; } }
+@media (prefers-color-scheme: dark) { .CodeMirror-gutters { background: #0a1225 !important; } }
 .CodeMirror-linenumber { color: var(--text-secondary); font-size: 12px; padding: 0 8px 0 6px; min-width: 28px; text-align: right; }
 .CodeMirror-scroll::-webkit-scrollbar { width: 8px; }
 .CodeMirror-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -1429,28 +1458,26 @@ body.preview-mode .file-title-bar { display: none !important; }
     transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
     display: flex; flex-direction: column; overflow: hidden;
 }
-@media (prefers-color-scheme: dark) { .messages-overlay { background: #1c1c1e; } }
+@media (prefers-color-scheme: dark) { .messages-overlay { background: #0a1225; } }
 .messages-overlay.open { transform: translateX(0); }
 .messages-panel { display: contents; }
 .conv-overlay {
     position: fixed; inset: 0; z-index: 9000;
-    background: var(--glass-bg);
-    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    background: #f2f2f7;
     display: flex; flex-direction: column;
     transform: translateX(100%);
     transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
     padding-bottom: env(safe-area-inset-bottom, 0);
 }
+@media (prefers-color-scheme: dark) { .conv-overlay { background: #0a1225; } }
 .conv-overlay.open { transform: translateX(0); }
 .conv-header {
     display: flex; align-items: center; gap: 12px;
     padding: 14px 20px; border-bottom: 1px solid var(--glass-border);
     padding-top: max(14px, env(safe-area-inset-top, 14px)); flex-shrink: 0;
-    background: var(--glass-bg);
-    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    background: rgba(242,242,247,0.95);
 }
+@media (prefers-color-scheme: dark) { .conv-header { background: #0b1326; } }
 .conv-back-btn {
     width: 34px; height: 34px; border-radius: 50%;
     border: 1px solid var(--glass-border);
@@ -1615,14 +1642,14 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 /* ── DOSYA GÖRÜNTÜLEYICI ─────────────────────────────────── */
 .fv-overlay {
-    position: fixed; inset: 0; z-index: 7000;
+    position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0; z-index: 7000;
     display: flex; flex-direction: column;
     transform: translateX(100%);
     transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
     background: #f2f2f7;
 }
 #feedOverlay { bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
-@media (prefers-color-scheme: dark) { .fv-overlay { background: #1c1c1e; } }
+@media (prefers-color-scheme: dark) { .fv-overlay { background: #0a1225; } }
 .fv-overlay.open { transform: translateX(0); }
 .fv-header {
     display: flex; align-items: center; gap: 10px;
@@ -1631,7 +1658,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     background: rgba(242,242,247,0.95);
     flex-shrink: 0; position: relative; z-index: 1;
 }
-@media (prefers-color-scheme: dark) { .fv-header { background: rgba(28,28,30,0.95); } }
+@media (prefers-color-scheme: dark) { .fv-header { background: #0b1326; } }
 .fv-back-btn {
     width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
     border: 1px solid var(--glass-border); background: rgba(120,120,128,0.1);
@@ -1716,23 +1743,33 @@ body.preview-mode .file-title-bar { display: none !important; }
     border-radius: 16px; margin-bottom: 14px; overflow: hidden;
 }
 .feed-card-header {
-    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px; padding: 12px 14px 10px;
     cursor: pointer;
 }
-.feed-card-avatar { font-size: 22px; flex-shrink: 0; }
+.feed-card-avatar {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(120,120,128,0.15); display: flex; align-items: center;
+    justify-content: center; font-size: 22px; overflow: hidden;
+}
 .feed-card-meta { flex: 1; min-width: 0; }
-.feed-card-username { font-size: 13px; font-weight: 700; color: var(--text-primary); }
-.feed-card-date { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+.feed-card-username { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.feed-card-date { font-size: 10px; color: var(--text-secondary); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+.feed-more-btn {
+    background: none; border: none; cursor: pointer; color: var(--text-secondary);
+    padding: 4px 8px; border-radius: 8px; font-size: 20px; letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 0.7;
+}
 .feed-open-btn {
     padding: 6px 12px; background: rgba(0,122,255,0.12); color: #007aff;
     border: 1px solid rgba(0,122,255,0.25); border-radius: 10px;
     font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; flex-shrink: 0;
 }
 .feed-thumb-wrap {
-    position: relative; width: 100%; height: 220px; overflow: hidden;
-    background: #f0f0f0; border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border);
+    width: 100%; overflow: hidden; background: #0a1225;
+    display: flex; flex-direction: column;
+    border-bottom: 1px solid var(--glass-border);
 }
-@media (prefers-color-scheme: dark) { .feed-thumb-wrap { background: #1a1a1a; } }
+.feed-thumb-inner { position: relative; width: 100%; height: 200px; overflow: hidden; }
 .feed-thumb-loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; }
 .feed-thumb-frame {
     position: absolute; top: 0; left: 0; width: 390px; height: 844px;
@@ -1743,32 +1780,37 @@ body.preview-mode .file-title-bar { display: none !important; }
     position: absolute; inset: 0; z-index: 2; cursor: pointer;
 }
 .feed-thumb-frame.loaded { opacity: 1; }
-.feed-card-actions { display: flex; gap: 6px; padding: 8px 12px 4px; align-items: center; }
+.feed-card-actions { display: flex; gap: 2px; padding: 8px 10px 8px; align-items: center; }
 .feed-card-desc {
-    padding: 10px 14px 4px;
-    font-size: 14px; font-weight: 400;
-    color: var(--text-secondary);
-    line-height: 1.5; letter-spacing: -0.01em;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    padding: 0px 14px 6px;
+    font-size: 16px; font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.6; letter-spacing: -0.01em;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
     overflow: hidden; cursor: pointer;
+    font-family: Georgia, "Times New Roman", serif;
 }
 .feed-card-desc.expanded {
     display: block; -webkit-line-clamp: unset; overflow: visible;
 }
 .feed-like-btn {
-    background: none; border: none; cursor: pointer; font-size: 18px;
-    color: var(--text-secondary); padding: 4px 8px; border-radius: 8px;
-    font-family: inherit; display: flex; align-items: center; gap: 4px; transition: color 0.15s;
+    background: none; border: none; cursor: pointer; font-size: 17px;
+    color: var(--text-secondary); padding: 6px 8px; border-radius: 8px;
+    font-family: inherit; display: flex; align-items: center; gap: 5px; transition: color 0.15s;
 }
 .feed-like-btn.liked { color: #ff3b30; }
 .feed-like-btn span { font-size: 13px; font-weight: 600; }
 .feed-comment-toggle {
     background: none; border: none; cursor: pointer; font-size: 15px;
-    color: var(--text-secondary); padding: 4px 8px; border-radius: 8px; font-family: inherit;
-    display: flex; align-items: center; gap: 4px;
+    color: var(--text-secondary); padding: 6px 8px; border-radius: 8px; font-family: inherit;
+    display: flex; align-items: center; gap: 5px;
 }
 .feed-comment-toggle span { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
-.feed-like-text { padding: 0 12px 6px; font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+.feed-share-btn {
+    background: none; border: none; cursor: pointer; color: var(--text-secondary);
+    padding: 6px 8px; border-radius: 8px; display: flex; align-items: center; margin-left: auto;
+}
+.feed-like-text { padding: 0 14px 4px; font-size: 12px; color: var(--text-secondary); font-weight: 500; }
 .fork-count-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 .fork-count-badge:empty { display: none; }
 .fv-fork-banner { display:flex; align-items:center; gap:4px; padding:7px 14px; background:rgba(0,122,255,0.07); border-bottom:1px solid rgba(0,122,255,0.12); font-size:12px; color:#007aff; overflow-x:auto; white-space:nowrap; flex-shrink:0; }
@@ -1779,6 +1821,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 .fork-modal-overlay.open { display:flex; }
 .fork-modal-panel { background:var(--glass-bg); backdrop-filter:saturate(var(--saturation)) blur(var(--blur)); -webkit-backdrop-filter:saturate(var(--saturation)) blur(var(--blur)); border-top:1px solid var(--glass-border); border-radius:16px 16px 0 0; width:100%; max-width:430px; max-height:72vh; display:flex; flex-direction:column; padding-bottom:env(safe-area-inset-bottom,16px); }
 .fork-modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 16px 12px; border-bottom:1px solid var(--glass-border); flex-shrink:0; }
+@media (prefers-color-scheme: dark) { .fork-modal-header { background: #0b1326; } }
 .fork-modal-title { font-size:16px; font-weight:700; color:var(--text-primary); }
 .fork-modal-close { background:none; border:none; padding:6px; cursor:pointer; color:var(--text-secondary); border-radius:8px; display:flex; }
 .fork-modal-list { overflow-y:auto; flex:1; padding:6px 0; }
@@ -1975,37 +2018,46 @@ body.preview-mode .file-title-bar { display: none !important; }
 .coll-create-ok { background: #007aff !important; color: #fff !important; border-color: #007aff !important; }
 /* Collection card (feed/explore) */
 .coll-card {
-    background: var(--card-bg); border-radius: 18px;
+    background: var(--glass-bg); border-radius: 18px;
     border: 1px solid var(--glass-border); overflow: hidden; margin-bottom: 16px;
 }
 .coll-card-header {
     display: flex; align-items: center; gap: 10px;
-    padding: 12px 14px 8px; cursor: pointer;
+    padding: 12px 14px 10px; cursor: pointer;
 }
-.coll-card-avatar { font-size: 22px; flex-shrink: 0; }
+.coll-card-avatar {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(120,120,128,0.15); display: flex; align-items: center;
+    justify-content: center; font-size: 22px; overflow: hidden;
+}
 .coll-card-meta { flex: 1; min-width: 0; }
-.coll-card-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
-.coll-card-sub { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
-.coll-open-btn {
-    padding: 6px 13px; border-radius: 14px; font-size: 12px; font-weight: 700;
-    border: 1px solid rgba(0,122,255,0.35); background: rgba(0,122,255,0.1);
-    color: #007aff; cursor: pointer; flex-shrink: 0;
-}
+.coll-card-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.coll-card-sub { font-size: 10px; color: var(--text-secondary); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+.coll-card-grid-wrap { width: 100%; overflow: hidden; background: #0a1225; border-bottom: 1px solid var(--glass-border); }
 .coll-card-grid {
     display: grid; grid-template-columns: 1fr 1fr;
-    gap: 2px; background: var(--glass-border); border-top: 1px solid var(--glass-border); cursor: pointer;
+    gap: 2px; background: var(--glass-border); cursor: pointer;
 }
-.coll-card-thumb { position: relative; overflow: hidden; aspect-ratio: 4/3; background: var(--glass-bg); }
+.coll-card-thumb { position: relative; overflow: hidden; aspect-ratio: 4/3; background: #0a1225; }
 .coll-card-thumb iframe { width: 200%; height: 200%; transform: scale(0.5); transform-origin: 0 0; pointer-events: none; border: none; }
 .coll-card-thumb-overlay { position: absolute; inset: 0; }
-.coll-card-actions { display: flex; align-items: center; gap: 6px; padding: 8px 14px 10px; }
+.coll-card-actions { display: flex; align-items: center; gap: 2px; padding: 8px 10px 8px; }
 /* Collection overlay */
 .coll-overlay {
-    position: fixed; inset: 0; z-index: 8000; background: var(--bg);
+    position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0; z-index: 8000; background: var(--bg);
     transform: translateX(100%); transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
     display: flex; flex-direction: column; overflow: hidden;
 }
 .coll-overlay.open { transform: translateX(0); }
+@media (prefers-color-scheme: dark) { .coll-tab-bar { background: #0b1326 !important; } }
+.coll-tab-viewport { flex: 1; overflow: hidden; position: relative; }
+.coll-tab-track {
+    display: flex; height: 100%;
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    will-change: transform;
+}
+.coll-tab-track.on-comments { transform: translateX(-100vw); }
+.coll-tab-pane { width: 100vw; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; overflow: hidden; }
 .coll-overlay-list { flex: 1; overflow-y: auto; padding: 12px 16px 100px; }
 /* Save modal collection section */
 .new-save-coll-section { margin-top: 14px; }
@@ -2504,7 +2556,11 @@ body.preview-mode .file-title-bar { display: none !important; }
             <div class="fv-filename" id="collOverlayTitle">Koleksiyon</div>
             <div style="font-size:12px;color:var(--text-secondary);" id="collOverlaySubtitle"></div>
         </div>
-        <button onclick="deleteCollection(_colOverlayId)" style="
+        <button class="fv-like-btn" id="collOverlayLikeBtn" onclick="toggleColLike(_colOverlayId)" style="margin-right:4px;">
+            <span id="collOverlayLikeIcon">♡</span>
+            <span id="collOverlayLikeCount"></span>
+        </button>
+        <button id="collOverlayDelBtn" onclick="deleteCollection(_colOverlayId)" style="
             width:34px;height:34px;border-radius:50%;flex-shrink:0;
             border:1px solid rgba(255,69,58,0.4);background:rgba(255,69,58,0.1);
             color:#ff453a;display:flex;align-items:center;justify-content:center;cursor:pointer;">
@@ -2513,19 +2569,25 @@ body.preview-mode .file-title-bar { display: none !important; }
             </svg>
         </button>
     </div>
-    <div style="display:flex;border-bottom:1px solid var(--glass-border);padding:0 16px;gap:4px;flex-shrink:0;background:var(--card-bg);">
+    <div style="display:flex;border-bottom:1px solid var(--glass-border);padding:0 16px;gap:4px;flex-shrink:0;background:var(--card-bg);" class="coll-tab-bar">
         <button id="collTabFiles" onclick="collSwitchTab('files')" style="padding:10px 14px;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:#007aff;border-bottom:2px solid #007aff;margin-bottom:-1px;">Dosyalar</button>
         <button id="collTabComments" onclick="collSwitchTab('comments')" style="padding:10px 14px;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;">Yorumlar <span id="collCmtCount"></span></button>
     </div>
-    <div class="coll-overlay-list" id="collOverlayList"></div>
-    <div id="collOverlayComments" style="display:none;flex:1;overflow-y:auto;padding:12px 16px;">
-        <div id="ccmtlist-overlay"></div>
-        <div id="ccmt-input-wrap" style="margin-top:12px;display:flex;gap:8px;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom,12px);">
-            <textarea id="ccmtinput-overlay" class="feed-cmt-textarea" placeholder="Yorum yaz..." rows="1"
-                oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-            <button class="feed-cmt-send" onclick="collSubmitComment(_colOverlayId,'ccmtinput-overlay','ccmtlist-overlay')">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-            </button>
+    <div class="coll-tab-viewport">
+        <div class="coll-tab-track" id="collTabTrack">
+            <div class="coll-tab-pane">
+                <div class="coll-overlay-list" id="collOverlayList"></div>
+            </div>
+            <div class="coll-tab-pane">
+                <div class="fv-cmt-list" id="ccmtlist-overlay"></div>
+                <div class="fv-cmt-input-row" id="ccmt-input-wrap">
+                    <textarea id="ccmtinput-overlay" class="comment-input" placeholder="Yorum yaz..." rows="1"
+                        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+                    <button class="comment-send-btn" onclick="collSubmitComment(_colOverlayId,'ccmtinput-overlay','ccmtlist-overlay')">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -2617,6 +2679,17 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <main id="appMain" style="display:none;">
     <div class="code-area" id="codeArea">
+        <div class="editor-tab-bar" id="editorTabBar">
+            <button class="editor-tab active" data-tab="html" onclick="_switchEditorTab('html')">
+                <span class="tab-dot tab-dot-html"></span> HTML
+            </button>
+            <button class="editor-tab" data-tab="css" onclick="_switchEditorTab('css')">
+                <span class="tab-dot tab-dot-css"></span> CSS
+            </button>
+            <button class="editor-tab" data-tab="js" onclick="_switchEditorTab('js')">
+                <span class="tab-dot tab-dot-js"></span> JS
+            </button>
+        </div>
         <textarea id="editor" class="code-input" spellcheck="false"
                   oninput="updateCode()" onkeydown="handleKeydown(event)"></textarea>
     </div>
@@ -2884,11 +2957,14 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 // ── State ──────────────────────────────────────────────────────────────
 let currentUser       = null;
 let loadedFilename    = '';
-let code = `<!-- HTML kodunuzu buraya yazın -->
+const _DEFAULT_HTML = `<!-- HTML kodunuzu buraya yazın -->
 <div class="container">
   <h1>Merhaba Dünya!</h1>
   <p>Mobil editöre hoş geldiniz.</p>
 </div>`;
+let code = _DEFAULT_HTML;
+let _tabs = { html: _DEFAULT_HTML, css: '', js: '' };
+let _activeTab = 'html';
 let isFabOpen         = false;
 let currentView       = 'code';
 let savedFiles        = [];
@@ -2923,6 +2999,9 @@ let _collectionFilter  = null;
 let _fileCollectionMap = {};   // fileId -> Set of collectionIds
 let _colMyLikes        = new Set();
 let _colLikeCounts     = {};
+let _colCmtLikes       = {};         // commentId -> count
+let _colMyCmtLikes     = new Set();  // current user liked collection comment IDs
+let _colOwnerMap       = {};         // collectionId -> owner user_id
 let _pendingSaveColls  = new Set(); // collection IDs selected in new save modal
 let _pubProfileUserId  = null;  // currently viewed profile userId
 let _pubProfileFileIds = [];    // currently viewed profile's file ID'leri (fork listesi için)
@@ -2934,6 +3013,10 @@ let _profMyCmtLikes  = new Set();  // current user liked comment IDs
 // Yorum beğeni state — akış yorumları
 let _feedCmtLikes    = {};
 let _feedMyCmtLikes  = new Set();
+
+// Yorum beğeni state — koleksiyon overlay dosya kartları
+let _coCmtLikes    = {};
+let _coMyCmtLikes  = new Set();
 
 // Fork sayıları
 let _forkCounts = {}; // fileId -> fork count
@@ -3547,7 +3630,61 @@ function syncSwitchers(view) {
 }
 
 function buildPage() {
-    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body>${code}</body></html>`;
+    const html = _tabs.html || '';
+    const css  = (_tabs.css  || '').trim();
+    const js   = (_tabs.js   || '').trim();
+    const styleTag  = css ? `<style>\n${css}\n</style>` : '';
+    const scriptTag = js  ? `<script>\n${js}\n<\/script>` : '';
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">${styleTag}</head><body>${html}${scriptTag}</body></html>`;
+}
+
+// ── Tab Split / Merge ──────────────────────────────────────────────────
+function _splitHtmlToTabs(rawHtml) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(rawHtml, 'text/html');
+    const styles = [...doc.querySelectorAll('style')];
+    const cssContent = styles.map(s => s.textContent.trim()).filter(Boolean).join('\n\n');
+    styles.forEach(s => s.remove());
+    const scripts = [...doc.querySelectorAll('script:not([src])')];
+    const jsContent = scripts.map(s => s.textContent.trim()).filter(Boolean).join('\n\n');
+    scripts.forEach(s => s.remove());
+    const htmlContent = doc.body ? doc.body.innerHTML.trim() : '';
+    return { html: htmlContent, css: cssContent, js: jsContent };
+}
+
+function _mergeBodyContent() {
+    const html = _tabs.html || '';
+    const css  = (_tabs.css  || '').trim();
+    const js   = (_tabs.js   || '').trim();
+    const styleTag  = css ? `<style>\n${css}\n</style>\n\n` : '';
+    const scriptTag = js  ? `\n\n<script>\n${js}\n<\/script>` : '';
+    return styleTag + html + scriptTag;
+}
+
+function _buildFullHtml(title) {
+    const html = _tabs.html || '';
+    const css  = (_tabs.css  || '').trim();
+    const js   = (_tabs.js   || '').trim();
+    const t = title || loadedFilename || '';
+    const styleTag  = css ? `\n    <style>\n${css}\n    </style>` : '';
+    const scriptTag = js  ? `\n    <script>\n${js}\n    <\/script>` : '';
+    return `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width,initial-scale=1.0">\n    <title>${t}</title>${styleTag}\n</head>\n<body>\n${html}${scriptTag}\n</body>\n</html>`;
+}
+
+function _switchEditorTab(tab) {
+    if (window.cm) _tabs[_activeTab] = cm.getValue();
+    _activeTab = tab;
+    document.querySelectorAll('.editor-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    if (window.cm) {
+        const modeMap = { html: 'htmlmixed', css: 'css', js: 'javascript' };
+        cm.setOption('mode', modeMap[tab]);
+        cm.setValue(_tabs[tab] || '');
+        cm.clearHistory();
+        setTimeout(() => cm.refresh(), 10);
+    } else {
+        document.getElementById('editor').value = _tabs[tab] || '';
+    }
+    code = _mergeBodyContent();
 }
 
 // ── App Init ───────────────────────────────────────────────────────────
@@ -3601,7 +3738,11 @@ function saveToStorage() {
 function loadFromStorage() {
     try {
         const d = JSON.parse(localStorage.getItem('mobilKodEditor') || '{}');
-        if (d.code     !== undefined) code           = d.code;
+        if (d.code !== undefined) {
+            code = d.code;
+            _tabs = _splitHtmlToTabs(`<html><body>${d.code}</body></html>`);
+            _activeTab = 'html';
+        }
         if (d.filename !== undefined) loadedFilename = d.filename;
     } catch(e) {}
 }
@@ -3685,7 +3826,8 @@ function updateSavedCount() {
 
 // ── Editor ─────────────────────────────────────────────────────────────
 function updateCode() {
-    code = document.getElementById('editor').value;
+    _tabs[_activeTab] = document.getElementById('editor').value;
+    code = _mergeBodyContent();
     hasUnsavedChanges = true;
     saveToStorage(); updateTabDotColor(); updateQuickSaveButton();
 
@@ -3703,12 +3845,17 @@ function _getCMMode(filename) {
     return { html:'htmlmixed', htm:'htmlmixed', js:'javascript', css:'css', xml:'xml', svg:'xml', json:'javascript', md:'markdown', markdown:'markdown' }[ext] || 'htmlmixed';
 }
 function updateEditor() {
+    // Sync tab UI
+    document.querySelectorAll('.editor-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === _activeTab));
+    const content = _tabs[_activeTab] || '';
+    const modeMap = { html: 'htmlmixed', css: 'css', js: 'javascript' };
     if (window.cm) {
-        cm.setValue(code || '');
+        cm.setOption('mode', modeMap[_activeTab] || _getCMMode(loadedFilename || ''));
+        cm.setValue(content);
         cm.clearHistory();
-        cm.setOption('mode', _getCMMode(loadedFilename || ''));
+        setTimeout(() => cm.refresh(), 10);
     } else {
-        document.getElementById('editor').value = code;
+        document.getElementById('editor').value = content;
     }
 }
 
@@ -3741,7 +3888,8 @@ function _initCodeMirror() {
         }
     });
     cm.on('change', () => {
-        code = cm.getValue();
+        _tabs[_activeTab] = cm.getValue();
+        code = _mergeBodyContent();
         hasUnsavedChanges = true;
         saveToStorage(); updateTabDotColor(); updateQuickSaveButton();
         if (saveButtonState === 'saved') setSaveButtonState('idle');
@@ -4090,7 +4238,7 @@ function renderSavedFiles() {
                     Sil
                 </div>
             </div>
-            <div class="saved-file-item" onclick="openSavedFileItem(event,${file.id})"
+            <div class="saved-file-item"
                  style="${isOpen ? 'border-color:#34c759;background:rgba(52,199,89,0.1);' : ''}">
                 <div class="saved-file-name" onclick="event.stopPropagation();startEditingName(${file.id})" id="filename-${file.id}">
                     ${escapeHtml(file.filename)}.html
@@ -4205,7 +4353,6 @@ function renderSavedFiles() {
     }
 }
 
-function openSavedFileItem(event, fileId) { viewSavedFileCode(fileId); }
 
 function editFileDesc(fileId) {
     const file = savedFiles.find(f => f.id === fileId);
@@ -4243,6 +4390,8 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+function _fmtCnt(n){if(!n)return'0';if(n>=1000)return(n/1000).toFixed(n%1000>=100?1:0)+'k';return String(n);}
+function _timeAgo(iso){var d=new Date(iso),s=Math.floor((Date.now()-d)/1000);if(s<60)return'az önce';var m=Math.floor(s/60);if(m<60)return m+'dk önce';var h=Math.floor(m/60);if(h<24)return h+'sa önce';var dy=Math.floor(h/24);if(dy<30)return dy+'g önce';return d.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});}
 
 async function startEditingName(fileId) {
     const file = savedFiles.find(f => f.id === fileId);
@@ -4301,6 +4450,8 @@ function handleUnsavedDiscard() {
 function continuePreviewSavedFile(fileId) {
     const file = savedFiles.find(f => f.id === fileId);
     if (!file) return;
+    _tabs = _splitHtmlToTabs(`<html><body>${file.code}</body></html>`);
+    _activeTab = 'html';
     code = file.code; loadedFilename = file.filename;
     currentOpenFileId = file.id; hasUnsavedChanges = false;
     updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
@@ -4314,6 +4465,8 @@ function continuePreviewSavedFile(fileId) {
 function continueViewSavedFileCode(fileId) {
     const file = savedFiles.find(f => f.id === fileId);
     if (!file) return;
+    _tabs = _splitHtmlToTabs(`<html><body>${file.code}</body></html>`);
+    _activeTab = 'html';
     code = file.code; loadedFilename = file.filename;
     currentOpenFileId = file.id; hasUnsavedChanges = false;
     updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
@@ -4367,7 +4520,11 @@ async function deleteSavedFile(id) {
 function downloadSavedFile(id) {
     const file = savedFiles.find(f => f.id === id);
     if (!file) return;
-    const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width,initial-scale=1.0">\n    <title>${file.filename}</title>\n</head>\n<body>\n${file.code}\n</body>\n</html>`;
+    const t = _splitHtmlToTabs(`<html><body>${file.code}</body></html>`);
+    const css = t.css.trim(); const js = t.js.trim();
+    const styleTag  = css ? `\n    <style>\n${css}\n    </style>` : '';
+    const scriptTag = js  ? `\n    <script>\n${js}\n    <\/script>` : '';
+    const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width,initial-scale=1.0">\n    <title>${file.filename}</title>${styleTag}\n</head>\n<body>\n${t.html}${scriptTag}\n</body>\n</html>`;
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([full], { type: 'text/html' }));
     a.download = `${file.filename}.html`;
@@ -4395,7 +4552,7 @@ function confirmSaveFromModal() {
         return;
     }
     if (!fn.endsWith('.html')) fn += '.html';
-    const full = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width,initial-scale=1.0">\n    <title>${fn}</title>\n</head>\n<body>\n${code}\n</body>\n</html>`;
+    const full = _buildFullHtml(fn.replace('.html', ''));
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([full], { type: 'text/html' }));
     a.download = fn; a.click();
@@ -4412,11 +4569,23 @@ function handleFileLoad(event) {
     event.target.value = '';
     loadedFilename = file.name.replace(/\.[^/.]+$/, '');
     currentOpenFileId = null;
-    // Yeni dosya yüklenince idle durumuna geç
     setSaveButtonState('idle');
     const r = new FileReader();
     r.onload = e => {
-        code = e.target.result; hasUnsavedChanges = false;
+        const raw = e.target.result;
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext === 'html' || ext === 'htm') {
+            _tabs = _splitHtmlToTabs(raw);
+        } else if (ext === 'css') {
+            _tabs = { html: '', css: raw, js: '' };
+        } else if (ext === 'js') {
+            _tabs = { html: '', css: '', js: raw };
+        } else {
+            _tabs = _splitHtmlToTabs(`<html><body>${raw}</body></html>`);
+        }
+        _activeTab = 'html';
+        code = _mergeBodyContent();
+        hasUnsavedChanges = false;
         saveToStorage(); updateEditor(); updateFilenameDisplay();
         updateTabDotColor(); updateQuickSaveButton();
         showToast(file.name + ' yüklendi');
@@ -4428,6 +4597,7 @@ function handleFileLoad(event) {
 // ── Misc ───────────────────────────────────────────────────────────────
 function clearCode() {
     if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
+        _tabs = { html: '', css: '', js: '' }; _activeTab = 'html';
         code = ''; loadedFilename = '';
         currentOpenFileId = null; hasUnsavedChanges = false;
         saveToStorage(); updateEditor(); updateFilenameDisplay();
@@ -4938,11 +5108,13 @@ async function _sendNotif(type, toUserId, fileId, extra = {}) {
     const base = { to_user_id: toUserId, from_user_id: currentUser.id, file_id: fileId || null, type, seen: false };
     const { error } = await sb.from('like_notifications').insert({ ...base, ...extra });
     if (error && Object.keys(extra).length > 0) {
-        // comment_preview gibi opsiyonel kolon yoksa sadece temel alanlarla dene
-        const { error: e2 } = await sb.from('like_notifications').insert(base);
-        if (e2) console.warn('Bildirim gönderilemedi:', e2.message);
+        // extra'daki opsiyonel kolonlar yoksa sadece temel alanlarla dene
+        const safeExtra = {};
+        if (extra.collection_id !== undefined) safeExtra.collection_id = extra.collection_id;
+        const { error: e2 } = await sb.from('like_notifications').insert({ ...base, ...safeExtra });
+        if (e2) { console.error('Bildirim gönderilemedi:', e2.message); showToast('Bildirim hatası: ' + e2.message); }
     } else if (error) {
-        console.warn('Bildirim gönderilemedi:', error.message);
+        console.error('Bildirim gönderilemedi:', error.message); showToast('Bildirim hatası: ' + error.message);
     }
 }
 
@@ -5142,27 +5314,35 @@ async function loadFeed() {
         }
         return `<div class="feed-card" id="fcard-${f.id}">
             <div class="feed-card-header" onclick="openPublicProfile('${f.user_id}')">
-                <span class="feed-card-avatar">${p.avatar_emoji || '👤'}</span>
+                <div class="feed-card-avatar">${p.avatar_emoji || '👤'}</div>
                 <div class="feed-card-meta">
-                    <div class="feed-card-username">${escapeHtml(p.username || 'Kullanıcı')}</div>
-                    <div class="feed-card-date">${escapeHtml(f.filename || 'dosya.html')} · ${dateStr}</div>
+                    <div class="feed-card-username">@${escapeHtml(p.username || 'kullanici')}</div>
+                    <div class="feed-card-date">${_timeAgo(f.updated_at)} • ${escapeHtml(f.filename || 'dosya.html')}</div>
                 </div>
-                <button class="feed-open-btn" onclick="event.stopPropagation();openFileView('${f.id}')">Aç</button>
-            </div>
-            <div class="feed-thumb-wrap">
-                <div class="feed-thumb-loader" id="feload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
-                <iframe class="feed-thumb-frame" id="feprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
-                <div class="feed-thumb-overlay" onclick="openFileView('${f.id}')"></div>
+                <button class="feed-more-btn" onclick="event.stopPropagation()">···</button>
             </div>
             ${f.description ? `<div class="feed-card-desc" id="fdesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
+            <div class="feed-thumb-wrap">
+                <div class="feed-thumb-inner">
+                    <div class="feed-thumb-loader" id="feload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
+                    <iframe class="feed-thumb-frame" id="feprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
+                    <div class="feed-thumb-overlay" onclick="openFileView('${f.id}')"></div>
+                </div>
+            </div>
             <div class="feed-card-actions">
                 <button class="feed-like-btn${liked ? ' liked' : ''}" id="flike-${f.id}" onclick="feedToggleLike('${f.id}')">
-                    ${liked ? '♥' : '♡'} <span id="flikecnt-${f.id}">${cnt || ''}</span>
+                    ${liked ? '♥' : '♡'} <span id="flikecnt-${f.id}">${_fmtCnt(cnt)}</span>
                 </button>
-                ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : `<span class="fork-count-badge" id="forkcount-${f.id}"></span>`}
                 <button class="feed-comment-toggle" onclick="feedToggleComments('${f.id}')">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                     <span id="fcmtcnt-${f.id}"></span>
+                </button>
+                <button class="feed-comment-toggle" onclick="event.stopPropagation();">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>
+                    <span id="forkcount-${f.id}">${_forkCounts[f.id] || ''}</span>
+                </button>
+                <button class="feed-share-btn" onclick="event.stopPropagation();openFileView('${f.id}')">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
                 </button>
             </div>
             ${likeText ? `<div class="feed-like-text" id="fliketext-${f.id}">${likeText}</div>` : `<div class="feed-like-text" id="fliketext-${f.id}" style="display:none;"></div>`}
@@ -5210,6 +5390,152 @@ async function feedToggleLike(fileId) {
         if (liked) { _myLikes.add(fileId); _likeCounts[fileId]++; } else { _myLikes.delete(fileId); _likeCounts[fileId]=Math.max(0,(_likeCounts[fileId]||1)-1); }
         showToast('Beğeni kaydedilemedi');
     }
+}
+
+async function _coLoadComments(fileId) {
+    const listEl = document.getElementById('co-fcmtlist-' + fileId);
+    if (!listEl) return;
+    listEl.innerHTML = '<div class="search-empty" style="padding:8px 0;font-size:12px;">Yükleniyor...</div>';
+    const { data: allComments } = await sb.from('comments').select('*').eq('file_id', fileId).order('created_at', { ascending: true });
+    const all = allComments || [];
+    const topLevel = all.filter(c => !c.parent_id);
+    const cntEl = document.getElementById('cocmtcnt-' + fileId);
+    if (cntEl) cntEl.textContent = topLevel.length || '';
+    if (!all.length) { listEl.innerHTML = '<div class="search-empty" style="padding:8px 0;font-size:12px;">Henüz yorum yok</div>'; return; }
+    const uids = [...new Set(all.map(c => c.user_id))];
+    const cmtIds = all.map(c => c.id);
+    const [{ data: profs }, { data: allLikes }, { data: myLikes }] = await Promise.all([
+        sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
+        sb.from('comment_likes').select('comment_id').in('comment_id', cmtIds),
+        currentUser ? sb.from('comment_likes').select('comment_id').eq('user_id', currentUser.id).in('comment_id', cmtIds) : { data: [] }
+    ]);
+    const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
+    _coCmtLikes = {};
+    (allLikes||[]).forEach(l => { _coCmtLikes[l.comment_id] = (_coCmtLikes[l.comment_id]||0)+1; });
+    _coMyCmtLikes = new Set((myLikes||[]).map(l => l.comment_id));
+    const repliesMap = {};
+    all.filter(c => c.parent_id).forEach(r => { if (!repliesMap[r.parent_id]) repliesMap[r.parent_id] = []; repliesMap[r.parent_id].push(r); });
+    const fileOwnerId = _exploreDataMap[fileId]?.userId || '';
+    const _XSVG = `<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>`;
+    const renderCO = (c, isReply = false) => {
+        const p = pm[c.user_id] || {};
+        const canDel = currentUser && (currentUser.id === c.user_id || currentUser.id === fileOwnerId);
+        const liked = _coMyCmtLikes.has(c.id);
+        const likeCnt = _coCmtLikes[c.id] || 0;
+        const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderCO(r, true)).join('') : '';
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="co-feedcmt-${c.id}" data-user-id="${c.user_id}">
+            <div class="comment-avatar" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${p.avatar_emoji||'👤'}</div>
+            <div class="comment-body">
+                <div class="comment-header">
+                    <span class="comment-username" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${escapeHtml(p.username||'Kullanıcı')}</span>
+                    <span class="comment-time">${_fmtTime(c.created_at)}</span>
+                    ${canDel ? `<button class="comment-delete-btn" onclick="coDeleteComment('${c.id}','${fileId}')">${_XSVG}</button>` : ''}
+                </div>
+                <div class="comment-text">${escapeHtml(c.content)}</div>
+                <div class="cmt-actions">
+                    <button class="cmt-like-btn${liked ? ' liked' : ''}" onclick="coToggleCmtLike('${c.id}',this)">
+                        ${liked ? '♥' : '♡'}<span id="co-feedcl-${c.id}">${likeCnt ? ' '+likeCnt : ''}</span>
+                    </button>
+                    ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="coShowReply('${c.id}','${fileId}')">Yanıtla</button>` : ''}
+                </div>
+                ${!isReply ? `<div class="cmt-reply-input-wrap" id="co-feedri-${c.id}" style="display:none;">
+                    <textarea class="cmt-reply-textarea" id="co-feedrit-${c.id}" placeholder="Yanıtla..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button class="cmt-reply-send" onclick="coSubmitReply('${c.id}','${fileId}')">Gönder</button>
+                </div>` : ''}
+                ${childReplies ? `<div class="cmt-replies-wrap">${childReplies}</div>` : ''}
+            </div>
+        </div>`;
+    };
+    listEl.innerHTML = topLevel.map(c => renderCO(c)).join('');
+}
+
+async function coToggleCmtLike(commentId, btn) {
+    if (!currentUser) { showToast('Beğenmek için giriş yapın'); return; }
+    const liked = _coMyCmtLikes.has(commentId);
+    const span = document.getElementById('co-feedcl-' + commentId);
+    if (liked) {
+        _coMyCmtLikes.delete(commentId);
+        _coCmtLikes[commentId] = Math.max(0, (_coCmtLikes[commentId]||1)-1);
+        btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡';
+    } else {
+        _coMyCmtLikes.add(commentId);
+        _coCmtLikes[commentId] = (_coCmtLikes[commentId]||0)+1;
+        btn.classList.add('liked'); btn.childNodes[0].textContent = '♥';
+    }
+    if (span) span.textContent = _coCmtLikes[commentId] ? ' '+_coCmtLikes[commentId] : '';
+    const { error: _fe } = liked
+        ? await sb.from('comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId)
+        : await sb.from('comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
+    if (_fe) {
+        if (liked) { _coMyCmtLikes.add(commentId); _coCmtLikes[commentId]++; btn.classList.add('liked'); btn.childNodes[0].textContent = '♥'; }
+        else { _coMyCmtLikes.delete(commentId); _coCmtLikes[commentId]=Math.max(0,(_coCmtLikes[commentId]||1)-1); btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡'; }
+        if (span) span.textContent = _coCmtLikes[commentId] ? ' '+_coCmtLikes[commentId] : '';
+        showToast('Beğeni kaydedilemedi');
+    }
+}
+
+function coShowReply(commentId, fileId) {
+    const wrap = document.getElementById('co-feedri-' + commentId);
+    if (!wrap) return;
+    const showing = wrap.style.display !== 'none';
+    wrap.style.display = showing ? 'none' : 'flex';
+    if (!showing) document.getElementById('co-feedrit-' + commentId)?.focus();
+}
+
+async function coSubmitReply(parentId, fileId) {
+    if (!currentUser) return;
+    const inp = document.getElementById('co-feedrit-' + parentId);
+    const content = inp?.value.trim();
+    if (!content) return;
+    inp.value = ''; inp.style.height = 'auto';
+    document.getElementById('co-feedri-' + parentId).style.display = 'none';
+    const { data: inserted, error } = await sb.from('comments')
+        .insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId })
+        .select('id').single();
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    const _rvp = document.getElementById('co-feedcmt-' + parentId);
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: inserted?.id });
+    const _fileOwner = _exploreDataMap[fileId]?.userId;
+    if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100) });
+    const wrap = document.getElementById('co-fcmtwrap-' + fileId);
+    if (wrap) wrap.dataset.loaded = '';
+    await _coLoadComments(fileId);
+}
+
+async function coDeleteComment(commentId, fileId) {
+    const el = document.getElementById('co-feedcmt-' + commentId);
+    if (el) { el.style.opacity='0'; el.style.transition='opacity 0.2s'; setTimeout(()=>el.remove(),200); }
+    await sb.from('comments').delete().eq('id', commentId);
+    const wrap = document.getElementById('co-fcmtwrap-' + fileId);
+    if (wrap) wrap.dataset.loaded = '';
+    await _coLoadComments(fileId);
+}
+
+async function coToggleComments(fileId) {
+    const wrap = document.getElementById('co-fcmtwrap-' + fileId);
+    if (!wrap) return;
+    const isOpen = wrap.style.display !== 'none';
+    wrap.style.display = isOpen ? 'none' : '';
+    if (!isOpen && !wrap.dataset.loaded) {
+        wrap.dataset.loaded = '1';
+        await _coLoadComments(fileId);
+    }
+}
+
+async function coSubmitComment(fileId) {
+    if (!currentUser) return;
+    const inp = document.getElementById('co-fcmtinput-' + fileId);
+    const content = inp?.value.trim();
+    if (!content) return;
+    inp.value = ''; inp.style.height = 'auto';
+    const { data: inserted, error } = await sb.from('comments')
+        .insert({ file_id: fileId, user_id: currentUser.id, content })
+        .select('id').single();
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: inserted?.id });
+    const wrap = document.getElementById('co-fcmtwrap-' + fileId);
+    if (wrap) wrap.dataset.loaded = '';
+    await _coLoadComments(fileId);
 }
 
 async function feedToggleComments(fileId) {
@@ -5286,10 +5612,9 @@ async function feedSubmitComment(fileId) {
     const content = inp?.value.trim();
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
-    const _cid = crypto.randomUUID();
-    const { error } = await sb.from('comments').insert({ id: _cid, file_id: fileId, user_id: currentUser.id, content });
+    const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _cid });
+    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100) });
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await feedLoadComments(fileId);
@@ -5347,15 +5672,14 @@ async function feedSubmitReply(parentId, fileId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('feedri-' + parentId).style.display = 'none';
-    const _rid = crypto.randomUUID();
-    const { error } = await sb.from('comments').insert({ id: _rid, file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
+    const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     // Yorum sahibine: "yorumuna yanıt verildi"
     const _rvp = document.getElementById('feedcmt-' + parentId);
-    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100) });
     // Dosya sahibine: "dosyandaki yoruma yanıt verildi" (yorum sahibinden farklıysa)
     const _fileOwner = _exploreDataMap[fileId]?.userId;
-    if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
+    if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100) });
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await feedLoadComments(fileId);
@@ -5462,27 +5786,35 @@ async function loadExploreFiles() {
             _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, filename: f.filename, description: f.description || '' };
             return `<div class="feed-card" id="ewrap-${f.id}">
                 <div class="feed-card-header" onclick="openPublicProfile('${f.user_id}')">
-                    <span class="feed-card-avatar">${emoji}</span>
+                    <div class="feed-card-avatar">${emoji}</div>
                     <div class="feed-card-meta">
-                        <div class="feed-card-username">${rank ? rank + ' ' : ''}${escapeHtml(author)}</div>
-                        <div class="feed-card-date">${escapeHtml(f.filename)} · ${dateStr}</div>
+                        <div class="feed-card-username">${rank ? rank + ' ' : ''}@${escapeHtml(author)}</div>
+                        <div class="feed-card-date">${_timeAgo(f.updated_at)} • ${escapeHtml(f.filename)}</div>
                     </div>
-                    <button class="feed-open-btn" onclick="event.stopPropagation();openFileView('${f.id}')">Aç</button>
-                </div>
-                <div class="feed-thumb-wrap">
-                    <div class="feed-thumb-loader" id="eload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
-                    <iframe class="feed-thumb-frame" id="eprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
-                    <div class="feed-thumb-overlay" onclick="openFileView('${f.id}')"></div>
+                    <button class="feed-more-btn" onclick="event.stopPropagation()">···</button>
                 </div>
                 ${f.description ? `<div class="feed-card-desc" id="edesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
+                <div class="feed-thumb-wrap">
+                    <div class="feed-thumb-inner">
+                        <div class="feed-thumb-loader" id="eload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
+                        <iframe class="feed-thumb-frame" id="eprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
+                        <div class="feed-thumb-overlay" onclick="openFileView('${f.id}')"></div>
+                    </div>
+                </div>
                 <div class="feed-card-actions">
                     <button class="feed-like-btn${liked ? ' liked' : ''}" id="flike-${f.id}" onclick="feedToggleLike('${f.id}')">
-                        ${liked ? '♥' : '♡'} <span id="flikecnt-${f.id}">${cnt || ''}</span>
+                        ${liked ? '♥' : '♡'} <span id="flikecnt-${f.id}">${_fmtCnt(cnt)}</span>
                     </button>
-                    ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : `<span class="fork-count-badge" id="forkcount-${f.id}"></span>`}
                     <button class="feed-comment-toggle" onclick="feedToggleComments('${f.id}')">
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                         <span id="fcmtcnt-${f.id}"></span>
+                    </button>
+                    <button class="feed-comment-toggle" onclick="event.stopPropagation();">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>
+                        <span id="forkcount-${f.id}">${_forkCounts[f.id] || ''}</span>
+                    </button>
+                    <button class="feed-share-btn" onclick="event.stopPropagation();openFileView('${f.id}')">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
                     </button>
                 </div>
                 <div id="fcmtwrap-${f.id}" style="display:none;">
@@ -6097,10 +6429,9 @@ async function submitComment(fileId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
 
-    const _cid = crypto.randomUUID();
-    const { error } = await sb.from('comments').insert({ id: _cid, file_id: fileId, user_id: currentUser.id, content });
+    const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100), comment_id: _cid });
+    _sendNotif('comment', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100) });
     await loadComments(fileId);
 }
 
@@ -6161,14 +6492,13 @@ async function profSubmitReply(parentId, fileId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('profri-' + parentId).style.display = 'none';
-    const _rid = crypto.randomUUID();
-    const { error } = await sb.from('comments').insert({ id: _rid, file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
+    const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     // Yorum sahibine: "yorumuna yanıt verildi"
     const _rvp = document.getElementById('profcmt-' + parentId);
-    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100) });
     // Dosya sahibine (yorum sahibinden farklıysa)
-    if (_pubProfileUserId && _pubProfileUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
+    if (_pubProfileUserId && _pubProfileUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _pubProfileUserId, fileId, { comment_preview: content.substring(0, 100) });
     await loadComments(fileId);
 }
 
@@ -6647,10 +6977,9 @@ async function fvSubmitComment() {
     const content = inp.value.trim();
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
-    const _cid = crypto.randomUUID();
-    const { error } = await sb.from('comments').insert({ id: _cid, file_id: _fvFileId, user_id: currentUser.id, content });
+    const { error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _cid });
+    _sendNotif('comment', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100) });
     _fvCmtLoaded = false;
     fvLoadComments();
 }
@@ -6706,14 +7035,13 @@ async function fvSubmitReply(parentId) {
     if (!content) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('fvri-' + parentId).style.display = 'none';
-    const _rid = crypto.randomUUID();
-    const { error } = await sb.from('comments').insert({ id: _rid, file_id: _fvFileId, user_id: currentUser.id, content, parent_id: parentId });
+    const { error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content, parent_id: parentId });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     // Yorum sahibine: "yorumuna yanıt verildi"
     const _rvp = document.getElementById('fvcmt-' + parentId);
-    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
+    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, _fvFileId, { comment_preview: content.substring(0, 100) });
     // Dosya sahibine (yorum sahibinden farklıysa): "dosyandaki yoruma yanıt verildi"
-    if (_fvUserId && _fvUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100), comment_id: _rid });
+    if (_fvUserId && _fvUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100) });
     _fvCmtLoaded = false;
     fvLoadComments();
 }
@@ -6724,35 +7052,7 @@ function _initFileViewSwipeBack() {
     const overlay = document.getElementById('fvOverlay');
     let sx = 0, sy = 0, decided = false, isHoriz = false, active = false;
 
-    body.addEventListener('touchstart', e => {
-        // Önizleme panelinden başlayan dokunuşlarda swipe'ı devre dışı bırak
-        // — iframe dikey kaydırması engellenmesi
-        const previewPane = document.getElementById('fvPanePreview');
-        if (previewPane && previewPane.contains(e.target)) {
-            active = false; return;
-        }
-        sx = e.touches[0].clientX; sy = e.touches[0].clientY;
-        decided = false; isHoriz = false; active = true;
-        slider.classList.add('no-transition');
-    }, { passive: true });
-
-    body.addEventListener('touchmove', e => {
-        if (!active) return;
-        const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
-        if (!decided) {
-            if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-            decided = true; isHoriz = Math.abs(dx) > Math.abs(dy);
-        }
-        if (!isHoriz) return;
-        e.preventDefault();
-        const idx  = _FV_TABS.indexOf(_fvTab);
-        const base = -idx * (100 / 3);          // % offset için base
-        const W    = body.offsetWidth;
-        const pct  = (dx / W) * (100 / 3);      // dx'i slider % birimine çevir
-        slider.style.transform = `translateX(calc(${base}% + ${dx}px))`;
-    }, { passive: false });
-
-    body.addEventListener('touchend', e => {
+    const onEnd = e => {
         if (!active) return;
         active = false;
         slider.classList.remove('no-transition');
@@ -6764,13 +7064,59 @@ function _initFileViewSwipeBack() {
         } else if (dx > 50 && idx > 0) {
             fvSwitchTab(_FV_TABS[idx - 1]);
         } else if (dx > 80 && idx === 0) {
-            // İlk sekmede sağa kaydır → modalı kapat
             overlay.style.transition = 'transform 0.3s cubic-bezier(0.25,0.8,0.25,1)';
             overlay.style.transform  = 'translateX(100%)';
             setTimeout(() => { overlay.style.transition = ''; overlay.style.transform = ''; closeFileView(); }, 300);
         } else {
-            fvSwitchTab(_fvTab); // snap back
+            fvSwitchTab(_fvTab);
         }
+    };
+    const onCancel = () => { active = false; slider.classList.remove('no-transition'); };
+
+    // Kod ve yorumlar bölmelerinde body'den swipe al
+    body.addEventListener('touchstart', e => {
+        if (_fvTab === 'preview') return; // preview'da kenar şeritler halleder
+        sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+        decided = false; isHoriz = false; active = true;
+        slider.classList.add('no-transition');
+    }, { passive: true });
+    body.addEventListener('touchmove', e => {
+        if (!active) return;
+        const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
+        if (!decided) {
+            if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+            decided = true; isHoriz = Math.abs(dx) > Math.abs(dy);
+        }
+        if (!isHoriz) return;
+        e.preventDefault();
+        const idx = _FV_TABS.indexOf(_fvTab);
+        slider.style.transform = `translateX(calc(${-idx * (100/3)}% + ${dx}px))`;
+    }, { passive: false });
+    body.addEventListener('touchend', onEnd);
+    body.addEventListener('touchcancel', onCancel);
+
+    // Preview sekmesi: sol ve sağ kenar şeritlerden swipe al
+    [document.getElementById('fvSwipeGuardL'), document.getElementById('fvSwipeGuardR')].forEach(guard => {
+        if (!guard) return;
+        guard.addEventListener('touchstart', e => {
+            sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+            decided = false; isHoriz = false; active = true;
+            slider.classList.add('no-transition');
+        }, { passive: true });
+        guard.addEventListener('touchmove', e => {
+            if (!active) return;
+            const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
+            if (!decided) {
+                if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+                decided = true; isHoriz = Math.abs(dx) > Math.abs(dy);
+            }
+            if (!isHoriz) return;
+            e.preventDefault();
+            const idx = _FV_TABS.indexOf(_fvTab);
+            slider.style.transform = `translateX(calc(${-idx * (100/3)}% + ${dx}px))`;
+        }, { passive: false });
+        guard.addEventListener('touchend', onEnd);
+        guard.addEventListener('touchcancel', onCancel);
     });
 }
 
@@ -6805,31 +7151,46 @@ async function loadNotifications() {
         _setNotifBadge(0); return;
     }
 
-    const fromIds = [...new Set(notifs.map(n => n.from_user_id))];
-    const fileIds  = [...new Set(notifs.map(n => n.file_id))];
-    const [{ data: profiles }, { data: files }] = await Promise.all([
+    const fromIds  = [...new Set(notifs.map(n => n.from_user_id))];
+    const fileIds  = [...new Set(notifs.filter(n => n.file_id).map(n => n.file_id))];
+    const collIds  = [...new Set(notifs.filter(n => n.collection_id).map(n => n.collection_id))];
+    const fetches = [
         sb.from('profiles').select('id,username,avatar_emoji').in('id', fromIds),
-        sb.from('files').select('id,filename').in('id', fileIds)
-    ]);
-    const pMap = {}, fMap = {};
+        fileIds.length ? sb.from('files').select('id,filename').in('id', fileIds) : Promise.resolve({ data: [] }),
+        collIds.length ? sb.from('collections').select('id,name').in('id', collIds) : Promise.resolve({ data: [] })
+    ];
+    const [{ data: profiles }, { data: files }, { data: colls }] = await Promise.all(fetches);
+    const pMap = {}, fMap = {}, cMap = {};
     (profiles || []).forEach(p => { pMap[p.id] = p; });
     (files    || []).forEach(f => { fMap[f.id] = f; });
+    (colls    || []).forEach(c => { cMap[c.id] = c; });
 
     el.innerHTML = notifs.map(n => {
-        const prof = pMap[n.from_user_id] || {};
-        const file = fMap[n.file_id] || {};
+        const prof  = pMap[n.from_user_id] || {};
+        const file  = fMap[n.file_id] || {};
+        const coll  = cMap[n.collection_id] || {};
         const fname = escapeHtml((file.filename || 'dosya') + '.html');
-        const isComment     = n.type === 'comment';
-        const isReply       = n.type === 'reply';
-        const isReplyOnFile = n.type === 'reply_on_file';
-        const isFork        = n.type === 'fork';
-        const isCmtLike     = n.type === 'comment_like';
+        const cname = escapeHtml(coll.name || 'koleksiyon');
+        const isComment        = n.type === 'comment';
+        const isReply          = n.type === 'reply';
+        const isReplyOnFile    = n.type === 'reply_on_file';
+        const isFork           = n.type === 'fork';
+        const isCmtLike        = n.type === 'comment_like';
+        const isCollLike       = n.type === 'coll_like';
+        const isCollComment    = n.type === 'coll_comment';
+        const isCollReply      = n.type === 'coll_reply';
+        const isCollReplyOnColl = n.type === 'coll_reply_on_coll';
+        const isCollCmtLike    = n.type === 'coll_comment_like';
         const _cmtSVG  = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>`;
         const _forkSVG = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#007aff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>`;
         const _heartSVG = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#ff3b30"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`;
         const _preview = n.comment_preview ? `: <em style="opacity:.8">${escapeHtml(n.comment_preview)}</em>` : '';
         const _isCommentNotif = isComment || isReply || isReplyOnFile || isCmtLike;
         const _cid = n.comment_id ? `'${n.comment_id}'` : 'null';
+        // Koleksiyon bildirimleri için tıklama
+        const _collGoto = n.collection_id ? `openCollectionOverlay('${n.collection_id}')` : '';
+        const _collClick = n.collection_id ? `style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();${_collGoto}"` : '';
+        const _collItemClick = _collGoto ? `onclick="closeNotifPanel();${_collGoto}" style="cursor:pointer"` : '';
         const _goto = n.file_id
             ? (_isCommentNotif
                 ? `openFileViewAtComment('${n.file_id}',${_cid})`
@@ -6847,8 +7208,19 @@ async function loadNotifications() {
             ? `&nbsp;${_heartSVG}${n.file_id ? ` <span class="notif-file" ${_fileClick}>${fname}</span> dosyandaki` : ''} bir yorumunu beğendi`
             : isFork
             ? `&nbsp;${_forkSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyanı fork etti`
+            : isCollLike
+            ? `&nbsp;${_heartSVG} <span class="notif-file" ${_collClick}>📁 ${cname}</span> koleksiyonunu beğendi`
+            : isCollComment
+            ? `&nbsp;${_cmtSVG} <span class="notif-file" ${_collClick}>📁 ${cname}</span> koleksiyonuna yorum yaptı${_preview}`
+            : isCollReply
+            ? `&nbsp;${_cmtSVG} <span class="notif-file" ${_collClick}>📁 ${cname}</span> koleksiyonundaki yorumuna yanıt verdi${_preview}`
+            : isCollReplyOnColl
+            ? `&nbsp;${_cmtSVG} <span class="notif-file" ${_collClick}>📁 ${cname}</span> koleksiyonundaki bir yoruma yanıt verdi${_preview}`
+            : isCollCmtLike
+            ? `&nbsp;${_heartSVG} <span class="notif-file" ${_collClick}>📁 ${cname}</span> koleksiyonundaki bir yorumunu beğendi`
             : `&nbsp;${_heartSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyanı beğendi`;
-        return `<div class="notif-item" id="notif-${n.id}" ${_itemClick}>
+        const _finalItemClick = (isCollLike||isCollComment||isCollReply||isCollReplyOnColl||isCollCmtLike) ? _collItemClick : _itemClick;
+        return `<div class="notif-item" id="notif-${n.id}" ${_finalItemClick}>
             <div class="notif-avatar" style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${prof.avatar_emoji || '👤'}</div>
             <div class="notif-info">
                 <div class="notif-text">
@@ -7026,7 +7398,12 @@ async function confirmCreateCollection() {
 }
 
 function openFileCollectionMenu(fileId, btnEl) {
-    document.querySelectorAll('.sf-coll-dropdown.open').forEach(el => el.classList.remove('open'));
+    // Önceki açık menüleri kapat ve wrapper z-index'lerini sıfırla
+    document.querySelectorAll('.sf-coll-dropdown.open').forEach(el => {
+        el.classList.remove('open');
+        const w = el.closest('.swipe-wrapper');
+        if (w) w.style.zIndex = '';
+    });
     const menu = document.getElementById('sfcolldd-' + fileId);
     if (!menu) return;
     const fileCols = _fileCollectionMap[fileId] || new Set();
@@ -7039,10 +7416,14 @@ function openFileCollectionMenu(fileId, btnEl) {
             </label>`).join('')
         : '<div style="padding:8px 10px;font-size:12px;color:var(--text-secondary);">Önce koleksiyon oluşturun</div>';
     menu.classList.add('open');
+    // Bu kartın wrapper'ını öne çıkar
+    const wrapper = menu.closest('.swipe-wrapper');
+    if (wrapper) wrapper.style.zIndex = '10';
     setTimeout(() => {
         document.addEventListener('click', function handler(e) {
             if (!menu.contains(e.target) && !btnEl.contains(e.target)) {
                 menu.classList.remove('open');
+                if (wrapper) wrapper.style.zIndex = '';
                 document.removeEventListener('click', handler, true);
             }
         }, true);
@@ -7095,24 +7476,66 @@ async function toggleCollectionPublic(collId, currentVal, event) {
 
 // ── Koleksiyon Overlay ────────────────────────────────────────────────
 let _colOverlayId = null;
+let _collSwipeAttached = false;
+
+function _attachCollSwipe() {
+    if (_collSwipeAttached) return;
+    _collSwipeAttached = true;
+    const overlay = document.getElementById('collOverlay');
+    let _sx = 0, _sy = 0;
+    overlay.addEventListener('touchstart', e => {
+        _sx = e.touches[0].clientX;
+        _sy = e.touches[0].clientY;
+    }, { passive: true });
+    overlay.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - _sx;
+        const dy = e.changedTouches[0].clientY - _sy;
+        if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+        const track = document.getElementById('collTabTrack');
+        const onComments = track?.classList.contains('on-comments');
+        if (dx < 0 && !onComments) collSwitchTab('comments');
+        else if (dx > 0 && onComments) collSwitchTab('files');
+    }, { passive: true });
+}
 
 async function openCollectionOverlay(collId) {
     _colOverlayId = collId;
     _closeAllPanels('collection');
     const overlay = document.getElementById('collOverlay');
     overlay.classList.add('open');
+    _attachCollSwipe();
     document.getElementById('collOverlayTitle').textContent = '...';
     document.getElementById('collOverlaySubtitle').textContent = '';
     document.getElementById('collOverlayList').innerHTML = '<div class="search-empty">Yükleniyor...</div>';
     const { data: col } = await sb.from('collections').select('id,name,user_id,is_public').eq('id', collId).single();
     if (!col) { overlay.classList.remove('open'); return; }
     document.getElementById('collOverlayTitle').textContent = '📁 ' + col.name;
+    _colOwnerMap[collId] = col.user_id;
     // Sil butonu sadece koleksiyon sahibine görünsün
-    const delBtn = overlay.querySelector('button[onclick*="deleteCollection"]');
+    const delBtn = document.getElementById('collOverlayDelBtn');
     if (delBtn) delBtn.style.display = (currentUser && currentUser.id === col.user_id) ? 'flex' : 'none';
+    // Beğeni durumunu yükle (cache'de yoksa çek)
+    if (!_colLikeCounts[collId]) {
+        const [{ data: allL }, { data: myL }] = await Promise.all([
+            sb.from('collection_likes').select('collection_id').eq('collection_id', collId),
+            currentUser ? sb.from('collection_likes').select('collection_id').eq('collection_id', collId).eq('user_id', currentUser.id) : Promise.resolve({ data: [] })
+        ]);
+        _colLikeCounts[collId] = (allL || []).length;
+        if ((myL || []).length) _colMyLikes.add(collId);
+    }
+    _updateCollOverlayLikeBtn(collId);
     // Tab'ı sıfırla — her açılışta Dosyalar sekmesiyle başla
     collSwitchTab('files');
     await _loadCollectionOverlayFiles(collId);
+}
+
+function _updateCollOverlayLikeBtn(collId) {
+    const liked = _colMyLikes.has(collId);
+    const btn = document.getElementById('collOverlayLikeBtn');
+    if (!btn) return;
+    btn.classList.toggle('liked', liked);
+    document.getElementById('collOverlayLikeIcon').textContent = liked ? '♥' : '♡';
+    document.getElementById('collOverlayLikeCount').textContent = _colLikeCounts[collId] || '';
 }
 
 function closeCollectionOverlay() {
@@ -7146,20 +7569,16 @@ async function deleteCollection(collId) {
 // ── Koleksiyon Yorumları ──────────────────────────────────────────────
 
 function collSwitchTab(tab) {
-    const filesList = document.getElementById('collOverlayList');
-    const cmtSection = document.getElementById('collOverlayComments');
+    const track = document.getElementById('collTabTrack');
     const tabFiles = document.getElementById('collTabFiles');
     const tabCmts = document.getElementById('collTabComments');
-    if (tab === 'files') {
-        filesList.style.display = ''; cmtSection.style.display = 'none';
-        tabFiles.style.color = '#007aff'; tabFiles.style.borderBottomColor = '#007aff';
-        tabCmts.style.color = 'var(--text-secondary)'; tabCmts.style.borderBottomColor = 'transparent';
-    } else {
-        filesList.style.display = 'none'; cmtSection.style.display = 'flex'; cmtSection.style.flexDirection = 'column';
-        tabFiles.style.color = 'var(--text-secondary)'; tabFiles.style.borderBottomColor = 'transparent';
-        tabCmts.style.color = '#007aff'; tabCmts.style.borderBottomColor = '#007aff';
-        collLoadComments(_colOverlayId, 'ccmtlist-overlay', 'collCmtCount');
-    }
+    const onComments = tab === 'comments';
+    if (track) track.classList.toggle('on-comments', onComments);
+    tabFiles.style.color = onComments ? 'var(--text-secondary)' : '#007aff';
+    tabFiles.style.borderBottomColor = onComments ? 'transparent' : '#007aff';
+    tabCmts.style.color = onComments ? '#007aff' : 'var(--text-secondary)';
+    tabCmts.style.borderBottomColor = onComments ? '#007aff' : 'transparent';
+    if (onComments) collLoadComments(_colOverlayId, 'ccmtlist-overlay', 'collCmtCount');
 }
 
 async function collToggleComments(collId) {
@@ -7180,28 +7599,53 @@ async function collLoadComments(collId, listElId, cntElId) {
     const { data: comments } = await sb.from('collection_comments')
         .select('*').eq('collection_id', collId).order('created_at', { ascending: true });
     const all = comments || [];
-    if (cntElId) { const el = document.getElementById(cntElId); if (el) el.textContent = all.length || ''; }
+    const topLevel = all.filter(c => !c.parent_id);
+    if (cntElId) { const el = document.getElementById(cntElId); if (el) el.textContent = topLevel.length || ''; }
     if (!all.length) { listEl.innerHTML = '<div class="search-empty" style="padding:8px 0;font-size:12px;">Henüz yorum yok</div>'; return; }
     const uids = [...new Set(all.map(c => c.user_id))];
-    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const cmtIds = all.map(c => c.id);
+    const [{ data: profs }, { data: allLikes }, { data: myLikes }] = await Promise.all([
+        sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
+        sb.from('collection_comment_likes').select('comment_id').in('comment_id', cmtIds),
+        currentUser ? sb.from('collection_comment_likes').select('comment_id').eq('user_id', currentUser.id).in('comment_id', cmtIds) : Promise.resolve({ data: [] })
+    ]);
     const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
-    listEl.innerHTML = all.map(c => {
+    _colCmtLikes = {};
+    (allLikes||[]).forEach(l => { _colCmtLikes[l.comment_id] = (_colCmtLikes[l.comment_id]||0)+1; });
+    _colMyCmtLikes = new Set((myLikes||[]).map(l => l.comment_id));
+    const repliesMap = {};
+    all.filter(c => c.parent_id).forEach(r => { if (!repliesMap[r.parent_id]) repliesMap[r.parent_id] = []; repliesMap[r.parent_id].push(r); });
+    const _XSVG = `<svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>`;
+    const renderC = (c, isReply = false) => {
         const p = pm[c.user_id] || {};
         const canDel = currentUser && currentUser.id === c.user_id;
-        return `<div class="comment-item" id="ccmt-${c.id}" data-user-id="${c.user_id}">
+        const liked = _colMyCmtLikes.has(c.id);
+        const likeCnt = _colCmtLikes[c.id] || 0;
+        const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderC(r, true)).join('') : '';
+        return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="ccmt-${c.id}" data-user-id="${c.user_id}">
             <div class="comment-avatar" onclick="openPublicProfile('${c.user_id}')" style="cursor:pointer">${p.avatar_emoji||'👤'}</div>
             <div class="comment-body">
                 <div class="comment-header">
                     <span class="comment-username" onclick="openPublicProfile('${c.user_id}')" style="cursor:pointer">${escapeHtml(p.username||'Kullanıcı')}</span>
                     <span class="comment-time">${_fmtTime(c.created_at)}</span>
-                    ${canDel ? `<button class="comment-delete-btn" onclick="collDeleteComment('${c.id}','${collId}','${listElId}','${cntElId||''}')">
-                        <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>` : ''}
+                    ${canDel ? `<button class="comment-delete-btn" onclick="collDeleteComment('${c.id}','${collId}','${listElId}','${cntElId||''}')">${_XSVG}</button>` : ''}
                 </div>
                 <div class="comment-text">${escapeHtml(c.content)}</div>
+                <div class="cmt-actions">
+                    <button class="cmt-like-btn${liked ? ' liked' : ''}" onclick="collToggleCmtLike('${c.id}',this,'${collId}','${listElId}','${cntElId||''}')">
+                        ${liked ? '♥' : '♡'}<span id="colcl-${c.id}">${likeCnt ? ' '+likeCnt : ''}</span>
+                    </button>
+                    ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="collShowReply('${c.id}')">Yanıtla</button>` : ''}
+                </div>
+                ${!isReply ? `<div class="cmt-reply-input-wrap" id="collri-${c.id}" style="display:none;">
+                    <textarea class="cmt-reply-textarea" id="collrit-${c.id}" placeholder="Yanıtla..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button class="cmt-reply-send" onclick="collSubmitReply('${c.id}','${collId}','${listElId}','${cntElId||''}')">Gönder</button>
+                </div>` : ''}
+                ${childReplies ? `<div class="cmt-replies-wrap">${childReplies}</div>` : ''}
             </div>
         </div>`;
-    }).join('');
+    };
+    listEl.innerHTML = topLevel.map(c => renderC(c)).join('');
 }
 
 async function collSubmitComment(collId, inputId, listElId) {
@@ -7214,6 +7658,9 @@ async function collSubmitComment(collId, inputId, listElId) {
         .insert({ collection_id: collId, user_id: currentUser.id, content });
     if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
     const cntElId = listElId.startsWith('ccmtlist-overlay') ? 'collCmtCount' : 'ccmtcnt-' + collId;
+    // Bildirim: koleksiyon sahibine
+    const _ownerId = _colOwnerMap[collId];
+    if (_ownerId) _sendNotif('coll_comment', _ownerId, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
     const wrap = document.getElementById('ccmtwrap-' + collId);
     if (wrap) wrap.dataset.loaded = '';
     await collLoadComments(collId, listElId, cntElId);
@@ -7224,6 +7671,66 @@ async function collDeleteComment(commentId, collId, listElId, cntElId) {
     if (el) { el.style.opacity = '0'; el.style.transition = 'opacity 0.2s'; setTimeout(() => el.remove(), 200); }
     await sb.from('collection_comments').delete().eq('id', commentId);
     await collLoadComments(collId, listElId, cntElId || '');
+}
+
+function collShowReply(commentId) {
+    const wrap = document.getElementById('collri-' + commentId);
+    if (!wrap) return;
+    const showing = wrap.style.display !== 'none';
+    wrap.style.display = showing ? 'none' : 'flex';
+    if (!showing) document.getElementById('collrit-' + commentId)?.focus();
+}
+
+async function collSubmitReply(parentId, collId, listElId, cntElId) {
+    if (!currentUser) return;
+    const inp = document.getElementById('collrit-' + parentId);
+    const content = inp?.value.trim();
+    if (!content) return;
+    inp.value = ''; inp.style.height = 'auto';
+    document.getElementById('collri-' + parentId).style.display = 'none';
+    const { error } = await sb.from('collection_comments')
+        .insert({ collection_id: collId, user_id: currentUser.id, content, parent_id: parentId });
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
+    // Yorum sahibine: "yorumuna yanıt verildi"
+    const _rvp = document.getElementById('ccmt-' + parentId);
+    if (_rvp) _sendNotif('coll_reply', _rvp.dataset.userId, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
+    // Koleksiyon sahibine (yorum sahibinden farklıysa)
+    const _ownerId2 = _colOwnerMap[collId];
+    if (_ownerId2 && _ownerId2 !== _rvp?.dataset.userId) _sendNotif('coll_reply_on_coll', _ownerId2, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
+    const wrap = document.getElementById('ccmtwrap-' + collId);
+    if (wrap) wrap.dataset.loaded = '';
+    await collLoadComments(collId, listElId, cntElId || '');
+}
+
+async function collToggleCmtLike(commentId, btn, collId, listElId, cntElId) {
+    if (!currentUser) { showToast('Beğenmek için giriş yapın'); return; }
+    const liked = _colMyCmtLikes.has(commentId);
+    const span = document.getElementById('colcl-' + commentId);
+    if (liked) {
+        _colMyCmtLikes.delete(commentId);
+        _colCmtLikes[commentId] = Math.max(0, (_colCmtLikes[commentId]||1)-1);
+        btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡';
+    } else {
+        _colMyCmtLikes.add(commentId);
+        _colCmtLikes[commentId] = (_colCmtLikes[commentId]||0)+1;
+        btn.classList.add('liked'); btn.childNodes[0].textContent = '♥';
+    }
+    if (span) span.textContent = _colCmtLikes[commentId] ? ' '+_colCmtLikes[commentId] : '';
+    const { error } = liked
+        ? await sb.from('collection_comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId)
+        : await sb.from('collection_comment_likes').insert({ user_id: currentUser.id, comment_id: commentId });
+    if (error) {
+        // Geri al
+        if (liked) { _colMyCmtLikes.add(commentId); _colCmtLikes[commentId]++; btn.classList.add('liked'); btn.childNodes[0].textContent = '♥'; }
+        else { _colMyCmtLikes.delete(commentId); _colCmtLikes[commentId]=Math.max(0,(_colCmtLikes[commentId]||1)-1); btn.classList.remove('liked'); btn.childNodes[0].textContent = '♡'; }
+        if (span) span.textContent = _colCmtLikes[commentId] ? ' '+_colCmtLikes[commentId] : '';
+        showToast('Hata: ' + error.message); return;
+    }
+    // Bildirim: yorum sahibine beğeni
+    if (!liked) {
+        const _cl = document.getElementById('ccmt-' + commentId);
+        if (_cl) _sendNotif('coll_comment_like', _cl.dataset.userId, null, { collection_id: collId });
+    }
 }
 
 async function _loadCollectionOverlayFiles(collId) {
@@ -7266,39 +7773,42 @@ async function _loadCollectionOverlayFiles(collId) {
         const dateStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
         return `<div class="feed-card" id="cowrap-${f.id}">
             <div class="feed-card-header" onclick="openPublicProfile('${f.user_id}')">
-                <span class="feed-card-avatar">${p.avatar_emoji || '👤'}</span>
+                <div class="feed-card-avatar">${p.avatar_emoji || '👤'}</div>
                 <div class="feed-card-meta">
-                    <div class="feed-card-username">${escapeHtml(p.username || 'Kullanıcı')}</div>
-                    <div class="feed-card-date">${escapeHtml(f.filename)} · ${dateStr}</div>
+                    <div class="feed-card-username">@${escapeHtml(p.username || 'kullanici')}</div>
+                    <div class="feed-card-date">${_timeAgo(f.updated_at)} • ${escapeHtml(f.filename)}</div>
                 </div>
-                <button class="feed-open-btn" onclick="event.stopPropagation();closeCollectionOverlay();openFileView('${f.id}')">Aç</button>
-            </div>
-            <div class="feed-thumb-wrap">
-                <div class="feed-thumb-loader" id="coload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
-                <iframe class="feed-thumb-frame" id="coprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
-                <div class="feed-thumb-overlay" onclick="closeCollectionOverlay();openFileView('${f.id}')"></div>
+                <button class="feed-more-btn" onclick="event.stopPropagation()">···</button>
             </div>
             ${f.description ? `<div class="feed-card-desc" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
+            <div class="feed-thumb-wrap">
+                <div class="feed-thumb-inner">
+                    <div class="feed-thumb-loader" id="coload-${f.id}"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
+                    <iframe class="feed-thumb-frame" id="coprev-${f.id}" sandbox="allow-scripts" scrolling="no"></iframe>
+                    <div class="feed-thumb-overlay" onclick="closeCollectionOverlay();openFileView('${f.id}')"></div>
+                </div>
+            </div>
             <div class="feed-card-actions">
                 <button class="feed-like-btn${liked ? ' liked' : ''}" id="colike-${f.id}" onclick="feedToggleLike('${f.id}')">
-                    ${liked ? '♥' : '♡'} <span id="colikecnt-${f.id}">${cnt || ''}</span>
+                    ${liked ? '♥' : '♡'} <span id="colikecnt-${f.id}">${_fmtCnt(cnt)}</span>
                 </button>
-                <button class="feed-comment-toggle" onclick="feedToggleComments('${f.id}')">
+                <button class="feed-comment-toggle" onclick="coToggleComments('${f.id}')">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                     <span id="cocmtcnt-${f.id}"></span>
                 </button>
+                <button class="feed-share-btn" onclick="event.stopPropagation();closeCollectionOverlay();openFileView('${f.id}')">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+                </button>
             </div>
-            <div id="fcmtwrap-${f.id}" style="display:none;">
-                <div class="feed-comments-wrap">
-                    <div id="fcmtlist-${f.id}"></div>
-                    ${currentUser ? `<div class="feed-cmt-input-row" style="margin-top:8px;">
-                        <textarea class="feed-cmt-textarea" id="fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1"
-                            oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="font-size:13px;"></textarea>
-                        <button class="feed-cmt-send" onclick="feedSubmitComment('${f.id}')" style="width:30px;height:30px;">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                        </button>
-                    </div>` : ''}
-                </div>
+            <div class="feed-comments-wrap" id="co-fcmtwrap-${f.id}" style="display:none;">
+                <div id="co-fcmtlist-${f.id}"></div>
+                ${currentUser ? `<div class="feed-cmt-input-row">
+                    <textarea class="feed-cmt-textarea" id="co-fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1"
+                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button class="feed-cmt-send" onclick="coSubmitComment('${f.id}')">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    </button>
+                </div>` : ''}
             </div>
         </div>`;
     }).join('');
@@ -7331,14 +7841,18 @@ async function loadPublicCollectionsForFeed() {
     const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
     const pMap = {};
     (profs || []).forEach(p => { pMap[p.id] = p; });
-    // Load likes
+    // Load likes + comment counts
     const collIds = cols.map(c => c.id);
-    const [{ data: allColLikes }, { data: myColLikes }] = await Promise.all([
+    const [{ data: allColLikes }, { data: myColLikes }, { data: cmtRows }] = await Promise.all([
         sb.from('collection_likes').select('collection_id').in('collection_id', collIds),
-        currentUser ? sb.from('collection_likes').select('collection_id').eq('user_id', currentUser.id).in('collection_id', collIds) : Promise.resolve({ data: [] })
+        currentUser ? sb.from('collection_likes').select('collection_id').eq('user_id', currentUser.id).in('collection_id', collIds) : Promise.resolve({ data: [] }),
+        sb.from('collection_comments').select('collection_id').in('collection_id', collIds)
     ]);
+    collIds.forEach(id => { _colLikeCounts[id] = 0; _colMyLikes.delete(id); });
     (allColLikes || []).forEach(l => { _colLikeCounts[l.collection_id] = (_colLikeCounts[l.collection_id] || 0) + 1; });
     (myColLikes || []).forEach(l => _colMyLikes.add(l.collection_id));
+    const _colCmtCountsMap = {};
+    (cmtRows || []).forEach(c => { _colCmtCountsMap[c.collection_id] = (_colCmtCountsMap[c.collection_id] || 0) + 1; });
     // Load first 4 files per collection (parallelized)
     const results = await Promise.all(cols.map(async col => {
         const { data: cf } = await sb.from('collection_files').select('file_id').eq('collection_id', col.id).limit(4);
@@ -7348,8 +7862,10 @@ async function loadPublicCollectionsForFeed() {
             const { data: fs } = await sb.from('files').select('id,code').in('id', fileIds).eq('is_public', true).limit(4);
             fileObjs = fs || [];
         }
-        return { ...col, prof: pMap[col.user_id] || {}, files: fileObjs, fileCount: fileIds.length };
+        return { ...col, prof: pMap[col.user_id] || {}, files: fileObjs, fileCount: fileIds.length, cmtCount: _colCmtCountsMap[col.id] || 0 };
     }));
+    // Koleksiyon sahiplerini cache'e al
+    results.forEach(col => { _colOwnerMap[col.id] = col.user_id; });
     return results;
 }
 
@@ -7365,34 +7881,38 @@ function _renderCollectionCard(col) {
         </div>`).join('');
     return `<div class="coll-card" id="ccard-${col.id}">
         <div class="coll-card-header" onclick="openPublicProfile('${col.user_id}')">
-            <span class="coll-card-avatar">${p.avatar_emoji || '👤'}</span>
+            <div class="coll-card-avatar">${p.avatar_emoji || '👤'}</div>
             <div class="coll-card-meta">
-                <div class="coll-card-name">📁 ${escapeHtml(col.name)}</div>
-                <div class="coll-card-sub">${escapeHtml(p.username || 'Kullanıcı')} · ${col.fileCount} dosya</div>
+                <div class="coll-card-name">@${escapeHtml(p.username || 'kullanici')}</div>
+                <div class="coll-card-sub">${_timeAgo(col.updated_at || col.created_at)} • 📁 ${escapeHtml(col.name)}</div>
             </div>
-            <button class="coll-open-btn" onclick="event.stopPropagation();openCollectionOverlay('${col.id}')">Aç</button>
+            <button class="feed-more-btn" onclick="event.stopPropagation()">···</button>
         </div>
-        <div class="coll-card-grid">${gridHtml}</div>
+        <div class="feed-card-desc" onclick="openCollectionOverlay('${col.id}')">📁 ${escapeHtml(col.name)} · ${col.fileCount} dosya</div>
+        <div class="coll-card-grid-wrap">
+            <div class="coll-card-grid">${gridHtml}</div>
+        </div>
         <div class="coll-card-actions">
             <button class="feed-like-btn${liked ? ' liked' : ''}" id="cclike-${col.id}" onclick="toggleColLike('${col.id}')">
-                ${liked ? '♥' : '♡'} <span id="cclikecnt-${col.id}">${cnt || ''}</span>
+                ${liked ? '♥' : '♡'} <span id="cclikecnt-${col.id}">${_fmtCnt(cnt)}</span>
             </button>
             <button class="feed-comment-toggle" onclick="collToggleComments('${col.id}')">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                <span id="ccmtcnt-${col.id}"></span>
+                <span id="ccmtcnt-${col.id}">${_fmtCnt(col.cmtCount)}</span>
+            </button>
+            <button class="feed-share-btn" onclick="event.stopPropagation();openCollectionOverlay('${col.id}')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
             </button>
         </div>
-        <div id="ccmtwrap-${col.id}" style="display:none;padding:0 12px 12px;">
-            <div class="feed-comments-wrap">
-                <div class="feed-comments-list" id="ccmtlist-${col.id}"></div>
-                ${currentUser ? `<div class="feed-cmt-input-row" style="margin-top:8px;">
-                    <textarea class="feed-cmt-textarea" id="ccmtinput-${col.id}" placeholder="Yorum yaz..." rows="1"
-                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                    <button class="feed-cmt-send" onclick="collSubmitComment('${col.id}','ccmtinput-${col.id}','ccmtlist-${col.id}')">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                    </button>
-                </div>` : ''}
-            </div>
+        <div class="feed-comments-wrap" id="ccmtwrap-${col.id}" style="display:none;">
+            <div class="feed-comments-list" id="ccmtlist-${col.id}"></div>
+            ${currentUser ? `<div class="feed-cmt-input-row">
+                <textarea class="feed-cmt-textarea" id="ccmtinput-${col.id}" placeholder="Yorum yaz..." rows="1"
+                    oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                <button class="feed-cmt-send" onclick="collSubmitComment('${col.id}','ccmtinput-${col.id}','ccmtlist-${col.id}')">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                </button>
+            </div>` : ''}
         </div>
     </div>`;
 }
@@ -7416,7 +7936,11 @@ async function toggleColLike(collId) {
         _colMyLikes.add(collId);
         _colLikeCounts[collId] = (_colLikeCounts[collId] || 0) + 1;
         await sb.from('collection_likes').insert({ collection_id: collId, user_id: currentUser.id });
+        // Bildirim: koleksiyon sahibine
+        const _ownerId = _colOwnerMap[collId];
+        if (_ownerId) _sendNotif('coll_like', _ownerId, null, { collection_id: collId });
     }
+    // Kart butonu
     const btn = document.getElementById('cclike-' + collId);
     if (btn) {
         btn.classList.toggle('liked', _colMyLikes.has(collId));
@@ -7424,6 +7948,8 @@ async function toggleColLike(collId) {
         const span = document.getElementById('cclikecnt-' + collId);
         if (span) span.textContent = _colLikeCounts[collId] || '';
     }
+    // Modal butonu
+    if (_colOverlayId === collId) _updateCollOverlayLikeBtn(collId);
 }
 </script>
 
@@ -7496,8 +8022,10 @@ async function toggleColLike(collId) {
             <div class="fv-pane fv-code-pane" id="fvPaneCode">
                 <textarea id="fvCodeArea"></textarea>
             </div>
-            <div class="fv-pane fv-preview-pane" id="fvPanePreview">
+            <div class="fv-pane fv-preview-pane" id="fvPanePreview" style="position:relative;">
                 <iframe class="fv-preview-frame" id="fvFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+                <div id="fvSwipeGuardL" style="position:absolute;top:0;left:0;width:28px;height:100%;z-index:2;"></div>
+                <div id="fvSwipeGuardR" style="position:absolute;top:0;right:0;width:28px;height:100%;z-index:2;"></div>
             </div>
             <div class="fv-pane fv-comments-pane" id="fvPaneComments">
                 <div class="fv-cmt-list" id="fvCmtList">
