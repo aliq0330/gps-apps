@@ -14,6 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -601,6 +602,49 @@ body.preview-mode .code-area { opacity: 0; pointer-events: none; transform: scal
 .code-input::-webkit-scrollbar { width: 8px; }
 .code-input::-webkit-scrollbar-track { background: transparent; }
 .code-input::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+
+/* ── Search Panel ────────────────────────────────────────── */
+.search-panel {
+    overflow: hidden; max-height: 0;
+    transition: max-height 0.22s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease;
+    opacity: 0; flex-shrink: 0;
+    background: var(--card-bg);
+    border-bottom: 1.5px solid var(--glass-border);
+}
+.search-panel.open { max-height: 110px; opacity: 1; }
+.search-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 10px 0;
+}
+.search-row:last-child { padding-bottom: 7px; }
+.search-input {
+    flex: 1; height: 34px; padding: 0 10px;
+    background: rgba(120,120,128,0.1); border: 1.5px solid var(--glass-border);
+    border-radius: 9px; color: var(--text-primary);
+    font-family: 'JetBrains Mono','SF Mono',monospace; font-size: 13px;
+    outline: none; transition: border-color 0.18s;
+}
+.search-input:focus { border-color: rgba(0,122,255,0.5); }
+.search-input::placeholder { color: var(--text-secondary); }
+.search-count {
+    font-size: 11px; color: var(--text-secondary); white-space: nowrap;
+    font-family: 'JetBrains Mono',monospace; min-width: 42px; text-align: center;
+}
+.search-btn {
+    height: 34px; min-width: 34px; padding: 0 10px;
+    border-radius: 9px; border: 1.5px solid var(--glass-border);
+    background: rgba(120,120,128,0.1); color: var(--text-secondary);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all 0.15s ease; white-space: nowrap; font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+}
+.search-btn:active { transform: scale(0.93); }
+.search-btn:hover { background: rgba(120,120,128,0.2); color: var(--text-primary); }
+.search-btn.active { background: rgba(0,122,255,0.15); border-color: rgba(0,122,255,0.4); color: #007aff; }
+.search-btn.search-close { color: var(--text-secondary); font-size: 15px; min-width: 34px; }
+.search-btn.search-replace { font-size: 12px; padding: 0 12px; }
+.cm-search-match { background: rgba(255,200,0,0.35); border-radius: 2px; }
+.toolbar-btn.search-active { background: rgba(0,122,255,0.12); border-color: rgba(0,122,255,0.3); color: #007aff; }
 
 /* ── Editor Tab Bar ──────────────────────────────────────── */
 .editor-tab-bar {
@@ -2668,6 +2712,12 @@ body.preview-mode .file-title-bar { display: none !important; }
         </svg>
         İndir
     </button>
+    <button class="toolbar-btn" id="searchToolbarBtn" onclick="_openSearch()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+        </svg>
+        Ara
+    </button>
     <button class="toolbar-btn" onclick="loadFile()">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
@@ -2689,6 +2739,26 @@ body.preview-mode .file-title-bar { display: none !important; }
             <button class="editor-tab" data-tab="js" onclick="_switchEditorTab('js')">
                 <span class="tab-dot tab-dot-js"></span> JS
             </button>
+        </div>
+        <div class="search-panel" id="searchPanel">
+            <div class="search-row">
+                <input type="text" id="searchInput" class="search-input"
+                       placeholder="Ara..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                       oninput="_doSearch()" onkeydown="_searchKeydown(event)">
+                <span class="search-count" id="searchCount"></span>
+                <button class="search-btn" onclick="_searchPrev()" title="Önceki (↑)">↑</button>
+                <button class="search-btn" onclick="_searchNext()" title="Sonraki (↓)">↓</button>
+                <button class="search-btn search-opt" id="btnCase" onclick="_toggleCase()" title="Büyük/Küçük Harf">Aa</button>
+                <button class="search-btn search-opt" id="btnRegex" onclick="_toggleRegex()" title="Regex">.*</button>
+                <button class="search-btn search-close" onclick="_closeSearch()">✕</button>
+            </div>
+            <div class="search-row">
+                <input type="text" id="replaceInput" class="search-input"
+                       placeholder="Değiştir..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                       onkeydown="_replaceKeydown(event)">
+                <button class="search-btn search-replace" onclick="_replaceOne()">Değiştir</button>
+                <button class="search-btn search-replace" onclick="_replaceAll()">Tümü</button>
+            </div>
         </div>
         <textarea id="editor" class="code-input" spellcheck="false"
                   oninput="updateCode()" onkeydown="handleKeydown(event)"></textarea>
@@ -4628,6 +4698,138 @@ function pasteCode() {
         }
         if (isFabOpen) toggleFabMenu(); showToast('Yapıştırıldı');
     }).catch(() => showToast('Yapıştırma başarısız'));
+}
+
+// ── Search & Replace ───────────────────────────────────────────────────
+let _sp = { query: '', matches: [], idx: -1, caseSensitive: false, useRegex: false };
+let _spMarks = [];
+
+function _openSearch() {
+    const panel = document.getElementById('searchPanel');
+    const isOpen = panel.classList.contains('open');
+    if (isOpen) { _closeSearch(); return; }
+    panel.classList.add('open');
+    document.getElementById('searchToolbarBtn').classList.add('search-active');
+    setTimeout(() => document.getElementById('searchInput').focus(), 50);
+    _doSearch();
+}
+
+function _closeSearch() {
+    document.getElementById('searchPanel').classList.remove('open');
+    document.getElementById('searchToolbarBtn').classList.remove('search-active');
+    _clearSpMarks();
+    _sp.matches = []; _sp.idx = -1;
+    document.getElementById('searchCount').textContent = '';
+    if (window.cm) cm.focus();
+}
+
+function _clearSpMarks() {
+    _spMarks.forEach(m => { try { m.clear(); } catch(e) {} });
+    _spMarks = [];
+}
+
+function _doSearch() {
+    _clearSpMarks();
+    _sp.matches = []; _sp.idx = -1;
+    if (!window.cm) return;
+    const q = document.getElementById('searchInput').value;
+    _sp.query = q;
+    if (!q) { document.getElementById('searchCount').textContent = ''; return; }
+
+    let query;
+    try {
+        query = _sp.useRegex ? new RegExp(q, _sp.caseSensitive ? '' : 'i') : q;
+    } catch(e) {
+        document.getElementById('searchCount').textContent = '❌';
+        return;
+    }
+
+    const cursor = cm.getSearchCursor(query, { line: 0, ch: 0 }, !_sp.caseSensitive);
+    while (cursor.findNext()) {
+        const from = cursor.from(), to = cursor.to();
+        _sp.matches.push({ from, to });
+        const m = cm.markText(from, to, { className: 'cm-search-match' });
+        _spMarks.push(m);
+    }
+
+    if (!_sp.matches.length) {
+        document.getElementById('searchCount').textContent = 'Bulunamadı';
+        return;
+    }
+
+    // Yakın eşleşmeyi bul (imleç konumuna göre)
+    const cur = cm.getCursor();
+    _sp.idx = _sp.matches.findIndex(m =>
+        m.from.line > cur.line || (m.from.line === cur.line && m.from.ch >= cur.ch)
+    );
+    if (_sp.idx < 0) _sp.idx = 0;
+    _jumpToMatch(_sp.idx);
+}
+
+function _jumpToMatch(idx) {
+    const m = _sp.matches[idx];
+    if (!m) return;
+    cm.setSelection(m.from, m.to);
+    cm.scrollIntoView({ from: m.from, to: m.to }, 80);
+    document.getElementById('searchCount').textContent = `${idx + 1}/${_sp.matches.length}`;
+}
+
+function _searchNext() {
+    if (!_sp.matches.length) { _doSearch(); return; }
+    _sp.idx = (_sp.idx + 1) % _sp.matches.length;
+    _jumpToMatch(_sp.idx);
+}
+
+function _searchPrev() {
+    if (!_sp.matches.length) { _doSearch(); return; }
+    _sp.idx = (_sp.idx - 1 + _sp.matches.length) % _sp.matches.length;
+    _jumpToMatch(_sp.idx);
+}
+
+function _toggleCase() {
+    _sp.caseSensitive = !_sp.caseSensitive;
+    document.getElementById('btnCase').classList.toggle('active', _sp.caseSensitive);
+    _doSearch();
+}
+
+function _toggleRegex() {
+    _sp.useRegex = !_sp.useRegex;
+    document.getElementById('btnRegex').classList.toggle('active', _sp.useRegex);
+    _doSearch();
+}
+
+function _replaceOne() {
+    if (!window.cm || !_sp.matches.length) return;
+    const m = _sp.matches[_sp.idx];
+    if (!m) return;
+    cm.replaceRange(document.getElementById('replaceInput').value, m.from, m.to);
+    _tabs[_activeTab] = cm.getValue();
+    code = _mergeBodyContent();
+    hasUnsavedChanges = true; saveToStorage();
+    _doSearch();
+}
+
+function _replaceAll() {
+    if (!window.cm || !_sp.matches.length) return;
+    const rep = document.getElementById('replaceInput').value;
+    const count = _sp.matches.length;
+    for (let i = count - 1; i >= 0; i--) {
+        cm.replaceRange(rep, _sp.matches[i].from, _sp.matches[i].to);
+    }
+    _tabs[_activeTab] = cm.getValue();
+    code = _mergeBodyContent();
+    hasUnsavedChanges = true; saveToStorage();
+    _doSearch();
+    showToast(`${count} yerde değiştirildi`);
+}
+
+function _searchKeydown(e) {
+    if (e.key === 'Enter') { e.preventDefault(); e.shiftKey ? _searchPrev() : _searchNext(); }
+    if (e.key === 'Escape') _closeSearch();
+}
+function _replaceKeydown(e) {
+    if (e.key === 'Enter') { e.preventDefault(); _replaceOne(); }
+    if (e.key === 'Escape') _closeSearch();
 }
 
 let toastTimer;
