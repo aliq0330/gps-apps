@@ -7688,8 +7688,10 @@ async function toggleCollectionPublic(collId, currentVal, event) {
     const newVal = !currentVal;
     // Boş koleksiyon herkese açılamaz
     if (newVal) {
-        const hasFiles = Object.values(_fileCollectionMap).some(s => s.has(collId));
-        if (!hasFiles) { showToast('Koleksiyona önce dosya ekleyin'); return; }
+        const { count } = await sb.from('collection_files')
+            .select('*', { count: 'exact', head: true })
+            .eq('collection_id', collId);
+        if (!count) { showToast('Koleksiyona önce dosya ekleyin'); return; }
     }
     const { error } = await sb.from('collections').update({ is_public: newVal }).eq('id', collId);
     if (error) { showToast('Hata'); return; }
