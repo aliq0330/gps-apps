@@ -604,14 +604,14 @@ body.preview-mode .code-area { opacity: 0; pointer-events: none; transform: scal
 .code-input::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
 
 /* ── Search Panel ────────────────────────────────────────── */
-.search-panel {
+.editor-search-panel {
     overflow: hidden; max-height: 0;
     transition: max-height 0.22s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease;
     opacity: 0; flex-shrink: 0;
     background: var(--card-bg);
     border-bottom: 1.5px solid var(--glass-border);
 }
-.search-panel.open { max-height: 110px; opacity: 1; }
+.editor-search-panel.open { max-height: 110px; opacity: 1; }
 .search-row {
     display: flex; align-items: center; gap: 6px;
     padding: 7px 10px 0;
@@ -2740,7 +2740,7 @@ body.preview-mode .file-title-bar { display: none !important; }
                 <span class="tab-dot tab-dot-js"></span> JS
             </button>
         </div>
-        <div class="search-panel" id="searchPanel">
+        <div class="editor-search-panel" id="searchPanel">
             <div class="search-row">
                 <input type="text" id="searchInput" class="search-input"
                        placeholder="Ara..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
