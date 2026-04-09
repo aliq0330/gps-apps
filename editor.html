@@ -5452,12 +5452,17 @@ function _openCardMenu(userId, btn) {
     dd.style.left = left + 'px';
     dd.style.right = 'auto';
     dd.classList.add('open');
-    setTimeout(() => document.addEventListener('click', _closeCardMenu, { once: true }), 0);
+    setTimeout(() => {
+        document.addEventListener('click', _closeCardMenu, { once: true });
+        window.addEventListener('scroll', _closeCardMenu, { once: true, capture: true });
+    }, 0);
 }
 function _closeCardMenu() {
     const dd = document.getElementById('cardMenuDropdown');
     if (dd) dd.classList.remove('open');
     _cardMenuUserId = null;
+    document.removeEventListener('click', _closeCardMenu);
+    window.removeEventListener('scroll', _closeCardMenu, { capture: true });
 }
 async function _cardMenuFollow() {
     if (!currentUser || !_cardMenuUserId) return;
