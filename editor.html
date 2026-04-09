@@ -1839,6 +1839,23 @@ body.preview-mode .file-title-bar { display: none !important; }
     padding: 4px 8px; border-radius: 8px; font-size: 20px; letter-spacing: 1px;
     display: flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 0.7;
 }
+.card-menu-dd {
+    position: fixed; z-index: 12000;
+    background: var(--glass-bg); border: 1px solid var(--border);
+    border-radius: 12px; padding: 4px 0; min-width: 170px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.22); backdrop-filter: blur(14px);
+    display: none;
+}
+.card-menu-dd.open { display: block; animation: fadeInScale 0.15s ease; }
+@keyframes fadeInScale { from { opacity:0; transform:scale(0.92) translateY(-4px); } to { opacity:1; transform:scale(1) translateY(0); } }
+.card-menu-item {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 10px 14px; background: none; border: none; cursor: pointer;
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    color: var(--text-primary); text-align: left; border-radius: 0;
+}
+.card-menu-item:active { background: rgba(128,128,128,0.12); }
+.card-menu-item.following { color: var(--text-secondary); }
 .feed-open-btn {
     padding: 6px 12px; background: rgba(0,122,255,0.12); color: #007aff;
     border: 1px solid rgba(0,122,255,0.25); border-radius: 10px;
@@ -3550,6 +3567,14 @@ function onUserLoggedIn(user) {
     loadSavedFilesFromCloud();
     loadCloudTrash();
     loadProfile();
+    _loadFollowingSet();
+}
+
+async function _loadFollowingSet() {
+    if (!currentUser) return;
+    const { data } = await sb.from('follows').select('following_id').eq('follower_id', currentUser.id);
+    if (data) data.forEach(r => _followingSet.add(r.following_id));
+    _followLoaded = true;
 }
 
 function showAuthScreen() {
@@ -5407,6 +5432,53 @@ async function toggleFollow() {
     }
 }
 
+// ── KART 3-NOKTA MENÜSÜ ────────────────────────────────────────────────
+let _cardMenuUserId = null;
+function _openCardMenu(userId, btn) {
+    if (!currentUser) { showToast('Takip etmek için giriş yapın'); return; }
+    if (userId === currentUser.id) return;
+    _cardMenuUserId = userId;
+    const dd = document.getElementById('cardMenuDropdown');
+    const label = document.getElementById('cardMenuFollowLabel');
+    const followBtn = document.getElementById('cardMenuFollowBtn');
+    const isFollowing = _followingSet.has(userId);
+    label.textContent = isFollowing ? 'Takibi Bırak' : 'Takip Et';
+    followBtn.classList.toggle('following', isFollowing);
+    const rect = btn.getBoundingClientRect();
+    const menuW = 170;
+    let left = rect.right - menuW;
+    if (left < 8) left = 8;
+    dd.style.top = (rect.bottom + 4) + 'px';
+    dd.style.left = left + 'px';
+    dd.style.right = 'auto';
+    dd.classList.add('open');
+    setTimeout(() => document.addEventListener('click', _closeCardMenu, { once: true }), 0);
+}
+function _closeCardMenu() {
+    const dd = document.getElementById('cardMenuDropdown');
+    if (dd) dd.classList.remove('open');
+    _cardMenuUserId = null;
+}
+async function _cardMenuFollow() {
+    if (!currentUser || !_cardMenuUserId) return;
+    const userId = _cardMenuUserId;
+    _closeCardMenu();
+    const isFollowing = _followingSet.has(userId);
+    const newState = !isFollowing;
+    if (newState) _followingSet.add(userId); else _followingSet.delete(userId);
+    showToast(newState ? 'Takip edildi' : 'Takip bırakıldı');
+    try {
+        if (isFollowing) {
+            await sb.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', userId);
+        } else {
+            await sb.from('follows').insert({ follower_id: currentUser.id, following_id: userId });
+        }
+    } catch(e) {
+        if (newState) _followingSet.delete(userId); else _followingSet.add(userId);
+        showToast('Hata oluştu');
+    }
+}
+
 async function _openFollowList(type) {
     const userId = _pubProfileUserId;
     if (!userId) return;
@@ -5755,7 +5827,7 @@ async function loadFeed() {
                     <div class="feed-card-username">@${escapeHtml(p.username || 'kullanici')}</div>
                     <div class="feed-card-date">${_timeAgo(f.updated_at)} • ${escapeHtml(f.filename || 'dosya.html')}</div>
                 </div>
-                <button class="feed-more-btn" onclick="event.stopPropagation()">···</button>
+                <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${f.user_id}',this)">···</button>
             </div>
             ${f.description ? `<div class="feed-card-desc" id="fdesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
             <div class="feed-thumb-wrap">
@@ -6229,7 +6301,7 @@ async function loadExploreFiles() {
                         <div class="feed-card-username">${rank ? rank + ' ' : ''}@${escapeHtml(author)}</div>
                         <div class="feed-card-date">${_timeAgo(f.updated_at)} • ${escapeHtml(f.filename)}</div>
                     </div>
-                    <button class="feed-more-btn" onclick="event.stopPropagation()">···</button>
+                    <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${f.user_id}',this)">···</button>
                 </div>
                 ${f.description ? `<div class="feed-card-desc" id="edesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
                 <div class="feed-thumb-wrap">
@@ -8233,7 +8305,7 @@ async function _loadCollectionOverlayFiles(collId) {
                     <div class="feed-card-username">@${escapeHtml(p.username || 'kullanici')}</div>
                     <div class="feed-card-date">${_timeAgo(f.updated_at)} • ${escapeHtml(f.filename)}</div>
                 </div>
-                <button class="feed-more-btn" onclick="event.stopPropagation()">···</button>
+                <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${f.user_id}',this)">···</button>
             </div>
             ${f.description ? `<div class="feed-card-desc" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
             <div class="feed-thumb-wrap">
@@ -8341,7 +8413,7 @@ function _renderCollectionCard(col) {
                 <div class="coll-card-name">@${escapeHtml(p.username || 'kullanici')}</div>
                 <div class="coll-card-sub">${_timeAgo(col.updated_at || col.created_at)} • 📁 ${escapeHtml(col.name)}</div>
             </div>
-            <button class="feed-more-btn" onclick="event.stopPropagation()">···</button>
+            <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${col.user_id}',this)">···</button>
         </div>
         <div class="feed-card-desc" onclick="openCollectionOverlay('${col.id}')">📁 ${escapeHtml(col.name)} · ${col.fileCount} dosya</div>
         <div class="coll-card-grid-wrap">
@@ -8499,6 +8571,14 @@ async function toggleColLike(collId) {
 </div>
 
 <!-- ── FORK LİSTESİ MODALİ ──────────────────────────────────────────── -->
+<!-- ── KART MENÜSÜ ────────────────────────────────────────────────────── -->
+<div id="cardMenuDropdown" class="card-menu-dd">
+    <button class="card-menu-item" id="cardMenuFollowBtn" onclick="_cardMenuFollow()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11c0 2.21-1.79 4-4 4s-4-1.79-4-4 1.79-4 4-4 4 1.79 4 4zM2 21c0-4.42 3.58-8 8-8h4c4.42 0 8 3.58 8 8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 8v6M22 11h-6"/></svg>
+        <span id="cardMenuFollowLabel">Takip Et</span>
+    </button>
+</div>
+
 <div class="swipe-del-overlay" id="swipeDelOverlay" onclick="cancelSwipeConfirm()">
     <div class="swipe-del-sheet" onclick="event.stopPropagation()">
         <div class="swipe-del-icon">🗑️</div>
