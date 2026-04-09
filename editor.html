@@ -771,16 +771,6 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .saved-files-header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .saved-files-title { font-size: 18px; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
 
-.delete-all-btn {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 5px 10px; border-radius: 12px;
-    border: 1px solid rgba(255,69,58,0.3);
-    background: rgba(255,69,58,0.1); color: #ff453a;
-    font-size: 12px; font-weight: 600; cursor: pointer;
-    transition: var(--transition); white-space: nowrap; flex-shrink: 0;
-}
-.delete-all-btn:hover { background: rgba(255,69,58,0.2); }
-
 .saved-files-close {
     width: 36px; height: 36px; border-radius: 50%;
     background: var(--glass-bg); border: 1px solid var(--glass-border);
@@ -2607,12 +2597,6 @@ body.preview-mode .file-title-bar { display: none !important; }
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
             </button>
-            <button class="delete-all-btn" id="deleteAllBtn" onclick="deleteAllFiles()" style="display:none;">
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-                Tümünü Sil
-            </button>
         </div>
     </div>
     <div class="sf-tab-bar">
@@ -4210,25 +4194,6 @@ function closeSavedFilesPanel() {
     _clearBottomActive();
 }
 
-function updateDeleteAllBtnVisibility() {
-    const btn = document.getElementById('deleteAllBtn');
-    if (btn) btn.style.display = savedFiles.length > 0 ? 'inline-flex' : 'none';
-}
-
-async function deleteAllFiles() {
-    if (!savedFiles.length) return;
-    if (confirm(`Tüm ${savedFiles.length} kayıt çöpe taşınacak. Emin misiniz?`)) {
-        for (const f of savedFiles) {
-            if (f.cloud) await deleteFileFromCloud(f.id);
-            _trash.unshift({ ...f, deletedAt: Date.now() });
-        }
-        _saveTrash();
-        savedFiles = []; currentOpenFileId = null;
-        renderSavedFiles(); updateQuickSaveButton();
-        _updateTrashBadge();
-        showToast('Tüm kayıtlar çöpe taşındı');
-    }
-}
 
 // ── Swipe to delete ────────────────────────────────────────────────────
 function attachSwipeToItem(wrapper, fileId) {
@@ -4345,7 +4310,7 @@ async function _doSwipeDelete(fileId) {
     _saveTrash();
     savedFiles = savedFiles.filter(f => f.id !== fileId);
     if (currentOpenFileId === fileId) { currentOpenFileId = null; setSaveButtonState('idle'); }
-    updateQuickSaveButton(); updateDeleteAllBtnVisibility(); updateSavedCount();
+    updateQuickSaveButton(); updateSavedCount();
     if (savedFiles.length === 0) renderSavedFiles();
     _updateTrashBadge();
     showToast(`${file.filename} çöpe taşındı`);
@@ -4404,7 +4369,7 @@ function restoreFromTrash(id) {
     const { deletedAt, ...restored } = file;
     restored.cloud = false;
     savedFiles.unshift(restored);
-    updateQuickSaveButton(); updateDeleteAllBtnVisibility(); updateSavedCount();
+    updateQuickSaveButton(); updateSavedCount();
     _updateTrashBadge();
     showToast(`${file.filename} geri yüklendi`);
     renderTrash();
@@ -4433,7 +4398,6 @@ async function permanentDeleteFromTrash(id) {
 function renderSavedFiles() {
     if (_savedTab === 'trash') { renderTrash(); return; }
     const container = document.getElementById('savedFilesList');
-    updateDeleteAllBtnVisibility();
     if (!savedFiles.length) {
         container.innerHTML = `
             <div class="empty-state">
