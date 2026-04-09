@@ -2222,6 +2222,11 @@ body.preview-mode .file-title-bar { display: none !important; }
     </button>
 </div>
 
+<div style="text-align:center;margin-top:18px;">
+    <button onclick="hideAuthScreen();showApp();updateGuestUI();" style="background:none;border:none;color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:6px 12px;border-radius:8px;">
+        Giriş yapmadan devam et →
+    </button>
+</div>
 
 </div>
 
@@ -3529,9 +3534,11 @@ async function handleSignOut() {
     closeUserDropdown();
     await sb.auth.signOut();
     currentUser = null;
-    savedFiles = []; currentOpenFileId = null;
-    showAuthScreen();
+    savedFiles = []; currentOpenFileId = null; _trash = [];
+    _updateTrashBadge();
+    updateGuestUI();
     showToast('Çıkış yapıldı');
+    renderSavedFiles();
 }
 
 function onUserLoggedIn(user) {
@@ -3581,9 +3588,19 @@ function updateUserUI(user) {
     const initial = email.charAt(0).toUpperCase();
     document.getElementById('userAvatar').textContent        = initial;
     document.getElementById('userDropdownEmail').textContent = email;
-    // username profil yüklendikten sonra updateProfileHeader'da set edilecek
     const nameEl = document.getElementById('userPillName');
     if (nameEl) nameEl.textContent = email.split('@')[0];
+    const pill = document.getElementById('userPill');
+    if (pill) { pill.onclick = toggleUserDropdown; pill.title = ''; }
+}
+
+function updateGuestUI() {
+    document.getElementById('userAvatar').textContent = '👤';
+    document.getElementById('userDropdownEmail').textContent = 'Misafir';
+    const nameEl = document.getElementById('userPillName');
+    if (nameEl) nameEl.textContent = 'Giriş Yap';
+    const pill = document.getElementById('userPill');
+    if (pill) pill.onclick = showAuthScreen;
 }
 
 // ── User Dropdown (body'e bağlı, fixed konumlu) ────────────────────────
@@ -3836,9 +3853,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!currentUser) onUserLoggedIn(session.user);
             return;
         }
+        if (event === 'INITIAL_SESSION' && !session) {
+            // Oturum yok — misafir olarak uygulamayı aç
+            hideAuthScreen();
+            showApp();
+            updateGuestUI();
+        }
         if (event === 'SIGNED_OUT') {
             currentUser = null;
-            showAuthScreen();
+            hideAuthScreen();
+            showApp();
+            updateGuestUI();
         }
     });
     window.addEventListener('beforeunload', saveToStorage);
