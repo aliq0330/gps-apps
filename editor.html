@@ -843,7 +843,8 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .sf-tab { flex:1; padding:10px 8px; border:none; background:none; font-size:13px; font-weight:600; color:var(--text-secondary); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all 0.18s; }
 .sf-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
 .sf-tab-badge { display:inline-flex; align-items:center; justify-content:center; min-width:17px; height:17px; border-radius:9px; background:#ff3b30; color:#fff; font-size:10px; font-weight:700; padding:0 4px; margin-left:5px; vertical-align:middle; }
-.empty-trash-btn { width:calc(100% - 32px); margin:12px 16px 4px; padding:11px; border-radius:12px; border:1px solid rgba(255,59,48,0.3); background:rgba(255,59,48,0.08); color:#ff3b30; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; }
+.trash-warning { margin:12px 16px 0; padding:10px 14px; border-radius:12px; background:rgba(255,159,10,0.12); border:1px solid rgba(255,159,10,0.3); color:#ff9f0a; font-size:12px; font-weight:500; line-height:1.4; }
+.empty-trash-btn { width:calc(100% - 32px); margin:10px 16px 4px; padding:11px; border-radius:12px; border:1px solid rgba(255,59,48,0.3); background:rgba(255,59,48,0.08); color:#ff3b30; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; }
 .trash-file-card { margin:0 16px 10px; background:var(--glass-bg); border-radius:16px; padding:14px 16px; border:1px solid var(--glass-border); }
 .trash-file-card-name { font-size:15px; font-weight:600; color:var(--text-primary); margin-bottom:3px; }
 .trash-file-card-meta { font-size:12px; color:var(--text-secondary); margin-bottom:10px; }
@@ -3540,6 +3541,7 @@ function onUserLoggedIn(user) {
     updateUserUI(user);
     _loadTrash(); _updateTrashBadge();
     loadSavedFilesFromCloud();
+    loadCloudTrash();
     loadProfile();
 }
 
@@ -3628,6 +3630,7 @@ async function loadSavedFilesFromCloud() {
         const { data, error } = await sb.from('files')
             .select('*')
             .eq('user_id', currentUser.id)
+            .is('deleted_at', null)
             .order('updated_at', { ascending: false });
         if (error) throw error;
         savedFiles = (data || []).map(r => ({
@@ -3692,10 +3695,20 @@ async function deleteFileFromCloud(fileId) {
     if (!currentUser) return;
     try {
         await sb.from('files')
+            .update({ deleted_at: new Date().toISOString() })
+            .eq('id', fileId)
+            .eq('user_id', currentUser.id);
+    } catch(e) { console.error('Cloud soft-delete error:', e); }
+}
+
+async function hardDeleteFileFromCloud(fileId) {
+    if (!currentUser) return;
+    try {
+        await sb.from('files')
             .delete()
             .eq('id', fileId)
             .eq('user_id', currentUser.id);
-    } catch(e) { console.error('Cloud delete error:', e); }
+    } catch(e) { console.error('Cloud hard-delete error:', e); }
 }
 
 // ── Switcher Init ──────────────────────────────────────────────────────
@@ -4317,8 +4330,32 @@ async function _doSwipeDelete(fileId) {
 }
 
 // ── Trash ───────────────────────────────────────────────────────────────
-function _saveTrash() { localStorage.setItem('mobilKodEditor_trash', JSON.stringify(_trash)); }
+function _saveTrash() { localStorage.setItem('mobilKodEditor_trash', JSON.stringify(_trash.filter(f => !f.cloud))); }
 function _loadTrash() { try { _trash = JSON.parse(localStorage.getItem('mobilKodEditor_trash') || '[]'); } catch(e) { _trash = []; } }
+
+async function loadCloudTrash() {
+    if (!currentUser) return;
+    try {
+        const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        // 30 günden eski olanları kalıcı sil
+        await sb.from('files').delete()
+            .eq('user_id', currentUser.id)
+            .not('deleted_at', 'is', null)
+            .lt('deleted_at', cutoff);
+        // Kalan çöpleri yükle
+        const { data } = await sb.from('files').select('*')
+            .eq('user_id', currentUser.id)
+            .not('deleted_at', 'is', null)
+            .order('deleted_at', { ascending: false });
+        const cloudTrash = (data || []).map(r => ({
+            id: r.id, filename: r.filename, code: r.code,
+            timestamp: r.updated_at, cloud: true, isPublic: r.is_public || false,
+            description: r.description || '', deletedAt: new Date(r.deleted_at).getTime()
+        }));
+        _trash = [..._trash.filter(f => !f.cloud), ...cloudTrash];
+        _updateTrashBadge();
+    } catch(e) { console.error('Cloud trash load error:', e); }
+}
 function _updateTrashBadge() {
     const b = document.getElementById('trashBadge');
     if (!b) return;
@@ -4328,7 +4365,11 @@ function _updateTrashBadge() {
 function switchSavedTab(tab) {
     _savedTab = tab;
     document.querySelectorAll('.sf-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-    renderSavedFiles();
+    if (tab === 'trash' && currentUser) {
+        loadCloudTrash().then(() => renderSavedFiles());
+    } else {
+        renderSavedFiles();
+    }
 }
 function renderTrash() {
     const container = document.getElementById('savedFilesList');
@@ -4339,6 +4380,7 @@ function renderTrash() {
     }
     const pad = n => String(n).padStart(2,'0');
     container.innerHTML = `
+        <div class="trash-warning">⚠️ Silinen dosyalar 30 gün sonra otomatik olarak kalıcı silinir</div>
         <button class="empty-trash-btn" onclick="emptyTrash()">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             Tümünü Kalıcı Sil
@@ -4360,14 +4402,18 @@ function renderTrash() {
             </div>`;
         }).join('')}`;
 }
-function restoreFromTrash(id) {
+async function restoreFromTrash(id) {
     const idx = _trash.findIndex(f => f.id === id);
     if (idx === -1) return;
     const file = _trash[idx];
+    if (file.cloud && currentUser) {
+        const { error } = await sb.from('files').update({ deleted_at: null })
+            .eq('id', file.id).eq('user_id', currentUser.id);
+        if (error) { showToast('Hata'); return; }
+    }
     _trash.splice(idx, 1);
     _saveTrash();
     const { deletedAt, ...restored } = file;
-    restored.cloud = false;
     savedFiles.unshift(restored);
     updateQuickSaveButton(); updateSavedCount();
     _updateTrashBadge();
@@ -4377,6 +4423,14 @@ function restoreFromTrash(id) {
 async function emptyTrash() {
     if (!_trash.length) return;
     if (confirm(`${_trash.length} dosya kalıcı olarak silinecek. Geri alınamaz!`)) {
+        if (currentUser) {
+            const cloudIds = _trash.filter(f => f.cloud).map(f => f.id);
+            if (cloudIds.length) {
+                await sb.from('files').delete()
+                    .eq('user_id', currentUser.id)
+                    .in('id', cloudIds);
+            }
+        }
         _trash = [];
         _saveTrash();
         _updateTrashBadge();
@@ -4387,6 +4441,7 @@ async function emptyTrash() {
 async function permanentDeleteFromTrash(id) {
     const file = _trash.find(f => f.id === id);
     if (!file) return;
+    if (file.cloud) await hardDeleteFileFromCloud(file.id);
     _trash = _trash.filter(f => f.id !== id);
     _saveTrash();
     _updateTrashBadge();
