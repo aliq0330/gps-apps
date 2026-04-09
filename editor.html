@@ -2372,8 +2372,8 @@ body.preview-mode .file-title-bar { display: none !important; }
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
             </svg>
         </button>
-        <span class="conv-header-emoji" id="convHeaderEmoji" onclick="if(_convOtherUser)openPublicProfile(_convOtherUser.id)"></span>
-        <span class="conv-header-name" id="convHeaderName" onclick="if(_convOtherUser)openPublicProfile(_convOtherUser.id)"></span>
+        <span class="conv-header-emoji" id="convHeaderEmoji" onclick="if(_convOtherUser){const _uid=_convOtherUser.id;closeConversation();openPublicProfile(_uid);}"></span>
+        <span class="conv-header-name" id="convHeaderName" onclick="if(_convOtherUser){const _uid=_convOtherUser.id;closeConversation();openPublicProfile(_uid);}"></span>
     </div>
     <div class="conv-messages" id="convMessages">
         <div class="search-empty">Yükleniyor...</div>
