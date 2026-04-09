@@ -858,7 +858,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;
     line-height: 1.4; display: flex; align-items: flex-start; gap: 6px;
 }
-.saved-file-desc-text { flex: 1; font-style: italic; }
+.saved-file-desc-text { flex: 1; font-style: italic; font-family: 'Times New Roman', Times, serif; font-size: 14px; cursor: pointer; }
 .saved-file-desc-text.empty { opacity: 0.45; font-style: normal; }
 .saved-file-desc-edit { background: none; border: none; padding: 2px 4px; cursor: pointer;
     color: var(--text-secondary); border-radius: 5px; flex-shrink: 0; display: flex; opacity: 0.6; }
@@ -4334,7 +4334,7 @@ function renderSavedFiles() {
                 </div>
                 <div class="saved-file-date">${dateStr}</div>
                 <div class="saved-file-desc" id="filedesc-${file.id}" onclick="event.stopPropagation()">
-                    <span class="saved-file-desc-text${file.description ? '' : ' empty'}">${file.description ? escapeHtml(file.description) : 'Açıklama ekle...'}</span>
+                    <span class="saved-file-desc-text${file.description ? '' : ' empty'}" onclick="editFileDesc(${file.id})">${file.description ? escapeHtml(file.description) : 'Açıklama ekle...'}</span>
                     <button class="saved-file-desc-edit" title="Açıklamayı düzenle" onclick="editFileDesc(${file.id})">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                     </button>
@@ -4378,7 +4378,7 @@ function renderSavedFiles() {
                     const colTags = _collections.filter(c => fileCols.has(c.id)).map(c => `<span class="sf-coll-tag">${escapeHtml(c.name)}</span>`).join('');
                     return `<div class="sf-coll-row" onclick="event.stopPropagation()">
                         <button class="sf-coll-btn" onclick="openFileCollectionMenu('${file.id}',this)">
-                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 7h18M7 12h10M11 17h2"/></svg>
+                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/></svg>
                             Koleksiyona ekle
                         </button>
                         <div class="sf-coll-tags" id="sfcolltags-${file.id}">${colTags}</div>
