@@ -839,6 +839,16 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .swipe-wrapper.collapsing { animation: collapseRow 0.38s cubic-bezier(0.4,0,0.2,1) forwards; }
 @keyframes collapseRow { 0% { max-height:200px;opacity:1;margin-bottom:12px;transform:scale(1); } 30% { opacity:0;transform:scale(0.92) translateX(-8px); } 100% { max-height:0;opacity:0;margin-bottom:0;padding:0;transform:scale(0.88) translateX(-16px); } }
 
+.swipe-del-overlay { position:fixed;inset:0;z-index:10500;background:rgba(0,0,0,0.45);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center; }
+.swipe-del-overlay.open { display:flex;animation:fadeIn 0.22s ease; }
+.swipe-del-sheet { background:var(--glass-bg);border-radius:24px 24px 0 0;padding:24px 24px 44px;width:100%;max-width:520px;text-align:center; }
+.swipe-del-icon { font-size:36px;margin-bottom:10px; }
+.swipe-del-title { font-size:17px;font-weight:700;color:var(--text-primary);margin-bottom:6px; }
+.swipe-del-name { font-size:14px;color:var(--text-secondary);margin-bottom:24px;word-break:break-all; }
+.swipe-del-btns { display:flex;gap:10px; }
+.swipe-del-cancel { flex:1;padding:14px;border-radius:14px;border:none;background:rgba(120,120,128,0.15);font-size:16px;font-weight:600;color:var(--text-primary);cursor:pointer; }
+.swipe-del-confirm { flex:1;padding:14px;border-radius:14px;border:none;background:#ff3b30;color:#fff;font-size:16px;font-weight:700;cursor:pointer; }
+
 .saved-file-item.swipe-hint { animation: swipeHint 0.7s cubic-bezier(0.25,0.8,0.25,1); }
 @keyframes swipeHint { 0% { transform:translateX(0); } 25% { transform:translateX(-28px); } 60% { transform:translateX(-8px); } 80% { transform:translateX(-16px); } 100% { transform:translateX(0); } }
 
@@ -4232,17 +4242,12 @@ function attachSwipeToItem(wrapper, fileId) {
         if (!isSwipeIntent || isVertical) return;
         item.classList.add('swipe-animating');
         if (Math.abs(currentX) >= SWIPE_THRESHOLD) {
-            bg.classList.add('commit');
-            item.classList.add('swipe-confirm');
-            item.style.transform = 'translateX(-110%)';
-            item.style.opacity = '0';
-            setTimeout(() => {
-                wrapper.classList.add('collapsing');
-                wrapper.addEventListener('animationend', () => {
-                    wrapper.remove();
-                    _doSwipeDelete(fileId);
-                }, { once: true });
-            }, 200);
+            item.classList.add('swipe-animating');
+            item.style.transform = '';
+            bg.classList.remove('revealed');
+            bg.style.opacity = '0';
+            currentX = 0;
+            setTimeout(() => showSwipeConfirm(fileId, wrapper), 50);
         } else {
             item.style.transform = '';
             bg.classList.remove('revealed');
@@ -4276,6 +4281,38 @@ function attachSwipeToItem(wrapper, fileId) {
         document.addEventListener('mousemove', onMM);
         document.addEventListener('mouseup', onMU);
     });
+}
+
+let _swipeDelFileId = null, _swipeDelWrapper = null;
+
+function showSwipeConfirm(fileId, wrapper) {
+    _swipeDelFileId = fileId;
+    _swipeDelWrapper = wrapper;
+    const file = savedFiles.find(f => f.id === fileId);
+    document.getElementById('swipeDelName').textContent = (file ? file.filename : 'Dosya') + '.html';
+    document.getElementById('swipeDelOverlay').classList.add('open');
+}
+
+function cancelSwipeConfirm() {
+    document.getElementById('swipeDelOverlay').classList.remove('open');
+    _swipeDelFileId = null; _swipeDelWrapper = null;
+}
+
+function commitSwipeDelete() {
+    document.getElementById('swipeDelOverlay').classList.remove('open');
+    const wrapper = _swipeDelWrapper, fileId = _swipeDelFileId;
+    _swipeDelFileId = null; _swipeDelWrapper = null;
+    if (!wrapper || !fileId) return;
+    const item = wrapper.querySelector('.saved-file-item');
+    const bg   = wrapper.querySelector('.swipe-delete-bg');
+    bg.classList.add('commit');
+    item.classList.add('swipe-confirm');
+    item.style.transform = 'translateX(-110%)';
+    item.style.opacity = '0';
+    setTimeout(() => {
+        wrapper.classList.add('collapsing');
+        wrapper.addEventListener('animationend', () => { wrapper.remove(); _doSwipeDelete(fileId); }, { once: true });
+    }, 200);
 }
 
 async function _doSwipeDelete(fileId) {
@@ -8317,6 +8354,18 @@ async function toggleColLike(collId) {
 </div>
 
 <!-- ── FORK LİSTESİ MODALİ ──────────────────────────────────────────── -->
+<div class="swipe-del-overlay" id="swipeDelOverlay" onclick="cancelSwipeConfirm()">
+    <div class="swipe-del-sheet" onclick="event.stopPropagation()">
+        <div class="swipe-del-icon">🗑️</div>
+        <div class="swipe-del-title">Dosyayı sil</div>
+        <div class="swipe-del-name" id="swipeDelName"></div>
+        <div class="swipe-del-btns">
+            <button class="swipe-del-cancel" onclick="cancelSwipeConfirm()">İptal</button>
+            <button class="swipe-del-confirm" onclick="commitSwipeDelete()">Sil</button>
+        </div>
+    </div>
+</div>
+
 <div class="fork-modal-overlay" id="forkListOverlay" onclick="if(event.target.id==='forkListOverlay')closeForkListModal()">
     <div class="fork-modal-panel">
         <div class="fork-modal-header">
