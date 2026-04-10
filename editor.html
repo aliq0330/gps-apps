@@ -1015,26 +1015,18 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 
 /* ── PROFİL PANELİ ───────────────────────────────────────── */
 .profile-panel-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.25);
-    backdrop-filter: blur(20px); z-index: 5000;
-    display: none; align-items: flex-end; justify-content: center;
-    opacity: 0; transition: opacity 0.3s ease;
-    padding-bottom: 0;
+    position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0;
+    z-index: 5000;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
+    background: #f2f2f7;
+    display: flex; flex-direction: column;
 }
-.profile-panel-overlay.open { display: flex; opacity: 1; animation: fadeIn 0.3s ease; }
+@media (prefers-color-scheme: dark) { .profile-panel-overlay { background: #0a1225; } }
+.profile-panel-overlay.open { transform: translateY(0); }
 
 .profile-panel {
-    background: var(--glass-bg);
-    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-    border: 1px solid var(--glass-border);
-    border-radius: 32px 32px 0 0;
-    padding: 12px 24px 40px;
-    width: 100%; max-width: 520px;
-    box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
-    height: 50vh; overflow-y: hidden;
-    transition: height 0.35s cubic-bezier(0.25,0.8,0.25,1);
-    will-change: height;
+    flex: 1; overflow-y: auto; padding: 0 24px 40px;
 }
 .profile-panel::-webkit-scrollbar { width: 4px; }
 .profile-panel::-webkit-scrollbar-track { background: transparent; }
@@ -1049,7 +1041,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 
 .profile-header {
     display: flex; align-items: center; gap: 16px;
-    margin-bottom: 28px;
+    margin-top: 24px; margin-bottom: 28px;
 }
 
 .profile-avatar-big {
@@ -1246,22 +1238,17 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 
 /* ── PUBLIC PROFİL MODAL ─────────────────────────────────── */
 .pub-profile-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.3);
-    backdrop-filter: blur(20px); z-index: 9500;
-    display: none; align-items: flex-end; justify-content: center;
-    opacity: 0; transition: opacity 0.3s ease;
+    position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0;
+    z-index: 9500;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
+    background: #f2f2f7;
+    display: flex; flex-direction: column;
 }
-.pub-profile-overlay.open { display: flex; opacity: 1; animation: fadeIn 0.3s ease; }
+@media (prefers-color-scheme: dark) { .pub-profile-overlay { background: #0a1225; } }
+.pub-profile-overlay.open { transform: translateY(0); }
 .pub-profile-panel {
-    background: var(--glass-bg);
-    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-    border: 1px solid var(--glass-border); border-radius: 32px 32px 0 0;
-    padding: 12px 24px 40px; width: 100%; max-width: 520px;
-    box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
-    height: 50vh; overflow-y: hidden;
-    transition: height 0.35s cubic-bezier(0.25,0.8,0.25,1);
-    will-change: height;
+    flex: 1; overflow-y: auto; padding: 0 24px 40px;
 }
 .pub-profile-panel::-webkit-scrollbar { width: 4px; }
 .pub-profile-panel::-webkit-scrollbar-track { background: transparent; }
@@ -1282,9 +1269,8 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .pub-file-info { flex: 1; min-width: 0; }
 .pub-file-name { font-size: 14px; font-weight: 700; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pub-file-meta { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-top: 2px; }
+.pub-file-wrap { margin-bottom: 10px; }
 /* ── YORUMLAR ───────────────────────────────────────────── */
-.pub-file-wrap { margin-bottom: 12px; }
-.pub-file-wrap .pub-file-card { border-radius: 16px 16px 0 0; margin-bottom: 0; }
 .comments-section {
     border: 1px solid var(--glass-border); border-top: none;
     border-radius: 0 0 16px 16px; overflow: hidden;
@@ -1949,7 +1935,8 @@ body.preview-mode .file-title-bar { display: none !important; }
 .fork-tree-name { font-size:13px; color:var(--text-primary); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .fork-tree-user { font-size:11px; color:var(--text-secondary); }
 .explore-card-stats { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.pub-file-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.pub-file-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.pub-file-stat { font-size: 12px; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 3px; }
 .feed-comments-wrap { border-top: 1px solid var(--glass-border); padding: 8px 12px 10px; }
 .feed-comment-item { display: flex; align-items: flex-start; gap: 7px; padding: 5px 0; }
 .feed-cmt-avatar { font-size: 16px; flex-shrink: 0; }
@@ -2470,9 +2457,14 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <!-- ── PUBLIC PROFİL PANELI ────────────────────────────────────────────── -->
 
-<div class="pub-profile-overlay" id="pubProfileOverlay" onclick="handlePubProfileOverlayClick(event)">
+<div class="pub-profile-overlay" id="pubProfileOverlay">
+    <div class="fv-header">
+        <button class="fv-back-btn" onclick="closePublicProfile()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <span id="pubProfileHeaderTitle" style="font-size:17px;font-weight:700;color:var(--text-primary);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</span>
+    </div>
     <div class="pub-profile-panel" id="pubProfilePanel">
-        <div class="profile-drag-bar"></div>
         <div class="profile-header" id="pubProfileHeader">
             <div class="profile-avatar-big" style="cursor:default;">
                 <span id="pubProfileEmoji">👤</span>
@@ -2536,10 +2528,14 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <!-- ── PROFİL PANELİ ──────────────────────────────────────────────────── -->
 
-<div class="profile-panel-overlay" id="profilePanelOverlay" onclick="handleProfileOverlayClick(event)">
+<div class="profile-panel-overlay" id="profilePanelOverlay">
+    <div class="fv-header">
+        <button class="fv-back-btn" onclick="closeProfilePanel()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <span style="font-size:17px;font-weight:700;color:var(--text-primary);">Profil</span>
+    </div>
     <div class="profile-panel" id="profilePanel">
-        <div class="profile-drag-bar"></div>
-
 
     <!-- Başlık -->
     <div class="profile-header">
@@ -3384,7 +3380,6 @@ function openProfilePanel() {
     updateProfileHeader();
     updateProfileStats();
 
-    _sheetReset('profilePanel');
     document.getElementById('profilePanelOverlay').classList.add('open');
 }
 
@@ -3919,8 +3914,6 @@ function _switchEditorTab(tab) {
 // ── App Init ───────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
     _initCodeMirror();
-    _initBottomSheet('profilePanel',   closeProfilePanel);
-    _initBottomSheet('pubProfilePanel', closePublicProfile);
     // messagesPanel converted to full-screen slide — no bottom sheet
     _initBottomSheet('notifPanel',     closeNotifPanel);
     _initConvSwipeBack();
@@ -5305,11 +5298,12 @@ async function doFileSearch() {
 async function openPublicProfile(userId) {
     _navigate('#profile/' + encodeURIComponent(userId));
     closeSearchPanel();
-    _sheetReset('pubProfilePanel');
     _pubProfileUserId = userId;
     document.getElementById('pubProfileOverlay').classList.add('open');
     document.getElementById('pubProfileEmoji').textContent  = '···';
     document.getElementById('pubProfileUsername').textContent = 'Yükleniyor...';
+    const _phTitle = document.getElementById('pubProfileHeaderTitle');
+    if (_phTitle) _phTitle.textContent = 'Yükleniyor...';
     document.getElementById('pubProfileSince').textContent   = '';
     document.getElementById('pubFilesList').innerHTML = '';
     document.getElementById('pubProfileBioBox').style.display = 'none';
@@ -5346,6 +5340,8 @@ async function openPublicProfile(userId) {
         if (prof) {
             document.getElementById('pubProfileEmoji').textContent    = prof.avatar_emoji || '👤';
             document.getElementById('pubProfileUsername').textContent = prof.username || 'Kullanıcı';
+            const _ht = document.getElementById('pubProfileHeaderTitle');
+            if (_ht) _ht.textContent = '@' + (prof.username || 'kullanici');
             const msgBtn = document.getElementById('pubProfileMsgBtn');
             if (msgBtn) {
                 msgBtn.style.display = currentUser && currentUser.id !== userId ? '' : 'none';
@@ -5431,34 +5427,8 @@ async function openPublicProfile(userId) {
                             <div class="pub-file-meta">${date} · ${lines} satır</div>
                         </div>
                         <div class="pub-file-right">
-                            <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
-                                onclick="event.stopPropagation();toggleLike(${f.id})">
-                                ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt}</span>
-                            </button>
-                            ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : `<span class="fork-count-badge" id="forkcount-${f.id}"></span>`}
-                        </div>
-                    </div>
-                    <div class="pub-file-expand-body" id="pfbody-${f.id}">
-                        <div class="file-preview-box">
-                            <div class="file-preview-loading" id="pfload-${f.id}">Önizleme yükleniyor...</div>
-                            <iframe class="file-preview-frame" id="pfprev-${f.id}" sandbox="allow-scripts allow-same-origin" style="display:none;"></iframe>
-                        </div>
-                        <button class="pub-file-load-btn" onclick="loadPublicFile(${f.id})">Editörde Aç</button>
-                    </div>
-                    <div class="comments-section">
-                        <button class="comments-toggle" onclick="toggleComments(${f.id},this)">
-                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                            <span id="ctoggle-${f.id}">Yorumlar (${_commentCountMap[f.id] || 0})</span>
-                        </button>
-                        <div class="comments-body" id="cbody-${f.id}">
-                            <div id="clist-${f.id}" style="min-height:20px;"></div>
-                            ${currentUser ? `<div class="comment-input-row">
-                                <textarea class="comment-input" id="cinput-${f.id}" rows="1" placeholder="Yorum yaz..." maxlength="2000"
-                                    oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
-                                <button class="comment-send-btn" onclick="submitComment(${f.id})">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                                </button>
-                            </div>` : '<div style="font-size:12px;color:var(--text-secondary);padding:8px 0;">Yorum yapmak için giriş yapın</div>'}
+                            <span class="pub-file-stat">♡ ${cnt}</span>
+                            <span class="pub-file-stat">💬 ${_commentCountMap[f.id]||0}</span>
                         </div>
                     </div>
                 </div>`;
@@ -8642,20 +8612,14 @@ function _renderCollectionCard(col) {
             <div class="coll-card-grid">${gridHtml}</div>
         </div>
         <div class="coll-card-actions">
-            <button class="feed-like-btn${liked ? ' liked' : ''}" id="cclike-${col.id}" onclick="toggleColLike('${col.id}')">
-                ${liked ? '♥' : '♡'} <span id="cclikecnt-${col.id}">${_fmtCnt(cnt)}</span>
-            </button>
-            <button class="feed-comment-toggle" onclick="collToggleComments('${col.id}')">
+            <span class="feed-like-btn" style="pointer-events:none;">♡ <span id="cclikecnt-${col.id}">${_fmtCnt(cnt)}</span></span>
+            <span class="feed-comment-toggle" style="pointer-events:none;">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                 <span id="ccmtcnt-${col.id}">${_fmtCnt(col.cmtCount)}</span>
-            </button>
+            </span>
             <button class="feed-share-btn" onclick="event.stopPropagation();openCollectionOverlay('${col.id}')">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
             </button>
-        </div>
-        <div class="feed-comments-wrap" id="ccmtwrap-${col.id}" style="display:none;">
-            <div class="feed-comments-list" id="ccmtlist-${col.id}"></div>
-            ${currentUser ? `<div id="ccmt-rbar-${col.id}" class="feed-cmt-reply-bar" style="display:none;"><span id="ccmt-rtext-${col.id}" class="feed-cmt-reply-bar-text"></span><button class="feed-cmt-reply-bar-cancel" onclick="collCancelReply('${col.id}')">✕</button></div><div class="feed-cmt-input-row"><div class="cmt-user-avatar">${_cmtUserEmoji()}</div><textarea class="feed-cmt-textarea" id="ccmtinput-${col.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_cmtActivate(this,'ccmtsend-${col.id}')"></textarea><button class="feed-cmt-send" id="ccmtsend-${col.id}" onclick="collSubmitComment('${col.id}','ccmtinput-${col.id}','ccmtlist-${col.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button></div>` : ''}
         </div>
     </div>`;
 }
