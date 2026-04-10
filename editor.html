@@ -6196,7 +6196,7 @@ async function loadFeed() {
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>
                     <span id="forkcount-${f.id}">${_forkCounts[f.id] || ''}</span>
                 </button>
-                <button class="feed-share-btn" onclick="event.stopPropagation();openSharePersonModal('file','${f.id}',${JSON.stringify(f.filename||'dosya')})">
+                <button class="feed-share-btn" data-spm-type="file" data-spm-id="${f.id}" data-spm-name="${escapeHtml(f.filename||'dosya')}" onclick="event.stopPropagation();openSharePersonModal(this.dataset.spmType,this.dataset.spmId,this.dataset.spmName)">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
                     <span class="feed-share-btn-label">Paylaş</span>
                 </button>
@@ -6672,7 +6672,7 @@ async function loadExploreFiles(listId = 'exploreList') {
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg>
                         <span id="forkcount-${f.id}">${_forkCounts[f.id] || ''}</span>
                     </button>
-                    <button class="feed-share-btn" onclick="event.stopPropagation();openSharePersonModal('file','${f.id}',${JSON.stringify(f.filename||'dosya')})">
+                    <button class="feed-share-btn" data-spm-type="file" data-spm-id="${f.id}" data-spm-name="${escapeHtml(f.filename||'dosya')}" onclick="event.stopPropagation();openSharePersonModal(this.dataset.spmType,this.dataset.spmId,this.dataset.spmName)">
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
                         <span class="feed-share-btn-label">Paylaş</span>
                     </button>
@@ -8920,7 +8920,7 @@ async function _loadCollectionOverlayFiles(collId) {
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                     <span id="cocmtcnt-${f.id}"></span>
                 </button>
-                <button class="feed-share-btn" onclick="event.stopPropagation();openSharePersonModal('file','${f.id}',${JSON.stringify(f.filename||'dosya')})">
+                <button class="feed-share-btn" data-spm-type="file" data-spm-id="${f.id}" data-spm-name="${escapeHtml(f.filename||'dosya')}" onclick="event.stopPropagation();openSharePersonModal(this.dataset.spmType,this.dataset.spmId,this.dataset.spmName)">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
                     <span class="feed-share-btn-label">Paylaş</span>
                 </button>
@@ -9019,7 +9019,7 @@ function _renderCollectionCard(col) {
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                 <span id="ccmtcnt-${col.id}">${_fmtCnt(col.cmtCount)}</span>
             </button>
-            <button class="feed-share-btn" onclick="event.stopPropagation();openSharePersonModal('collection','${col.id}',${JSON.stringify(col.name||'koleksiyon')})">
+            <button class="feed-share-btn" data-spm-type="collection" data-spm-id="${col.id}" data-spm-name="${escapeHtml(col.name||'koleksiyon')}" onclick="event.stopPropagation();openSharePersonModal(this.dataset.spmType,this.dataset.spmId,this.dataset.spmName)">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
                 <span class="feed-share-btn-label">Paylaş</span>
             </button>
