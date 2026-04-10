@@ -5306,6 +5306,15 @@ async function openPublicProfile(userId) {
         _pubFilesData = {};
         const _profEmoji    = prof?.avatar_emoji || '👤';
         const _profUsername = prof?.username     || 'Kullanıcı';
+        // Cache ve URL'i username'e güncelle
+        if (prof?.username) {
+            _idToUsername[userId] = prof.username;
+            _usernameToId[prof.username] = userId;
+            const usernameHash = '#profile/' + encodeURIComponent(prof.username);
+            if (location.hash !== usernameHash) {
+                history.replaceState({ route: usernameHash }, '', usernameHash);
+            }
+        }
         pubFiles.forEach(f => {
             _pubFilesData[f.id]    = { filename: f.filename, code: f.code, description: f.description || '' };
             _exploreDataMap[f.id]  = { userId: userId, username: _profUsername, emoji: _profEmoji, filename: f.filename, code: f.code, description: f.description || '' };
@@ -5670,6 +5679,12 @@ async function toggleLike(fileId) {
 // ── URL ROUTING ────────────────────────────────────────────────────────
 let _routeDepth = 0;
 let _routeHandling = false;
+const _usernameToId = {}; // username → userId cache
+const _idToUsername = {}; // userId → username cache
+
+function _isUUID(str) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
 
 function _navigate(hash) {
     if (_routeHandling) return;
@@ -5683,12 +5698,10 @@ window.addEventListener('popstate', (e) => {
     const hash = (e.state && e.state.route) || location.hash || '#';
     _routeHandling = true;
     _historyBlocked = true;
-    _routeTo(hash);
-    _historyBlocked = false;
-    _routeHandling = false;
+    _routeTo(hash).finally(() => { _historyBlocked = false; _routeHandling = false; });
 });
 
-function _routeTo(hash) {
+async function _routeTo(hash) {
     // Alt overlay'leri kapat
     const fvEl = document.getElementById('fvOverlay');
     if (fvEl && fvEl.classList.contains('open')) closeFileView();
@@ -5720,18 +5733,34 @@ function _routeTo(hash) {
         const id = decodeURIComponent(hash.slice(12));
         if (id) openCollectionOverlay(id);
     } else if (hash.startsWith('#profile/')) {
-        const id = decodeURIComponent(hash.slice(9));
-        if (id) openPublicProfile(id);
+        const identifier = decodeURIComponent(hash.slice(9));
+        if (!identifier) return;
+        if (_isUUID(identifier)) {
+            openPublicProfile(identifier);
+        } else {
+            // username → userId çözümle
+            const cachedId = _usernameToId[identifier];
+            if (cachedId) {
+                openPublicProfile(cachedId);
+            } else {
+                const { data } = await sb.from('profiles').select('id').eq('username', identifier).maybeSingle();
+                if (data) {
+                    _usernameToId[identifier] = data.id;
+                    _idToUsername[data.id] = identifier;
+                    openPublicProfile(data.id);
+                }
+            }
+        }
     }
 }
 
-function _handleInitialRoute() {
+async function _handleInitialRoute() {
     const hash = location.hash;
     history.replaceState({ route: '#' }, '', '#');
     if (hash && hash !== '#') {
         _navigate(hash);
         _routeHandling = true;
-        _routeTo(hash);
+        await _routeTo(hash);
         _routeHandling = false;
     }
 }
