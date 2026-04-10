@@ -1855,83 +1855,108 @@ body.preview-mode .file-title-bar { display: none !important; }
 .share-person-overlay {
     position: fixed; inset: 0; z-index: 13000;
     background: rgba(0,0,0,0.45);
-    display: flex; align-items: flex-end;
+    display: flex; align-items: flex-end; justify-content: center;
     opacity: 0; pointer-events: none;
     transition: opacity 0.25s;
 }
 .share-person-overlay.open { opacity: 1; pointer-events: auto; }
 .share-person-sheet {
-    width: 100%; background: var(--card, #fff);
-    border-radius: 18px 18px 0 0;
+    width: 100%; max-width: 430px;
+    background: var(--card-bg);
+    border-radius: 20px 20px 0 0;
+    border-top: 1px solid var(--glass-border);
     padding: 12px 0 0;
     max-height: 80vh;
     display: flex; flex-direction: column;
     transform: translateY(100%);
     transition: transform 0.3s cubic-bezier(0.25,0.8,0.25,1);
     overflow: hidden;
+    box-shadow: 0 -4px 32px rgba(0,0,0,0.18);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+    .share-person-sheet { background: #0d1526; border-top-color: rgba(255,255,255,0.1); }
 }
 .share-person-overlay.open .share-person-sheet { transform: translateY(0); }
 .share-person-handle {
     width: 36px; height: 4px;
-    background: var(--border, #e0e0e0);
-    border-radius: 2px; margin: 0 auto 14px;
+    background: var(--glass-border);
+    border-radius: 2px; margin: 0 auto 12px;
     flex-shrink: 0;
 }
 .share-person-title {
-    font-size: 16px; font-weight: 600;
+    font-size: 16px; font-weight: 700;
     padding: 0 18px 10px;
-    color: var(--text-primary, #000);
+    color: var(--text-primary);
     flex-shrink: 0;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 4px;
 }
+@media (prefers-color-scheme: dark) { .share-person-title { border-bottom-color: rgba(255,255,255,0.07); } }
 .share-person-search {
-    margin: 0 18px 10px; flex-shrink: 0;
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1.5px solid var(--border, #e0e0e0);
-    background: var(--bg, #f2f2f7);
-    color: var(--text-primary, #000);
-    font-size: 15px; outline: none;
+    margin: 8px 14px 6px; flex-shrink: 0;
+    padding: 9px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--glass-border);
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px; outline: none;
     font-family: inherit;
 }
+@media (prefers-color-scheme: dark) {
+    .share-person-search { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+}
+.share-person-search::placeholder { color: var(--text-secondary); }
 .share-person-list {
     flex: 1; overflow-y: auto;
-    padding: 0 8px 8px;
+    padding: 4px 0 4px;
     min-height: 80px;
 }
 .share-person-item {
     display: flex; align-items: center; gap: 12px;
-    padding: 10px 10px; border-radius: 10px; cursor: pointer;
+    padding: 11px 16px; cursor: pointer;
+    border: none; background: none; width: 100%; font-family: inherit;
 }
-.share-person-item:active { background: rgba(128,128,128,0.12); }
+.share-person-item:active { background: rgba(120,120,128,0.1); }
 .share-person-avatar {
-    font-size: 22px; width: 40px; height: 40px;
-    background: var(--bg, #f2f2f7); border-radius: 50%;
+    font-size: 22px; width: 42px; height: 42px;
+    background: rgba(120,120,128,0.1);
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
 }
+@media (prefers-color-scheme: dark) { .share-person-avatar { background: rgba(255,255,255,0.07); } }
 .share-person-name {
-    font-size: 15px; font-weight: 500;
-    color: var(--text-primary, #000);
+    font-size: 14px; font-weight: 600;
+    color: var(--text-primary);
 }
 .share-section-label {
-    font-size: 11px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.04em; color: var(--text-secondary, #888);
-    padding: 10px 10px 4px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-secondary);
+    padding: 8px 16px 3px;
 }
 .share-person-links {
-    display: flex; justify-content: space-around;
-    padding: 10px 8px calc(24px + env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid var(--border, #e0e0e0);
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 10px 14px calc(8px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--glass-border);
     flex-shrink: 0;
 }
+@media (prefers-color-scheme: dark) { .share-person-links { border-top-color: rgba(255,255,255,0.07); } }
 .share-link-btn {
-    display: flex; flex-direction: column; align-items: center; gap: 5px;
-    background: none; border: none; padding: 8px 10px;
-    cursor: pointer; color: var(--text-primary, #000);
-    font-size: 11px; font-weight: 500; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    background: var(--bg); border: 1px solid var(--glass-border);
+    padding: 11px 10px; border-radius: 14px;
+    cursor: pointer; color: var(--text-primary);
+    font-size: 13px; font-weight: 600; border-radius: 14px;
     font-family: inherit;
 }
-.share-link-btn:active { background: rgba(128,128,128,0.12); }
+@media (prefers-color-scheme: dark) {
+    .share-link-btn { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); }
+}
+.share-link-btn:active { opacity: 0.6; }
+.share-link-btn svg { flex-shrink: 0; }
 .share-link-wa { color: #25d366; }
 .share-link-tg { color: #229ed9; }
 /* ── KART MESAJI ──────────────────────────────────────────────────── */
@@ -2032,86 +2057,6 @@ body.preview-mode .file-title-bar { display: none !important; }
 .fork-tree-info { flex:1; min-width:0; }
 .fork-tree-name { font-size:13px; color:var(--text-primary); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .fork-tree-user { font-size:11px; color:var(--text-secondary); }
-
-/* ── SHARE PERSON MODAL ─────────────────────────────────────────────── */
-.spm-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:13000; display:none; align-items:flex-end; justify-content:center; }
-.spm-overlay.open { display:flex; animation: fadeIn 0.18s ease; }
-.spm-sheet {
-    background:var(--card-bg);
-    border-top:1px solid var(--glass-border);
-    border-radius:20px 20px 0 0;
-    width:100%; max-width:430px; max-height:80vh;
-    display:flex; flex-direction:column;
-    padding-bottom:env(safe-area-inset-bottom,16px);
-    box-shadow:0 -4px 32px rgba(0,0,0,0.18);
-}
-@media (prefers-color-scheme: dark) {
-    .spm-sheet { background:#0d1526; border-top-color:rgba(255,255,255,0.1); }
-}
-.spm-handle { width:36px; height:4px; border-radius:2px; background:var(--glass-border); margin:10px auto 0; flex-shrink:0; }
-.spm-header {
-    display:flex; align-items:center; justify-content:space-between;
-    padding:14px 16px 10px; flex-shrink:0;
-    border-bottom:1px solid var(--glass-border);
-}
-@media (prefers-color-scheme: dark) { .spm-header { background:#0b1326; border-bottom-color:rgba(255,255,255,0.07); } }
-.spm-title { font-size:16px; font-weight:700; color:var(--text-primary); }
-.spm-close { background:none; border:none; padding:6px; cursor:pointer; color:var(--text-secondary); border-radius:8px; display:flex; }
-.spm-search-wrap { padding:10px 14px 6px; flex-shrink:0; }
-.spm-search {
-    width:100%; box-sizing:border-box; padding:9px 14px;
-    border-radius:12px; border:1.5px solid var(--glass-border);
-    background:var(--bg); font-size:14px; color:var(--text-primary);
-    font-family:inherit; outline:none;
-}
-@media (prefers-color-scheme: dark) {
-    .spm-search { background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); }
-}
-.spm-search::placeholder { color:var(--text-secondary); }
-.spm-list { overflow-y:auto; flex:1; padding:4px 0; min-height:80px; }
-.spm-person {
-    display:flex; align-items:center; gap:12px; padding:11px 16px;
-    cursor:pointer; border:none; background:none;
-    width:100%; text-align:left; font-family:inherit;
-}
-.spm-person:active { background:rgba(120,120,128,0.1); }
-.spm-avatar {
-    font-size:24px; flex-shrink:0; width:42px; height:42px;
-    display:flex; align-items:center; justify-content:center;
-    border-radius:50%; background:rgba(120,120,128,0.1);
-    border:1px solid var(--glass-border);
-}
-@media (prefers-color-scheme: dark) { .spm-avatar { background:rgba(255,255,255,0.07); } }
-.spm-info { flex:1; min-width:0; }
-.spm-username { font-size:14px; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.spm-preview { font-size:12px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
-.spm-sent-badge { font-size:11px; font-weight:600; color:#34c759; flex-shrink:0; display:none; }
-.spm-person.sent .spm-sent-badge { display:block; }
-.spm-person.sent .spm-avatar { opacity:0.5; }
-.spm-divider {
-    padding:8px 16px 3px; font-size:11px; font-weight:700;
-    color:var(--text-secondary); letter-spacing:0.5px; text-transform:uppercase;
-}
-.spm-empty { padding:24px 16px; font-size:13px; color:var(--text-secondary); text-align:center; }
-.spm-links {
-    display:grid; grid-template-columns:1fr 1fr; gap:8px;
-    padding:10px 14px 8px;
-    border-top:1px solid var(--glass-border); flex-shrink:0;
-}
-@media (prefers-color-scheme: dark) { .spm-links { border-top-color:rgba(255,255,255,0.07); } }
-.spm-link-btn {
-    display:flex; align-items:center; justify-content:center; gap:7px;
-    padding:11px 10px; border-radius:14px;
-    border:1px solid var(--glass-border);
-    background:var(--bg);
-    font-size:13px; font-weight:600; color:var(--text-primary);
-    cursor:pointer; font-family:inherit;
-}
-@media (prefers-color-scheme: dark) {
-    .spm-link-btn { background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.1); }
-}
-.spm-link-btn:active { opacity:0.6; }
-.spm-link-icon { width:22px; height:22px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 
 /* Card message bubble */
 .msg-card-bubble { background:rgba(0,122,255,0.08); border:1px solid rgba(0,122,255,0.2); border-radius:14px; padding:10px 13px; max-width:240px; cursor:pointer; }
@@ -7134,184 +7079,13 @@ function startMessageWithUser() {
     setTimeout(() => openConversation(userId, username, emoji, null), 300);
 }
 
-// ── SHARE PERSON MODAL ───────────────────────────────────────────────
-let _spmType = null;       // 'file' | 'collection'
-let _spmItemId = null;
-let _spmItemName = null;
-let _spmContacts = [];     // [{id, username, emoji, lastMsgAt, preview, recent}]
-let _spmSentIds = new Set();
-
-async function openSharePersonModal(type, itemId, itemName) {
+// ── SHARE PERSON MODAL (feed butonlarından köprü) ────────────────────
+function openSharePersonModal(type, itemId, itemName) {
     if (!currentUser) { showToast('Paylaşmak için giriş yapın'); return; }
-    _spmType = type;
-    _spmItemId = itemId;
-    _spmItemName = itemName;
-    _spmSentIds = new Set();
-    document.getElementById('spmSearchInput').value = '';
-    document.getElementById('spmPersonList').innerHTML = '<div class="spm-empty">Yükleniyor...</div>';
-    document.getElementById('sharePersonModal').classList.add('open');
-    await _spmLoadContacts();
-    _spmRender('');
-}
-
-function closeSharePersonModal() {
-    document.getElementById('sharePersonModal').classList.remove('open');
-    _spmType = null; _spmItemId = null; _spmItemName = null;
-    _spmContacts = []; _spmSentIds = new Set();
-}
-
-async function _spmLoadContacts() {
-    // 1) Son mesajlaştıkları (conversations tablosundan)
-    const { data: convs } = await sb
-        .from('conversations')
-        .select('user1_id,user2_id,last_message_at')
-        .or(`user1_id.eq.${currentUser.id},user2_id.eq.${currentUser.id}`)
-        .order('last_message_at', { ascending: false })
-        .limit(30);
-
-    const recentIds = [];
-    const recentMsgAt = {};
-    (convs || []).forEach(c => {
-        const other = c.user1_id === currentUser.id ? c.user2_id : c.user1_id;
-        recentIds.push(other);
-        recentMsgAt[other] = c.last_message_at;
-    });
-
-    // 2) Takip ettikleri
-    const { data: followRows } = await sb
-        .from('follows')
-        .select('following_id')
-        .eq('follower_id', currentUser.id)
-        .limit(50);
-    const followingIds = (followRows || []).map(r => r.following_id);
-
-    // Tüm benzersiz user ID'leri
-    const allIds = [...new Set([...recentIds, ...followingIds])].filter(id => id !== currentUser.id);
-    if (!allIds.length) { _spmContacts = []; return; }
-
-    const { data: profiles } = await sb
-        .from('profiles')
-        .select('id,username,avatar_emoji')
-        .in('id', allIds);
-    const pMap = {};
-    (profiles || []).forEach(p => { pMap[p.id] = p; });
-
-    _spmContacts = allIds.map(id => {
-        const p = pMap[id] || {};
-        return {
-            id,
-            username: p.username || 'Kullanıcı',
-            emoji: p.avatar_emoji || '👤',
-            recent: recentIds.includes(id),
-            lastMsgAt: recentMsgAt[id] || null
-        };
-    }).sort((a, b) => {
-        // Son mesajlaştıklar önce, sonra takip edilenler
-        if (a.recent && !b.recent) return -1;
-        if (!a.recent && b.recent) return 1;
-        if (a.lastMsgAt && b.lastMsgAt) return new Date(b.lastMsgAt) - new Date(a.lastMsgAt);
-        return 0;
-    });
-}
-
-function _spmFilter(query) {
-    _spmRender(query.trim().toLowerCase());
-}
-
-function _spmRender(query) {
-    const list = document.getElementById('spmPersonList');
-    let contacts = _spmContacts;
-    if (query) contacts = contacts.filter(c => c.username.toLowerCase().includes(query));
-    if (!contacts.length) {
-        list.innerHTML = '<div class="spm-empty">Kişi bulunamadı</div>';
-        return;
-    }
-    const recentOnes = contacts.filter(c => c.recent);
-    const otherOnes  = contacts.filter(c => !c.recent);
-    let html = '';
-    if (recentOnes.length) {
-        html += '<div class="spm-divider">Son Konuşmalar</div>';
-        html += recentOnes.map(c => _spmPersonHTML(c)).join('');
-    }
-    if (otherOnes.length) {
-        html += '<div class="spm-divider">Takip Edilenler</div>';
-        html += otherOnes.map(c => _spmPersonHTML(c)).join('');
-    }
-    list.innerHTML = html;
-}
-
-function _spmPersonHTML(c) {
-    const sent = _spmSentIds.has(c.id);
-    return `<button class="spm-person${sent ? ' sent' : ''}" id="spm-person-${c.id}" onclick="_spmSendCard('${c.id}','${escapeHtml(c.username)}','${c.emoji}')">
-        <div class="spm-avatar">${c.emoji}</div>
-        <div class="spm-info">
-            <div class="spm-username">@${escapeHtml(c.username)}</div>
-        </div>
-        <span class="spm-sent-badge">Gönderildi ✓</span>
-    </button>`;
-}
-
-async function _spmSendCard(otherId, username, emoji) {
-    if (!currentUser || !_spmItemId) return;
-    const btn = document.getElementById('spm-person-' + otherId);
-    if (btn) btn.style.opacity = '0.5';
-
-    // Find or create conversation
-    const u1 = currentUser.id < otherId ? currentUser.id : otherId;
-    const u2 = currentUser.id < otherId ? otherId : currentUser.id;
-    let { data: existing } = await sb.from('conversations')
-        .select('id').eq('user1_id', u1).eq('user2_id', u2).maybeSingle();
-    let convId;
-    if (existing) {
-        convId = existing.id;
-    } else {
-        const { data: created } = await sb.from('conversations')
-            .insert({ user1_id: u1, user2_id: u2 }).select('id').single();
-        convId = created?.id;
-    }
-    if (!convId) { showToast('Hata oluştu'); if (btn) btn.style.opacity = ''; return; }
-
-    // Card mesajı encode et
-    const cardContent = JSON.stringify({ __card: _spmType, id: _spmItemId, name: _spmItemName });
-    await sb.from('messages').insert({ conversation_id: convId, sender_id: currentUser.id, content: cardContent });
-    await sb.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', convId);
-
-    _spmSentIds.add(otherId);
-    if (btn) { btn.classList.add('sent'); btn.style.opacity = ''; }
-    showToast('@' + username + ' kişisine gönderildi ✓');
-}
-
-function _spmItemLink() {
-    if (_spmType === 'file') return `${location.origin}${location.pathname}#file/${_spmItemId}`;
-    return `${location.origin}${location.pathname}#collection/${_spmItemId}`;
-}
-
-async function _spmNativeShare() {
-    const link = _spmItemLink();
-    const title = _spmItemName || 'İçerik';
-    if (navigator.share) {
-        try { await navigator.share({ title, url: link }); } catch(e) {}
-    } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(link);
-        showToast('Bağlantı kopyalandı ✓');
-    }
-}
-
-function _spmWhatsapp() {
-    const link = encodeURIComponent(_spmItemLink());
-    window.open('https://wa.me/?text=' + link, '_blank');
-}
-
-function _spmTelegram() {
-    const link = encodeURIComponent(_spmItemLink());
-    window.open('https://t.me/share/url?url=' + link, '_blank');
-}
-
-async function _spmCopyLink() {
-    if (navigator.clipboard) {
-        await navigator.clipboard.writeText(_spmItemLink());
-        showToast('Bağlantı kopyalandı ✓');
-    }
+    _cardMenuType  = type;
+    _cardMenuId    = itemId;
+    _cardMenuTitle = itemName;
+    _openSharePersonModal();
 }
 
 async function _updateUnreadBadge() {
@@ -9462,48 +9236,6 @@ async function _shareCopyLink() {
     </div>
 </div>
 
-<!-- ── PAYLAŞ KİŞİ MODALİ (bottom sheet) ────────────────────────────── -->
-<div class="spm-overlay" id="sharePersonModal" onclick="if(event.target.id==='sharePersonModal')closeSharePersonModal()">
-    <div class="spm-sheet" onclick="event.stopPropagation()">
-        <div class="spm-handle"></div>
-        <div class="spm-header">
-            <span class="spm-title">Paylaş</span>
-            <button class="spm-close" onclick="closeSharePersonModal()">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <div class="spm-search-wrap">
-            <input class="spm-search" id="spmSearchInput" type="text" placeholder="Ara..." autocomplete="off" oninput="_spmFilter(this.value)">
-        </div>
-        <div class="spm-list" id="spmPersonList"><div class="spm-empty">Yükleniyor...</div></div>
-        <div class="spm-links">
-            <button class="spm-link-btn" onclick="_spmNativeShare()">
-                <div class="spm-link-icon" style="background:#007aff;">
-                    <svg width="13" height="13" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-                </div>
-                Paylaş
-            </button>
-            <button class="spm-link-btn" onclick="_spmWhatsapp()">
-                <div class="spm-link-icon" style="background:#25d366;">
-                    <svg width="13" height="13" fill="#fff" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.104.546 4.08 1.5 5.8L0 24l6.336-1.48A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.847 0-3.575-.504-5.055-1.385L2 22l1.41-4.845A9.962 9.962 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-                </div>
-                WhatsApp
-            </button>
-            <button class="spm-link-btn" onclick="_spmTelegram()">
-                <div class="spm-link-icon" style="background:#229ed9;">
-                    <svg width="13" height="13" fill="#fff" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0a12 12 0 00-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                </div>
-                Telegram
-            </button>
-            <button class="spm-link-btn" onclick="_spmCopyLink()">
-                <div class="spm-link-icon" style="background:rgba(120,120,128,0.3);">
-                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-                </div>
-                Bağlantıyı Kopyala
-            </button>
-        </div>
-    </div>
-</div>
 
 </body>
 </html>
