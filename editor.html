@@ -3917,17 +3917,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     _initConvSwipeBack();
     _initFileViewSwipeBack();
 
-    const { data: { session } } = await sb.auth.getSession();
-    if (session?.user) {
-        onUserLoggedIn(session.user);
-    }
+    // Güvenli fallback: 8s içinde oturum yüklenemezse misafir olarak aç
+    const _authFallback = setTimeout(() => {
+        if (!currentUser) { hideAuthScreen(); showApp(); updateGuestUI(); }
+    }, 8000);
+
+    // Listener önce kaydet — INITIAL_SESSION event'ini yakalamak için
     sb.auth.onAuthStateChange((event, session) => {
+        clearTimeout(_authFallback);
         if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session?.user) {
             if (!currentUser) onUserLoggedIn(session.user);
             return;
         }
         if (event === 'INITIAL_SESSION' && !session) {
-            // Oturum yok — misafir olarak uygulamayı aç
             hideAuthScreen();
             showApp();
             updateGuestUI();
@@ -3939,6 +3941,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateGuestUI();
         }
     });
+
+    // Ek kontrol: onAuthStateChange bazen INITIAL_SESSION tetiklemeyebilir
+    try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session?.user && !currentUser) onUserLoggedIn(session.user);
+        else if (!session && !currentUser) { hideAuthScreen(); showApp(); updateGuestUI(); }
+    } catch (e) {
+        console.warn('Session check failed:', e);
+        if (!currentUser) { hideAuthScreen(); showApp(); updateGuestUI(); }
+    }
+
     window.addEventListener('beforeunload', saveToStorage);
 });
 
