@@ -1851,6 +1851,100 @@ body.preview-mode .file-title-bar { display: none !important; }
 }
 .card-menu-item:active { background: rgba(128,128,128,0.12); }
 .card-menu-item.following { color: var(--text-secondary); }
+/* ── PAYLAŞ MODALİ ──────────────────────────────────────────────────── */
+.share-person-overlay {
+    position: fixed; inset: 0; z-index: 13000;
+    background: rgba(0,0,0,0.45);
+    display: flex; align-items: flex-end;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+}
+.share-person-overlay.open { opacity: 1; pointer-events: auto; }
+.share-person-sheet {
+    width: 100%; background: var(--card, #fff);
+    border-radius: 18px 18px 0 0;
+    padding: 12px 0 0;
+    max-height: 80vh;
+    display: flex; flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.25,0.8,0.25,1);
+    overflow: hidden;
+}
+.share-person-overlay.open .share-person-sheet { transform: translateY(0); }
+.share-person-handle {
+    width: 36px; height: 4px;
+    background: var(--border, #e0e0e0);
+    border-radius: 2px; margin: 0 auto 14px;
+    flex-shrink: 0;
+}
+.share-person-title {
+    font-size: 16px; font-weight: 600;
+    padding: 0 18px 10px;
+    color: var(--text-primary, #000);
+    flex-shrink: 0;
+}
+.share-person-search {
+    margin: 0 18px 10px; flex-shrink: 0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border, #e0e0e0);
+    background: var(--bg, #f2f2f7);
+    color: var(--text-primary, #000);
+    font-size: 15px; outline: none;
+    font-family: inherit;
+}
+.share-person-list {
+    flex: 1; overflow-y: auto;
+    padding: 0 8px 8px;
+    min-height: 80px;
+}
+.share-person-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 10px; border-radius: 10px; cursor: pointer;
+}
+.share-person-item:active { background: rgba(128,128,128,0.12); }
+.share-person-avatar {
+    font-size: 22px; width: 40px; height: 40px;
+    background: var(--bg, #f2f2f7); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.share-person-name {
+    font-size: 15px; font-weight: 500;
+    color: var(--text-primary, #000);
+}
+.share-person-links {
+    display: flex; justify-content: space-around;
+    padding: 10px 8px calc(24px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border, #e0e0e0);
+    flex-shrink: 0;
+}
+.share-link-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    background: none; border: none; padding: 8px 10px;
+    cursor: pointer; color: var(--text-primary, #000);
+    font-size: 11px; font-weight: 500; border-radius: 10px;
+    font-family: inherit;
+}
+.share-link-btn:active { background: rgba(128,128,128,0.12); }
+.share-link-wa { color: #25d366; }
+.share-link-tg { color: #229ed9; }
+/* ── KART MESAJI ──────────────────────────────────────────────────── */
+.conv-card-msg {
+    border: 1.5px solid var(--border, #e0e0e0);
+    border-radius: 10px; padding: 10px 13px;
+    cursor: pointer; min-width: 160px;
+    background: var(--bg, #f2f2f7);
+}
+.conv-card-msg-type {
+    font-size: 11px; color: var(--text-secondary, #888);
+    margin-bottom: 4px;
+}
+.conv-card-msg-title {
+    font-size: 14px; font-weight: 600;
+    color: var(--text-primary, #000);
+    word-break: break-word;
+}
 .feed-open-btn {
     padding: 6px 12px; background: rgba(0,122,255,0.12); color: #007aff;
     border: 1px solid rgba(0,122,255,0.25); border-radius: 10px;
@@ -5485,10 +5579,16 @@ async function toggleFollow() {
 
 // ── KART 3-NOKTA MENÜSÜ ────────────────────────────────────────────────
 let _cardMenuUserId = null;
-function _openCardMenu(userId, btn) {
+let _cardMenuType = null;   // 'file' | 'collection'
+let _cardMenuId = null;
+let _cardMenuTitle = null;
+function _openCardMenu(userId, btn, cardType, cardId, cardTitle) {
     if (!currentUser) { showToast('Takip etmek için giriş yapın'); return; }
     if (userId === currentUser.id) return;
     _cardMenuUserId = userId;
+    _cardMenuType = cardType || null;
+    _cardMenuId = cardId || null;
+    _cardMenuTitle = cardTitle || null;
     const dd = document.getElementById('cardMenuDropdown');
     const label = document.getElementById('cardMenuFollowLabel');
     const followBtn = document.getElementById('cardMenuFollowBtn');
@@ -6025,7 +6125,7 @@ async function loadFeed() {
                     <div class="feed-card-username">@${escapeHtml(p.username || 'kullanici')}</div>
                     <div class="feed-card-date">${_timeAgo(f.updated_at)} • ${escapeHtml(f.filename || 'dosya.html')}</div>
                 </div>
-                <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${f.user_id}',this)">···</button>
+                <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${f.user_id}',this,'file','${f.id}','${escapeHtml(f.filename||'')}')">···</button>
             </div>
             ${f.description ? `<div class="feed-card-desc" id="fdesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
             <div class="feed-thumb-wrap">
@@ -6500,7 +6600,7 @@ async function loadExploreFiles(listId = 'exploreList') {
                         <div class="feed-card-username">${rank ? rank + ' ' : ''}@${escapeHtml(author)}</div>
                         <div class="feed-card-date">${_timeAgo(f.updated_at)} • ${escapeHtml(f.filename)}</div>
                     </div>
-                    <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${f.user_id}',this)">···</button>
+                    <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${f.user_id}',this,'file','${f.id}','${escapeHtml(f.filename||'')}')">···</button>
                 </div>
                 ${f.description ? `<div class="feed-card-desc" id="edesc-${f.id}" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
                 <div class="feed-thumb-wrap">
@@ -6792,6 +6892,26 @@ async function loadMessages() {
     _updateUnreadBadge();
 }
 
+function _renderCardBubble(content) {
+    try {
+        if (!content || content[0] !== '{') return null;
+        const card = JSON.parse(content);
+        if (!card._card) return null;
+        if (card._card === 'file') {
+            return `<div class="conv-card-msg" onclick="openFileView('${escapeHtml(card.id)}')">
+                <div class="conv-card-msg-type">📄 Dosya</div>
+                <div class="conv-card-msg-title">${escapeHtml(card.filename || '')}</div>
+            </div>`;
+        } else if (card._card === 'collection') {
+            return `<div class="conv-card-msg" onclick="openCollectionOverlay('${escapeHtml(card.id)}')">
+                <div class="conv-card-msg-type">📁 Koleksiyon</div>
+                <div class="conv-card-msg-title">${escapeHtml(card.name || '')}</div>
+            </div>`;
+        }
+    } catch(e) {}
+    return null;
+}
+
 function _renderMessages(msgs) {
     const el = document.getElementById('convMessages');
     _renderedMsgIds = new Set();
@@ -6803,8 +6923,9 @@ function _renderMessages(msgs) {
         _renderedMsgIds.add(m.id);
         const mine = m.sender_id === currentUser.id;
         const side = mine ? 'mine' : 'theirs';
+        const bubble = _renderCardBubble(m.content) || escapeHtml(m.content);
         return `<div class="conv-bubble-wrap ${side}">
-            <div class="conv-bubble ${side}">${escapeHtml(m.content)}</div>
+            <div class="conv-bubble ${side}">${bubble}</div>
             <div class="conv-bubble-time">${_fmtTime(m.created_at)}</div>
         </div>`;
     }).join('');
@@ -6822,13 +6943,15 @@ function _appendMsg(m) {
     const side = mine ? 'mine' : 'theirs';
     const div = document.createElement('div');
     div.className = `conv-bubble-wrap ${side}`;
-    div.innerHTML = `<div class="conv-bubble ${side}">${escapeHtml(m.content)}</div><div class="conv-bubble-time">${_fmtTime(m.created_at)}</div>`;
+    const bubble = _renderCardBubble(m.content) || escapeHtml(m.content);
+    div.innerHTML = `<div class="conv-bubble ${side}">${bubble}</div><div class="conv-bubble-time">${_fmtTime(m.created_at)}</div>`;
     el.appendChild(div);
     el.scrollTop = el.scrollHeight;
     if (!mine) sb.from('messages').update({ read: true }).eq('id', m.id);
     const _pEl = document.querySelector(`.conv-item[data-conv-id="${_activeConvId}"] .conv-item-preview`);
     const _tEl = document.querySelector(`.conv-item[data-conv-id="${_activeConvId}"] .conv-item-time`);
-    if (_pEl) { _pEl.textContent = (mine ? 'Sen: ' : '') + m.content; _pEl.classList.remove('unread'); }
+    const previewText = _renderCardBubble(m.content) ? (m.content.includes('"_card":"file"') ? '📄 Dosya' : '📁 Koleksiyon') : m.content;
+    if (_pEl) { _pEl.textContent = (mine ? 'Sen: ' : '') + previewText; _pEl.classList.remove('unread'); }
     if (_tEl) { _tEl.textContent = _fmtTime(m.created_at); }
 }
 
@@ -8524,7 +8647,7 @@ async function _loadCollectionOverlayFiles(collId) {
                     <div class="feed-card-username">@${escapeHtml(p.username || 'kullanici')}</div>
                     <div class="feed-card-date">${_timeAgo(f.updated_at)} • ${escapeHtml(f.filename)}</div>
                 </div>
-                <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${f.user_id}',this)">···</button>
+                <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${f.user_id}',this,'file','${f.id}','${escapeHtml(f.filename||'')}')">···</button>
             </div>
             ${f.description ? `<div class="feed-card-desc" onclick="this.classList.toggle('expanded')">${escapeHtml(f.description)}</div>` : ''}
             <div class="feed-thumb-wrap">
@@ -8626,7 +8749,7 @@ function _renderCollectionCard(col) {
                 <div class="coll-card-name">@${escapeHtml(p.username || 'kullanici')}</div>
                 <div class="coll-card-sub">${_timeAgo(col.updated_at || col.created_at)} • 📁 ${escapeHtml(col.name)}</div>
             </div>
-            <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${col.user_id}',this)">···</button>
+            <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${col.user_id}',this,'collection','${col.id}','${escapeHtml(col.name||'')}')">···</button>
         </div>
         <div class="feed-card-desc" onclick="openCollectionOverlay('${col.id}')">📁 ${escapeHtml(col.name)} · ${col.fileCount} dosya</div>
         <div class="coll-card-grid-wrap">
@@ -8678,6 +8801,137 @@ async function toggleColLike(collId) {
     }
     // Modal butonu
     if (_colOverlayId === collId) _updateCollOverlayLikeBtn(collId);
+}
+
+// ── PAYLAŞ ──────────────────────────────────────────────────────────────
+function _shareCardMenu() {
+    if (!currentUser) { showToast('Paylaşmak için giriş yapın'); return; }
+    _closeCardMenu();
+    _openSharePersonModal();
+}
+
+async function _openSharePersonModal() {
+    const modal = document.getElementById('sharePersonModal');
+    modal.classList.add('open');
+    document.getElementById('sharePersonSearch').value = '';
+    document.getElementById('sharePersonList').innerHTML = '<div class="search-empty" style="padding:16px 0;">Yükleniyor...</div>';
+    await _sharePersonLoad('');
+}
+
+function _closeSharePersonModal() {
+    document.getElementById('sharePersonModal').classList.remove('open');
+}
+
+async function _sharePersonLoad(query) {
+    const listEl = document.getElementById('sharePersonList');
+    const { data: follows } = await sb.from('follows')
+        .select('following_id').eq('follower_id', currentUser.id);
+    if (!follows || follows.length === 0) {
+        listEl.innerHTML = '<div class="search-empty" style="padding:16px 0;">Henüz kimseyi takip etmiyorsunuz</div>';
+        return;
+    }
+    const followedIds = follows.map(f => f.following_id);
+    const { data: convs } = await sb.from('conversations')
+        .select('id, user1_id, user2_id')
+        .or(`user1_id.eq.${currentUser.id},user2_id.eq.${currentUser.id}`)
+        .order('last_message_at', { ascending: false });
+    const convMap = {};
+    (convs || []).forEach(c => {
+        const otherId = c.user1_id === currentUser.id ? c.user2_id : c.user1_id;
+        if (!convMap[otherId]) convMap[otherId] = c.id;
+    });
+    let profileQuery = sb.from('profiles').select('id, username, avatar_emoji').in('id', followedIds);
+    if (query) profileQuery = profileQuery.ilike('username', `%${query}%`);
+    const { data: profiles } = await profileQuery;
+    if (!profiles || profiles.length === 0) {
+        listEl.innerHTML = '<div class="search-empty" style="padding:16px 0;">Kullanıcı bulunamadı</div>';
+        return;
+    }
+    const people = profiles.map(p => ({
+        id: p.id, username: p.username || 'kullanici',
+        emoji: p.avatar_emoji || '👤',
+        existingConvId: convMap[p.id] || null
+    })).sort((a, b) => {
+        if (a.existingConvId && !b.existingConvId) return -1;
+        if (!a.existingConvId && b.existingConvId) return 1;
+        return (a.username || '').localeCompare(b.username || '');
+    });
+    listEl.innerHTML = people.map(p => {
+        const convArg = p.existingConvId ? `'${p.existingConvId}'` : 'null';
+        return `<div class="share-person-item" onclick="_sharePersonSend('${p.id}','${escapeHtml(p.username)}','${p.emoji}',${convArg})">
+            <div class="share-person-avatar">${p.emoji}</div>
+            <div class="share-person-name">@${escapeHtml(p.username)}</div>
+        </div>`;
+    }).join('');
+}
+
+async function _sharePersonSearch(query) {
+    await _sharePersonLoad(query.trim());
+}
+
+async function _sharePersonSend(userId, username, emoji, existingConvId) {
+    if (!_cardMenuType || !_cardMenuId) return;
+    _closeSharePersonModal();
+    let cardContent;
+    if (_cardMenuType === 'file') {
+        cardContent = JSON.stringify({ _card: 'file', id: _cardMenuId, filename: _cardMenuTitle || '' });
+    } else {
+        cardContent = JSON.stringify({ _card: 'collection', id: _cardMenuId, name: _cardMenuTitle || '' });
+    }
+    let convId = existingConvId;
+    if (!convId) {
+        const { data: existing } = await sb.from('conversations')
+            .select('id')
+            .or(`and(user1_id.eq.${currentUser.id},user2_id.eq.${userId}),and(user1_id.eq.${userId},user2_id.eq.${currentUser.id})`)
+            .maybeSingle();
+        if (existing) {
+            convId = existing.id;
+        } else {
+            const { data: newConv } = await sb.from('conversations')
+                .insert({ user1_id: currentUser.id, user2_id: userId })
+                .select('id').single();
+            if (newConv) convId = newConv.id;
+        }
+    }
+    if (!convId) { showToast('Hata oluştu'); return; }
+    await sb.from('messages').insert({ conversation_id: convId, sender_id: currentUser.id, content: cardContent });
+    await sb.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', convId);
+    showToast('Gönderildi');
+    setTimeout(() => openConversation(userId, username, emoji, convId), 250);
+}
+
+function _shareUrl() {
+    const base = location.origin + location.pathname;
+    return _cardMenuType === 'file' ? base + '#file/' + _cardMenuId : base + '#collection/' + _cardMenuId;
+}
+
+function _shareNative() {
+    const url = _shareUrl();
+    if (navigator.share) {
+        navigator.share({ title: _cardMenuTitle || '', url }).catch(() => {});
+    } else {
+        _shareCopyLink();
+    }
+}
+
+function _shareWhatsApp() {
+    const url = _shareUrl();
+    window.open('https://wa.me/?text=' + encodeURIComponent((_cardMenuTitle ? _cardMenuTitle + '\n' : '') + url));
+}
+
+function _shareTelegram() {
+    const url = _shareUrl();
+    window.open('https://t.me/share/url?url=' + encodeURIComponent(url) + (_cardMenuTitle ? '&text=' + encodeURIComponent(_cardMenuTitle) : ''));
+}
+
+async function _shareCopyLink() {
+    const url = _shareUrl();
+    try {
+        await navigator.clipboard.writeText(url);
+        showToast('Bağlantı kopyalandı');
+    } catch(e) {
+        showToast('Kopyalanamadı');
+    }
 }
 </script>
 
@@ -8785,6 +9039,38 @@ async function toggleColLike(collId) {
         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11c0 2.21-1.79 4-4 4s-4-1.79-4-4 1.79-4 4-4 4 1.79 4 4zM2 21c0-4.42 3.58-8 8-8h4c4.42 0 8 3.58 8 8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 8v6M22 11h-6"/></svg>
         <span id="cardMenuFollowLabel">Takip Et</span>
     </button>
+    <button class="card-menu-item" onclick="_shareCardMenu()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+        <span>Paylaş</span>
+    </button>
+</div>
+
+<!-- ── PAYLAŞ MODALİ ────────────────────────────────────────────────── -->
+<div id="sharePersonModal" class="share-person-overlay" onclick="if(event.target.id==='sharePersonModal')_closeSharePersonModal()">
+    <div class="share-person-sheet" onclick="event.stopPropagation()">
+        <div class="share-person-handle"></div>
+        <div class="share-person-title">Paylaş</div>
+        <input type="text" class="share-person-search" id="sharePersonSearch" placeholder="Kullanıcı ara..." oninput="_sharePersonSearch(this.value)">
+        <div class="share-person-list" id="sharePersonList"></div>
+        <div class="share-person-links">
+            <button class="share-link-btn" onclick="_shareNative()">
+                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke-linecap="round"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke-linecap="round"/></svg>
+                <span>Paylaş</span>
+            </button>
+            <button class="share-link-btn share-link-wa" onclick="_shareWhatsApp()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                <span>WhatsApp</span>
+            </button>
+            <button class="share-link-btn share-link-tg" onclick="_shareTelegram()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                <span>Telegram</span>
+            </button>
+            <button class="share-link-btn" onclick="_shareCopyLink()">
+                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                <span>Kopyala</span>
+            </button>
+        </div>
+    </div>
 </div>
 
 <div class="swipe-del-overlay" id="swipeDelOverlay" onclick="cancelSwipeConfirm()">
