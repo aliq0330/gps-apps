@@ -5735,6 +5735,8 @@ async function _routeTo(hash) {
     if (fvEl && fvEl.classList.contains('open')) closeFileView();
     const ppEl = document.getElementById('pubProfileOverlay');
     if (ppEl && ppEl.classList.contains('open')) closePublicProfile();
+    const cvEl = document.getElementById('convOverlay');
+    if (cvEl && cvEl.classList.contains('open')) closeConversation();
 
     hash = hash || '#';
     if (hash === '#' || hash === '') {
@@ -5887,6 +5889,8 @@ function _closeAllPanels(skip) {
     });
     const fvEl = document.getElementById('fvOverlay');
     if (fvEl && fvEl.classList.contains('open')) closeFileView();
+    const cvEl2 = document.getElementById('convOverlay');
+    if (cvEl2 && cvEl2.classList.contains('open')) closeConversation();
 }
 
 // ── AKIŞ ───────────────────────────────────────────────────────────────
