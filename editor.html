@@ -2439,10 +2439,16 @@ body.preview-mode .file-title-bar { display: none !important; }
         </button>
         <div class="fv-header-info">
             <div class="fv-filename">Akış</div>
-            <div style="font-size:12px;color:var(--text-secondary);" id="feedSubtitle">Takip ettiklerinin paylaşımları</div>
         </div>
     </div>
+    <div class="fv-tabs">
+        <button class="fv-tab active" id="feedTabFollowing" onclick="switchFeedTab('following')">Takip Ettiklerim</button>
+        <button class="fv-tab" id="feedTabExplore" onclick="switchFeedTab('explore')">Keşfet</button>
+    </div>
     <div style="flex:1;overflow-y:auto;padding:12px 16px 100px;" id="feedList">
+        <div class="search-empty">Yükleniyor...</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px 16px 20px;display:none;" id="feedExploreList">
         <div class="search-empty">Yükleniyor...</div>
     </div>
 </div>
@@ -2737,14 +2743,15 @@ body.preview-mode .file-title-bar { display: none !important; }
         </svg>
         Akış
     </button>
-    <button class="bottom-bar-btn" id="bbExploreBtn" onclick="openExplorePanel()">
+    <button class="bottom-bar-btn" id="bbEditorBtn" onclick="openEditorView()">
         <svg class="bb-icon-o" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
         </svg>
         <svg class="bb-icon-f" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            <path d="M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            <path fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3"/>
         </svg>
-        Keşfet
+        Editör
     </button>
     <button class="bottom-bar-btn" id="bbMsgBtn" onclick="openMessagesPanel()">
         <svg class="bb-icon-o" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3602,6 +3609,7 @@ function showApp() {
     document.getElementById('bottomBar').style.display    = '';
     document.getElementById('appMain').style.display      = '';
     document.getElementById('fabContainer').style.display = '';
+    _setBottomActive('bbEditorBtn');
     initSwitcher(document.getElementById('viewSwitcher'));
     loadFromStorage();
     updateEditor();
@@ -4257,7 +4265,7 @@ function openSavedFilesPanel() {
 function closeSavedFilesPanel() {
     document.getElementById('savedFilesPanel').classList.remove('open');
     editingFileId = null;
-    _clearBottomActive();
+    _setBottomActive('bbEditorBtn');
 }
 
 
@@ -5103,7 +5111,7 @@ function openSearchPanel() {
 
 function closeSearchPanel() {
     document.getElementById('searchPanelOverlay').classList.remove('open');
-    _clearBottomActive();
+    _setBottomActive('bbEditorBtn');
 }
 
 function handleSearchOverlayClick(e) {
@@ -5684,17 +5692,22 @@ function _goBack() {
 }
 
 function _setBottomActive(id) {
-    ['bbSearchBtn','bbFeedBtn','bbExploreBtn','bbMsgBtn','bbSavedBtn'].forEach(bid => {
+    ['bbSearchBtn','bbFeedBtn','bbEditorBtn','bbMsgBtn','bbSavedBtn'].forEach(bid => {
         const el = document.getElementById(bid);
         if (el) el.classList.toggle('bb-active', bid === id);
     });
 }
 
 function _clearBottomActive() {
-    ['bbSearchBtn','bbFeedBtn','bbExploreBtn','bbMsgBtn','bbSavedBtn'].forEach(bid => {
+    ['bbSearchBtn','bbFeedBtn','bbEditorBtn','bbMsgBtn','bbSavedBtn'].forEach(bid => {
         const el = document.getElementById(bid);
         if (el) el.classList.remove('bb-active');
     });
+}
+
+function openEditorView() {
+    _closeAllPanels('__none__');
+    _setBottomActive('bbEditorBtn');
 }
 
 function _closeAllPanels(skip) {
@@ -5723,12 +5736,27 @@ function _closeAllPanels(skip) {
 
 // ── AKIŞ ───────────────────────────────────────────────────────────────
 let _feedLoaded = false;
+let _feedTab = 'following';
+let _exploreLoadedInFeed = false;
+
+function switchFeedTab(tab) {
+    _feedTab = tab;
+    document.getElementById('feedTabFollowing').classList.toggle('active', tab === 'following');
+    document.getElementById('feedTabExplore').classList.toggle('active', tab === 'explore');
+    document.getElementById('feedList').style.display = tab === 'following' ? '' : 'none';
+    document.getElementById('feedExploreList').style.display = tab === 'explore' ? '' : 'none';
+    if (tab === 'explore' && !_exploreLoadedInFeed) {
+        _exploreLoadedInFeed = true;
+        loadExploreFiles('feedExploreList');
+    }
+}
 
 function openFeedPanel() {
     _closeAllPanels('feed');
     _setBottomActive('bbFeedBtn');
     const overlay = document.getElementById('feedOverlay');
     overlay.classList.add('open');
+    switchFeedTab('following');
     if (!currentUser) {
         document.getElementById('feedList').innerHTML = '<div class="search-empty" style="padding:40px 0;">Akışı görmek için giriş yapın</div>';
         return;
@@ -5738,7 +5766,7 @@ function openFeedPanel() {
 
 function closeFeedPanel() {
     document.getElementById('feedOverlay').classList.remove('open');
-    _clearBottomActive();
+    _setBottomActive('bbEditorBtn');
 }
 
 async function loadFeed() {
@@ -5751,10 +5779,10 @@ async function loadFeed() {
 
     if (!followingIds.length) {
         listEl.innerHTML = '<div class="search-empty" style="padding:40px 0;">Henüz kimseyi takip etmiyorsunuz.<br>Keşfet\'ten profillere gidip takip edebilirsiniz.</div>';
-        document.getElementById('feedSubtitle').textContent = '0 takip edilen';
+        const _fsubEl0 = document.getElementById('feedSubtitle'); if (_fsubEl0) _fsubEl0.textContent = '0 takip edilen';
         return;
     }
-    document.getElementById('feedSubtitle').textContent = followingIds.length + ' takip edilen';
+    const _fsubEl = document.getElementById('feedSubtitle'); if (_fsubEl) _fsubEl.textContent = followingIds.length + ' takip edilen';
 
     const { data: files } = await sb.from('files')
         .select('id, filename, code, updated_at, user_id, description')
@@ -6238,8 +6266,8 @@ function handleExploreOverlayClick(e) {
     if (e.target.id === 'exploreOverlay') closeExplorePanel();
 }
 
-async function loadExploreFiles() {
-    const list = document.getElementById('exploreList');
+async function loadExploreFiles(listId = 'exploreList') {
+    const list = document.getElementById(listId);
     list.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
     try {
         const { data: files, error: filesErr } = await sb.from('files')
@@ -6457,7 +6485,7 @@ function openMessagesPanel() {
 }
 function closeMessagesPanel() {
     document.getElementById('messagesOverlay').classList.remove('open');
-    _clearBottomActive();
+    _setBottomActive('bbEditorBtn');
 }
 
 async function loadConversations() {
