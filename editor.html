@@ -5514,19 +5514,22 @@ async function openPublicProfile(userId) {
 
     try {
         // Profil bilgisi + dosyalar + takip verileri paralel çek
-        const [{ data: prof }, { data: followers }, { data: followings }, { data: myFollow }] = await Promise.all([
+        const [{ data: prof }, { data: followers }, { data: followings }, { data: myFollow }, { data: pendingReq }] = await Promise.all([
             sb.from('profiles').select('username, bio, avatar_emoji, created_at, is_private').eq('id', userId).single(),
             sb.from('follows').select('follower_id').eq('following_id', userId),
             sb.from('follows').select('following_id').eq('follower_id', userId),
             currentUser && currentUser.id !== userId
-                ? sb.from('follows').select('id, status').eq('follower_id', currentUser.id).eq('following_id', userId).maybeSingle()
+                ? sb.from('follows').select('id').eq('follower_id', currentUser.id).eq('following_id', userId).maybeSingle()
+                : { data: null },
+            currentUser && currentUser.id !== userId
+                ? sb.from('like_notifications').select('id').eq('from_user_id', currentUser.id).eq('to_user_id', userId).eq('type', 'follow_request').maybeSingle()
                 : { data: null }
         ]);
 
         const followerCount  = (followers  || []).length;
         const followingCount = (followings || []).length;
-        const isFollowing    = !!myFollow && myFollow.status !== 'pending';
-        const isPending      = !!myFollow && myFollow.status === 'pending';
+        const isFollowing    = !!myFollow;
+        const isPending      = !isFollowing && !!pendingReq;
         const isPrivate      = !!prof?.is_private;
 
         // Gizli hesap ve takipçi değilse dosyaları yükleme
@@ -5680,9 +5683,13 @@ async function toggleFollow() {
     const isFollowing = _followingSet.has(userId);
 
     if (isPending) {
-        // İsteği geri çek
+        // İsteği geri çek — sadece bildirimi sil (follows tablosuna kayıt yazılmamıştı)
         try {
-            await sb.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', userId).eq('status', 'pending');
+            await sb.from('like_notifications')
+                .delete()
+                .eq('from_user_id', currentUser.id)
+                .eq('to_user_id', userId)
+                .eq('type', 'follow_request');
             btn.dataset.pending = '';
             _updateFollowBtn(userId, false, false);
             showToast('Takip isteği geri alındı');
@@ -5696,7 +5703,7 @@ async function toggleFollow() {
     _updateFollowBtn(userId, newState, false);
     const cntEl = document.getElementById('pubStatFollowers');
     const cnt = parseInt(cntEl.textContent) || 0;
-    if (!isPending) cntEl.textContent = newState ? cnt + 1 : Math.max(0, cnt - 1);
+    cntEl.textContent = newState ? cnt + 1 : Math.max(0, cnt - 1);
     try {
         if (isFollowing) {
             await sb.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', userId);
@@ -5704,13 +5711,18 @@ async function toggleFollow() {
             // Hedef kullanıcı gizli hesap mı?
             const { data: targetProf } = await sb.from('profiles').select('is_private').eq('id', userId).single();
             if (targetProf?.is_private) {
-                // Takip isteği gönder
+                // Takip isteği: follows tablosuna YAZMA, sadece bildirim gönder
                 _followingSet.delete(userId);
-                await sb.from('follows').insert({ follower_id: currentUser.id, following_id: userId, status: 'pending' });
-                _updateFollowBtn(userId, false, true);
                 cntEl.textContent = cnt; // Sayı değişmez (pending)
-                // Bildirim gönder
-                await _sendNotif('follow_request', userId, null, {});
+                const { error: notifErr } = await sb.from('like_notifications').insert({
+                    to_user_id: userId,
+                    from_user_id: currentUser.id,
+                    file_id: null,
+                    type: 'follow_request',
+                    seen: false
+                });
+                if (notifErr) { showToast('Hata: ' + notifErr.message); return; }
+                _updateFollowBtn(userId, false, true);
                 showToast('Takip isteği gönderildi');
             } else {
                 await sb.from('follows').insert({ follower_id: currentUser.id, following_id: userId });
@@ -6691,12 +6703,30 @@ async function loadExploreFiles(listId = 'exploreList') {
 
         const userIds = [...new Set((files || []).map(f => f.user_id))];
         const { data: profiles } = userIds.length
-            ? await sb.from('profiles').select('id, username, avatar_emoji').in('id', userIds)
+            ? await sb.from('profiles').select('id, username, avatar_emoji, is_private').in('id', userIds)
             : { data: [] };
         const profileMap = {};
         (profiles || []).forEach(p => { profileMap[p.id] = p; });
 
-        const { data: allLikes } = await sb.from('likes').select('file_id');
+        // Gizli hesapların dosyalarını filtrele
+        const privateUserIds = new Set((profiles || []).filter(p => p.is_private).map(p => p.id));
+        let visibleFiles = files || [];
+        if (privateUserIds.size > 0 && currentUser) {
+            // Bu kullanıcının takip ettiği kişileri al
+            const { data: myFollows } = await sb.from('follows').select('following_id').eq('follower_id', currentUser.id);
+            const myFollowSet = new Set((myFollows || []).map(r => r.following_id));
+            myFollowSet.add(currentUser.id); // Kendi dosyalarını göster
+            visibleFiles = visibleFiles.filter(f => !privateUserIds.has(f.user_id) || myFollowSet.has(f.user_id));
+        } else if (privateUserIds.size > 0) {
+            // Giriş yapmamış kullanıcı: gizli hesapların dosyalarını gösterme
+            visibleFiles = visibleFiles.filter(f => !privateUserIds.has(f.user_id));
+        }
+        const files_filtered = visibleFiles;
+        const filteredIds = files_filtered.map(f => f.id);
+
+        const { data: allLikes } = filteredIds.length
+            ? await sb.from('likes').select('file_id').in('file_id', filteredIds)
+            : { data: [] };
         if (currentUser && !_myLikesLoaded) {
             const { data: myL } = await sb.from('likes').select('file_id').eq('user_id', currentUser.id);
             (myL || []).forEach(l => _myLikes.add(l.file_id));
@@ -6706,7 +6736,7 @@ async function loadExploreFiles(listId = 'exploreList') {
         (allLikes || []).forEach(l => { counts[l.file_id] = (counts[l.file_id] || 0) + 1; });
         Object.assign(_likeCounts, counts);
 
-        const fileIds = (files || []).map(f => f.id);
+        const fileIds = files_filtered.map(f => f.id);
         await _loadForkCounts(fileIds);
 
         const { data: exploreCmtRows } = fileIds.length
@@ -6715,7 +6745,7 @@ async function loadExploreFiles(listId = 'exploreList') {
         const exploreCmtCounts = {};
         (exploreCmtRows || []).forEach(c => { exploreCmtCounts[c.file_id] = (exploreCmtCounts[c.file_id] || 0) + 1; });
 
-        const sorted = (files || []).sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
+        const sorted = files_filtered.sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
         const subtitle = document.getElementById('exploreSubtitle');
         if (subtitle) subtitle.textContent = sorted.length + ' dosya';
 
@@ -8326,15 +8356,19 @@ async function deleteNotif(id) {
 async function acceptFollowRequest(notifId, fromUserId) {
     if (!currentUser) return;
     try {
-        // Takip kaydını pending → accepted olarak güncelle
-        await sb.from('follows')
-            .update({ status: 'accepted' })
-            .eq('follower_id', fromUserId)
-            .eq('following_id', currentUser.id)
-            .eq('status', 'pending');
+        // Follows tablosuna normal takip kaydı ekle (status yok)
+        const { error: fErr } = await sb.from('follows')
+            .insert({ follower_id: fromUserId, following_id: currentUser.id });
+        if (fErr && fErr.code !== '23505') throw fErr; // 23505 = duplicate, zaten takipçi
         // Kabul bildirimini kişiye gönder
-        await _sendNotif('follow_accepted', fromUserId, null, {});
-        // Bildirimi sil
+        await sb.from('like_notifications').insert({
+            to_user_id: fromUserId,
+            from_user_id: currentUser.id,
+            file_id: null,
+            type: 'follow_accepted',
+            seen: false
+        });
+        // Takip isteği bildirimini sil
         await deleteNotif(notifId);
         showToast('Takip isteği kabul edildi');
     } catch(e) { showToast('Hata oluştu'); }
@@ -8343,13 +8377,7 @@ async function acceptFollowRequest(notifId, fromUserId) {
 async function rejectFollowRequest(notifId, fromUserId) {
     if (!currentUser) return;
     try {
-        // Takip kaydını sil
-        await sb.from('follows')
-            .delete()
-            .eq('follower_id', fromUserId)
-            .eq('following_id', currentUser.id)
-            .eq('status', 'pending');
-        // Bildirimi sil
+        // Sadece bildirimi sil — follows tablosunda kayıt zaten yok
         await deleteNotif(notifId);
         showToast('Takip isteği reddedildi');
     } catch(e) { showToast('Hata oluştu'); }
