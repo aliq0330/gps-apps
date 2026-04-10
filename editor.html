@@ -3612,6 +3612,7 @@ function showApp() {
     _setBottomActive('bbEditorBtn');
     initSwitcher(document.getElementById('viewSwitcher'));
     loadFromStorage();
+    _handleInitialRoute();
     updateEditor();
     _updateUnreadBadge();
     _updateNotifBadge();
@@ -4255,6 +4256,7 @@ async function updateExistingFile() {
 
 // ── Saved Files Panel ──────────────────────────────────────────────────
 function openSavedFilesPanel() {
+    _navigate('#saved');
     _closeAllPanels('savedFiles');
     _setBottomActive('bbSavedBtn');
     renderSavedFiles();
@@ -5098,6 +5100,7 @@ let searchDebounceTimer = null;
 let _searchTab = 'users';
 
 function openSearchPanel() {
+    _navigate('#search');
     _closeAllPanels('search');
     _setBottomActive('bbSearchBtn');
     document.getElementById('searchPanelOverlay').classList.add('open');
@@ -5242,6 +5245,7 @@ async function doFileSearch() {
 
 // ── PUBLIC PROFİL ──────────────────────────────────────────────────────
 async function openPublicProfile(userId) {
+    _navigate('#profile/' + encodeURIComponent(userId));
     closeSearchPanel();
     _sheetReset('pubProfilePanel');
     _pubProfileUserId = userId;
@@ -5663,6 +5667,75 @@ async function toggleLike(fileId) {
     }
 }
 
+// ── URL ROUTING ────────────────────────────────────────────────────────
+let _routeDepth = 0;
+let _routeHandling = false;
+
+function _navigate(hash) {
+    if (_routeHandling) return;
+    hash = hash || '#';
+    if (location.hash === hash) return;
+    history.pushState({ route: hash }, '', hash);
+    _routeDepth++;
+}
+
+window.addEventListener('popstate', (e) => {
+    const hash = (e.state && e.state.route) || location.hash || '#';
+    _routeHandling = true;
+    _historyBlocked = true;
+    _routeTo(hash);
+    _historyBlocked = false;
+    _routeHandling = false;
+});
+
+function _routeTo(hash) {
+    // Alt overlay'leri kapat
+    const fvEl = document.getElementById('fvOverlay');
+    if (fvEl && fvEl.classList.contains('open')) closeFileView();
+    const ppEl = document.getElementById('pubProfileOverlay');
+    if (ppEl && ppEl.classList.contains('open')) closePublicProfile();
+
+    hash = hash || '#';
+    if (hash === '#' || hash === '') {
+        ['feedOverlay','messagesOverlay','savedFilesPanel','searchPanelOverlay','collOverlay','exploreOverlay'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.classList.contains('open')) el.classList.remove('open');
+        });
+        _setBottomActive('bbEditorBtn');
+    } else if (hash === '#feed' || hash === '#feed/following') {
+        openFeedPanel();
+    } else if (hash === '#feed/explore') {
+        openFeedPanel();
+        setTimeout(() => switchFeedTab('explore'), 80);
+    } else if (hash === '#messages') {
+        openMessagesPanel();
+    } else if (hash === '#saved') {
+        openSavedFilesPanel();
+    } else if (hash === '#search') {
+        openSearchPanel();
+    } else if (hash.startsWith('#file/')) {
+        const id = decodeURIComponent(hash.slice(6));
+        if (id) openFileView(id);
+    } else if (hash.startsWith('#collection/')) {
+        const id = decodeURIComponent(hash.slice(12));
+        if (id) openCollectionOverlay(id);
+    } else if (hash.startsWith('#profile/')) {
+        const id = decodeURIComponent(hash.slice(9));
+        if (id) openPublicProfile(id);
+    }
+}
+
+function _handleInitialRoute() {
+    const hash = location.hash;
+    history.replaceState({ route: '#' }, '', '#');
+    if (hash && hash !== '#') {
+        _navigate(hash);
+        _routeHandling = true;
+        _routeTo(hash);
+        _routeHandling = false;
+    }
+}
+
 // ── PANEL YÖNETİMİ ─────────────────────────────────────────────────────
 // Ana paneller açılınca diğerlerini kapat (alt paneller hariç: fvOverlay, convOverlay, pubProfileOverlay)
 let _panelHistory = [];
@@ -5684,11 +5757,17 @@ function _getPanelReopener() {
 }
 
 function _goBack() {
+    if (_routeDepth > 0) {
+        _routeDepth--;
+        history.back();
+        return true;
+    }
     const prev = _panelHistory.pop();
-    if (!prev) return;
+    if (!prev) return false;
     _historyBlocked = true;
     prev();
     _historyBlocked = false;
+    return true;
 }
 
 function _setBottomActive(id) {
@@ -5706,6 +5785,7 @@ function _clearBottomActive() {
 }
 
 function openEditorView() {
+    _navigate('#');
     _closeAllPanels('__none__');
     _setBottomActive('bbEditorBtn');
 }
@@ -5740,6 +5820,7 @@ let _feedTab = 'following';
 let _exploreLoadedInFeed = false;
 
 function switchFeedTab(tab) {
+    _navigate(tab === 'explore' ? '#feed/explore' : '#feed');
     _feedTab = tab;
     document.getElementById('feedTabFollowing').classList.toggle('active', tab === 'following');
     document.getElementById('feedTabExplore').classList.toggle('active', tab === 'explore');
@@ -5752,6 +5833,7 @@ function switchFeedTab(tab) {
 }
 
 function openFeedPanel() {
+    _navigate('#feed');
     _closeAllPanels('feed');
     _setBottomActive('bbFeedBtn');
     const overlay = document.getElementById('feedOverlay');
@@ -6478,6 +6560,7 @@ let _msgPollTimer   = null;
 let _renderedMsgIds = new Set();
 
 function openMessagesPanel() {
+    _navigate('#messages');
     _closeAllPanels('messages');
     _setBottomActive('bbMsgBtn');
     document.getElementById('messagesOverlay').classList.add('open');
@@ -7063,6 +7146,7 @@ let _fvCmtLikes = {};
 let _fvMyCmtLikes = new Set();
 
 async function openFileView(fileId) {
+    _navigate('#file/' + encodeURIComponent(fileId));
     _fvFileId    = fileId;
     _fvCmtLoaded = false;
     const d   = _exploreDataMap[fileId] || {};
@@ -8064,6 +8148,7 @@ function _attachCollSwipe() {
 }
 
 async function openCollectionOverlay(collId) {
+    _navigate('#collection/' + encodeURIComponent(collId));
     _colOverlayId = collId;
     _closeAllPanels('collection');
     const overlay = document.getElementById('collOverlay');
