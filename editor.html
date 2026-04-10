@@ -7194,13 +7194,7 @@ async function openFileView(fileId) {
     let code = d.code || pub.code || null;
     if (!code) {
         const { data: fd } = await sb.from('files').select('filename, code, user_id, forked_from_id, description').eq('id', fileId).single();
-        if (!fd) {
-            // Dosya bulunamadı (silinmiş veya geçersiz link)
-            closeFileView();
-            showToast('Bu dosya artık mevcut değil');
-            history.replaceState({ route: '#' }, '', '#');
-            return;
-        }
+        if (fd) {
             code = fd.code;
             _pubFilesData[fileId] = { filename: fd.filename, code: fd.code, forked_from_id: fd.forked_from_id, description: fd.description || '' };
             if (!d.filename) {
