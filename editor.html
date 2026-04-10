@@ -1320,21 +1320,33 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .comment-input-row {
     display: flex; gap: 8px; margin-top: 10px; align-items: flex-end;
 }
+@keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+.cmt-input-outer { flex-shrink: 0; border-top: 1px solid var(--glass-border); }
+.cmt-reply-bar {
+    display: flex; align-items: center; padding: 6px 14px;
+    background: rgba(0,122,255,0.08); border-bottom: 1px solid rgba(0,122,255,0.12);
+    font-size: 12px; color: #007aff; font-weight: 500;
+    animation: slideDown 0.18s ease;
+}
+.cmt-reply-bar-text { flex: 1; }
+.cmt-reply-bar-cancel { background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 16px; padding: 0 0 0 10px; line-height: 1; }
+.cmt-user-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; background: rgba(120,120,128,0.15); display: flex; align-items: center; justify-content: center; font-size: 17px; }
 .comment-input {
-    flex: 1; border: 1px solid var(--glass-border); border-radius: 12px;
-    padding: 8px 12px; font-size: 14px; font-family: inherit;
+    flex: 1; border: 1.5px solid var(--glass-border); border-radius: 20px;
+    padding: 8px 14px; font-size: 14px; font-family: inherit;
     background: var(--glass-bg); color: var(--text-primary);
     outline: none; resize: none; max-height: 80px; line-height: 1.4;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
-.comment-input:focus { border-color: rgba(0,122,255,0.4); }
+.comment-input:focus { border-color: rgba(0,122,255,0.5); box-shadow: 0 0 0 3px rgba(0,122,255,0.1); }
 .comment-send-btn {
     width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
     background: #007aff; border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    color: #fff; transition: all 0.2s;
+    color: #fff; transition: all 0.2s; opacity: 0.38; transform: scale(0.88); pointer-events: none;
 }
-.comment-send-btn:active { transform: scale(0.88); }
+.comment-send-btn.active { opacity: 1; transform: scale(1); pointer-events: auto; }
+.comment-send-btn.active:active { transform: scale(0.88); }
 
 /* ── DOSYA ÖNİZLEME ─────────────────────────────────────── */
 .file-preview-box {
@@ -1797,8 +1809,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 @media (prefers-color-scheme: dark) { .fv-comments-pane { background: #0a1225; } }
 .fv-cmt-list { flex: 1; overflow-y: auto; padding: 12px 16px 8px; }
 .fv-cmt-input-row {
-    display: flex; gap: 8px; padding: 12px 16px;
-    border-top: 1px solid var(--glass-border); flex-shrink: 0;
+    display: flex; gap: 8px; padding: 10px 14px 14px; align-items: flex-end;
     background: rgba(242,242,247,0.98);
 }
 @media (prefers-color-scheme: dark) { .fv-cmt-input-row { background: rgba(10,18,37,0.98); } }
@@ -1810,10 +1821,6 @@ body.preview-mode .file-title-bar { display: none !important; }
 .cmt-like-btn:active { opacity: 0.7; }
 .cmt-reply-btn { background: none; border: none; cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 0; font-family: inherit; font-weight: 500; transition: color 0.15s; }
 .cmt-reply-btn:active { color: #007aff; }
-/* Yanıt input */
-.cmt-reply-input-wrap { display: flex; gap: 6px; margin-top: 7px; align-items: flex-end; }
-.cmt-reply-textarea { flex: 1; resize: none; border: 1px solid var(--glass-border); border-radius: 10px; padding: 6px 10px; font-size: 13px; background: var(--glass-bg); color: var(--text-primary); font-family: inherit; min-height: 34px; max-height: 80px; outline: none; }
-.cmt-reply-send { padding: 6px 12px; background: #007aff; color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; flex-shrink: 0; }
 /* İç içe yanıtlar */
 .cmt-replies-wrap { margin-top: 8px; padding-left: 10px; border-left: 2px solid var(--glass-border); }
 .comment-item.cmt-reply { padding: 6px 0; }
@@ -1949,17 +1956,25 @@ body.preview-mode .file-title-bar { display: none !important; }
 .feed-cmt-body { flex: 1; font-size: 13px; line-height: 1.4; }
 .feed-cmt-username { font-weight: 700; color: var(--text-primary); margin-right: 5px; }
 .feed-cmt-text { color: var(--text-primary); }
-.feed-cmt-input-row { display: flex; gap: 6px; margin-top: 8px; align-items: flex-end; }
+.feed-cmt-reply-bar { display: flex; align-items: center; padding: 5px 10px; background: rgba(0,122,255,0.08); font-size: 12px; color: #007aff; font-weight: 500; border-radius: 8px; margin-bottom: 4px; animation: slideDown 0.18s ease; }
+.feed-cmt-reply-bar-text { flex: 1; }
+.feed-cmt-reply-bar-cancel { background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 14px; padding: 0 0 0 8px; line-height: 1; }
+.feed-cmt-input-row { display: flex; gap: 6px; align-items: flex-end; }
 .feed-cmt-textarea {
-    flex: 1; resize: none; border: 1px solid var(--glass-border); border-radius: 10px;
-    padding: 6px 10px; font-size: 13px; background: var(--glass-bg);
-    color: var(--text-primary); font-family: inherit; min-height: 32px; max-height: 80px; outline: none;
+    flex: 1; resize: none; border: 1.5px solid var(--glass-border); border-radius: 20px;
+    padding: 7px 12px; font-size: 13px; background: var(--glass-bg);
+    color: var(--text-primary); font-family: inherit; min-height: 34px; max-height: 80px; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
+.feed-cmt-textarea:focus { border-color: rgba(0,122,255,0.5); box-shadow: 0 0 0 3px rgba(0,122,255,0.1); }
 .feed-cmt-send {
     width: 32px; height: 32px; background: #007aff; color: #fff; border: none;
-    border-radius: 50%; font-size: 16px; cursor: pointer; flex-shrink: 0;
+    border-radius: 50%; cursor: pointer; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
+    opacity: 0.38; transform: scale(0.88); pointer-events: none; transition: all 0.2s;
 }
+.feed-cmt-send.active { opacity: 1; transform: scale(1); pointer-events: auto; }
+.feed-cmt-send.active:active { transform: scale(0.85); }
 
 /* ── BİLDİRİMLER ──────────────────────────────────────── */
 .notif-btn {
@@ -2689,12 +2704,19 @@ body.preview-mode .file-title-bar { display: none !important; }
             </div>
             <div class="coll-tab-pane">
                 <div class="fv-cmt-list" id="ccmtlist-overlay"></div>
-                <div class="fv-cmt-input-row" id="ccmt-input-wrap">
-                    <textarea id="ccmtinput-overlay" class="comment-input" placeholder="Yorum yaz..." rows="1"
-                        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
-                    <button class="comment-send-btn" onclick="collSubmitComment(_colOverlayId,'ccmtinput-overlay','ccmtlist-overlay')">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                    </button>
+                <div class="cmt-input-outer" id="ccmt-input-wrap">
+                    <div class="cmt-reply-bar" id="ccmtReplyBar" style="display:none;">
+                        <span class="cmt-reply-bar-text" id="ccmtReplyText"></span>
+                        <button class="cmt-reply-bar-cancel" onclick="collCancelReply('overlay')">✕</button>
+                    </div>
+                    <div class="fv-cmt-input-row">
+                        <div class="cmt-user-avatar" id="ccmtAvatar">👤</div>
+                        <textarea id="ccmtinput-overlay" class="comment-input" placeholder="Yorum yaz..." rows="1"
+                            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';_cmtActivate(this,'ccmtSendBtn')"></textarea>
+                        <button class="comment-send-btn" id="ccmtSendBtn" onclick="collSubmitComment(_colOverlayId,'ccmtinput-overlay','ccmtlist-overlay')">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -3162,6 +3184,20 @@ let _profMyCmtLikes  = new Set();  // current user liked comment IDs
 // Yorum beğeni state — akış yorumları
 let _feedCmtLikes    = {};
 let _feedMyCmtLikes  = new Set();
+
+// Yorum yanıt state
+let _fvReplyId = null;
+let _colOverlayReplyId = null;
+let _collCardReplyMap = {};
+let _feedReplyMap = {};
+let _coReplyMap = {};
+
+function _cmtActivate(inp, btnId) {
+    const btn = typeof btnId === 'string' ? document.getElementById(btnId) : btnId;
+    if (!btn) return;
+    btn.classList.toggle('active', inp.value.trim().length > 0);
+}
+function _cmtUserEmoji() { return currentProfile?.avatar_emoji || selectedEmoji || '👤'; }
 
 // Yorum beğeni state — koleksiyon overlay dosya kartları
 let _coCmtLikes    = {};
@@ -6005,10 +6041,7 @@ async function loadFeed() {
             ${likeText ? `<div class="feed-like-text" id="fliketext-${f.id}">${likeText}</div>` : `<div class="feed-like-text" id="fliketext-${f.id}" style="display:none;"></div>`}
             <div class="feed-comments-wrap" id="fcmtwrap-${f.id}" style="display:none;">
                 <div class="feed-comments-list" id="fcmtlist-${f.id}"><div class="search-empty" style="padding:8px 0;font-size:12px;">Yükleniyor...</div></div>
-                ${currentUser ? `<div class="feed-cmt-input-row">
-                    <textarea class="feed-cmt-textarea" id="fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                    <button class="feed-cmt-send" onclick="feedSubmitComment('${f.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button>
-                </div>` : ''}
+                ${currentUser ? `<div id="fcmt-rbar-${f.id}" class="feed-cmt-reply-bar" style="display:none;"><span id="fcmt-rtext-${f.id}" class="feed-cmt-reply-bar-text"></span><button class="feed-cmt-reply-bar-cancel" onclick="feedCancelReply('${f.id}')">✕</button></div><div class="feed-cmt-input-row"><div class="cmt-user-avatar">${_cmtUserEmoji()}</div><textarea class="feed-cmt-textarea" id="fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_cmtActivate(this,'fcmtsend-${f.id}')"></textarea><button class="feed-cmt-send" id="fcmtsend-${f.id}" onclick="feedSubmitComment('${f.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button></div>` : ''}
             </div>
         </div>`;
     }).join('');
@@ -6095,10 +6128,6 @@ async function _coLoadComments(fileId) {
                     </button>
                     ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="coShowReply('${c.id}','${fileId}')">Yanıtla</button>` : ''}
                 </div>
-                ${!isReply ? `<div class="cmt-reply-input-wrap" id="co-feedri-${c.id}" style="display:none;">
-                    <textarea class="cmt-reply-textarea" id="co-feedrit-${c.id}" placeholder="Yanıtla..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                    <button class="cmt-reply-send" onclick="coSubmitReply('${c.id}','${fileId}')">Gönder</button>
-                </div>` : ''}
                 ${childReplies ? `<div class="cmt-replies-wrap">${childReplies}</div>` : ''}
             </div>
         </div>`;
@@ -6132,31 +6161,26 @@ async function coToggleCmtLike(commentId, btn) {
 }
 
 function coShowReply(commentId, fileId) {
-    const wrap = document.getElementById('co-feedri-' + commentId);
-    if (!wrap) return;
-    const showing = wrap.style.display !== 'none';
-    wrap.style.display = showing ? 'none' : 'flex';
-    if (!showing) document.getElementById('co-feedrit-' + commentId)?.focus();
+    const el = document.getElementById('co-feedcmt-' + commentId);
+    const username = el?.querySelector('.comment-username')?.textContent || 'Kullanıcı';
+    _coReplyMap[fileId] = { commentId, username };
+    const barEl = document.getElementById('co-fcmt-rbar-' + fileId);
+    const textEl = document.getElementById('co-fcmt-rtext-' + fileId);
+    if (barEl && textEl) { textEl.textContent = username + "'e yanıtlıyorsun"; barEl.style.display = 'flex'; }
+    const inp = document.getElementById('co-fcmtinput-' + fileId);
+    if (inp) {
+        const mention = '@' + username + ' ';
+        if (!inp.value.startsWith(mention)) inp.value = mention + inp.value;
+        inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
+        inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 80) + 'px';
+        _cmtActivate(inp, 'co-fcmtsend-' + fileId);
+    }
 }
 
-async function coSubmitReply(parentId, fileId) {
-    if (!currentUser) return;
-    const inp = document.getElementById('co-feedrit-' + parentId);
-    const content = inp?.value.trim();
-    if (!content) return;
-    inp.value = ''; inp.style.height = 'auto';
-    document.getElementById('co-feedri-' + parentId).style.display = 'none';
-    const { data: inserted, error } = await sb.from('comments')
-        .insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId })
-        .select('id').single();
-    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    const _rvp = document.getElementById('co-feedcmt-' + parentId);
-    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: inserted?.id });
-    const _fileOwner = _exploreDataMap[fileId]?.userId;
-    if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100) });
-    const wrap = document.getElementById('co-fcmtwrap-' + fileId);
-    if (wrap) wrap.dataset.loaded = '';
-    await _coLoadComments(fileId);
+function coCancelReply(fileId) {
+    delete _coReplyMap[fileId];
+    const barEl = document.getElementById('co-fcmt-rbar-' + fileId);
+    if (barEl) barEl.style.display = 'none';
 }
 
 async function coDeleteComment(commentId, fileId) {
@@ -6184,12 +6208,22 @@ async function coSubmitComment(fileId) {
     const inp = document.getElementById('co-fcmtinput-' + fileId);
     const content = inp?.value.trim();
     if (!content) return;
+    const parentId = _coReplyMap[fileId]?.commentId || null;
     inp.value = ''; inp.style.height = 'auto';
-    const { data: inserted, error } = await sb.from('comments')
-        .insert({ file_id: fileId, user_id: currentUser.id, content })
-        .select('id').single();
-    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: inserted?.id });
+    _cmtActivate(inp, 'co-fcmtsend-' + fileId);
+    coCancelReply(fileId);
+    const insertData = { file_id: fileId, user_id: currentUser.id, content };
+    if (parentId) insertData.parent_id = parentId;
+    const { data: inserted, error } = await sb.from('comments').insert(insertData).select('id').single();
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; _cmtActivate(inp, 'co-fcmtsend-' + fileId); return; }
+    if (parentId) {
+        const _rvp = document.getElementById('co-feedcmt-' + parentId);
+        if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: inserted?.id });
+        const _fileOwner = _exploreDataMap[fileId]?.userId;
+        if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100) });
+    } else {
+        _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100), comment_id: inserted?.id });
+    }
     const wrap = document.getElementById('co-fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await _coLoadComments(fileId);
@@ -6252,10 +6286,6 @@ async function feedLoadComments(fileId) {
                     </button>
                     ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="feedShowReply('${c.id}','${fileId}')">Yanıtla</button>` : ''}
                 </div>
-                ${!isReply ? `<div class="cmt-reply-input-wrap" id="feedri-${c.id}" style="display:none;">
-                    <textarea class="cmt-reply-textarea" id="feedrit-${c.id}" placeholder="Yanıtla..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                    <button class="cmt-reply-send" onclick="feedSubmitReply('${c.id}','${fileId}')">Gönder</button>
-                </div>` : ''}
                 ${childReplies ? `<div class="cmt-replies-wrap">${childReplies}</div>` : ''}
             </div>
         </div>`;
@@ -6268,10 +6298,22 @@ async function feedSubmitComment(fileId) {
     const inp = document.getElementById('fcmtinput-' + fileId);
     const content = inp?.value.trim();
     if (!content) return;
+    const parentId = _feedReplyMap[fileId]?.commentId || null;
     inp.value = ''; inp.style.height = 'auto';
-    const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content });
-    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100) });
+    _cmtActivate(inp, 'fcmtsend-' + fileId);
+    feedCancelReply(fileId);
+    const insertData = { file_id: fileId, user_id: currentUser.id, content };
+    if (parentId) insertData.parent_id = parentId;
+    const { error } = await sb.from('comments').insert(insertData);
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; _cmtActivate(inp, 'fcmtsend-' + fileId); return; }
+    if (parentId) {
+        const _rvp = document.getElementById('feedcmt-' + parentId);
+        if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100) });
+        const _fileOwner = _exploreDataMap[fileId]?.userId;
+        if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100) });
+    } else {
+        _sendNotif('comment', _exploreDataMap[fileId]?.userId, fileId, { comment_preview: content.substring(0, 100) });
+    }
     const wrap = document.getElementById('fcmtwrap-' + fileId);
     if (wrap) wrap.dataset.loaded = '';
     await feedLoadComments(fileId);
@@ -6315,31 +6357,26 @@ async function feedToggleCmtLike(commentId, btn) {
 }
 
 function feedShowReply(commentId, fileId) {
-    const wrap = document.getElementById('feedri-' + commentId);
-    if (!wrap) return;
-    const showing = wrap.style.display !== 'none';
-    wrap.style.display = showing ? 'none' : 'flex';
-    if (!showing) document.getElementById('feedrit-' + commentId)?.focus();
+    const el = document.getElementById('feedcmt-' + commentId);
+    const username = el?.querySelector('.comment-username')?.textContent || 'Kullanıcı';
+    _feedReplyMap[fileId] = { commentId, username };
+    const barEl = document.getElementById('fcmt-rbar-' + fileId);
+    const textEl = document.getElementById('fcmt-rtext-' + fileId);
+    if (barEl && textEl) { textEl.textContent = username + "'e yanıtlıyorsun"; barEl.style.display = 'flex'; }
+    const inp = document.getElementById('fcmtinput-' + fileId);
+    if (inp) {
+        const mention = '@' + username + ' ';
+        if (!inp.value.startsWith(mention)) inp.value = mention + inp.value;
+        inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
+        inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 80) + 'px';
+        _cmtActivate(inp, 'fcmtsend-' + fileId);
+    }
 }
 
-async function feedSubmitReply(parentId, fileId) {
-    if (!currentUser) return;
-    const inp = document.getElementById('feedrit-' + parentId);
-    const content = inp?.value.trim();
-    if (!content) return;
-    inp.value = ''; inp.style.height = 'auto';
-    document.getElementById('feedri-' + parentId).style.display = 'none';
-    const { error } = await sb.from('comments').insert({ file_id: fileId, user_id: currentUser.id, content, parent_id: parentId });
-    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    // Yorum sahibine: "yorumuna yanıt verildi"
-    const _rvp = document.getElementById('feedcmt-' + parentId);
-    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, fileId, { comment_preview: content.substring(0, 100) });
-    // Dosya sahibine: "dosyandaki yoruma yanıt verildi" (yorum sahibinden farklıysa)
-    const _fileOwner = _exploreDataMap[fileId]?.userId;
-    if (_fileOwner && _fileOwner !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fileOwner, fileId, { comment_preview: content.substring(0, 100) });
-    const wrap = document.getElementById('fcmtwrap-' + fileId);
-    if (wrap) wrap.dataset.loaded = '';
-    await feedLoadComments(fileId);
+function feedCancelReply(fileId) {
+    delete _feedReplyMap[fileId];
+    const barEl = document.getElementById('fcmt-rbar-' + fileId);
+    if (barEl) barEl.style.display = 'none';
 }
 
 async function _loadFeedThumb(fileId, obs) {
@@ -6479,14 +6516,7 @@ async function loadExploreFiles(listId = 'exploreList') {
                 <div id="fcmtwrap-${f.id}" style="display:none;">
                     <div class="feed-comments-wrap">
                         <div id="fcmtlist-${f.id}"></div>
-                        ${currentUser ? `<div class="feed-cmt-input-row" style="margin-top:8px;">
-                            <textarea class="feed-cmt-textarea" id="fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1"
-                                oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
-                                style="font-size:13px;"></textarea>
-                            <button class="feed-cmt-send" onclick="feedSubmitComment('${f.id}')" style="width:30px;height:30px;">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                            </button>
-                        </div>` : ''}
+                        ${currentUser ? `<div id="fcmt-rbar-${f.id}" class="feed-cmt-reply-bar" style="display:none;"><span id="fcmt-rtext-${f.id}" class="feed-cmt-reply-bar-text"></span><button class="feed-cmt-reply-bar-cancel" onclick="feedCancelReply('${f.id}')">✕</button></div><div class="feed-cmt-input-row" style="margin-top:6px;"><div class="cmt-user-avatar">${_cmtUserEmoji()}</div><textarea class="feed-cmt-textarea" id="fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_cmtActivate(this,'fcmtsend-${f.id}')"></textarea><button class="feed-cmt-send" id="fcmtsend-${f.id}" onclick="feedSubmitComment('${f.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button></div>` : ''}
                     </div>
                 </div>
             </div>`;
@@ -7571,7 +7601,12 @@ async function fvLoadComments() {
     const topLevel = all.filter(c => !c.parent_id);
     const cnt = topLevel.length;
     document.getElementById('fvCmtBadge').textContent = cnt ? ` (${cnt})` : '';
-    if (currentUser) document.getElementById('fvCmtInputRow').style.display = '';
+    if (currentUser) {
+        const _fvRow = document.getElementById('fvCmtInputRow');
+        if (_fvRow) _fvRow.style.display = '';
+        const _fvAv = document.getElementById('fvCmtAvatar');
+        if (_fvAv) _fvAv.textContent = _cmtUserEmoji();
+    }
     if (all.length === 0) { listEl.innerHTML = '<div class="search-empty" style="padding:20px 0;">Henüz yorum yok</div>'; return; }
     const uids = [...new Set(all.map(c => c.user_id))];
     const cmtIds = all.map(c => c.id);
@@ -7609,10 +7644,6 @@ async function fvLoadComments() {
                     </button>
                     ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="fvShowReply('${c.id}')">Yanıtla</button>` : ''}
                 </div>
-                ${!isReply ? `<div class="cmt-reply-input-wrap" id="fvri-${c.id}" style="display:none;">
-                    <textarea class="cmt-reply-textarea" id="fvrit-${c.id}" placeholder="Yanıtla..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                    <button class="cmt-reply-send" onclick="fvSubmitReply('${c.id}')">Gönder</button>
-                </div>` : ''}
                 ${childReplies ? `<div class="cmt-replies-wrap">${childReplies}</div>` : ''}
             </div>
         </div>`;
@@ -7639,10 +7670,21 @@ async function fvSubmitComment() {
     const inp = document.getElementById('fvCmtInput');
     const content = inp.value.trim();
     if (!content) return;
+    const parentId = _fvReplyId;
     inp.value = ''; inp.style.height = 'auto';
-    const { error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content });
-    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    _sendNotif('comment', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100) });
+    _cmtActivate(inp, 'fvCmtSendBtn');
+    fvCancelReply();
+    const insertData = { file_id: _fvFileId, user_id: currentUser.id, content };
+    if (parentId) insertData.parent_id = parentId;
+    const { error } = await sb.from('comments').insert(insertData);
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; _cmtActivate(inp, 'fvCmtSendBtn'); return; }
+    if (parentId) {
+        const _rvp = document.getElementById('fvcmt-' + parentId);
+        if (_rvp) _sendNotif('reply', _rvp.dataset.userId, _fvFileId, { comment_preview: content.substring(0, 100) });
+        if (_fvUserId && _fvUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100) });
+    } else {
+        _sendNotif('comment', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100) });
+    }
     _fvCmtLoaded = false;
     fvLoadComments();
 }
@@ -7684,29 +7726,27 @@ async function fvToggleCmtLike(commentId, btn) {
 }
 
 function fvShowReply(commentId) {
-    const wrap = document.getElementById('fvri-' + commentId);
-    if (!wrap) return;
-    const showing = wrap.style.display !== 'none';
-    wrap.style.display = showing ? 'none' : 'flex';
-    if (!showing) document.getElementById('fvrit-' + commentId)?.focus();
+    _fvReplyId = commentId;
+    const el = document.getElementById('fvcmt-' + commentId);
+    const username = el?.querySelector('.comment-username')?.textContent || 'Kullanıcı';
+    const replyBar = document.getElementById('fvCmtReplyBar');
+    const replyText = document.getElementById('fvCmtReplyText');
+    if (replyBar && replyText) { replyText.textContent = username + "'e yanıtlıyorsun"; replyBar.style.display = 'flex'; }
+    const inp = document.getElementById('fvCmtInput');
+    if (inp) {
+        const mention = '@' + username + ' ';
+        if (!inp.value.startsWith(mention)) inp.value = mention + inp.value;
+        inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
+        inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 80) + 'px';
+        _cmtActivate(inp, 'fvCmtSendBtn');
+    }
 }
 
-async function fvSubmitReply(parentId) {
-    if (!currentUser || !_fvFileId) return;
-    const inp = document.getElementById('fvrit-' + parentId);
-    const content = inp?.value.trim();
-    if (!content) return;
-    inp.value = ''; inp.style.height = 'auto';
-    document.getElementById('fvri-' + parentId).style.display = 'none';
-    const { error } = await sb.from('comments').insert({ file_id: _fvFileId, user_id: currentUser.id, content, parent_id: parentId });
-    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    // Yorum sahibine: "yorumuna yanıt verildi"
-    const _rvp = document.getElementById('fvcmt-' + parentId);
-    if (_rvp) _sendNotif('reply', _rvp.dataset.userId, _fvFileId, { comment_preview: content.substring(0, 100) });
-    // Dosya sahibine (yorum sahibinden farklıysa): "dosyandaki yoruma yanıt verildi"
-    if (_fvUserId && _fvUserId !== _rvp?.dataset.userId) _sendNotif('reply_on_file', _fvUserId, _fvFileId, { comment_preview: content.substring(0, 100) });
-    _fvCmtLoaded = false;
-    fvLoadComments();
+function fvCancelReply() {
+    _fvReplyId = null;
+    const replyBar = document.getElementById('fvCmtReplyBar');
+    if (replyBar) replyBar.style.display = 'none';
+}
 }
 
 function _initFileViewSwipeBack() {
@@ -8203,6 +8243,9 @@ async function openCollectionOverlay(collId) {
         if ((myL || []).length) _colMyLikes.add(collId);
     }
     _updateCollOverlayLikeBtn(collId);
+    // Yorum alanı avatar
+    const _ccmtAv = document.getElementById('ccmtAvatar');
+    if (_ccmtAv) _ccmtAv.textContent = _cmtUserEmoji();
     // Tab'ı sıfırla — her açılışta Dosyalar sekmesiyle başla
     collSwitchTab('files');
     await _loadCollectionOverlayFiles(collId);
@@ -8314,12 +8357,8 @@ async function collLoadComments(collId, listElId, cntElId) {
                     <button class="cmt-like-btn${liked ? ' liked' : ''}" onclick="collToggleCmtLike('${c.id}',this,'${collId}','${listElId}','${cntElId||''}')">
                         ${liked ? '♥' : '♡'}<span id="colcl-${c.id}">${likeCnt ? ' '+likeCnt : ''}</span>
                     </button>
-                    ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="collShowReply('${c.id}')">Yanıtla</button>` : ''}
+                    ${!isReply && currentUser ? `<button class="cmt-reply-btn" onclick="collShowReply('${c.id}','${listElId === 'ccmtlist-overlay' ? 'overlay' : collId}')">Yanıtla</button>` : ''}
                 </div>
-                ${!isReply ? `<div class="cmt-reply-input-wrap" id="collri-${c.id}" style="display:none;">
-                    <textarea class="cmt-reply-textarea" id="collrit-${c.id}" placeholder="Yanıtla..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                    <button class="cmt-reply-send" onclick="collSubmitReply('${c.id}','${collId}','${listElId}','${cntElId||''}')">Gönder</button>
-                </div>` : ''}
                 ${childReplies ? `<div class="cmt-replies-wrap">${childReplies}</div>` : ''}
             </div>
         </div>`;
@@ -8332,14 +8371,25 @@ async function collSubmitComment(collId, inputId, listElId) {
     const inp = document.getElementById(inputId);
     const content = inp?.value.trim();
     if (!content) return;
+    const isOverlay = listElId === 'ccmtlist-overlay';
+    const sendBtnId = isOverlay ? 'ccmtSendBtn' : 'ccmtsend-' + collId;
+    const parentId = isOverlay ? _colOverlayReplyId : (_collCardReplyMap[collId]?.commentId || null);
     inp.value = ''; inp.style.height = 'auto';
-    const { error } = await sb.from('collection_comments')
-        .insert({ collection_id: collId, user_id: currentUser.id, content });
-    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    const cntElId = listElId.startsWith('ccmtlist-overlay') ? 'collCmtCount' : 'ccmtcnt-' + collId;
-    // Bildirim: koleksiyon sahibine
+    _cmtActivate(inp, sendBtnId);
+    collCancelReply(isOverlay ? 'overlay' : collId);
+    const insertData = { collection_id: collId, user_id: currentUser.id, content };
+    if (parentId) insertData.parent_id = parentId;
+    const { error } = await sb.from('collection_comments').insert(insertData);
+    if (error) { showToast('Hata: ' + error.message); inp.value = content; _cmtActivate(inp, sendBtnId); return; }
+    const cntElId = isOverlay ? 'collCmtCount' : 'ccmtcnt-' + collId;
     const _ownerId = _colOwnerMap[collId];
-    if (_ownerId) _sendNotif('coll_comment', _ownerId, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
+    if (parentId) {
+        const _rvp = document.getElementById('ccmt-' + parentId);
+        if (_rvp) _sendNotif('coll_reply', _rvp.dataset.userId, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
+        if (_ownerId && _ownerId !== _rvp?.dataset.userId) _sendNotif('coll_reply_on_coll', _ownerId, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
+    } else {
+        if (_ownerId) _sendNotif('coll_comment', _ownerId, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
+    }
     const wrap = document.getElementById('ccmtwrap-' + collId);
     if (wrap) wrap.dataset.loaded = '';
     await collLoadComments(collId, listElId, cntElId);
@@ -8352,33 +8402,38 @@ async function collDeleteComment(commentId, collId, listElId, cntElId) {
     await collLoadComments(collId, listElId, cntElId || '');
 }
 
-function collShowReply(commentId) {
-    const wrap = document.getElementById('collri-' + commentId);
-    if (!wrap) return;
-    const showing = wrap.style.display !== 'none';
-    wrap.style.display = showing ? 'none' : 'flex';
-    if (!showing) document.getElementById('collrit-' + commentId)?.focus();
+function collShowReply(commentId, context) {
+    const el = document.getElementById('ccmt-' + commentId);
+    const username = el?.querySelector('.comment-username')?.textContent || 'Kullanıcı';
+    let barId, textId, inputId, sendId;
+    if (context === 'overlay') {
+        _colOverlayReplyId = commentId;
+        barId = 'ccmtReplyBar'; textId = 'ccmtReplyText'; inputId = 'ccmtinput-overlay'; sendId = 'ccmtSendBtn';
+    } else {
+        _collCardReplyMap[context] = { commentId, username };
+        barId = 'ccmt-rbar-' + context; textId = 'ccmt-rtext-' + context; inputId = 'ccmtinput-' + context; sendId = 'ccmtsend-' + context;
+    }
+    const barEl = document.getElementById(barId); const textEl = document.getElementById(textId); const inputEl = document.getElementById(inputId);
+    if (barEl && textEl) { textEl.textContent = username + "'e yanıtlıyorsun"; barEl.style.display = 'flex'; }
+    if (inputEl) {
+        const mention = '@' + username + ' ';
+        if (!inputEl.value.startsWith(mention)) inputEl.value = mention + inputEl.value;
+        inputEl.focus(); inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+        inputEl.style.height = 'auto'; inputEl.style.height = Math.min(inputEl.scrollHeight, 80) + 'px';
+        _cmtActivate(inputEl, sendId);
+    }
 }
 
-async function collSubmitReply(parentId, collId, listElId, cntElId) {
-    if (!currentUser) return;
-    const inp = document.getElementById('collrit-' + parentId);
-    const content = inp?.value.trim();
-    if (!content) return;
-    inp.value = ''; inp.style.height = 'auto';
-    document.getElementById('collri-' + parentId).style.display = 'none';
-    const { error } = await sb.from('collection_comments')
-        .insert({ collection_id: collId, user_id: currentUser.id, content, parent_id: parentId });
-    if (error) { showToast('Hata: ' + error.message); inp.value = content; return; }
-    // Yorum sahibine: "yorumuna yanıt verildi"
-    const _rvp = document.getElementById('ccmt-' + parentId);
-    if (_rvp) _sendNotif('coll_reply', _rvp.dataset.userId, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
-    // Koleksiyon sahibine (yorum sahibinden farklıysa)
-    const _ownerId2 = _colOwnerMap[collId];
-    if (_ownerId2 && _ownerId2 !== _rvp?.dataset.userId) _sendNotif('coll_reply_on_coll', _ownerId2, null, { collection_id: collId, comment_preview: content.substring(0, 100) });
-    const wrap = document.getElementById('ccmtwrap-' + collId);
-    if (wrap) wrap.dataset.loaded = '';
-    await collLoadComments(collId, listElId, cntElId || '');
+function collCancelReply(context) {
+    if (context === 'overlay') {
+        _colOverlayReplyId = null;
+        const barEl = document.getElementById('ccmtReplyBar');
+        if (barEl) barEl.style.display = 'none';
+    } else {
+        delete _collCardReplyMap[context];
+        const barEl = document.getElementById('ccmt-rbar-' + context);
+        if (barEl) barEl.style.display = 'none';
+    }
 }
 
 async function collToggleCmtLike(commentId, btn, collId, listElId, cntElId) {
@@ -8481,13 +8536,7 @@ async function _loadCollectionOverlayFiles(collId) {
             </div>
             <div class="feed-comments-wrap" id="co-fcmtwrap-${f.id}" style="display:none;">
                 <div id="co-fcmtlist-${f.id}"></div>
-                ${currentUser ? `<div class="feed-cmt-input-row">
-                    <textarea class="feed-cmt-textarea" id="co-fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1"
-                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                    <button class="feed-cmt-send" onclick="coSubmitComment('${f.id}')">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                    </button>
-                </div>` : ''}
+                ${currentUser ? `<div id="co-fcmt-rbar-${f.id}" class="feed-cmt-reply-bar" style="display:none;"><span id="co-fcmt-rtext-${f.id}" class="feed-cmt-reply-bar-text"></span><button class="feed-cmt-reply-bar-cancel" onclick="coCancelReply('${f.id}')">✕</button></div><div class="feed-cmt-input-row"><div class="cmt-user-avatar">${_cmtUserEmoji()}</div><textarea class="feed-cmt-textarea" id="co-fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_cmtActivate(this,'co-fcmtsend-${f.id}')"></textarea><button class="feed-cmt-send" id="co-fcmtsend-${f.id}" onclick="coSubmitComment('${f.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button></div>` : ''}
             </div>
         </div>`;
     }).join('');
@@ -8585,13 +8634,7 @@ function _renderCollectionCard(col) {
         </div>
         <div class="feed-comments-wrap" id="ccmtwrap-${col.id}" style="display:none;">
             <div class="feed-comments-list" id="ccmtlist-${col.id}"></div>
-            ${currentUser ? `<div class="feed-cmt-input-row">
-                <textarea class="feed-cmt-textarea" id="ccmtinput-${col.id}" placeholder="Yorum yaz..." rows="1"
-                    oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                <button class="feed-cmt-send" onclick="collSubmitComment('${col.id}','ccmtinput-${col.id}','ccmtlist-${col.id}')">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                </button>
-            </div>` : ''}
+            ${currentUser ? `<div id="ccmt-rbar-${col.id}" class="feed-cmt-reply-bar" style="display:none;"><span id="ccmt-rtext-${col.id}" class="feed-cmt-reply-bar-text"></span><button class="feed-cmt-reply-bar-cancel" onclick="collCancelReply('${col.id}')">✕</button></div><div class="feed-cmt-input-row"><div class="cmt-user-avatar">${_cmtUserEmoji()}</div><textarea class="feed-cmt-textarea" id="ccmtinput-${col.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_cmtActivate(this,'ccmtsend-${col.id}')"></textarea><button class="feed-cmt-send" id="ccmtsend-${col.id}" onclick="collSubmitComment('${col.id}','ccmtinput-${col.id}','ccmtlist-${col.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button></div>` : ''}
         </div>
     </div>`;
 }
@@ -8710,12 +8753,19 @@ async function toggleColLike(collId) {
                 <div class="fv-cmt-list" id="fvCmtList">
                     <div class="search-empty">Yükleniyor...</div>
                 </div>
-                <div class="fv-cmt-input-row" id="fvCmtInputRow" style="display:none;">
-                    <textarea class="comment-input" id="fvCmtInput" rows="1" placeholder="Yorum yaz..." maxlength="2000"
-                        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
-                    <button class="comment-send-btn" onclick="fvSubmitComment()">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                    </button>
+                <div class="cmt-input-outer" id="fvCmtInputRow" style="display:none;">
+                    <div class="cmt-reply-bar" id="fvCmtReplyBar" style="display:none;">
+                        <span class="cmt-reply-bar-text" id="fvCmtReplyText"></span>
+                        <button class="cmt-reply-bar-cancel" onclick="fvCancelReply()">✕</button>
+                    </div>
+                    <div class="fv-cmt-input-row">
+                        <div class="cmt-user-avatar" id="fvCmtAvatar">👤</div>
+                        <textarea class="comment-input" id="fvCmtInput" rows="1" placeholder="Yorum yaz..." maxlength="2000"
+                            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';_cmtActivate(this,'fvCmtSendBtn')"></textarea>
+                        <button class="comment-send-btn" id="fvCmtSendBtn" onclick="fvSubmitComment()">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
