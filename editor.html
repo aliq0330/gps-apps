@@ -5282,7 +5282,6 @@ async function doFileSearch() {
                             ${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt || ''}</span>
                         </button>
                         ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}" style="margin-left:4px;"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : ''}
-                        <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${f.user_id}',this)" style="padding:2px 6px;font-size:18px;">···</button>
                     </div>
                 </div>
             </div>`;
@@ -5429,7 +5428,6 @@ async function openPublicProfile(userId) {
                         <div class="pub-file-right">
                             <span class="pub-file-stat">♡ ${cnt}</span>
                             <span class="pub-file-stat">💬 ${_commentCountMap[f.id]||0}</span>
-                            <button class="feed-more-btn" onclick="event.stopPropagation();_openCardMenu('${f.user_id}',this)" style="padding:2px 6px;font-size:18px;">···</button>
                         </div>
                     </div>
                 </div>`;
@@ -5507,6 +5505,7 @@ function _openCardMenu(userId, btn) {
     dd.classList.add('open');
     setTimeout(() => {
         document.addEventListener('click', _closeCardMenu, { once: true });
+        window.addEventListener('scroll', _closeCardMenu, { once: true, capture: true });
     }, 0);
 }
 function _closeCardMenu() {
@@ -5514,6 +5513,7 @@ function _closeCardMenu() {
     if (dd) dd.classList.remove('open');
     _cardMenuUserId = null;
     document.removeEventListener('click', _closeCardMenu);
+    window.removeEventListener('scroll', _closeCardMenu, { capture: true });
 }
 async function _cardMenuFollow() {
     if (!currentUser || !_cardMenuUserId) return;
