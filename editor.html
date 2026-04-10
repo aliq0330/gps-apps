@@ -8765,11 +8765,13 @@ function _renderCollectionCard(col) {
             <div class="coll-card-grid">${gridHtml}</div>
         </div>
         <div class="coll-card-actions">
-            <span class="feed-like-btn" style="pointer-events:none;">♡ <span id="cclikecnt-${col.id}">${_fmtCnt(cnt)}</span></span>
-            <span class="feed-comment-toggle" style="pointer-events:none;">
+            <button class="feed-like-btn${liked ? ' liked' : ''}" id="cclike-${col.id}" onclick="event.stopPropagation();toggleColLike('${col.id}')">
+                ${liked ? '♥' : '♡'} <span id="cclikecnt-${col.id}">${_fmtCnt(cnt)}</span>
+            </button>
+            <button class="feed-comment-toggle" onclick="event.stopPropagation();openCollectionOverlay('${col.id}');setTimeout(()=>collSwitchTab('comments'),350)">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                 <span id="ccmtcnt-${col.id}">${_fmtCnt(col.cmtCount)}</span>
-            </span>
+            </button>
             <button class="feed-share-btn" onclick="event.stopPropagation();openCollectionOverlay('${col.id}')">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
             </button>
