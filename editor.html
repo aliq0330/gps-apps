@@ -1152,6 +1152,15 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .profile-save-btn:active { transform: scale(0.97); }
 .profile-save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
+.private-acct-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; background: var(--glass-bg);
+    border: 1px solid var(--glass-border); border-radius: 14px; margin-bottom: 16px;
+}
+.private-acct-info { display: flex; align-items: center; gap: 10px; flex: 1; }
+.private-acct-label { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.private-acct-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; line-height: 1.3; }
+
 .profile-danger-zone {
     margin-top: 24px; padding-top: 20px;
     border-top: 1px solid var(--glass-border);
@@ -1307,15 +1316,22 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     display: flex; gap: 8px; margin-top: 10px; align-items: flex-end;
 }
 @keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
-.cmt-input-outer { flex-shrink: 0; border-top: 1px solid var(--glass-border); }
+.cmt-input-outer { flex-shrink: 0; border-top: 1px solid var(--glass-border); padding: 10px 12px; }
+.cmt-input-box {
+    border: 1.5px solid var(--glass-border); border-radius: 16px;
+    overflow: hidden; background: var(--glass-bg);
+}
 .cmt-reply-bar {
-    display: flex; align-items: center; padding: 6px 14px;
+    display: flex; align-items: center; padding: 7px 12px;
     background: rgba(0,122,255,0.08); border-bottom: 1px solid rgba(0,122,255,0.12);
     font-size: 12px; color: #007aff; font-weight: 500;
     animation: slideDown 0.18s ease;
 }
 .cmt-reply-bar-text { flex: 1; }
 .cmt-reply-bar-cancel { background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 16px; padding: 0 0 0 10px; line-height: 1; }
+.cmt-input-box .fv-cmt-input-row { background: transparent !important; padding: 5px 8px 8px; }
+.cmt-input-box .comment-input { border: none !important; background: transparent !important; box-shadow: none !important; border-radius: 0; }
+.cmt-input-box .comment-input:focus { box-shadow: none !important; }
 .cmt-user-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; background: rgba(120,120,128,0.15); display: flex; align-items: center; justify-content: center; font-size: 17px; }
 .comment-input {
     flex: 1; border: 1.5px solid var(--glass-border); border-radius: 20px;
@@ -1631,6 +1647,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     background: rgba(120,120,128,0.06);
     transition: transform 0.25s cubic-bezier(0.25,0.8,0.25,1), background 0.15s;
     position: relative; will-change: transform;
+    user-select: none; -webkit-user-select: none;
 }
 .conv-item:active { background: rgba(120,120,128,0.06); }
 .conv-avatar {
@@ -2085,7 +2102,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 .feed-cmt-body { flex: 1; font-size: 13px; line-height: 1.4; }
 .feed-cmt-username { font-weight: 700; color: var(--text-primary); margin-right: 5px; }
 .feed-cmt-text { color: var(--text-primary); }
-.feed-cmt-reply-bar { display: flex; align-items: center; padding: 5px 10px; background: rgba(0,122,255,0.08); font-size: 12px; color: #007aff; font-weight: 500; border-radius: 8px; margin-bottom: 4px; animation: slideDown 0.18s ease; }
+.feed-cmt-reply-bar { display: flex; align-items: center; padding: 7px 12px; background: rgba(0,122,255,0.08); font-size: 12px; color: #007aff; font-weight: 500; border-bottom: 1px solid rgba(0,122,255,0.12); animation: slideDown 0.18s ease; }
 .feed-cmt-reply-bar-text { flex: 1; }
 .feed-cmt-reply-bar-cancel { background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 14px; padding: 0 0 0 8px; line-height: 1; }
 .feed-cmt-input-row { display: flex; gap: 6px; align-items: flex-end; }
@@ -2096,6 +2113,12 @@ body.preview-mode .file-title-bar { display: none !important; }
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 .feed-cmt-textarea:focus { border-color: rgba(0,122,255,0.5); box-shadow: 0 0 0 3px rgba(0,122,255,0.1); }
+/* Unified box for feed/explore/collection card comment inputs */
+.cmt-unified-box { border: 1.5px solid var(--glass-border); border-radius: 16px; overflow: hidden; background: var(--glass-bg); margin-top: 8px; }
+.cmt-unified-box .feed-cmt-reply-bar { border-radius: 0; }
+.cmt-unified-box .feed-cmt-input-row { padding: 5px 8px 8px; }
+.cmt-unified-box .feed-cmt-textarea { border: none !important; background: transparent !important; box-shadow: none !important; border-radius: 0; }
+.cmt-unified-box .feed-cmt-textarea:focus { box-shadow: none !important; }
 .feed-cmt-send {
     width: 32px; height: 32px; background: #007aff; color: #fff; border: none;
     border-radius: 50%; cursor: pointer; flex-shrink: 0;
@@ -2646,6 +2669,9 @@ body.preview-mode .file-title-bar { display: none !important; }
                 <div class="profile-stat-label">Fork</div>
             </div>
         </div>
+        <div id="pubPrivateBanner" style="display:none;padding:10px 14px;background:rgba(120,120,128,0.1);border:1px solid var(--glass-border);border-radius:12px;font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:12px;">
+            🔒 Bu hesap gizlidir
+        </div>
         <div style="display:flex;gap:10px;margin-bottom:16px;" id="pubProfileActions">
             <button class="follow-btn" id="pubFollowBtn" onclick="toggleFollow()" style="display:none;"></button>
             <button class="msg-btn" id="pubProfileMsgBtn" onclick="startMessageWithUser()" style="display:none;flex:1;">
@@ -2729,6 +2755,19 @@ body.preview-mode .file-title-bar { display: none !important; }
     <div class="profile-field">
         <label class="auth-label">Biyografi</label>
         <textarea id="profileBioInput" class="profile-input" placeholder="Kendinizden bahsedin..." rows="3" maxlength="160" style="padding-right:18px;"></textarea>
+    </div>
+
+    <!-- Gizli Hesap -->
+    <div class="profile-section-title">Gizlilik</div>
+    <div class="private-acct-row" id="privateAcctRow">
+        <div class="private-acct-info">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;color:#8e8e93"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            <div>
+                <div class="private-acct-label">Gizli Hesap</div>
+                <div class="private-acct-sub">Takipçi olmayanlar içeriklerinizi göremez</div>
+            </div>
+        </div>
+        <button class="toggle-switch" id="privateToggleBtn" onclick="togglePrivateAccount()" aria-label="Gizli hesap"></button>
     </div>
 
     <!-- Kaydet -->
@@ -2846,17 +2885,19 @@ body.preview-mode .file-title-bar { display: none !important; }
             <div class="coll-tab-pane">
                 <div class="fv-cmt-list" id="ccmtlist-overlay"></div>
                 <div class="cmt-input-outer" id="ccmt-input-wrap">
-                    <div class="cmt-reply-bar" id="ccmtReplyBar" style="display:none;">
-                        <span class="cmt-reply-bar-text" id="ccmtReplyText"></span>
-                        <button class="cmt-reply-bar-cancel" onclick="collCancelReply('overlay')">✕</button>
-                    </div>
-                    <div class="fv-cmt-input-row">
-                        <div class="cmt-user-avatar" id="ccmtAvatar">👤</div>
-                        <textarea id="ccmtinput-overlay" class="comment-input" placeholder="Yorum yaz..." rows="1"
-                            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';_cmtActivate(this,'ccmtSendBtn')"></textarea>
-                        <button class="comment-send-btn" id="ccmtSendBtn" onclick="collSubmitComment(_colOverlayId,'ccmtinput-overlay','ccmtlist-overlay')">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                        </button>
+                    <div class="cmt-input-box">
+                        <div class="cmt-reply-bar" id="ccmtReplyBar" style="display:none;">
+                            <span class="cmt-reply-bar-text" id="ccmtReplyText"></span>
+                            <button class="cmt-reply-bar-cancel" onclick="collCancelReply('overlay')">✕</button>
+                        </div>
+                        <div class="fv-cmt-input-row">
+                            <div class="cmt-user-avatar" id="ccmtAvatar">👤</div>
+                            <textarea id="ccmtinput-overlay" class="comment-input" placeholder="Yorum yaz..." rows="1"
+                                oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';_cmtActivate(this,'ccmtSendBtn')"></textarea>
+                            <button class="comment-send-btn" id="ccmtSendBtn" onclick="collSubmitComment(_colOverlayId,'ccmtinput-overlay','ccmtlist-overlay')">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3394,6 +3435,7 @@ async function saveProfile() {
     const btn      = document.getElementById('profileSaveBtn');
     const username = document.getElementById('profileUsernameInput').value.trim();
     const bio      = document.getElementById('profileBioInput').value.trim();
+    const isPrivate = document.getElementById('privateToggleBtn')?.classList.contains('on') || false;
 
     if (!username) { showToast('Kullanıcı adı boş olamaz'); return; }
     if (!/^[a-zA-Z0-9_\-. ]+$/.test(username)) {
@@ -3410,6 +3452,7 @@ async function saveProfile() {
                 username,
                 bio,
                 avatar_emoji: selectedEmoji,
+                is_private: isPrivate,
                 updated_at: new Date().toISOString()
             })
             .select().single();
@@ -3520,12 +3563,22 @@ function openProfilePanel() {
     if (input)    input.value    = username;
     if (bioInput) bioInput.value = bio;
 
+    // Gizli hesap toggle
+    const privBtn = document.getElementById('privateToggleBtn');
+    if (privBtn) privBtn.classList.toggle('on', !!currentProfile?.is_private);
+
     selectedEmoji = currentProfile?.avatar_emoji || '👤';
     renderEmojiPicker();
     updateProfileHeader();
     updateProfileStats();
 
     document.getElementById('profilePanelOverlay').classList.add('open');
+}
+
+function togglePrivateAccount() {
+    const btn = document.getElementById('privateToggleBtn');
+    if (!btn) return;
+    btn.classList.toggle('on');
 }
 
 // ── Bottom Sheet ───────────────────────────────────────────
@@ -3800,6 +3853,7 @@ function showApp() {
     _handleInitialRoute();
     updateEditor();
     _updateUnreadBadge();
+    _subscribeGlobalMsg();
     _updateNotifBadge();
     updateFilenameDisplay();
     updateTabDotColor();
@@ -5460,26 +5514,33 @@ async function openPublicProfile(userId) {
 
     try {
         // Profil bilgisi + dosyalar + takip verileri paralel çek
-        const [{ data: prof }, { data: files }, { data: followers }, { data: followings }, { data: myFollow }] = await Promise.all([
-            sb.from('profiles').select('username, bio, avatar_emoji, created_at').eq('id', userId).single(),
-            sb.from('files').select('id, filename, code, updated_at, description').eq('user_id', userId).eq('is_public', true).order('updated_at', { ascending: false }),
+        const [{ data: prof }, { data: followers }, { data: followings }, { data: myFollow }] = await Promise.all([
+            sb.from('profiles').select('username, bio, avatar_emoji, created_at, is_private').eq('id', userId).single(),
             sb.from('follows').select('follower_id').eq('following_id', userId),
             sb.from('follows').select('following_id').eq('follower_id', userId),
             currentUser && currentUser.id !== userId
-                ? sb.from('follows').select('id').eq('follower_id', currentUser.id).eq('following_id', userId).maybeSingle()
+                ? sb.from('follows').select('id, status').eq('follower_id', currentUser.id).eq('following_id', userId).maybeSingle()
                 : { data: null }
         ]);
 
         const followerCount  = (followers  || []).length;
         const followingCount = (followings || []).length;
-        const isFollowing    = !!myFollow;
+        const isFollowing    = !!myFollow && myFollow.status !== 'pending';
+        const isPending      = !!myFollow && myFollow.status === 'pending';
+        const isPrivate      = !!prof?.is_private;
+
+        // Gizli hesap ve takipçi değilse dosyaları yükleme
+        const canSeeContent  = !isPrivate || isFollowing || (currentUser && currentUser.id === userId);
+        const { data: files } = canSeeContent
+            ? await sb.from('files').select('id, filename, code, updated_at, description').eq('user_id', userId).eq('is_public', true).order('updated_at', { ascending: false })
+            : { data: [] };
 
         document.getElementById('pubStatFollowers').textContent = followerCount;
         document.getElementById('pubStatFollowing').textContent = followingCount;
 
         if (currentUser && currentUser.id !== userId) {
             if (isFollowing) _followingSet.add(userId); else _followingSet.delete(userId);
-            _updateFollowBtn(userId, isFollowing);
+            _updateFollowBtn(userId, isFollowing, isPending);
         }
 
         if (prof) {
@@ -5547,7 +5608,14 @@ async function openPublicProfile(userId) {
             (commentRows || []).forEach(c => { _commentCountMap[c.file_id] = (_commentCountMap[c.file_id] || 0) + 1; });
         }
 
-        if (pubFiles.length === 0) {
+        // Gizli hesap uyarısı
+        const privBanner = document.getElementById('pubPrivateBanner');
+        if (privBanner) privBanner.style.display = (isPrivate && !canSeeContent) ? '' : 'none';
+
+        if (!canSeeContent) {
+            document.getElementById('pubFilesList').innerHTML =
+                '<div class="search-empty" style="padding:24px 0;"><div style="font-size:32px;margin-bottom:8px;">🔒</div>Bu hesap gizlidir.<br><small style="opacity:.7">Takip isteği göndererek içeriklere ulaşabilirsiniz.</small></div>';
+        } else if (pubFiles.length === 0) {
             document.getElementById('pubFilesList').innerHTML =
                 '<div class="search-empty" style="padding:24px 0;">Bu kullanıcının public dosyası yok</div>';
         } else {
@@ -5594,36 +5662,64 @@ function handlePubProfileOverlayClick(e) {
 }
 
 // ── TAKİP SİSTEMİ ──────────────────────────────────────────────────────
-function _updateFollowBtn(userId, isFollowing) {
+function _updateFollowBtn(userId, isFollowing, isPending) {
     const btn = document.getElementById('pubFollowBtn');
     if (!btn) return;
     btn.style.display = '';
-    btn.classList.toggle('following', isFollowing);
-    btn.textContent = isFollowing ? 'Takip Ediliyor' : 'Takip Et';
+    btn.classList.toggle('following', isFollowing || isPending);
+    btn.textContent = isFollowing ? 'Takip Ediliyor' : (isPending ? 'İstek Gönderildi' : 'Takip Et');
+    btn.dataset.pending = isPending ? '1' : '';
 }
 
 async function toggleFollow() {
     if (!currentUser) { showToast('Takip etmek için giriş yapın'); return; }
     const userId = _pubProfileUserId;
     if (!userId || userId === currentUser.id) return;
+    const btn = document.getElementById('pubFollowBtn');
+    const isPending  = btn?.dataset.pending === '1';
     const isFollowing = _followingSet.has(userId);
+
+    if (isPending) {
+        // İsteği geri çek
+        try {
+            await sb.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', userId).eq('status', 'pending');
+            btn.dataset.pending = '';
+            _updateFollowBtn(userId, false, false);
+            showToast('Takip isteği geri alındı');
+        } catch(e) { showToast('Hata oluştu'); }
+        return;
+    }
+
     const newState = !isFollowing;
-    // Optimistic
+    // Optimistic update
     if (newState) _followingSet.add(userId); else _followingSet.delete(userId);
-    _updateFollowBtn(userId, newState);
+    _updateFollowBtn(userId, newState, false);
     const cntEl = document.getElementById('pubStatFollowers');
     const cnt = parseInt(cntEl.textContent) || 0;
-    cntEl.textContent = newState ? cnt + 1 : Math.max(0, cnt - 1);
+    if (!isPending) cntEl.textContent = newState ? cnt + 1 : Math.max(0, cnt - 1);
     try {
         if (isFollowing) {
             await sb.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', userId);
         } else {
-            await sb.from('follows').insert({ follower_id: currentUser.id, following_id: userId });
+            // Hedef kullanıcı gizli hesap mı?
+            const { data: targetProf } = await sb.from('profiles').select('is_private').eq('id', userId).single();
+            if (targetProf?.is_private) {
+                // Takip isteği gönder
+                _followingSet.delete(userId);
+                await sb.from('follows').insert({ follower_id: currentUser.id, following_id: userId, status: 'pending' });
+                _updateFollowBtn(userId, false, true);
+                cntEl.textContent = cnt; // Sayı değişmez (pending)
+                // Bildirim gönder
+                await _sendNotif('follow_request', userId, null, {});
+                showToast('Takip isteği gönderildi');
+            } else {
+                await sb.from('follows').insert({ follower_id: currentUser.id, following_id: userId });
+            }
         }
     } catch(e) {
         // Geri al
         if (newState) _followingSet.delete(userId); else _followingSet.add(userId);
-        _updateFollowBtn(userId, isFollowing);
+        _updateFollowBtn(userId, isFollowing, false);
         cntEl.textContent = cnt;
         showToast('Hata oluştu');
     }
@@ -6687,7 +6783,7 @@ async function loadExploreFiles(listId = 'exploreList') {
                 <div id="fcmtwrap-${f.id}" style="display:none;">
                     <div class="feed-comments-wrap">
                         <div id="fcmtlist-${f.id}"></div>
-                        ${currentUser ? `<div id="fcmt-rbar-${f.id}" class="feed-cmt-reply-bar" style="display:none;"><span id="fcmt-rtext-${f.id}" class="feed-cmt-reply-bar-text"></span><button class="feed-cmt-reply-bar-cancel" onclick="feedCancelReply('${f.id}')">✕</button></div><div class="feed-cmt-input-row" style="margin-top:6px;"><div class="cmt-user-avatar">${_cmtUserEmoji()}</div><textarea class="feed-cmt-textarea" id="fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_cmtActivate(this,'fcmtsend-${f.id}')"></textarea><button class="feed-cmt-send" id="fcmtsend-${f.id}" onclick="feedSubmitComment('${f.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button></div>` : ''}
+                        ${currentUser ? `<div class="cmt-unified-box"><div id="fcmt-rbar-${f.id}" class="feed-cmt-reply-bar" style="display:none;"><span id="fcmt-rtext-${f.id}" class="feed-cmt-reply-bar-text"></span><button class="feed-cmt-reply-bar-cancel" onclick="feedCancelReply('${f.id}')">✕</button></div><div class="feed-cmt-input-row"><div class="cmt-user-avatar">${_cmtUserEmoji()}</div><textarea class="feed-cmt-textarea" id="fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_cmtActivate(this,'fcmtsend-${f.id}')"></textarea><button class="feed-cmt-send" id="fcmtsend-${f.id}" onclick="feedSubmitComment('${f.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button></div></div>` : ''}
                     </div>
                 </div>
             </div>`;
@@ -6894,6 +6990,7 @@ function closeConversation() {
     if (_msgRealtime) { sb.removeChannel(_msgRealtime); _msgRealtime = null; }
     if (_msgPollTimer) { clearInterval(_msgPollTimer); _msgPollTimer = null; }
     _activeConvId = null; _convOtherUser = null; _renderedMsgIds = new Set();
+    _updateUnreadBadge();
 }
 
 function _initConvSwipeBack() {
@@ -7100,10 +7197,10 @@ function openSharePersonModal(type, itemId, itemName) {
 async function _updateUnreadBadge() {
     if (!currentUser) return;
     const { data } = await sb.from('messages')
-        .select('id', { count: 'exact' })
+        .select('id')
         .eq('read', false)
         .neq('sender_id', currentUser.id);
-    _setBadge(data?.length || 0);
+    _setBadge((data || []).length);
 }
 
 function _setBadge(n) {
@@ -7111,6 +7208,31 @@ function _setBadge(n) {
     if (!b) return;
     if (n > 0) { b.style.display = ''; b.textContent = n > 99 ? '99+' : n; }
     else { b.style.display = 'none'; }
+}
+
+// ── GLOBAL GERÇEK ZAMANLI MESAJ BADGEi ────────────────────────────────
+let _globalMsgSub = null;
+function _subscribeGlobalMsg() {
+    if (!currentUser || _globalMsgSub) return;
+    _globalMsgSub = sb.channel('global-msgs-' + currentUser.id)
+        .on('postgres_changes', {
+            event: 'INSERT', schema: 'public', table: 'messages'
+        }, payload => {
+            const m = payload.new;
+            // Kendi mesajlarımızı sayma, aktif sohbetteki mesajlar zaten okunuyor
+            if (m.sender_id !== currentUser.id && m.conversation_id !== _activeConvId) {
+                _updateUnreadBadge();
+            }
+        })
+        .on('postgres_changes', {
+            event: 'UPDATE', schema: 'public', table: 'messages'
+        }, payload => {
+            // Okundu işaretlenince badge'i güncelle
+            if (payload.new.read === true && payload.old.read === false) {
+                _updateUnreadBadge();
+            }
+        })
+        .subscribe();
 }
 
 function _attachConvSwipe() {
@@ -7202,6 +7324,8 @@ async function _doConvDelete(convId) {
 let _ctxConvId = null, _ctxOtherId = null;
 
 function _showConvCtx(convId, item, x, y) {
+    // Metin seçimini temizle
+    if (window.getSelection) window.getSelection().removeAllRanges();
     _ctxConvId  = convId;
     _ctxOtherId = item.dataset.otherId;
     const menu = document.getElementById('convCtxMenu');
@@ -8089,6 +8213,8 @@ async function loadNotifications() {
         const coll  = cMap[n.collection_id] || {};
         const fname = escapeHtml((file.filename || 'dosya') + '.html');
         const cname = escapeHtml(coll.name || 'koleksiyon');
+        const isFollowRequest  = n.type === 'follow_request';
+        const isFollowAccepted = n.type === 'follow_accepted';
         const isComment        = n.type === 'comment';
         const isReply          = n.type === 'reply';
         const isReplyOnFile    = n.type === 'reply_on_file';
@@ -8104,6 +8230,29 @@ async function loadNotifications() {
         const _heartSVG = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align:middle;flex-shrink:0;color:#ff3b30"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`;
         const _preview = n.comment_preview ? `: <em style="opacity:.8">${escapeHtml(n.comment_preview)}</em>` : '';
         const _isCommentNotif = isComment || isReply || isReplyOnFile || isCmtLike;
+        if (isFollowRequest) {
+            return `<div class="notif-item" id="notif-${n.id}">
+                <div class="notif-avatar" style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${prof.avatar_emoji || '👤'}</div>
+                <div class="notif-info">
+                    <div class="notif-text"><strong style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${escapeHtml(prof.username || 'Biri')}</strong>&nbsp;seni takip etmek istiyor</div>
+                    <div class="notif-time">${_fmtTime(n.created_at)}</div>
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        <button onclick="event.stopPropagation();acceptFollowRequest('${n.id}','${n.from_user_id}')" style="flex:1;padding:7px;border-radius:10px;border:none;background:#007aff;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Onayla</button>
+                        <button onclick="event.stopPropagation();rejectFollowRequest('${n.id}','${n.from_user_id}')" style="flex:1;padding:7px;border-radius:10px;border:1px solid var(--glass-border);background:transparent;color:var(--text-primary);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Reddet</button>
+                    </div>
+                </div>
+            </div>`;
+        }
+        if (isFollowAccepted) {
+            return `<div class="notif-item" id="notif-${n.id}" style="cursor:pointer" onclick="closeNotifPanel();openPublicProfile('${n.from_user_id}')">
+                <div class="notif-avatar">${prof.avatar_emoji || '👤'}</div>
+                <div class="notif-info">
+                    <div class="notif-text"><strong>${escapeHtml(prof.username || 'Biri')}</strong>&nbsp;takip isteğini kabul etti</div>
+                    <div class="notif-time">${_fmtTime(n.created_at)}</div>
+                </div>
+                <button class="notif-delete-btn" onclick="event.stopPropagation();deleteNotif('${n.id}')"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>`;
+        }
         const _cid = n.comment_id ? `'${n.comment_id}'` : 'null';
         // Koleksiyon bildirimleri için tıklama
         const _collGoto = n.collection_id ? `openCollectionOverlay('${n.collection_id}')` : '';
@@ -8137,6 +8286,7 @@ async function loadNotifications() {
             : isCollCmtLike
             ? `&nbsp;${_heartSVG} <span class="notif-file" ${_collClick}>📁 ${cname}</span> koleksiyonundaki bir yorumunu beğendi`
             : `&nbsp;${_heartSVG} <span class="notif-file" ${_fileClick}>${fname}</span> dosyanı beğendi`;
+        // (follow_request and follow_accepted are handled above with early return)
         const _finalItemClick = (isCollLike||isCollComment||isCollReply||isCollReplyOnColl||isCollCmtLike) ? _collItemClick : _itemClick;
         return `<div class="notif-item" id="notif-${n.id}" ${_finalItemClick}>
             <div class="notif-avatar" style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${prof.avatar_emoji || '👤'}</div>
@@ -8171,6 +8321,38 @@ async function deleteNotif(id) {
         setTimeout(() => el.remove(), 280);
     }
     await sb.from('like_notifications').delete().eq('id', id);
+}
+
+async function acceptFollowRequest(notifId, fromUserId) {
+    if (!currentUser) return;
+    try {
+        // Takip kaydını pending → accepted olarak güncelle
+        await sb.from('follows')
+            .update({ status: 'accepted' })
+            .eq('follower_id', fromUserId)
+            .eq('following_id', currentUser.id)
+            .eq('status', 'pending');
+        // Kabul bildirimini kişiye gönder
+        await _sendNotif('follow_accepted', fromUserId, null, {});
+        // Bildirimi sil
+        await deleteNotif(notifId);
+        showToast('Takip isteği kabul edildi');
+    } catch(e) { showToast('Hata oluştu'); }
+}
+
+async function rejectFollowRequest(notifId, fromUserId) {
+    if (!currentUser) return;
+    try {
+        // Takip kaydını sil
+        await sb.from('follows')
+            .delete()
+            .eq('follower_id', fromUserId)
+            .eq('following_id', currentUser.id)
+            .eq('status', 'pending');
+        // Bildirimi sil
+        await deleteNotif(notifId);
+        showToast('Takip isteği reddedildi');
+    } catch(e) { showToast('Hata oluştu'); }
 }
 
 async function clearAllNotifs() {
@@ -8763,7 +8945,7 @@ async function _loadCollectionOverlayFiles(collId) {
             </div>
             <div class="feed-comments-wrap" id="co-fcmtwrap-${f.id}" style="display:none;">
                 <div id="co-fcmtlist-${f.id}"></div>
-                ${currentUser ? `<div id="co-fcmt-rbar-${f.id}" class="feed-cmt-reply-bar" style="display:none;"><span id="co-fcmt-rtext-${f.id}" class="feed-cmt-reply-bar-text"></span><button class="feed-cmt-reply-bar-cancel" onclick="coCancelReply('${f.id}')">✕</button></div><div class="feed-cmt-input-row"><div class="cmt-user-avatar">${_cmtUserEmoji()}</div><textarea class="feed-cmt-textarea" id="co-fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_cmtActivate(this,'co-fcmtsend-${f.id}')"></textarea><button class="feed-cmt-send" id="co-fcmtsend-${f.id}" onclick="coSubmitComment('${f.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button></div>` : ''}
+                ${currentUser ? `<div class="cmt-unified-box"><div id="co-fcmt-rbar-${f.id}" class="feed-cmt-reply-bar" style="display:none;"><span id="co-fcmt-rtext-${f.id}" class="feed-cmt-reply-bar-text"></span><button class="feed-cmt-reply-bar-cancel" onclick="coCancelReply('${f.id}')">✕</button></div><div class="feed-cmt-input-row"><div class="cmt-user-avatar">${_cmtUserEmoji()}</div><textarea class="feed-cmt-textarea" id="co-fcmtinput-${f.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_cmtActivate(this,'co-fcmtsend-${f.id}')"></textarea><button class="feed-cmt-send" id="co-fcmtsend-${f.id}" onclick="coSubmitComment('${f.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button></div></div>` : ''}
             </div>
         </div>`;
     }).join('');
@@ -8862,7 +9044,7 @@ function _renderCollectionCard(col) {
         </div>
         <div class="feed-comments-wrap" id="ccmtwrap-${col.id}" style="display:none;">
             <div class="feed-comments-list" id="ccmtlist-${col.id}"><div class="search-empty" style="padding:8px 0;font-size:12px;">Yükleniyor...</div></div>
-            ${currentUser ? `<div id="ccmt-rbar-${col.id}" class="feed-cmt-reply-bar" style="display:none;"><span id="ccmt-rtext-${col.id}" class="feed-cmt-reply-bar-text"></span><button class="feed-cmt-reply-bar-cancel" onclick="collCancelReply('${col.id}')">✕</button></div><div class="feed-cmt-input-row"><div class="cmt-user-avatar">${_cmtUserEmoji()}</div><textarea class="feed-cmt-textarea" id="ccmtinput-${col.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_cmtActivate(this,'ccmtsend-${col.id}')"></textarea><button class="feed-cmt-send" id="ccmtsend-${col.id}" onclick="collSubmitComment('${col.id}','ccmtinput-${col.id}','ccmtlist-${col.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button></div>` : ''}
+            ${currentUser ? `<div class="cmt-unified-box"><div id="ccmt-rbar-${col.id}" class="feed-cmt-reply-bar" style="display:none;"><span id="ccmt-rtext-${col.id}" class="feed-cmt-reply-bar-text"></span><button class="feed-cmt-reply-bar-cancel" onclick="collCancelReply('${col.id}')">✕</button></div><div class="feed-cmt-input-row"><div class="cmt-user-avatar">${_cmtUserEmoji()}</div><textarea class="feed-cmt-textarea" id="ccmtinput-${col.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_cmtActivate(this,'ccmtsend-${col.id}')"></textarea><button class="feed-cmt-send" id="ccmtsend-${col.id}" onclick="collSubmitComment('${col.id}','ccmtinput-${col.id}','ccmtlist-${col.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button></div></div>` : ''}
         </div>
     </div>`;
 }
@@ -9152,17 +9334,19 @@ async function _shareCopyLink() {
                     <div class="search-empty">Yükleniyor...</div>
                 </div>
                 <div class="cmt-input-outer" id="fvCmtInputRow" style="display:none;">
-                    <div class="cmt-reply-bar" id="fvCmtReplyBar" style="display:none;">
-                        <span class="cmt-reply-bar-text" id="fvCmtReplyText"></span>
-                        <button class="cmt-reply-bar-cancel" onclick="fvCancelReply()">✕</button>
-                    </div>
-                    <div class="fv-cmt-input-row">
-                        <div class="cmt-user-avatar" id="fvCmtAvatar">👤</div>
-                        <textarea class="comment-input" id="fvCmtInput" rows="1" placeholder="Yorum yaz..." maxlength="2000"
-                            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';_cmtActivate(this,'fvCmtSendBtn')"></textarea>
-                        <button class="comment-send-btn" id="fvCmtSendBtn" onclick="fvSubmitComment()">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                        </button>
+                    <div class="cmt-input-box">
+                        <div class="cmt-reply-bar" id="fvCmtReplyBar" style="display:none;">
+                            <span class="cmt-reply-bar-text" id="fvCmtReplyText"></span>
+                            <button class="cmt-reply-bar-cancel" onclick="fvCancelReply()">✕</button>
+                        </div>
+                        <div class="fv-cmt-input-row">
+                            <div class="cmt-user-avatar" id="fvCmtAvatar">👤</div>
+                            <textarea class="comment-input" id="fvCmtInput" rows="1" placeholder="Yorum yaz..." maxlength="2000"
+                                oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';_cmtActivate(this,'fvCmtSendBtn')"></textarea>
+                            <button class="comment-send-btn" id="fvCmtSendBtn" onclick="fvSubmitComment()">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
