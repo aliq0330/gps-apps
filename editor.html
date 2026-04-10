@@ -1910,7 +1910,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 .fv-fork-banner-node { display:inline-flex; align-items:center; gap:4px; cursor:pointer; }
 .fv-fork-banner-node:hover { text-decoration:underline; }
 .fv-fork-banner-sep { color:var(--text-secondary); margin:0 3px; }
-.fork-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9100; display:none; align-items:flex-end; justify-content:center; }
+.fork-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9900; display:none; align-items:flex-end; justify-content:center; }
 .fork-modal-overlay.open { display:flex; }
 .fork-modal-panel { background:var(--glass-bg); backdrop-filter:saturate(var(--saturation)) blur(var(--blur)); -webkit-backdrop-filter:saturate(var(--saturation)) blur(var(--blur)); border-top:1px solid var(--glass-border); border-radius:16px 16px 0 0; width:100%; max-width:430px; max-height:72vh; display:flex; flex-direction:column; padding-bottom:env(safe-area-inset-bottom,16px); }
 .fork-modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 16px 12px; border-bottom:1px solid var(--glass-border); flex-shrink:0; }
@@ -5299,7 +5299,7 @@ async function openPublicProfile(userId) {
     _navigate('#profile/' + encodeURIComponent(userId));
     closeSearchPanel();
     _pubProfileUserId = userId;
-    document.getElementById('pubProfileOverlay').classList.add('open');
+    _ovPush(document.getElementById('pubProfileOverlay'));
     document.getElementById('pubProfileEmoji').textContent  = '···';
     document.getElementById('pubProfileUsername').textContent = 'Yükleniyor...';
     const _phTitle = document.getElementById('pubProfileHeaderTitle');
@@ -5441,7 +5441,7 @@ async function openPublicProfile(userId) {
 }
 
 function closePublicProfile() {
-    document.getElementById('pubProfileOverlay').classList.remove('open');
+    _ovPop(document.getElementById('pubProfileOverlay'));
 }
 
 function handlePubProfileOverlayClick(e) {
@@ -5825,6 +5825,24 @@ function _goBack() {
     prev();
     _historyBlocked = false;
     return true;
+}
+
+// ── OVERLAY STACK — paneller hangi sırayla açılırsa o sırayla üste gelsin ──
+let _ovStack = [];
+const _OV_BASE = 9000;
+
+function _ovPush(el) {
+    const z = _OV_BASE + (_ovStack.length + 1) * 100;
+    el.style.zIndex = z;
+    el.classList.add('open');
+    _ovStack.push(el);
+}
+
+function _ovPop(el) {
+    el.classList.remove('open');
+    const i = _ovStack.lastIndexOf(el);
+    if (i !== -1) _ovStack.splice(i, 1);
+    setTimeout(() => { if (!el.classList.contains('open')) el.style.zIndex = ''; }, 450);
 }
 
 function _setBottomActive(id) {
@@ -6687,7 +6705,7 @@ async function openConversation(otherId, username, emoji, existingConvId) {
     document.getElementById('convMessages').innerHTML = '<div class="search-empty">Yükleniyor...</div>';
     document.getElementById('convInput').value = '';
     document.getElementById('convInput').style.height = 'auto';
-    document.getElementById('convOverlay').classList.add('open');
+    _ovPush(document.getElementById('convOverlay'));
 
     // Find or create conversation
     if (existingConvId) {
@@ -6711,7 +6729,7 @@ async function openConversation(otherId, username, emoji, existingConvId) {
 }
 
 function closeConversation() {
-    document.getElementById('convOverlay').classList.remove('open');
+    _ovPop(document.getElementById('convOverlay'));
     if (_msgRealtime) { sb.removeChannel(_msgRealtime); _msgRealtime = null; }
     if (_msgPollTimer) { clearInterval(_msgPollTimer); _msgPollTimer = null; }
     _activeConvId = null; _convOtherUser = null; _renderedMsgIds = new Set();
@@ -7210,7 +7228,7 @@ async function openFileView(fileId) {
 
     // Overlay aç, ilk sekme
     fvSwitchTab('code', false);
-    document.getElementById('fvOverlay').classList.add('open');
+    _ovPush(document.getElementById('fvOverlay'));
 
     // Kod: önce cache'den bak
     let code = d.code || pub.code || null;
@@ -7302,7 +7320,7 @@ function fvSwitchTab(tab, animate = true) {
 }
 
 function closeFileView() {
-    document.getElementById('fvOverlay').classList.remove('open');
+    _ovPop(document.getElementById('fvOverlay'));
     _fvFileId = null; _fvUserId = null; _fvCmtLoaded = false;
 }
 
