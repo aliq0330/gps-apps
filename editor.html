@@ -8458,6 +8458,17 @@ async function collToggleComments(collId) {
     }
 }
 
+async function ccToggleComments(collId) {
+    const wrap = document.getElementById('ccmtwrap-' + collId);
+    if (!wrap) return;
+    const isOpen = wrap.style.display !== 'none';
+    wrap.style.display = isOpen ? 'none' : '';
+    if (!isOpen && !wrap.dataset.loaded) {
+        wrap.dataset.loaded = '1';
+        await collLoadComments(collId, 'ccmtlist-' + collId, 'ccmtcnt-' + collId);
+    }
+}
+
 async function collLoadComments(collId, listElId, cntElId) {
     const listEl = document.getElementById(listElId);
     if (!listEl) return;
@@ -8768,13 +8779,17 @@ function _renderCollectionCard(col) {
             <button class="feed-like-btn${liked ? ' liked' : ''}" id="cclike-${col.id}" onclick="event.stopPropagation();toggleColLike('${col.id}')">
                 ${liked ? '♥' : '♡'} <span id="cclikecnt-${col.id}">${_fmtCnt(cnt)}</span>
             </button>
-            <button class="feed-comment-toggle" onclick="event.stopPropagation();openCollectionOverlay('${col.id}');setTimeout(()=>collSwitchTab('comments'),350)">
+            <button class="feed-comment-toggle" onclick="event.stopPropagation();ccToggleComments('${col.id}')">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                 <span id="ccmtcnt-${col.id}">${_fmtCnt(col.cmtCount)}</span>
             </button>
             <button class="feed-share-btn" onclick="event.stopPropagation();openCollectionOverlay('${col.id}')">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
             </button>
+        </div>
+        <div class="feed-comments-wrap" id="ccmtwrap-${col.id}" style="display:none;">
+            <div class="feed-comments-list" id="ccmtlist-${col.id}"><div class="search-empty" style="padding:8px 0;font-size:12px;">Yükleniyor...</div></div>
+            ${currentUser ? `<div id="ccmt-rbar-${col.id}" class="feed-cmt-reply-bar" style="display:none;"><span id="ccmt-rtext-${col.id}" class="feed-cmt-reply-bar-text"></span><button class="feed-cmt-reply-bar-cancel" onclick="collCancelReply('${col.id}')">✕</button></div><div class="feed-cmt-input-row"><div class="cmt-user-avatar">${_cmtUserEmoji()}</div><textarea class="feed-cmt-textarea" id="ccmtinput-${col.id}" placeholder="Yorum yaz..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_cmtActivate(this,'ccmtsend-${col.id}')"></textarea><button class="feed-cmt-send" id="ccmtsend-${col.id}" onclick="collSubmitComment('${col.id}','ccmtinput-${col.id}','ccmtlist-${col.id}')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button></div>` : ''}
         </div>
     </div>`;
 }
