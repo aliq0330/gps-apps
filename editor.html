@@ -3560,10 +3560,19 @@ async function handleLogin() {
     const pass  = document.getElementById('loginPassword').value;
     if (!email || !pass) { showAuthError('E-posta ve şifre gerekli'); return; }
     setAuthLoading('loginBtn', true); clearAuthMessages();
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-    setAuthLoading('loginBtn', false);
-    if (error) { showAuthError(error.message); return; }
-    onUserLoggedIn(data.user);
+    try {
+        const result = await Promise.race([
+            sb.auth.signInWithPassword({ email, password: pass }),
+            new Promise((_, rej) => setTimeout(() => rej(new Error('Bağlantı zaman aşımına uğradı')), 15000))
+        ]);
+        const { data, error } = result;
+        if (error) { showAuthError(error.message); return; }
+        onUserLoggedIn(data.user);
+    } catch (e) {
+        showAuthError(e.message || 'Bağlantı hatası. İnternet bağlantınızı kontrol edin.');
+    } finally {
+        setAuthLoading('loginBtn', false);
+    }
 }
 
 async function handleRegister() {
@@ -3917,10 +3926,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     _initConvSwipeBack();
     _initFileViewSwipeBack();
 
-    // Güvenli fallback: 8s içinde oturum yüklenemezse misafir olarak aç
+    // Güvenli fallback: 5s içinde oturum yüklenemezse misafir olarak aç
     const _authFallback = setTimeout(() => {
         if (!currentUser) { hideAuthScreen(); showApp(); updateGuestUI(); }
-    }, 8000);
+    }, 5000);
 
     // Listener önce kaydet — INITIAL_SESSION event'ini yakalamak için
     sb.auth.onAuthStateChange((event, session) => {
