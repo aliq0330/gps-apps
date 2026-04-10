@@ -5690,6 +5690,8 @@ function loadPublicFile(fileId) {
 }
 
 function _loadPublicFile(filename, fileCode) {
+    _tabs = _splitHtmlToTabs(`<html><body>${fileCode}</body></html>`);
+    _activeTab = 'html';
     code = fileCode; loadedFilename = filename;
     currentOpenFileId = null; hasUnsavedChanges = false;
     updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
@@ -5718,6 +5720,8 @@ async function forkToEditor(sourceFileId, filename, fileCode, ...closeFns) {
         return;
     }
     // Editöre yükle
+    _tabs = _splitHtmlToTabs(`<html><body>${data.code}</body></html>`);
+    _activeTab = 'html';
     code = data.code; loadedFilename = data.filename;
     currentOpenFileId = data.id; hasUnsavedChanges = false;
     // Dosyalar listesine ekle
