@@ -1913,6 +1913,11 @@ body.preview-mode .file-title-bar { display: none !important; }
     font-size: 15px; font-weight: 500;
     color: var(--text-primary, #000);
 }
+.share-section-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--text-secondary, #888);
+    padding: 10px 10px 4px;
+}
 .share-person-links {
     display: flex; justify-content: space-around;
     padding: 10px 8px calc(24px + env(safe-area-inset-bottom, 0px));
@@ -8828,13 +8833,8 @@ function _closeSharePersonModal() {
 
 async function _sharePersonLoad(query) {
     const listEl = document.getElementById('sharePersonList');
-    const { data: follows } = await sb.from('follows')
-        .select('following_id').eq('follower_id', currentUser.id);
-    if (!follows || follows.length === 0) {
-        listEl.innerHTML = '<div class="search-empty" style="padding:16px 0;">Henüz kimseyi takip etmiyorsunuz</div>';
-        return;
-    }
-    const followedIds = follows.map(f => f.following_id);
+
+    // Konuşma haritasını çek (recent sort için)
     const { data: convs } = await sb.from('conversations')
         .select('id, user1_id, user2_id')
         .or(`user1_id.eq.${currentUser.id},user2_id.eq.${currentUser.id}`)
@@ -8844,29 +8844,70 @@ async function _sharePersonLoad(query) {
         const otherId = c.user1_id === currentUser.id ? c.user2_id : c.user1_id;
         if (!convMap[otherId]) convMap[otherId] = c.id;
     });
-    let profileQuery = sb.from('profiles').select('id, username, avatar_emoji').in('id', followedIds);
-    if (query) profileQuery = profileQuery.ilike('username', `%${query}%`);
-    const { data: profiles } = await profileQuery;
-    if (!profiles || profiles.length === 0) {
-        listEl.innerHTML = '<div class="search-empty" style="padding:16px 0;">Kullanıcı bulunamadı</div>';
-        return;
+
+    // Takip edilenleri her zaman çek
+    const { data: follows } = await sb.from('follows')
+        .select('following_id').eq('follower_id', currentUser.id);
+    const followedIds = (follows || []).map(f => f.following_id);
+    const followedSet = new Set(followedIds);
+
+    let followedProfiles = [];
+    if (followedIds.length > 0) {
+        const { data: fp } = await sb.from('profiles')
+            .select('id, username, avatar_emoji').in('id', followedIds);
+        followedProfiles = (fp || []).map(p => ({
+            id: p.id, username: p.username || 'kullanici',
+            emoji: p.avatar_emoji || '👤',
+            existingConvId: convMap[p.id] || null
+        })).sort((a, b) => {
+            if (a.existingConvId && !b.existingConvId) return -1;
+            if (!a.existingConvId && b.existingConvId) return 1;
+            return (a.username || '').localeCompare(b.username || '');
+        });
     }
-    const people = profiles.map(p => ({
-        id: p.id, username: p.username || 'kullanici',
-        emoji: p.avatar_emoji || '👤',
-        existingConvId: convMap[p.id] || null
-    })).sort((a, b) => {
-        if (a.existingConvId && !b.existingConvId) return -1;
-        if (!a.existingConvId && b.existingConvId) return 1;
-        return (a.username || '').localeCompare(b.username || '');
-    });
-    listEl.innerHTML = people.map(p => {
-        const convArg = p.existingConvId ? `'${p.existingConvId}'` : 'null';
-        return `<div class="share-person-item" onclick="_sharePersonSend('${p.id}','${escapeHtml(p.username)}','${p.emoji}',${convArg})">
-            <div class="share-person-avatar">${p.emoji}</div>
-            <div class="share-person-name">@${escapeHtml(p.username)}</div>
-        </div>`;
-    }).join('');
+
+    // Arama sonuçları (tüm kullanıcılar, takip edilenler hariç)
+    let searchResults = [];
+    if (query) {
+        const { data: sp } = await sb.from('profiles')
+            .select('id, username, avatar_emoji')
+            .ilike('username', `%${query}%`)
+            .neq('id', currentUser.id)
+            .limit(20);
+        searchResults = (sp || [])
+            .filter(p => !followedSet.has(p.id))
+            .map(p => ({
+                id: p.id, username: p.username || 'kullanici',
+                emoji: p.avatar_emoji || '👤',
+                existingConvId: convMap[p.id] || null
+            }));
+    }
+
+    let html = '';
+
+    if (query) {
+        html += `<div class="share-section-label">Arama Sonuçları</div>`;
+        html += searchResults.length > 0
+            ? searchResults.map(_sharePersonItemHtml).join('')
+            : `<div class="search-empty" style="padding:6px 0 10px;">Sonuç bulunamadı</div>`;
+    }
+
+    if (followedProfiles.length > 0) {
+        html += `<div class="share-section-label">Takip Edilenler</div>`;
+        html += followedProfiles.map(_sharePersonItemHtml).join('');
+    } else if (!query) {
+        html = `<div class="search-empty" style="padding:16px 0;">Henüz kimseyi takip etmiyorsunuz</div>`;
+    }
+
+    listEl.innerHTML = html;
+}
+
+function _sharePersonItemHtml(p) {
+    const convArg = p.existingConvId ? `'${p.existingConvId}'` : 'null';
+    return `<div class="share-person-item" onclick="_sharePersonSend('${p.id}','${escapeHtml(p.username)}','${p.emoji}',${convArg})">
+        <div class="share-person-avatar">${p.emoji}</div>
+        <div class="share-person-name">@${escapeHtml(p.username)}</div>
+    </div>`;
 }
 
 async function _sharePersonSearch(query) {
