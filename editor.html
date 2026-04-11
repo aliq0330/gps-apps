@@ -8437,8 +8437,21 @@ async function rejectFollowRequest(notifId, fromUserId) {
 }
 
 async function clearAllNotifs() {
-    document.getElementById('notifList').innerHTML = '<div class="search-empty">Bildirim yok</div>';
-    await sb.from('like_notifications').delete().eq('to_user_id', currentUser.id);
+    // follow_request tipini silme — ayrı tut
+    await sb.from('like_notifications')
+        .delete()
+        .eq('to_user_id', currentUser.id)
+        .neq('type', 'follow_request');
+    // DOM'dan follow_request olmayanları kaldır
+    const list = document.getElementById('notifList');
+    if (list) {
+        list.querySelectorAll('.notif-item').forEach(el => {
+            if (!el.querySelector('[data-fr-btns]')) el.remove();
+        });
+        if (!list.querySelector('.notif-item')) {
+            list.innerHTML = '<div class="search-empty">Bildirim yok</div>';
+        }
+    }
     _setNotifBadge(0);
 }
 
