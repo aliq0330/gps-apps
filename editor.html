@@ -2531,7 +2531,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 /* ── VERSİYON PANELİ ─────────────────────────────────── */
 .version-panel {
     position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0;
-    z-index: 4500; background: var(--bg);
+    z-index: 6500; background: var(--bg);
     transform: translateX(100%); transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
     display: flex; flex-direction: column; overflow: hidden;
 }
@@ -2603,7 +2603,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 /* ── DIFF PANELİ ─────────────────────────────────────────── */
 .diff-panel {
     position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0;
-    z-index: 4600; background: var(--bg);
+    z-index: 6600; background: var(--bg);
     transform: translateX(100%); transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
     display: flex; flex-direction: column; overflow: hidden;
 }
@@ -3786,7 +3786,9 @@ let currentVersionId    = null;   // Açık dosyanın güncel version id'si
 let versionHistory      = [];     // Versiyon listesi önbelleği
 let isViewingOldVersion = false;  // Eski versiyon görüntüleniyor mu?
 let _viewingVersionNum  = null;   // Görüntülenen eski versiyon numarası
-let _versionPanelFileId = null;   // Version panelinin gösterdiği dosya ID'si
+let _versionPanelFileId   = null;  // Version panelinin gösterdiği dosya ID'si
+let _versionPanelReturnFn = null;  // Versiyon paneli kapanınca geri dönülecek fn
+let _diffPanelReturnFn    = null;  // Diff paneli kapanınca geri dönülecek fn
 
 // Profil state
 let currentProfile = null;
@@ -5250,6 +5252,8 @@ const VersionManager = {
 function openVersionPanel() {
     if (!currentOpenFileId) { showToast('Önce bir dosya açın veya kaydedin'); return; }
     _versionPanelFileId = currentOpenFileId;
+    _versionPanelReturnFn = _getPanelReopener() || null;
+    _historyBlocked = true; _closeAllPanels('versionPanel'); _historyBlocked = false;
     const f = savedFiles.find(f => f.id === currentOpenFileId);
     document.getElementById('versionPanelFileLabel').textContent = f ? f.filename : '';
     document.getElementById('versionPanel').classList.add('open');
@@ -5260,6 +5264,8 @@ function openVersionPanelForFile(fileId) {
     const f = savedFiles.find(f => f.id === fileId);
     if (!f) return;
     _versionPanelFileId = fileId;
+    _versionPanelReturnFn = _getPanelReopener() || null;
+    _historyBlocked = true; _closeAllPanels('versionPanel'); _historyBlocked = false;
     document.getElementById('versionPanelFileLabel').textContent = f.filename;
     document.getElementById('versionPanel').classList.add('open');
     loadVersionHistory();
@@ -5267,6 +5273,9 @@ function openVersionPanelForFile(fileId) {
 
 function closeVersionPanel() {
     document.getElementById('versionPanel').classList.remove('open');
+    const fn = _versionPanelReturnFn;
+    _versionPanelReturnFn = null;
+    if (fn) fn();
 }
 
 async function loadVersionHistory() {
@@ -5493,6 +5502,14 @@ let _diffVersionNum = null;
 
 async function showDiff(versionId, versionNum) {
     const panel = document.getElementById('diffPanel');
+    // Versiyon paneli açıksa kapat ve geri dönüş fonksiyonu kaydet
+    const vp = document.getElementById('versionPanel');
+    if (vp && vp.classList.contains('open')) {
+        _diffPanelReturnFn = () => { vp.classList.add('open'); };
+        vp.classList.remove('open');
+    } else {
+        _diffPanelReturnFn = null;
+    }
     panel.classList.add('open');
     document.getElementById('diffPanelTitle').textContent = `Fark: Güncel ↔ v${versionNum}`;
     document.getElementById('diffPanelSubtitle').textContent = 'Güncel versiyon ile karşılaştırılıyor';
@@ -5544,6 +5561,9 @@ async function showDiff(versionId, versionNum) {
 
 function closeDiffPanel() {
     document.getElementById('diffPanel').classList.remove('open');
+    const fn = _diffPanelReturnFn;
+    _diffPanelReturnFn = null;
+    if (fn) fn();
 }
 
 function switchDiffTab(tab) {
@@ -7673,10 +7693,11 @@ async function _routeTo(hash) {
 
     hash = hash || '#';
     if (hash === '#' || hash === '') {
-        ['feedOverlay','messagesOverlay','savedFilesPanel','searchPanelOverlay','collOverlay','exploreOverlay'].forEach(id => {
+        ['feedOverlay','messagesOverlay','savedFilesPanel','searchPanelOverlay','collOverlay','exploreOverlay','versionPanel','diffPanel'].forEach(id => {
             const el = document.getElementById(id);
             if (el && el.classList.contains('open')) el.classList.remove('open');
         });
+        _versionPanelReturnFn = null; _diffPanelReturnFn = null;
         _setBottomActive('bbEditorBtn');
     } else if (hash === '#feed' || hash === '#feed/following') {
         openFeedPanel();
@@ -7812,8 +7833,10 @@ function _closeAllPanels(skip) {
         { id: 'notifOverlay',        key: 'notif',      close: closeNotifPanel },
         { id: 'profilePanelOverlay', key: 'profile',    close: closeProfilePanel },
         { id: 'searchPanelOverlay',  key: 'search',     close: closeSearchPanel },
-        { id: 'savedFilesPanel',     key: 'savedFiles', close: closeSavedFilesPanel },
-        { id: 'collOverlay',         key: 'collection', close: closeCollectionOverlay },
+        { id: 'savedFilesPanel',     key: 'savedFiles',   close: closeSavedFilesPanel },
+        { id: 'collOverlay',         key: 'collection',   close: closeCollectionOverlay },
+        { id: 'versionPanel',        key: 'versionPanel', close: () => { document.getElementById('versionPanel').classList.remove('open'); _versionPanelReturnFn = null; } },
+        { id: 'diffPanel',           key: 'diffPanel',    close: () => { document.getElementById('diffPanel').classList.remove('open'); _diffPanelReturnFn = null; } },
     ];
     panels.forEach(p => {
         if (p.key === skip) return;
