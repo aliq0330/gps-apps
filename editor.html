@@ -1106,6 +1106,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 }
 
 .profile-field { margin-bottom: 20px; }
+#avatarPhotoSection, #avatarEmojiSection { margin-bottom: 16px; }
 
 .profile-input {
     width: 100%; padding: 14px 18px;
@@ -2905,6 +2906,12 @@ body.preview-mode .file-title-bar { display: none !important; }
         </div>
     </div>
 
+    <!-- Profil Görünüşü -->
+    <button onclick="openOwnPublicProfile()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border-radius:14px;border:1.5px solid var(--glass-border);background:rgba(120,120,128,0.08);color:var(--text-primary);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:20px;">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+        Profil Görünüşü
+    </button>
+
     <!-- Avatar -->
     <div class="profile-section-title">Avatar</div>
     <div class="avatar-mode-tabs">
@@ -3627,6 +3634,12 @@ async function createProfile() {
     } catch(e) {
         console.error('Profile create error:', e);
     }
+}
+
+function openOwnPublicProfile() {
+    const username = currentProfile?.username;
+    if (!username) { showToast('Önce profili kaydedin'); return; }
+    window.open(`https://aliq0330.github.io/gps-apps/editor.html#profile/${encodeURIComponent(username)}`, '_blank');
 }
 
 async function saveProfile() {
