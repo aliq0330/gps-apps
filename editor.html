@@ -7267,6 +7267,11 @@ function _subscribeGlobalMsg() {
         .on('broadcast', { event: 'new_msg' }, ({ payload }) => {
             if (payload?.convId !== _activeConvId) {
                 _updateUnreadBadge();
+                // Mesajlar listesi açıksa (sohbet içinde değilken) listeyi canlı yenile
+                const msgsPanel = document.getElementById('messagesOverlay');
+                if (msgsPanel?.classList.contains('open') && !_activeConvId) {
+                    loadConversations();
+                }
             }
         })
         .subscribe();
