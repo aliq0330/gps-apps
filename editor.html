@@ -7574,6 +7574,17 @@ let _fvScrollToCommentId = null;
 let _fvCmtLikes = {};
 let _fvMyCmtLikes = new Set();
 
+// Gizli hesap erişim kontrolü — true = görüntülenebilir
+async function _checkPrivacyAccess(ownerId) {
+    if (!ownerId) return true;
+    if (currentUser && currentUser.id === ownerId) return true;
+    const { data: prof } = await sb.from('profiles').select('is_private').eq('id', ownerId).single();
+    if (!prof?.is_private) return true;
+    if (!currentUser) return false;
+    const { data: myFollow } = await sb.from('follows').select('id').eq('follower_id', currentUser.id).eq('following_id', ownerId).maybeSingle();
+    return !!myFollow;
+}
+
 async function openFileView(fileId) {
     _navigate('#file/' + encodeURIComponent(fileId));
     _fvFileId    = fileId;
@@ -7581,6 +7592,12 @@ async function openFileView(fileId) {
     const d   = _exploreDataMap[fileId] || {};
     const pub = _pubFilesData[fileId]   || {};
     _fvUserId = d.userId || '';
+
+    // Gizlilik ön kontrolü (cache'den userId biliniyorsa overlay açmadan önce kontrol et)
+    if (_fvUserId && !(await _checkPrivacyAccess(_fvUserId))) {
+        showToast('🔒 Bu hesap gizlidir');
+        return;
+    }
 
     // Header bilgileri hemen set et
     document.getElementById('fvFilename').textContent  = d.filename || pub.filename || '...';
@@ -7595,6 +7612,13 @@ async function openFileView(fileId) {
     if (!code) {
         const { data: fd } = await sb.from('files').select('filename, code, user_id, forked_from_id, description').eq('id', fileId).single();
         if (fd) {
+            // userId cache'de yoksa gizlilik kontrolü yap
+            if (!_fvUserId && fd.user_id && !(await _checkPrivacyAccess(fd.user_id))) {
+                document.getElementById('fvOverlay')?.classList.remove('open');
+                _goBack();
+                showToast('🔒 Bu hesap gizlidir');
+                return;
+            }
             code = fd.code;
             _pubFilesData[fileId] = { filename: fd.filename, code: fd.code, forked_from_id: fd.forked_from_id, description: fd.description || '' };
             if (!d.filename) {
@@ -8653,6 +8677,13 @@ async function openCollectionOverlay(collId) {
     document.getElementById('collOverlayList').innerHTML = '<div class="search-empty">Yükleniyor...</div>';
     const { data: col } = await sb.from('collections').select('id,name,user_id,is_public').eq('id', collId).single();
     if (!col) { overlay.classList.remove('open'); return; }
+    // Gizlilik kontrolü
+    if (!(await _checkPrivacyAccess(col.user_id))) {
+        overlay.classList.remove('open');
+        _goBack();
+        showToast('🔒 Bu hesap gizlidir');
+        return;
+    }
     document.getElementById('collOverlayTitle').textContent = '📁 ' + col.name;
     _colOwnerMap[collId] = col.user_id;
     // Sil butonu sadece koleksiyon sahibine görünsün
@@ -9003,11 +9034,24 @@ async function loadPublicCollectionsForFeed() {
         .order('created_at', { ascending: false }).limit(20);
     if (!cols || !cols.length) return [];
     const uids = [...new Set(cols.map(c => c.user_id))];
-    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji,is_private').in('id', uids);
     const pMap = {};
     (profs || []).forEach(p => { pMap[p.id] = p; });
+    // Gizli hesap filtresi
+    const privateUserIds = new Set((profs || []).filter(p => p.is_private).map(p => p.id));
+    let visibleCols = cols;
+    if (privateUserIds.size > 0) {
+        if (currentUser) {
+            const { data: myFollows } = await sb.from('follows').select('following_id').eq('follower_id', currentUser.id);
+            const myFollowSet = new Set((myFollows || []).map(r => r.following_id));
+            myFollowSet.add(currentUser.id);
+            visibleCols = cols.filter(c => !privateUserIds.has(c.user_id) || myFollowSet.has(c.user_id));
+        } else {
+            visibleCols = cols.filter(c => !privateUserIds.has(c.user_id));
+        }
+    }
     // Load likes + comment counts
-    const collIds = cols.map(c => c.id);
+    const collIds = visibleCols.map(c => c.id);
     const [{ data: allColLikes }, { data: myColLikes }, { data: cmtRows }] = await Promise.all([
         sb.from('collection_likes').select('collection_id').in('collection_id', collIds),
         currentUser ? sb.from('collection_likes').select('collection_id').eq('user_id', currentUser.id).in('collection_id', collIds) : Promise.resolve({ data: [] }),
@@ -9019,7 +9063,7 @@ async function loadPublicCollectionsForFeed() {
     const _colCmtCountsMap = {};
     (cmtRows || []).forEach(c => { _colCmtCountsMap[c.collection_id] = (_colCmtCountsMap[c.collection_id] || 0) + 1; });
     // Load first 4 files per collection (parallelized)
-    const results = await Promise.all(cols.map(async col => {
+    const results = await Promise.all(visibleCols.map(async col => {
         const { data: cf } = await sb.from('collection_files').select('file_id').eq('collection_id', col.id).limit(4);
         const fileIds = (cf || []).map(r => r.file_id);
         let fileObjs = [];
