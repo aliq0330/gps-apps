@@ -1156,8 +1156,10 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     display: flex; align-items: center; gap: 12px;
     padding: 12px 14px; background: var(--glass-bg);
     border: 1px solid var(--glass-border); border-radius: 14px;
-    margin-bottom: 10px;
+    margin-bottom: 10px; cursor: pointer;
 }
+.admin-user-row:active { opacity: 0.65; }
+.admin-chevron { color: var(--text-secondary); flex-shrink: 0; }
 .admin-user-avatar { font-size: 26px; width: 40px; text-align: center; flex-shrink: 0; }
 .admin-user-info { flex: 1; min-width: 0; }
 .admin-user-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
@@ -1167,6 +1169,53 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     background: rgba(255,59,48,0.08); color: #ff3b30;
     font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; flex-shrink: 0;
 }
+
+/* Admin Profile Detail Panel */
+.admin-profile-user-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px; border-bottom: 1px solid var(--glass-border);
+}
+.admin-profile-emo {
+    font-size: 40px; width: 56px; height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    border-radius: 50%; flex-shrink: 0;
+}
+.admin-profile-uname { font-size: 17px; font-weight: 700; color: var(--text-primary); }
+.admin-profile-uid { font-size: 10px; color: var(--text-secondary); margin-top: 3px; word-break: break-all; }
+.admin-profile-stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    padding: 14px 16px; border-bottom: 1px solid var(--glass-border);
+}
+.admin-profile-stat {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px 4px; background: var(--glass-bg);
+    border: 1px solid var(--glass-border); border-radius: 12px;
+}
+.admin-profile-stat-n { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.admin-profile-stat-l { font-size: 10px; color: var(--text-secondary); text-align: center; margin-top: 2px; }
+.admin-profile-actions { padding: 16px; }
+.admin-section-label {
+    font-size: 11px; font-weight: 700; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
+}
+.admin-act-btn {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 14px 16px; border-radius: 14px; border: 1.5px solid;
+    background: transparent; font-size: 14px; font-weight: 600;
+    font-family: inherit; cursor: pointer; margin-bottom: 10px;
+    text-align: left; transition: opacity 0.2s;
+}
+.admin-act-btn:active { opacity: 0.6; }
+.admin-act-btn.files  { border-color: rgba(255,149,0,0.5); background: rgba(255,149,0,0.08); color: #ff9500; }
+.admin-act-btn.colls  { border-color: rgba(88,86,214,0.5); background: rgba(88,86,214,0.08); color: #5856d6; }
+.admin-act-btn.cmts   { border-color: rgba(52,199,89,0.5); background: rgba(52,199,89,0.08); color: #34c759; }
+.admin-act-btn.msgs   { border-color: rgba(0,122,255,0.5); background: rgba(0,122,255,0.08); color: #007aff; }
+.admin-act-btn.danger { border-color: rgba(255,59,48,0.5); background: rgba(255,59,48,0.08); color: #ff3b30; }
+.admin-act-icon { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; }
+.admin-act-info { flex: 1; }
+.admin-act-title { font-size: 14px; font-weight: 600; }
+.admin-act-sub { font-size: 11px; opacity: 0.7; margin-top: 2px; }
 .private-acct-row {
     display: flex; align-items: center; justify-content: space-between;
     padding: 12px 14px; background: var(--glass-bg);
@@ -3633,13 +3682,13 @@ function _adminRender(users) {
     const list = document.getElementById('adminUserList');
     if (!users.length) { list.innerHTML = '<div class="search-empty">Kullanıcı bulunamadı</div>'; return; }
     list.innerHTML = users.map(u => `
-        <div class="admin-user-row" id="admin-row-${u.id}">
+        <div class="admin-user-row" id="admin-row-${u.id}" onclick="openAdminProfile('${u.id}')">
             <div class="admin-user-avatar">${u.avatar_emoji || '👤'}</div>
             <div class="admin-user-info">
-                <div class="admin-user-name">@${escapeHtml(u.username || 'isimsiz')}${u.is_admin ? ' 🛡️' : ''}</div>
+                <div class="admin-user-name">@${escapeHtml(u.username || 'isimsiz')}${u.is_admin ? ' 🛡️' : ''}${u.id === currentUser?.id ? ' <span style="font-size:10px;color:var(--text-secondary);">(Sen)</span>' : ''}</div>
                 <div class="admin-user-email">${u.id}</div>
             </div>
-            ${u.id !== currentUser?.id ? `<button class="admin-delete-btn" onclick="deleteUserAsAdmin('${u.id}','${escapeHtml(u.username||'bu kullanıcıyı')}')">Sil</button>` : '<span style="font-size:11px;color:var(--text-secondary);">Sen</span>'}
+            <svg class="admin-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
         </div>`).join('');
 }
 
@@ -3658,6 +3707,9 @@ async function deleteUserAsAdmin(userId, username) {
     try {
         const { error } = await sb.rpc('delete_user_by_id', { target_user_id: userId });
         if (error) throw error;
+        // Profil detay paneli açıksa kapat
+        const profOv = document.getElementById('adminProfileOverlay');
+        if (profOv && profOv.style.display !== 'none') closeAdminProfile();
         if (row) row.remove();
         _adminAllUsers = _adminAllUsers.filter(u => u.id !== userId);
         document.getElementById('adminUserCount').textContent = _adminAllUsers.length + ' kullanıcı';
@@ -3666,6 +3718,153 @@ async function deleteUserAsAdmin(userId, username) {
         if (row) row.style.opacity = '1';
         showToast('Hata: ' + (e.message || 'silinemedi'));
     }
+}
+
+// ── ADMİN PROFİL DETAY ────────────────────────────────────────────────
+let _adminCurrentProfile = null;
+
+async function openAdminProfile(userId) {
+    const user = _adminAllUsers.find(u => u.id === userId);
+    if (!user) return;
+    _adminCurrentProfile = user;
+    const overlay = document.getElementById('adminProfileOverlay');
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    _ovPush(overlay);
+    document.getElementById('adminProfileTitle').textContent = '@' + (user.username || 'isimsiz');
+    document.getElementById('adminProfileSub').textContent = user.is_admin ? '🛡️ Yönetici' : 'Kullanıcı';
+    document.getElementById('adminProfileContent').innerHTML = '<div class="search-empty">İstatistikler yükleniyor...</div>';
+    const stats = await _adminLoadProfileStats(userId);
+    _adminRenderProfile(user, stats);
+}
+
+function closeAdminProfile() {
+    const overlay = document.getElementById('adminProfileOverlay');
+    overlay.style.display = 'none';
+    _ovPop(overlay);
+    _adminCurrentProfile = null;
+}
+
+async function _adminLoadProfileStats(userId) {
+    const [
+        { count: files },
+        { count: collections },
+        { count: comments },
+        { count: colComments },
+        { count: messages }
+    ] = await Promise.all([
+        sb.from('files').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+        sb.from('collections').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+        sb.from('comments').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+        sb.from('collection_comments').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+        sb.from('messages').select('id', { count: 'exact', head: true }).eq('sender_id', userId)
+    ]);
+    return { files: files || 0, collections: collections || 0, comments: (comments || 0) + (colComments || 0), messages: messages || 0 };
+}
+
+function _adminRenderProfile(user, stats) {
+    const isSelf = user.id === currentUser?.id;
+    const joinDate = user.created_at ? new Date(user.created_at).toLocaleDateString('tr-TR') : '-';
+    const esc = v => escapeHtml(v || 'bu kullanıcı');
+    document.getElementById('adminProfileContent').innerHTML = `
+        <div class="admin-profile-user-header">
+            <div class="admin-profile-emo">${user.avatar_emoji || '👤'}</div>
+            <div>
+                <div class="admin-profile-uname">@${escapeHtml(user.username || 'isimsiz')}${user.is_admin ? ' 🛡️' : ''}</div>
+                <div class="admin-profile-uid">${user.id}</div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Katılım: ${joinDate}</div>
+            </div>
+        </div>
+        <div class="admin-profile-stats-grid">
+            <div class="admin-profile-stat"><div class="admin-profile-stat-n">${stats.files}</div><div class="admin-profile-stat-l">Dosya</div></div>
+            <div class="admin-profile-stat"><div class="admin-profile-stat-n">${stats.collections}</div><div class="admin-profile-stat-l">Koleksiyon</div></div>
+            <div class="admin-profile-stat"><div class="admin-profile-stat-n">${stats.comments}</div><div class="admin-profile-stat-l">Yorum</div></div>
+            <div class="admin-profile-stat"><div class="admin-profile-stat-n">${stats.messages}</div><div class="admin-profile-stat-l">Mesaj</div></div>
+        </div>
+        <div class="admin-profile-actions">
+            <div class="admin-section-label">Veri Silme İşlemleri</div>
+            <button class="admin-act-btn files" onclick="adminDeleteUserFiles('${user.id}','${esc(user.username)}')">
+                <span class="admin-act-icon">📁</span>
+                <div class="admin-act-info">
+                    <div class="admin-act-title">Dosyaları Sil</div>
+                    <div class="admin-act-sub">${stats.files} dosya · Yorumlar ve beğeniler dahil</div>
+                </div>
+            </button>
+            <button class="admin-act-btn colls" onclick="adminDeleteUserCollections('${user.id}','${esc(user.username)}')">
+                <span class="admin-act-icon">📚</span>
+                <div class="admin-act-info">
+                    <div class="admin-act-title">Koleksiyonları Sil</div>
+                    <div class="admin-act-sub">${stats.collections} koleksiyon · Tüm içerik dahil</div>
+                </div>
+            </button>
+            <button class="admin-act-btn cmts" onclick="adminDeleteUserComments('${user.id}','${esc(user.username)}')">
+                <span class="admin-act-icon">💬</span>
+                <div class="admin-act-info">
+                    <div class="admin-act-title">Yorumları & Yanıtları Sil</div>
+                    <div class="admin-act-sub">${stats.comments} yorum · Yanıtlar dahil</div>
+                </div>
+            </button>
+            <button class="admin-act-btn msgs" onclick="adminDeleteUserMessages('${user.id}','${esc(user.username)}')">
+                <span class="admin-act-icon">✉️</span>
+                <div class="admin-act-info">
+                    <div class="admin-act-title">Mesajları Sil</div>
+                    <div class="admin-act-sub">${stats.messages} gönderilen mesaj · Tüm konuşmalar</div>
+                </div>
+            </button>
+            ${!isSelf ? `
+            <div class="admin-section-label" style="margin-top:20px;color:#ff3b30;">Tehlikeli Bölge</div>
+            <button class="admin-act-btn danger" onclick="deleteUserAsAdmin('${user.id}','${esc(user.username)}')">
+                <span class="admin-act-icon">🗑️</span>
+                <div class="admin-act-info">
+                    <div class="admin-act-title">Hesabı Tamamen Sil</div>
+                    <div class="admin-act-sub">Tüm veriler ve hesap kalıcı olarak silinir</div>
+                </div>
+            </button>` : `<div style="text-align:center;padding:16px;font-size:12px;color:var(--text-secondary);">Kendi hesabınızı silemezsiniz.</div>`}
+        </div>`;
+}
+
+async function adminDeleteUserFiles(userId, username) {
+    if (!confirm(`@${username} kullanıcısının tüm dosyaları silinecek.\n(Yorumlar ve beğeniler dahil)\n\nBu işlem geri alınamaz. Devam?`)) return;
+    try {
+        const { error } = await sb.rpc('delete_user_files', { target_user_id: userId });
+        if (error) throw error;
+        showToast('Dosyalar silindi');
+        const stats = await _adminLoadProfileStats(userId);
+        _adminRenderProfile(_adminCurrentProfile, stats);
+    } catch(e) { showToast('Hata: ' + (e.message || 'silinemedi')); }
+}
+
+async function adminDeleteUserCollections(userId, username) {
+    if (!confirm(`@${username} kullanıcısının tüm koleksiyonları silinecek.\n\nBu işlem geri alınamaz. Devam?`)) return;
+    try {
+        const { error } = await sb.rpc('delete_user_collections', { target_user_id: userId });
+        if (error) throw error;
+        showToast('Koleksiyonlar silindi');
+        const stats = await _adminLoadProfileStats(userId);
+        _adminRenderProfile(_adminCurrentProfile, stats);
+    } catch(e) { showToast('Hata: ' + (e.message || 'silinemedi')); }
+}
+
+async function adminDeleteUserComments(userId, username) {
+    if (!confirm(`@${username} kullanıcısının tüm yorumları ve yanıtları silinecek.\n\nBu işlem geri alınamaz. Devam?`)) return;
+    try {
+        const { error } = await sb.rpc('delete_user_comments', { target_user_id: userId });
+        if (error) throw error;
+        showToast('Yorumlar silindi');
+        const stats = await _adminLoadProfileStats(userId);
+        _adminRenderProfile(_adminCurrentProfile, stats);
+    } catch(e) { showToast('Hata: ' + (e.message || 'silinemedi')); }
+}
+
+async function adminDeleteUserMessages(userId, username) {
+    if (!confirm(`@${username} kullanıcısının tüm mesajları ve konuşmaları silinecek.\n\nBu işlem geri alınamaz. Devam?`)) return;
+    try {
+        const { error } = await sb.rpc('delete_user_messages', { target_user_id: userId });
+        if (error) throw error;
+        showToast('Mesajlar silindi');
+        const stats = await _adminLoadProfileStats(userId);
+        _adminRenderProfile(_adminCurrentProfile, stats);
+    } catch(e) { showToast('Hata: ' + (e.message || 'silinemedi')); }
 }
 
 function togglePrivateAccount() {
@@ -9663,6 +9862,22 @@ async function _shareCopyLink() {
     </div>
 </div>
 
+
+<!-- ── ADMİN PROFİL DETAY PANELİ ─────────────────────────────────── -->
+<div class="fv-overlay" id="adminProfileOverlay" style="z-index:9600;display:none;">
+    <div class="fv-header">
+        <button class="fv-back-btn" onclick="closeAdminProfile()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="fv-header-info">
+            <div class="fv-filename" id="adminProfileTitle">Profil Detayı</div>
+            <div style="font-size:12px;color:var(--text-secondary);" id="adminProfileSub">Yönetim</div>
+        </div>
+    </div>
+    <div style="overflow-y:auto;height:calc(100% - 56px);">
+        <div id="adminProfileContent"><div class="search-empty">Yükleniyor...</div></div>
+    </div>
+</div>
 
 <!-- ── ADMİN PANELİ ─────────────────────────────────────────────────── -->
 <div class="fv-overlay" id="adminOverlay" style="z-index:9500;display:none;">
