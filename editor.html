@@ -3852,8 +3852,7 @@ function showApp() {
     loadFromStorage();
     _handleInitialRoute();
     updateEditor();
-    // Badge görünürlük testi: 1 sn göster, sonra gerçek değere geç
-    _setBadge(1); setTimeout(() => _updateUnreadBadge(), 1000);
+    _updateUnreadBadge();
     _subscribeGlobalMsg();
     _updateNotifBadge();
     updateFilenameDisplay();
