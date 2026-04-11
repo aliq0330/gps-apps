@@ -8269,6 +8269,7 @@ async function loadNotifications() {
         const cname = escapeHtml(coll.name || 'koleksiyon');
         const isFollowRequest  = n.type === 'follow_request';
         const isFollowAccepted = n.type === 'follow_accepted';
+        const isNewFollower    = n.type === 'new_follower';
         const isComment        = n.type === 'comment';
         const isReply          = n.type === 'reply';
         const isReplyOnFile    = n.type === 'reply_on_file';
@@ -8298,6 +8299,16 @@ async function loadNotifications() {
             </div>`;
         }
         if (isFollowAccepted) {
+            return `<div class="notif-item" id="notif-${n.id}" style="cursor:pointer" onclick="closeNotifPanel();openPublicProfile('${n.from_user_id}')">
+                <div class="notif-avatar">${prof.avatar_emoji || '👤'}</div>
+                <div class="notif-info">
+                    <div class="notif-text"><strong>${escapeHtml(prof.username || 'Biri')}</strong>&nbsp;takip isteğini kabul etti</div>
+                    <div class="notif-time">${_fmtTime(n.created_at)}</div>
+                </div>
+                <button class="notif-delete-btn" onclick="event.stopPropagation();deleteNotif('${n.id}')"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>`;
+        }
+        if (isNewFollower) {
             return `<div class="notif-item" id="notif-${n.id}" style="cursor:pointer" onclick="closeNotifPanel();openPublicProfile('${n.from_user_id}')">
                 <div class="notif-avatar">${prof.avatar_emoji || '👤'}</div>
                 <div class="notif-info">
@@ -8389,9 +8400,15 @@ async function acceptFollowRequest(notifId, fromUserId) {
         const { error: fErr } = await sb.from('follows')
             .insert({ follower_id: fromUserId, following_id: currentUser.id });
         if (fErr && fErr.code !== '23505') throw fErr;
+        // İsteği gönderene: "takip isteğini kabul etti"
         await sb.from('like_notifications').insert({
             to_user_id: fromUserId, from_user_id: currentUser.id,
             file_id: null, type: 'follow_accepted', seen: false
+        });
+        // Onaylayan kişiye: "X artık seni takip ediyor"
+        await sb.from('like_notifications').insert({
+            to_user_id: currentUser.id, from_user_id: fromUserId,
+            file_id: null, type: 'new_follower', seen: false
         });
         await sb.from('like_notifications').delete().eq('id', notifId);
         // 3 sn sonra elemanı kaldır
