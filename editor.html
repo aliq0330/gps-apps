@@ -3585,6 +3585,7 @@ function _cmtActivate(inp, btnId) {
     btn.classList.toggle('active', inp.value.trim().length > 0);
 }
 function _cmtUserEmoji() { return currentProfile?.avatar_emoji || selectedEmoji || '👤'; }
+function _cmtUserAva() { return _ava(currentProfile?.avatar_emoji || selectedEmoji, currentProfile?.avatar_url || null); }
 
 // Yorum beğeni state — koleksiyon overlay dosya kartları
 let _coCmtLikes    = {};
@@ -6251,11 +6252,10 @@ async function doUserSearch() {
         (fileCounts || []).forEach(f => { countMap[f.user_id] = (countMap[f.user_id] || 0) + 1; });
         container.innerHTML = data.map(u => {
             const cnt   = countMap[u.id] || 0;
-            const emoji = u.avatar_emoji || '👤';
             const bio   = u.bio ? u.bio.substring(0, 50) + (u.bio.length > 50 ? '…' : '') : 'Biyografi yok';
             return `
             <div class="search-result-item" onclick="openPublicProfile('${u.id}')">
-                <div class="search-result-avatar">${emoji}</div>
+                <div class="search-result-avatar">${_ava(u.avatar_emoji, u.avatar_url)}</div>
                 <div class="search-result-info">
                     <div class="search-result-name">${escapeHtml(u.username)}</div>
                     <div class="search-result-bio">${escapeHtml(bio)}</div>
@@ -6305,7 +6305,6 @@ async function doFileSearch() {
         container.innerHTML = '<div class="search-file-list">' + files.map(f => {
             const prof   = pMap[f.user_id] || {};
             const author = prof.username || 'Kullanıcı';
-            const emoji  = prof.avatar_emoji || '👤';
             const cnt    = counts[f.id] || 0;
             const liked  = _myLikes.has(f.id);
             const d      = new Date(f.updated_at);
@@ -6322,7 +6321,7 @@ async function doFileSearch() {
                     <div class="pub-file-info">
                         <div class="pub-file-name">${escapeHtml(f.filename)}</div>
                         ${f.description ? `<div class="pub-file-desc" style="font-size:12px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(f.description)}</div>` : ''}
-                        <div class="pub-file-meta"><span style="cursor:pointer" onclick="event.stopPropagation();openPublicProfile('${f.user_id}')">${emoji} ${escapeHtml(author)}</span> · ${date}</div>
+                        <div class="pub-file-meta"><span style="cursor:pointer" onclick="event.stopPropagation();openPublicProfile('${f.user_id}')">${_ava(prof.avatar_emoji, prof.avatar_url)} ${escapeHtml(author)}</span> · ${date}</div>
                     </div>
                     <div class="pub-file-right">
                         <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
@@ -6666,7 +6665,7 @@ async function _openFollowList(type) {
     const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', ids);
     items.innerHTML = (profiles || []).map(p =>
         `<div class="follow-list-item" onclick="openPublicProfile('${p.id}')">
-            <span class="follow-list-avatar">${p.avatar_emoji || '👤'}</span>
+            <span class="follow-list-avatar">${_ava(p.avatar_emoji, p.avatar_url)}</span>
             <span class="follow-list-name">${escapeHtml(p.username || 'Kullanıcı')}</span>
         </div>`
     ).join('');
@@ -7246,7 +7245,7 @@ async function _coLoadComments(fileId) {
         const likeCnt = _coCmtLikes[c.id] || 0;
         const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderCO(r, true)).join('') : '';
         return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="co-feedcmt-${c.id}" data-user-id="${c.user_id}">
-            <div class="comment-avatar" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${p.avatar_emoji||'👤'}</div>
+            <div class="comment-avatar" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${_ava(p.avatar_emoji, p.avatar_url)}</div>
             <div class="comment-body">
                 <div class="comment-header">
                     <span class="comment-username" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${escapeHtml(p.username||'Kullanıcı')}</span>
@@ -7404,7 +7403,7 @@ async function feedLoadComments(fileId) {
         const likeCnt = _feedCmtLikes[c.id] || 0;
         const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderFC(r, true)).join('') : '';
         return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="feedcmt-${c.id}" data-user-id="${c.user_id}">
-            <div class="comment-avatar" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${p.avatar_emoji||'👤'}</div>
+            <div class="comment-avatar" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${_ava(p.avatar_emoji, p.avatar_url)}</div>
             <div class="comment-body">
                 <div class="comment-header">
                     <span class="comment-username" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${escapeHtml(p.username||'Kullanıcı')}</span>
@@ -8333,7 +8332,7 @@ async function loadComments(fileId) {
         const likeCnt = _profCmtLikes[c.id] || 0;
         const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderC(r, true)).join('') : '';
         return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="profcmt-${c.id}" data-user-id="${c.user_id}" data-file-id="${c.file_id}">
-            <div class="comment-avatar" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${p.avatar_emoji || '👤'}</div>
+            <div class="comment-avatar" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${_ava(p.avatar_emoji, p.avatar_url)}</div>
             <div class="comment-body">
                 <div class="comment-header">
                     <span class="comment-username" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${escapeHtml(p.username || 'Kullanıcı')}</span>
@@ -8873,7 +8872,7 @@ async function fvLoadComments() {
         const _fvRow = document.getElementById('fvCmtInputRow');
         if (_fvRow) _fvRow.style.display = '';
         const _fvAv = document.getElementById('fvCmtAvatar');
-        if (_fvAv) _fvAv.textContent = _cmtUserEmoji();
+        if (_fvAv) _fvAv.innerHTML = _cmtUserAva();
     }
     if (all.length === 0) { listEl.innerHTML = '<div class="search-empty" style="padding:20px 0;">Henüz yorum yok</div>'; return; }
     const uids = [...new Set(all.map(c => c.user_id))];
@@ -8898,7 +8897,7 @@ async function fvLoadComments() {
         const likeCnt = _fvCmtLikes[c.id] || 0;
         const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderCmt(r, true)).join('') : '';
         return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="fvcmt-${c.id}" data-user-id="${c.user_id}">
-            <div class="comment-avatar" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${p.avatar_emoji || '👤'}</div>
+            <div class="comment-avatar" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${_ava(p.avatar_emoji, p.avatar_url)}</div>
             <div class="comment-body">
                 <div class="comment-header">
                     <span class="comment-username" style="cursor:pointer" onclick="openPublicProfile('${c.user_id}')">${escapeHtml(p.username || 'Kullanıcı')}</span>
@@ -9617,7 +9616,7 @@ async function openCollectionOverlay(collId) {
     _updateCollOverlayLikeBtn(collId);
     // Yorum alanı avatar
     const _ccmtAv = document.getElementById('ccmtAvatar');
-    if (_ccmtAv) _ccmtAv.textContent = _cmtUserEmoji();
+    if (_ccmtAv) _ccmtAv.innerHTML = _cmtUserAva();
     // Tab'ı sıfırla — her açılışta Dosyalar sekmesiyle başla
     collSwitchTab('files');
     await _loadCollectionOverlayFiles(collId);
@@ -9728,7 +9727,7 @@ async function collLoadComments(collId, listElId, cntElId) {
         const likeCnt = _colCmtLikes[c.id] || 0;
         const childReplies = !isReply && repliesMap[c.id] ? repliesMap[c.id].map(r => renderC(r, true)).join('') : '';
         return `<div class="comment-item${isReply ? ' cmt-reply' : ''}" id="ccmt-${c.id}" data-user-id="${c.user_id}">
-            <div class="comment-avatar" onclick="openPublicProfile('${c.user_id}')" style="cursor:pointer">${p.avatar_emoji||'👤'}</div>
+            <div class="comment-avatar" onclick="openPublicProfile('${c.user_id}')" style="cursor:pointer">${_ava(p.avatar_emoji, p.avatar_url)}</div>
             <div class="comment-body">
                 <div class="comment-header">
                     <span class="comment-username" onclick="openPublicProfile('${c.user_id}')" style="cursor:pointer">${escapeHtml(p.username||'Kullanıcı')}</span>
@@ -10006,7 +10005,7 @@ function _renderCollectionCard(col) {
         </div>`).join('');
     return `<div class="coll-card" id="ccard-${col.id}">
         <div class="coll-card-header" onclick="openPublicProfile('${col.user_id}')">
-            <div class="coll-card-avatar">${p.avatar_emoji || '👤'}</div>
+            <div class="coll-card-avatar">${_ava(p.avatar_emoji, p.avatar_url)}</div>
             <div class="coll-card-meta">
                 <div class="coll-card-name">@${escapeHtml(p.username || 'kullanici')}</div>
                 <div class="coll-card-sub">${_timeAgo(col.updated_at || col.created_at)} • 📁 ${escapeHtml(col.name)}</div>
