@@ -2527,6 +2527,87 @@ body.preview-mode .file-title-bar { display: none !important; }
 .new-save-coll-chip.selected { background: rgba(0,122,255,0.15); border-color: rgba(0,122,255,0.4); color: #007aff; }
 .new-save-coll-chip input[type=checkbox] { display: none; }
 
+/* ── VERSİYON PANELİ ─────────────────────────────────── */
+.version-panel {
+    position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0;
+    z-index: 4500; background: var(--bg);
+    transform: translateX(100%); transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+    display: flex; flex-direction: column; overflow: hidden;
+}
+.version-panel.open { transform: translateX(0); }
+.version-panel-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; border-bottom: 1px solid var(--glass-border);
+    background: var(--card-bg); backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur)); flex-shrink: 0;
+}
+.version-panel-title { font-size: 16px; font-weight: 700; color: var(--text-primary); flex: 1; }
+.version-panel-back {
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
+    background: var(--glass-bg); color: var(--text-secondary);
+}
+.version-list { flex: 1; overflow-y: auto; padding: 12px 16px 80px; }
+.version-card {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px; margin-bottom: 10px;
+    background: var(--card-bg); border-radius: 18px;
+    border: 1px solid var(--glass-border);
+}
+.version-card.is-current { border-color: rgba(52,199,89,0.5); background: rgba(52,199,89,0.06); }
+.version-num {
+    font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+    color: #007aff; background: rgba(0,122,255,0.12); border-radius: 8px;
+    padding: 4px 8px; white-space: nowrap; min-width: 36px; text-align: center; flex-shrink: 0;
+}
+.version-card.is-current .version-num { color: #34c759; background: rgba(52,199,89,0.15); }
+.version-info { flex: 1; min-width: 0; }
+.version-summary { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.version-date { font-size: 11px; color: var(--text-secondary); }
+.version-current-badge {
+    font-size: 10px; font-weight: 700; color: #34c759;
+    background: rgba(52,199,89,0.15); border-radius: 6px; padding: 2px 6px;
+    margin-left: 6px; vertical-align: middle; display: inline-block;
+}
+.version-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.version-action-btn {
+    font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 10px;
+    border: 1px solid var(--glass-border); background: var(--glass-bg);
+    color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: all 0.15s;
+}
+.version-action-btn.restore {
+    color: #007aff; border-color: rgba(0,122,255,0.3); background: rgba(0,122,255,0.08);
+}
+.version-badge {
+    display: none; font-size: 10px; font-weight: 700; background: #007aff; color: #fff;
+    border-radius: 8px; padding: 2px 6px; font-family: 'JetBrains Mono', monospace;
+    margin-left: 4px; vertical-align: middle;
+}
+.version-loading { text-align: center; padding: 40px 16px; color: var(--text-secondary); font-size: 14px; }
+.version-empty { text-align: center; padding: 60px 16px; color: var(--text-secondary); }
+.version-empty-icon { font-size: 40px; margin-bottom: 12px; }
+.version-empty-text { font-size: 14px; line-height: 1.6; }
+/* Eski versiyon görüntüleme banner'ı */
+.old-version-banner {
+    display: none; background: rgba(255,159,10,0.12); border-bottom: 1px solid rgba(255,159,10,0.3);
+    padding: 10px 16px; align-items: center; gap: 10px;
+    font-size: 13px; color: #ff9f0a; font-weight: 600;
+}
+.old-version-banner-text { flex: 1; font-size: 13px; }
+.old-version-exit-btn {
+    font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 10px;
+    border: 1px solid rgba(255,159,10,0.4); background: rgba(255,159,10,0.15);
+    color: #ff9f0a; cursor: pointer; white-space: nowrap;
+}
+/* Toolbar geçmiş butonu */
+.toolbar-btn-history {
+    display: flex; align-items: center; gap: 5px; padding: 7px 10px;
+    border-radius: 12px; border: 1px solid var(--glass-border); background: var(--glass-bg);
+    font-size: 12px; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+    white-space: nowrap; transition: all 0.15s;
+}
+.toolbar-btn-history:active { transform: scale(0.96); }
+
 </style>
 
 </head>
@@ -3220,6 +3301,12 @@ body.preview-mode .file-title-bar { display: none !important; }
         </svg>
         Kaydet
     </button>
+    <button class="toolbar-btn" id="toolbarVersionBtn" onclick="openVersionPanel()" title="Versiyon Geçmişi">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Geçmiş<span class="version-badge" id="versionBadge"></span>
+    </button>
     <button class="toolbar-btn" onclick="openSaveModal()">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
@@ -3502,6 +3589,66 @@ body.preview-mode .file-title-bar { display: none !important; }
     </div>
 </div>
 
+<!-- Eski Versiyon Banner'ı -->
+<div id="oldVersionBanner" class="old-version-banner">
+    <span class="old-version-banner-text" id="oldVersionBannerText">📖 Eski versiyon görüntüleniyor — salt okunur</span>
+    <button class="old-version-exit-btn" onclick="exitOldVersionView()">Güncel Versiyona Dön</button>
+</div>
+
+<!-- Versiyon Özeti Modalı -->
+<div id="versionSummaryModalOverlay" class="modal-overlay" onclick="handleVersionSummaryOverlayClick(event)">
+    <div class="modal-box" style="max-width:400px;">
+        <div class="modal-header">
+            <div class="modal-icon-wrap" style="background:rgba(0,122,255,0.15);border-color:rgba(0,122,255,0.3);">
+                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <div class="modal-title">Değişiklik Özeti</div>
+            <div class="modal-subtitle" id="versionSummaryFileLabel">Ne değiştirdiniz?</div>
+        </div>
+        <div style="margin-bottom:20px;">
+            <textarea id="versionSummaryInput"
+                placeholder="Örn: Header rengi mavi yapıldı, nav menüsü güncellendi..."
+                style="width:100%;padding:14px;border-radius:16px;border:1.5px solid var(--glass-border);
+                    background:var(--glass-bg);color:var(--text-primary);font-family:inherit;font-size:14px;
+                    line-height:1.5;resize:none;height:90px;outline:none;-webkit-appearance:none;
+                    -webkit-tap-highlight-color:transparent;"></textarea>
+        </div>
+        <div class="modal-actions" style="flex-direction:column;gap:10px;">
+            <button onclick="confirmVersionSave()" class="modal-btn"
+                style="background:rgba(0,122,255,0.15);border-color:rgba(0,122,255,0.3);color:#007aff;width:100%;height:50px;border-radius:22px;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Kaydet ve Versiyonla
+            </button>
+            <button onclick="skipVersionSummary()" class="modal-btn"
+                style="background:rgba(52,199,89,0.1);border-color:rgba(52,199,89,0.25);color:#34c759;width:100%;height:44px;border-radius:22px;font-size:13px;">
+                Özetsiz Kaydet
+            </button>
+            <button onclick="closeVersionSummaryModal()" class="modal-btn"
+                style="width:100%;margin-top:4px;height:44px;border-radius:22px;opacity:0.75;font-size:13px;">İptal</button>
+        </div>
+    </div>
+</div>
+
+<!-- Versiyon Geçmişi Paneli -->
+<div id="versionPanel" class="version-panel">
+    <div class="version-panel-header">
+        <button class="version-panel-back" onclick="closeVersionPanel()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
+        <div class="version-panel-title">Versiyon Geçmişi</div>
+        <div style="font-size:12px;color:var(--text-secondary);font-family:'JetBrains Mono',monospace;" id="versionPanelFileLabel"></div>
+    </div>
+    <div id="versionList" class="version-list">
+        <div class="version-loading">Yükleniyor...</div>
+    </div>
+</div>
+
 <div id="toast" class="toast">
     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
@@ -3557,6 +3704,12 @@ let pendingDuplicateSave   = null;
 
 // Kaydet butonu durumu: 'idle' (mavi, + ikon) | 'saved' (yeşil, tik ikon)
 let saveButtonState = 'idle';
+
+// Versiyon state
+let currentVersionId    = null;   // Açık dosyanın güncel version id'si
+let versionHistory      = [];     // Versiyon listesi önbelleği
+let isViewingOldVersion = false;  // Eski versiyon görüntüleniyor mu?
+let _viewingVersionNum  = null;   // Görüntülenen eski versiyon numarası
 
 // Profil state
 let currentProfile = null;
@@ -4875,6 +5028,332 @@ async function hardDeleteFileFromCloud(fileId) {
     } catch(e) { console.error('Cloud hard-delete error:', e); }
 }
 
+// ── Versiyon Yöneticisi ─────────────────────────────────────────────────
+const VersionManager = {
+    MAX_VERSIONS: 50,
+
+    // Yeni versiyon oluştur
+    async create(fileId, code, summary) {
+        if (!currentUser || !fileId) return null;
+        try {
+            const checksum = await VersionManager._hash(code);
+
+            // En son versiyon numarasını al
+            const { data: last } = await sb.from('file_versions')
+                .select('version_number')
+                .eq('file_id', fileId)
+                .order('version_number', { ascending: false })
+                .limit(1).maybeSingle();
+
+            const nextNum = (last?.version_number || 0) + 1;
+
+            // Aynı checksum varsa kaydetme (içerik değişmemiş)
+            const { data: dup } = await sb.from('file_versions')
+                .select('id')
+                .eq('file_id', fileId)
+                .eq('checksum', checksum)
+                .maybeSingle();
+            if (dup) return { skipped: true, reason: 'same_content' };
+
+            const { data, error } = await sb.from('file_versions')
+                .insert({
+                    file_id: fileId,
+                    user_id: currentUser.id,
+                    version_number: nextNum,
+                    code: code,
+                    summary: summary || `v${nextNum} kaydedildi`,
+                    checksum: checksum
+                })
+                .select().single();
+            if (error) throw error;
+
+            // 50 versiyon limitini uygula
+            await VersionManager._pruneOldVersions(fileId);
+            return data;
+        } catch(e) {
+            console.error('Version create error:', e);
+            return null;
+        }
+    },
+
+    // Versiyon listesini getir (yalnızca metadata, kod yok)
+    async list(fileId) {
+        if (!fileId) return [];
+        try {
+            const { data, error } = await sb.from('file_versions')
+                .select('id, version_number, summary, created_at, checksum')
+                .eq('file_id', fileId)
+                .order('version_number', { ascending: false })
+                .limit(VersionManager.MAX_VERSIONS);
+            if (error) throw error;
+            return data || [];
+        } catch(e) {
+            console.error('Version list error:', e);
+            return [];
+        }
+    },
+
+    // Belirli versiyonun kodunu getir (lazy — sadece gerekince)
+    async getCode(versionId) {
+        try {
+            const { data, error } = await sb.from('file_versions')
+                .select('code, version_number')
+                .eq('id', versionId)
+                .single();
+            if (error) throw error;
+            return data;
+        } catch(e) {
+            console.error('Version getCode error:', e);
+            return null;
+        }
+    },
+
+    // Geri yükleme: eski versiyonu yeni versiyon olarak kaydet (tarih korunur)
+    async restore(fileId, versionId, versionNum) {
+        if (!currentUser || !fileId) return false;
+        try {
+            const ver = await VersionManager.getCode(versionId);
+            if (!ver) return false;
+
+            const restoreSummary = `v${versionNum}'den geri yüklendi`;
+
+            // Ana dosyayı güncelle
+            await sb.from('files')
+                .update({ code: ver.code, updated_at: new Date().toISOString() })
+                .eq('id', fileId)
+                .eq('user_id', currentUser.id);
+
+            // Geri yükleme notlu yeni versiyon oluştur
+            await VersionManager.create(fileId, ver.code, restoreSummary);
+            return ver.code;
+        } catch(e) {
+            console.error('Version restore error:', e);
+            return false;
+        }
+    },
+
+    // 50 limitini aşan eski versiyonları sil
+    async _pruneOldVersions(fileId) {
+        try {
+            const { data } = await sb.from('file_versions')
+                .select('id, version_number')
+                .eq('file_id', fileId)
+                .order('version_number', { ascending: false });
+            if (!data || data.length <= VersionManager.MAX_VERSIONS) return;
+            const toDelete = data.slice(VersionManager.MAX_VERSIONS).map(v => v.id);
+            await sb.from('file_versions').delete().in('id', toDelete);
+        } catch(e) { console.error('Version prune error:', e); }
+    },
+
+    // SHA-256 checksum (aynı içeriği iki kez kaydetmemek için)
+    async _hash(str) {
+        if (typeof crypto !== 'undefined' && crypto.subtle) {
+            try {
+                const buf = new TextEncoder().encode(str);
+                const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+                return Array.from(new Uint8Array(hashBuf))
+                    .map(b => b.toString(16).padStart(2, '0')).join('');
+            } catch(e) {}
+        }
+        // Fallback: djb2 hash
+        let h = 5381;
+        for (let i = 0; i < str.length; i++) h = ((h << 5) + h) + str.charCodeAt(i);
+        return (h >>> 0).toString(16);
+    }
+};
+
+// ── Versiyon Paneli ─────────────────────────────────────────────────────
+function openVersionPanel() {
+    if (!currentOpenFileId) { showToast('Önce bir dosya açın veya kaydedin'); return; }
+    const f = savedFiles.find(f => f.id === currentOpenFileId);
+    document.getElementById('versionPanelFileLabel').textContent = f ? f.filename : '';
+    document.getElementById('versionPanel').classList.add('open');
+    loadVersionHistory();
+}
+
+function closeVersionPanel() {
+    document.getElementById('versionPanel').classList.remove('open');
+}
+
+async function loadVersionHistory() {
+    const listEl = document.getElementById('versionList');
+    listEl.innerHTML = '<div class="version-loading">Yükleniyor...</div>';
+    versionHistory = await VersionManager.list(currentOpenFileId);
+    renderVersionList();
+}
+
+function renderVersionList() {
+    const listEl = document.getElementById('versionList');
+    if (!versionHistory.length) {
+        listEl.innerHTML = `<div class="version-empty">
+            <div class="version-empty-icon">📋</div>
+            <div class="version-empty-text">Henüz versiyon yok.<br>Dosyayı kaydettiğinizde<br>versiyonlar burada görünür.</div>
+        </div>`;
+        return;
+    }
+    listEl.innerHTML = versionHistory.map((v, i) => {
+        const isCurrent = i === 0;
+        const d = new Date(v.created_at);
+        const dateStr = d.toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit', year:'numeric' })
+                      + ' ' + d.toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
+        return `<div class="version-card${isCurrent ? ' is-current' : ''}">
+            <div class="version-num">v${v.version_number}</div>
+            <div class="version-info">
+                <div class="version-summary">${escapeHtml(v.summary || `v${v.version_number} kaydedildi`)}${isCurrent ? '<span class="version-current-badge">Güncel</span>' : ''}</div>
+                <div class="version-date">${dateStr}</div>
+            </div>
+            <div class="version-actions">
+                <button class="version-action-btn" onclick="previewVersion('${v.id}', ${v.version_number})">Önizle</button>
+                ${!isCurrent ? `<button class="version-action-btn restore" onclick="restoreVersion('${v.id}', ${v.version_number})">Geri Yükle</button>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// Versiyonu önizle (editöre yükle, salt okunur banner göster)
+async function previewVersion(versionId, versionNum) {
+    showToast(`v${versionNum} yükleniyor...`);
+    const ver = await VersionManager.getCode(versionId);
+    if (!ver) { showToast('Versiyon yüklenemedi'); return; }
+
+    _tabs = _splitHtmlToTabs(`<html><body>${ver.code}</body></html>`);
+    _activeTab = 'html';
+    code = ver.code;
+    isViewingOldVersion = true;
+    _viewingVersionNum = versionNum;
+
+    updateEditor();
+    handleViewSwitch('preview');
+    closeVersionPanel();
+    _showOldVersionBanner(versionNum);
+    showToast(`v${versionNum} görüntüleniyor`);
+}
+
+// Versiyonu geri yükle (geçmişi bozmadan yeni versiyon olarak kaydet)
+async function restoreVersion(versionId, versionNum) {
+    const currentNum = versionHistory[0]?.version_number || '?';
+    if (!confirm(`v${versionNum} içeriğini geri yüklemek istiyor musunuz?\n\nMevcut v${currentNum} tarihçede korunacak, yeni bir versiyon oluşturulacak.`)) return;
+    showToast(`v${versionNum} geri yükleniyor...`);
+
+    const restoredCode = await VersionManager.restore(currentOpenFileId, versionId, versionNum);
+    if (!restoredCode) { showToast('Geri yükleme başarısız'); return; }
+
+    // Yerel state güncelle
+    const idx = savedFiles.findIndex(f => f.id === currentOpenFileId);
+    if (idx !== -1) savedFiles[idx].code = restoredCode;
+
+    _tabs = _splitHtmlToTabs(`<html><body>${restoredCode}</body></html>`);
+    _activeTab = 'html';
+    code = restoredCode;
+    isViewingOldVersion = false;
+    _viewingVersionNum = null;
+    hasUnsavedChanges = false;
+
+    updateEditor(); updateTabDotColor();
+    setSaveButtonState('saved');
+    _hideOldVersionBanner();
+    closeVersionPanel();
+
+    // Rozeti güncelle
+    versionHistory = await VersionManager.list(currentOpenFileId);
+    if (versionHistory.length) updateVersionBadge(versionHistory[0].version_number);
+
+    showToast(`v${versionNum} geri yüklendi ✓`);
+}
+
+// Eski versiyon görüntülemeden çık, güncel dosyaya dön
+function exitOldVersionView() {
+    const f = savedFiles.find(f => f.id === currentOpenFileId);
+    if (!f) return;
+    _tabs = _splitHtmlToTabs(`<html><body>${f.code}</body></html>`);
+    _activeTab = 'html';
+    code = f.code;
+    isViewingOldVersion = false;
+    _viewingVersionNum = null;
+    hasUnsavedChanges = false;
+    updateEditor(); updateTabDotColor();
+    setSaveButtonState('saved');
+    _hideOldVersionBanner();
+    handleViewSwitch('code');
+    showToast('Güncel versiyona döndü');
+}
+
+// Eski versiyon uyarı banner'ı
+function _showOldVersionBanner(num) {
+    const banner = document.getElementById('oldVersionBanner');
+    if (!banner) return;
+    document.getElementById('oldVersionBannerText').textContent = `📖 v${num} görüntülüyorsunuz — salt okunur`;
+    banner.style.display = 'flex';
+}
+function _hideOldVersionBanner() {
+    const banner = document.getElementById('oldVersionBanner');
+    if (banner) banner.style.display = 'none';
+}
+
+// Toolbar'daki versiyon rozeti güncelle
+function updateVersionBadge(num) {
+    const badge = document.getElementById('versionBadge');
+    if (!badge) return;
+    if (!num || !currentOpenFileId) { badge.style.display = 'none'; return; }
+    badge.textContent = `v${num}`;
+    badge.style.display = 'inline-block';
+}
+
+// ── Versiyon Özeti Modalı ───────────────────────────────────────────────
+function openVersionSummaryModal() {
+    const f = savedFiles.find(f => f.id === currentOpenFileId);
+    document.getElementById('versionSummaryFileLabel').textContent =
+        f ? `"${f.filename}" dosyasını güncelliyorsunuz` : 'Değişiklikleri kaydet';
+    document.getElementById('versionSummaryInput').value = '';
+    document.getElementById('versionSummaryModalOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('versionSummaryInput').focus(), 150);
+}
+function closeVersionSummaryModal() {
+    document.getElementById('versionSummaryModalOverlay').classList.remove('open');
+}
+function handleVersionSummaryOverlayClick(e) {
+    if (e.target.id === 'versionSummaryModalOverlay') closeVersionSummaryModal();
+}
+
+async function confirmVersionSave() {
+    const summary = document.getElementById('versionSummaryInput').value.trim();
+    closeVersionSummaryModal();
+    await _doUpdateWithVersion(summary || null);
+}
+async function skipVersionSummary() {
+    closeVersionSummaryModal();
+    await _doUpdateWithVersion(null);
+}
+
+// Dosyayı güncelle + versiyon oluştur
+async function _doUpdateWithVersion(summary) {
+    if (!currentOpenFileId) return;
+    const idx = savedFiles.findIndex(f => f.id === currentOpenFileId);
+    if (idx === -1) return;
+    savedFiles[idx].code      = code;
+    savedFiles[idx].filename  = loadedFilename || savedFiles[idx].filename;
+    savedFiles[idx].timestamp = new Date().toISOString();
+    hasUnsavedChanges = false;
+    renderSavedFiles(); showToast('Güncelleniyor...');
+
+    const cloudResult = await saveFileToCloud(savedFiles[idx]);
+    if (cloudResult) {
+        const vResult = await VersionManager.create(currentOpenFileId, code, summary);
+        if (vResult && !vResult.skipped) {
+            updateVersionBadge(vResult.version_number);
+            currentVersionId = vResult.id;
+        } else if (vResult && vResult.skipped) {
+            // İçerik değişmemişse badge'i listeden güncelle
+            const vList = await VersionManager.list(currentOpenFileId);
+            if (vList.length) updateVersionBadge(vList[0].version_number);
+        }
+    }
+    showToast(`${savedFiles[idx].filename} güncellendi ☁️`);
+    setSaveButtonState('saved');
+    isViewingOldVersion = false;
+    _hideOldVersionBanner();
+}
+
 // ── Switcher Init ──────────────────────────────────────────────────────
 function initSwitcher(el) {
     const radios = el.querySelectorAll('input[type="radio"]');
@@ -5274,6 +5753,15 @@ async function _doSave(filename, description = '') {
         renderSavedFiles();
     }
 
+    // İlk versiyon (v1) oluştur
+    if (cloudResult && cloudResult.id) {
+        const v1 = await VersionManager.create(cloudResult.id, code, 'İlk versiyon');
+        if (v1 && !v1.skipped) {
+            currentVersionId = v1.id;
+            updateVersionBadge(v1.version_number);
+        }
+    }
+
     // Kaydedildi durumuna geç
     setSaveButtonState('saved');
 }
@@ -5361,18 +5849,9 @@ function handleSaveOptionsOverlayClick(e) {
 async function updateExistingFile() {
     closeSaveOptionsModal();
     if (!currentOpenFileId) return;
-    const idx = savedFiles.findIndex(f => f.id === currentOpenFileId);
-    if (idx === -1) return;
-    savedFiles[idx].code      = code;
-    savedFiles[idx].filename  = loadedFilename || savedFiles[idx].filename;
-    savedFiles[idx].timestamp = new Date().toISOString();
-    hasUnsavedChanges = false;
-    renderSavedFiles(); showToast('Güncelleniyor...');
-    await saveFileToCloud(savedFiles[idx]);
-    showToast(`${savedFiles[idx].filename} güncellendi ☁️`);
-
-    // Kaydedildi durumuna geç
-    setSaveButtonState('saved');
+    // Kullanıcıya değişiklik özeti sor — versiyon özeti modalı açılır
+    // Gerçek kayıt confirmVersionSave() veya skipVersionSummary() ile yapılır
+    openVersionSummaryModal();
 }
 
 // ── Saved Files Panel ──────────────────────────────────────────────────
@@ -5901,9 +6380,13 @@ function continuePreviewSavedFile(fileId) {
     _activeTab = 'html';
     code = file.code; loadedFilename = file.filename;
     currentOpenFileId = file.id; hasUnsavedChanges = false;
+    isViewingOldVersion = false; _viewingVersionNum = null;
     updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
     // Kayıtlı dosya açıldığında "Kaydedildi" durumu
     setSaveButtonState('saved');
+    _hideOldVersionBanner();
+    // Versiyon rozetini arka planda güncelle
+    VersionManager.list(fileId).then(list => { if (list.length) updateVersionBadge(list[0].version_number); else updateVersionBadge(null); });
     const r = document.querySelector('input[name="view"][value="preview"]');
     if (r) { r.checked = true; handleViewSwitch('preview'); }
     closeSavedFilesPanel(); showToast(`${file.filename} önizleniyor`);
@@ -5916,9 +6399,13 @@ function continueViewSavedFileCode(fileId) {
     _activeTab = 'html';
     code = file.code; loadedFilename = file.filename;
     currentOpenFileId = file.id; hasUnsavedChanges = false;
+    isViewingOldVersion = false; _viewingVersionNum = null;
     updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
     // Kayıtlı dosya açıldığında "Kaydedildi" durumu
     setSaveButtonState('saved');
+    _hideOldVersionBanner();
+    // Versiyon rozetini arka planda güncelle
+    VersionManager.list(fileId).then(list => { if (list.length) updateVersionBadge(list[0].version_number); else updateVersionBadge(null); });
     const r = document.querySelector('input[name="view"][value="code"]');
     if (r) { r.checked = true; handleViewSwitch('code'); }
     closeSavedFilesPanel(); showToast(`${file.filename} yüklendi`);
@@ -6047,9 +6534,12 @@ function clearCode() {
         _tabs = { html: '', css: '', js: '' }; _activeTab = 'html';
         code = ''; loadedFilename = '';
         currentOpenFileId = null; hasUnsavedChanges = false;
+        isViewingOldVersion = false; _viewingVersionNum = null;
         saveToStorage(); updateEditor(); updateFilenameDisplay();
         updateTabDotColor(); updateQuickSaveButton();
         setSaveButtonState('idle');
+        updateVersionBadge(null);
+        _hideOldVersionBanner();
         const r = document.querySelector('input[name="view"][value="code"]');
         if (r && !r.checked) { r.checked = true; handleViewSwitch('code'); }
         showToast('Kodlar temizlendi');
