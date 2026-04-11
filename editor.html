@@ -6661,7 +6661,7 @@ function _openCardMenu(userId, btn, cardType, cardId, cardTitle) {
     dd.classList.add('open');
     setTimeout(() => {
         document.addEventListener('click', _closeCardMenu, { once: true });
-        window.addEventListener('scroll', _onCardMenuScroll, { capture: true, passive: true });
+        window.addEventListener('scroll', _closeCardMenu, { once: true, capture: true, passive: true });
     }, 0);
 }
 function _closeCardMenu() {
@@ -6670,7 +6670,7 @@ function _closeCardMenu() {
     _cardMenuUserId = null;
     _cardMenuAnchorBtn = null;
     document.removeEventListener('click', _closeCardMenu);
-    window.removeEventListener('scroll', _onCardMenuScroll, { capture: true });
+    window.removeEventListener('scroll', _closeCardMenu, { capture: true });
 }
 async function _cardMenuFollow() {
     if (!currentUser || !_cardMenuUserId) return;
