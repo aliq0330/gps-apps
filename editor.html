@@ -4956,12 +4956,7 @@ function showApp() {
     _updateNotifBadge();
     updateFilenameDisplay();
     updateTabDotColor();
-    // Sayfa yenilenince açık dosyanın versiyon rozetini geri yükle
-    if (currentOpenFileId) {
-        VersionManager.list(currentOpenFileId).then(list => {
-            if (list.length) updateVersionBadge(list[0].version_number);
-        });
-    }
+    // Not: versiyon rozeti loadSavedFilesFromCloud() tamamlandıktan sonra yüklenir
 }
 
 function updateUserUI(user) {
@@ -5044,6 +5039,12 @@ async function loadSavedFilesFromCloud() {
     }
     updateQuickSaveButton();
     renderSavedFiles();
+    // Dosya listesi yüklendikten sonra versiyon rozetini güncelle
+    if (currentOpenFileId) {
+        VersionManager.list(currentOpenFileId).then(list => {
+            if (list.length) updateVersionBadge(list[0].version_number);
+        });
+    }
 }
 
 function loadLocalFiles() {
@@ -5338,6 +5339,7 @@ async function restoreVersion(versionId, versionNum) {
     if (window.cm) cm.setOption('readOnly', false);
     setSaveButtonState('saved');
     _hideOldVersionBanner();
+    saveToStorage(); // currentOpenFileId'yi koru
     closeVersionPanel();
 
     // Rozeti güncelle
@@ -6637,10 +6639,9 @@ function continuePreviewSavedFile(fileId) {
     currentOpenFileId = file.id; hasUnsavedChanges = false;
     isViewingOldVersion = false; _viewingVersionNum = null;
     updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
-    // Kayıtlı dosya açıldığında "Kaydedildi" durumu
     setSaveButtonState('saved');
     _hideOldVersionBanner();
-    // Versiyon rozetini arka planda güncelle
+    saveToStorage(); // currentOpenFileId'yi hemen kaydet (beforeunload güvenilmez)
     VersionManager.list(fileId).then(list => { if (list.length) updateVersionBadge(list[0].version_number); else updateVersionBadge(null); });
     const r = document.querySelector('input[name="view"][value="preview"]');
     if (r) { r.checked = true; handleViewSwitch('preview'); }
@@ -6656,10 +6657,9 @@ function continueViewSavedFileCode(fileId) {
     currentOpenFileId = file.id; hasUnsavedChanges = false;
     isViewingOldVersion = false; _viewingVersionNum = null;
     updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
-    // Kayıtlı dosya açıldığında "Kaydedildi" durumu
     setSaveButtonState('saved');
     _hideOldVersionBanner();
-    // Versiyon rozetini arka planda güncelle
+    saveToStorage(); // currentOpenFileId'yi hemen kaydet (beforeunload güvenilmez)
     VersionManager.list(fileId).then(list => { if (list.length) updateVersionBadge(list[0].version_number); else updateVersionBadge(null); });
     const r = document.querySelector('input[name="view"][value="code"]');
     if (r) { r.checked = true; handleViewSwitch('code'); }
