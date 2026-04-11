@@ -2212,7 +2212,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     position: absolute; inset: 0; z-index: 2; cursor: pointer;
 }
 .feed-thumb-frame.loaded { opacity: 1; }
-.feed-card-actions { display: flex; gap: 2px; padding: 8px 10px 8px; align-items: center; }
+.feed-card-actions { display: flex; gap: 4px; padding: 10px 12px; align-items: center; }
 .feed-card-desc {
     padding: 0px 14px 6px;
     font-size: 16px; font-weight: 400;
@@ -2226,22 +2226,24 @@ body.preview-mode .file-title-bar { display: none !important; }
     display: block; -webkit-line-clamp: unset; overflow: visible;
 }
 .feed-like-btn {
-    background: none; border: none; cursor: pointer; font-size: 17px;
-    color: var(--text-secondary); padding: 6px 8px; border-radius: 8px;
-    font-family: inherit; display: flex; align-items: center; gap: 5px; transition: color 0.15s;
+    background: none; border: none; cursor: pointer; font-size: 21px;
+    color: var(--text-secondary); padding: 8px 12px; border-radius: 10px;
+    font-family: inherit; display: flex; align-items: center; gap: 6px; transition: color 0.15s;
 }
 .feed-like-btn.liked { color: #ff3b30; }
-.feed-like-btn span { font-size: 13px; font-weight: 600; }
+.feed-like-btn span { font-size: 14px; font-weight: 600; }
 .feed-comment-toggle {
     background: none; border: none; cursor: pointer; font-size: 15px;
-    color: var(--text-secondary); padding: 6px 8px; border-radius: 8px; font-family: inherit;
-    display: flex; align-items: center; gap: 5px;
+    color: var(--text-secondary); padding: 8px 12px; border-radius: 10px; font-family: inherit;
+    display: flex; align-items: center; gap: 6px;
 }
-.feed-comment-toggle span { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.feed-comment-toggle svg { width: 20px !important; height: 20px !important; }
+.feed-comment-toggle span { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
 .feed-share-btn {
     background: none; border: none; cursor: pointer; color: var(--text-secondary);
-    padding: 6px 8px; border-radius: 8px; display: flex; align-items: center; margin-left: auto;
+    padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; margin-left: auto;
 }
+.feed-share-btn svg { width: 20px !important; height: 20px !important; }
 .feed-like-text { padding: 0 14px 4px; font-size: 12px; color: var(--text-secondary); font-weight: 500; }
 .fork-count-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 .fork-count-badge:empty { display: none; }
@@ -2283,8 +2285,8 @@ body.preview-mode .file-title-bar { display: none !important; }
 .msg-card-sub { font-size:11px; color:var(--text-secondary); margin-top:2px; }
 
 /* feed-share-btn paylaş label */
-.feed-share-btn { gap:4px; }
-.feed-share-btn-label { font-size:12px; font-weight:600; color:var(--text-secondary); }
+.feed-share-btn { gap:6px; }
+.feed-share-btn-label { font-size:14px; font-weight:600; color:var(--text-secondary); }
 
 .explore-card-stats { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .pub-file-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -2501,7 +2503,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 .coll-card-thumb { position: relative; overflow: hidden; aspect-ratio: 4/3; background: #0a1225; }
 .coll-card-thumb iframe { width: 200%; height: 200%; transform: scale(0.5); transform-origin: 0 0; pointer-events: none; border: none; }
 .coll-card-thumb-overlay { position: absolute; inset: 0; }
-.coll-card-actions { display: flex; align-items: center; gap: 2px; padding: 8px 10px 8px; }
+.coll-card-actions { display: flex; align-items: center; gap: 4px; padding: 10px 12px; }
 /* Collection overlay */
 .coll-overlay {
     position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0; z-index: 8000; background: var(--bg);
