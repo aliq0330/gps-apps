@@ -1677,7 +1677,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     background: #ff3b30; color: #fff; border-radius: 8px;
     font-size: 10px; font-weight: 700; padding: 0 5px;
     min-width: 16px; text-align: center; line-height: 16px; height: 16px;
-    display: none;
+    display: none; z-index: 10; pointer-events: none;
 }
 .msg-btn {
     display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -3852,7 +3852,8 @@ function showApp() {
     loadFromStorage();
     _handleInitialRoute();
     updateEditor();
-    _updateUnreadBadge();
+    // Badge görünürlük testi: 1 sn göster, sonra gerçek değere geç
+    _setBadge(1); setTimeout(() => _updateUnreadBadge(), 1000);
     _subscribeGlobalMsg();
     _updateNotifBadge();
     updateFilenameDisplay();
