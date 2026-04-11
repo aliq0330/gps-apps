@@ -7270,7 +7270,7 @@ function _subscribeGlobalMsg() {
                 // Mesajlar listesi açıksa (sohbet içinde değilken) listeyi canlı yenile
                 const msgsPanel = document.getElementById('messagesOverlay');
                 if (msgsPanel?.classList.contains('open') && !_activeConvId) {
-                    loadConversations();
+                    setTimeout(() => loadConversations(), 400);
                 }
             }
         })
