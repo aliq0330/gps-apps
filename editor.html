@@ -7226,10 +7226,18 @@ function openSharePersonModal(type, itemId, itemName) {
 
 async function _updateUnreadBadge() {
     if (!currentUser) return;
+    // Önce kullanıcının konuşma ID'lerini al
+    const { data: convs } = await sb.from('conversations')
+        .select('id')
+        .or(`user1_id.eq.${currentUser.id},user2_id.eq.${currentUser.id}`);
+    const convIds = (convs || []).map(c => c.id);
+    if (!convIds.length) { _setBadge(0); return; }
+    // O konuşmalardaki okunmamış mesajları say (kendi gönderdiklerin hariç)
     const { data } = await sb.from('messages')
         .select('id')
         .eq('read', false)
-        .neq('sender_id', currentUser.id);
+        .neq('sender_id', currentUser.id)
+        .in('conversation_id', convIds);
     _setBadge((data || []).length);
 }
 
@@ -7242,6 +7250,7 @@ function _setBadge(n) {
 
 // ── GLOBAL GERÇEK ZAMANLI MESAJ BADGEi ────────────────────────────────
 let _globalMsgSub = null;
+let _badgePollTimer = null;
 function _subscribeGlobalMsg() {
     if (!currentUser || _globalMsgSub) return;
     _globalMsgSub = sb.channel('global-msgs-' + currentUser.id)
@@ -7249,7 +7258,6 @@ function _subscribeGlobalMsg() {
             event: 'INSERT', schema: 'public', table: 'messages'
         }, payload => {
             const m = payload.new;
-            // Kendi mesajlarımızı sayma, aktif sohbetteki mesajlar zaten okunuyor
             if (m.sender_id !== currentUser.id && m.conversation_id !== _activeConvId) {
                 _updateUnreadBadge();
             }
@@ -7257,12 +7265,22 @@ function _subscribeGlobalMsg() {
         .on('postgres_changes', {
             event: 'UPDATE', schema: 'public', table: 'messages'
         }, payload => {
-            // Okundu işaretlenince badge'i güncelle
             if (payload.new.read === true && payload.old.read === false) {
                 _updateUnreadBadge();
             }
         })
-        .subscribe();
+        .subscribe(status => {
+            // Realtime bağlantı başarısız olursa 20sn'de bir polling yap
+            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                if (!_badgePollTimer) {
+                    _badgePollTimer = setInterval(() => _updateUnreadBadge(), 20000);
+                }
+            }
+        });
+    // Ek güvenlik: 20sn'de bir güncelle (Realtime + polling birlikte çalışır)
+    if (!_badgePollTimer) {
+        _badgePollTimer = setInterval(() => _updateUnreadBadge(), 20000);
+    }
 }
 
 function _attachConvSwipe() {
