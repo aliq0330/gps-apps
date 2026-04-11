@@ -5294,6 +5294,7 @@ function renderVersionList() {
 }
 
 // Versiyonu önizle (editöre yükle, salt okunur banner göster)
+// Versiyonu önizle — sadece görüntüle, salt okunur
 async function previewVersion(versionId, versionNum) {
     showToast(`v${versionNum} yükleniyor...`);
     const ver = await VersionManager.getCode(versionId);
@@ -5306,25 +5307,42 @@ async function previewVersion(versionId, versionNum) {
     _viewingVersionNum = versionNum;
 
     updateEditor();
-    // CodeMirror'u salt okunur yap
     if (window.cm) cm.setOption('readOnly', 'nocursor');
     handleViewSwitch('preview');
     closeVersionPanel();
-    _showOldVersionBanner(versionNum);
+    _showOldVersionBanner(versionNum, false);   // sadece önizleme
     _setOldVersionSaveBtn(versionNum);
     showToast(`v${versionNum} görüntüleniyor`);
 }
 
-// Versiyonu geri yükle (geçmişi bozmadan yeni versiyon olarak kaydet)
+// Versiyonu geri yükle — önizler + banner "geri yükleniyor" modunda açılır,
+// kullanıcı toolbar butonuna basarak onaylar (confirm() dialog yok)
 async function restoreVersion(versionId, versionNum) {
-    const currentNum = versionHistory[0]?.version_number || '?';
-    if (!confirm(`v${versionNum} içeriğini geri yüklemek istiyor musunuz?\n\nMevcut v${currentNum} tarihçede korunacak, yeni bir versiyon oluşturulacak.`)) return;
-    showToast(`v${versionNum} geri yükleniyor...`);
+    showToast(`v${versionNum} yükleniyor...`);
+    const ver = await VersionManager.getCode(versionId);
+    if (!ver) { showToast('Versiyon yüklenemedi'); return; }
 
+    _tabs = _splitHtmlToTabs(`<html><body>${ver.code}</body></html>`);
+    _activeTab = 'html';
+    code = ver.code;
+    isViewingOldVersion = true;
+    _viewingVersionNum = versionNum;
+
+    updateEditor();
+    if (window.cm) cm.setOption('readOnly', 'nocursor');
+    handleViewSwitch('preview');
+    closeVersionPanel();
+    _showOldVersionBanner(versionNum, true);    // geri yükleme onay modu
+    _setOldVersionSaveBtn(versionNum);
+    showToast(`v${versionNum} geri yüklemek için butona basın`);
+}
+
+// Gerçek geri yükleme işlemi — toolbar butonundan tetiklenir
+async function _doActualRestore(versionId, versionNum) {
+    showToast(`v${versionNum} geri yükleniyor...`);
     const restoredCode = await VersionManager.restore(currentOpenFileId, versionId, versionNum);
     if (!restoredCode) { showToast('Geri yükleme başarısız'); return; }
 
-    // Yerel state güncelle
     const idx = savedFiles.findIndex(f => f.id === currentOpenFileId);
     if (idx !== -1) savedFiles[idx].code = restoredCode;
 
@@ -5339,10 +5357,8 @@ async function restoreVersion(versionId, versionNum) {
     if (window.cm) cm.setOption('readOnly', false);
     setSaveButtonState('saved');
     _hideOldVersionBanner();
-    saveToStorage(); // currentOpenFileId'yi koru
-    closeVersionPanel();
+    saveToStorage();
 
-    // Rozeti güncelle
     versionHistory = await VersionManager.list(currentOpenFileId);
     if (versionHistory.length) updateVersionBadge(versionHistory[0].version_number);
 
@@ -5368,10 +5384,16 @@ function exitOldVersionView() {
 }
 
 // Eski versiyon uyarı banner'ı
-function _showOldVersionBanner(num) {
+// restoreIntent=true → "geri yüklenecek" modu, false → sadece önizleme
+function _showOldVersionBanner(num, restoreIntent = false) {
     const banner = document.getElementById('oldVersionBanner');
     if (!banner) return;
-    document.getElementById('oldVersionBannerText').textContent = `📖 v${num} görüntülüyorsunuz — salt okunur`;
+    const text = document.getElementById('oldVersionBannerText');
+    if (restoreIntent) {
+        text.textContent = `🔄 v${num} geri yüklenecek — yukarıdaki butonla onayla`;
+    } else {
+        text.textContent = `📖 v${num} görüntülüyorsunuz — salt okunur`;
+    }
     banner.style.display = 'flex';
 }
 function _hideOldVersionBanner() {
@@ -5379,21 +5401,26 @@ function _hideOldVersionBanner() {
     if (banner) banner.style.display = 'none';
 }
 
-// Eski versiyon açıkken kaydet butonunu "Bu Versiyonu Geri Yükle" olarak güncelle
+// Toolbar save butonunu "v{n}'ü Geri Yükle" moduna al
 function _setOldVersionSaveBtn(versionNum) {
     const tbBtn = document.getElementById('toolbarSaveBtn');
     if (!tbBtn) return;
     tbBtn.style.color = '#ff9f0a';
-    tbBtn.onclick = () => restoreVersionFromSaveBtn(versionNum);
+    tbBtn.onclick = () => _confirmRestoreFromBtn(versionNum);
     tbBtn.querySelector('svg').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>';
     tbBtn.childNodes[tbBtn.childNodes.length - 1].textContent = ` v${versionNum}'ü Geri Yükle`;
 }
 
-async function restoreVersionFromSaveBtn(versionNum) {
-    // versionHistory'den id bul
+// Toolbar butonundan onay — versionHistory'den id bulup gerçek restore'u çağır
+async function _confirmRestoreFromBtn(versionNum) {
     const v = versionHistory.find(v => v.version_number === versionNum);
     if (!v) { showToast('Versiyon bulunamadı'); return; }
-    await restoreVersion(v.id, versionNum);
+    await _doActualRestore(v.id, versionNum);
+}
+
+// Eski ad ile uyumluluk (toolbar buton handler olarak set edilmişti)
+async function restoreVersionFromSaveBtn(versionNum) {
+    await _confirmRestoreFromBtn(versionNum);
 }
 
 // Toolbar'daki versiyon rozeti güncelle
