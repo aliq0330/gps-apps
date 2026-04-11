@@ -1093,7 +1093,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     font-weight: 500;
 }
 .pub-follow-inline {
-    font-size: 12px; font-weight: 500; display: flex; align-items: center;
+    font-size: 15px; font-weight: 500; display: flex; align-items: center;
     flex-shrink: 0;
 }
 
@@ -2838,19 +2838,17 @@ body.preview-mode .file-title-bar { display: none !important; }
                 <span id="pubProfileEmoji">👤</span>
             </div>
             <div class="profile-header-info">
-                <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
-                    <div class="profile-username-display" id="pubProfileUsername">—</div>
-                    <div class="pub-follow-inline">
-                        <span onclick="_openFollowList('followers')" style="cursor:pointer;">
-                            <span id="pubStatFollowers" style="font-weight:700;color:var(--text-primary);">0</span>
-                            <span style="color:var(--text-secondary);"> takipçi</span>
-                        </span>
-                        <span style="color:var(--glass-border);margin:0 4px;">·</span>
-                        <span onclick="_openFollowList('following')" style="cursor:pointer;">
-                            <span id="pubStatFollowing" style="font-weight:700;color:var(--text-primary);">0</span>
-                            <span style="color:var(--text-secondary);"> takip</span>
-                        </span>
-                    </div>
+                <div class="profile-username-display" id="pubProfileUsername">—</div>
+                <div class="pub-follow-inline" style="margin-top:6px;">
+                    <span onclick="_openFollowList('followers')" style="cursor:pointer;">
+                        <span id="pubStatFollowers" style="font-weight:700;color:var(--text-primary);">0</span>
+                        <span style="color:var(--text-secondary);"> takipçi</span>
+                    </span>
+                    <span style="color:var(--glass-border);margin:0 8px;">·</span>
+                    <span onclick="_openFollowList('following')" style="cursor:pointer;">
+                        <span id="pubStatFollowing" style="font-weight:700;color:var(--text-primary);">0</span>
+                        <span style="color:var(--text-secondary);"> takip</span>
+                    </span>
                 </div>
                 <div class="profile-member-since" id="pubProfileSince"></div>
             </div>
