@@ -5791,7 +5791,7 @@ function renderVersionList() {
             <button class="version-action-btn" onclick="previewVersion('${v.id}', ${v.version_number})">Önizle</button>
             ${!isCurrent ? `<button class="version-action-btn diff-btn" onclick="showDiff('${v.id}', ${v.version_number})">Fark</button>` : ''}
             ${!isCurrent ? `<button class="version-action-btn restore" onclick="restoreVersion('${v.id}', ${v.version_number})">Geri Yükle</button>` : ''}
-            <button class="version-action-btn tag-btn" onclick="openTagModal('${v.id}', ${JSON.stringify(v.tag || '')})" title="Etiket ekle/düzenle">⭐ Etiket</button>
+            <button class="version-action-btn tag-btn" onclick="openTagModal('${v.id}')" title="Etiket ekle/düzenle">⭐ Etiket</button>
             <button class="version-action-btn download-btn" onclick="downloadVersion('${v.id}', ${v.version_number})" title="Bu versiyonu indir">↓ İndir</button>
             ${!isCurrent ? `<button class="version-action-btn delete-btn" onclick="deleteVersion('${v.id}', ${v.version_number})" title="Versiyonu sil">🗑 Sil</button>` : ''}
         </div>`;
@@ -6003,9 +6003,12 @@ function clearCompareSelection() {
 }
 
 // ── Feature 2: Versiyon Etiketleme ────────────────────────────────────
-function openTagModal(versionId, currentTag) {
+function openTagModal(versionId) {
     _tagEditVersionId = versionId;
-    document.getElementById('tagModalInput').value = currentTag || '';
+    // Tag değerini versionHistory'den güvenli oku (HTML encoding sorunu yok)
+    const v = versionHistory.find(v => v.id === versionId);
+    const currentTag = v ? (v.tag || '') : '';
+    document.getElementById('tagModalInput').value = currentTag;
     const sub = document.getElementById('tagModalSubtitle');
     if (sub) sub.textContent = currentTag ? `Mevcut etiket: "${currentTag}"` : 'Bu versiyona bir isim/etiket ekleyin';
     const removeBtn = document.getElementById('tagModalRemoveBtn');
