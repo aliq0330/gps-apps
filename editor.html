@@ -7190,6 +7190,14 @@ async function sendMessage() {
         await sb.from('conversations')
             .update({ last_message_at: new Date().toISOString() })
             .eq('id', _activeConvId);
+        // Alıcıya anlık badge sinyali gönder (Broadcast — RLS yok)
+        const _otherId = _convOtherUser?.id;
+        if (_otherId) {
+            sb.channel('inbox-' + _otherId).send({
+                type: 'broadcast', event: 'new_msg',
+                payload: { convId: _activeConvId }
+            });
+        }
         // Mesaj listesi önizlemesini güncelle
         const _pEl = document.querySelector(`.conv-item[data-conv-id="${_activeConvId}"] .conv-item-preview`);
         const _tEl = document.querySelector(`.conv-item[data-conv-id="${_activeConvId}"] .conv-item-time`);
@@ -7253,31 +7261,15 @@ let _globalMsgSub = null;
 let _badgePollTimer = null;
 function _subscribeGlobalMsg() {
     if (!currentUser || _globalMsgSub) return;
-    _globalMsgSub = sb.channel('global-msgs-' + currentUser.id)
-        .on('postgres_changes', {
-            event: 'INSERT', schema: 'public', table: 'messages'
-        }, payload => {
-            const m = payload.new;
-            if (m.sender_id !== currentUser.id && m.conversation_id !== _activeConvId) {
+    // Broadcast kanalı — RLS sorunu yok, anlık çalışır
+    _globalMsgSub = sb.channel('inbox-' + currentUser.id)
+        .on('broadcast', { event: 'new_msg' }, ({ payload }) => {
+            if (payload?.convId !== _activeConvId) {
                 _updateUnreadBadge();
             }
         })
-        .on('postgres_changes', {
-            event: 'UPDATE', schema: 'public', table: 'messages'
-        }, payload => {
-            if (payload.new.read === true && payload.old.read === false) {
-                _updateUnreadBadge();
-            }
-        })
-        .subscribe(status => {
-            // Realtime bağlantı başarısız olursa 20sn'de bir polling yap
-            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                if (!_badgePollTimer) {
-                    _badgePollTimer = setInterval(() => _updateUnreadBadge(), 20000);
-                }
-            }
-        });
-    // Ek güvenlik: 20sn'de bir güncelle (Realtime + polling birlikte çalışır)
+        .subscribe();
+    // Yedek polling: 20sn'de bir kontrol
     if (!_badgePollTimer) {
         _badgePollTimer = setInterval(() => _updateUnreadBadge(), 20000);
     }
