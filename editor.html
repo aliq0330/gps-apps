@@ -826,6 +826,22 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .saved-file-item:hover { background: rgba(255,255,255,0.3); }
 @media (prefers-color-scheme: dark) { .saved-file-item:hover { background: rgba(255,255,255,0.05); } }
 
+/* ── Gündüz modu kart belirginliği ───────────────────────────────────── */
+@media (prefers-color-scheme: light) {
+    .saved-file-item,
+    .pub-file-card,
+    .feed-card,
+    .coll-card {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.09);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .saved-file-item:hover { background: #f7f7f8; }
+    .pub-file-card:hover   { background: #f7f7f8; box-shadow: 0 4px 14px rgba(0,0,0,0.1); transform: translateY(-1px); }
+    .feed-card:hover,
+    .coll-card:hover        { background: #f7f7f8; }
+}
+
 .swipe-wrapper.collapsing { animation: collapseRow 0.38s cubic-bezier(0.4,0,0.2,1) forwards; }
 @keyframes collapseRow { 0% { max-height:200px;opacity:1;margin-bottom:12px;transform:scale(1); } 30% { opacity:0;transform:scale(0.92) translateX(-8px); } 100% { max-height:0;opacity:0;margin-bottom:0;padding:0;transform:scale(0.88) translateX(-16px); } }
 
@@ -2001,7 +2017,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 /* ── AKIŞ KARTLARI ────────────────────────────────────── */
 .feed-card {
-    background: var(--glass-bg); border: 0px solid var(--glass-border);
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
     border-radius: 16px; margin-bottom: 14px; overflow: hidden;
 }
 .feed-card-header {
@@ -2463,7 +2479,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 /* Collection card (feed/explore) */
 .coll-card {
     background: var(--glass-bg); border-radius: 18px;
-    border: 0px solid var(--glass-border); overflow: hidden; margin-bottom: 16px;
+    border: 1px solid var(--glass-border); overflow: hidden; margin-bottom: 16px;
 }
 .coll-card-header {
     display: flex; align-items: center; gap: 10px;
