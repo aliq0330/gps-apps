@@ -7234,16 +7234,15 @@ function openSharePersonModal(type, itemId, itemName) {
 
 async function _updateUnreadBadge() {
     if (!currentUser) return;
-    // Önce kullanıcının konuşma ID'lerini al
     const { data: convs } = await sb.from('conversations')
         .select('id')
         .or(`user1_id.eq.${currentUser.id},user2_id.eq.${currentUser.id}`);
     const convIds = (convs || []).map(c => c.id);
     if (!convIds.length) { _setBadge(0); return; }
-    // O konuşmalardaki okunmamış mesajları say (kendi gönderdiklerin hariç)
+    // read=false veya read=null → okunmamış say
     const { data } = await sb.from('messages')
         .select('id')
-        .eq('read', false)
+        .or('read.eq.false,read.is.null')
         .neq('sender_id', currentUser.id)
         .in('conversation_id', convIds);
     _setBadge((data || []).length);
