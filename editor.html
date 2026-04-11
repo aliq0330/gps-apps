@@ -5781,6 +5781,9 @@ function renderVersionList() {
                     <span class="version-deleted-label">🗑 Bu versiyon silindi</span>
                     <div class="version-date">${dateStr}</div>
                 </div>
+                <div class="version-actions">
+                    <button class="version-action-btn restore" onclick="undeleteVersion('${v.id}', ${v.version_number})">↩ Geri Yükle</button>
+                </div>
             </div>`;
         }
 
@@ -6109,6 +6112,25 @@ async function deleteVersion(versionId, versionNum) {
         showToast(`v${versionNum} silindi ✓`);
     } else {
         showToast('Silme işlemi başarısız');
+    }
+}
+
+// Silinmiş versiyonu geri getir (is_deleted = false)
+async function undeleteVersion(versionId, versionNum) {
+    showToast(`v${versionNum} geri getiriliyor...`);
+    try {
+        const { error } = await sb.from('file_versions')
+            .update({ is_deleted: false })
+            .eq('id', versionId)
+            .eq('user_id', currentUser.id);
+        if (error) throw error;
+        const v = versionHistory.find(v => v.id === versionId);
+        if (v) v.is_deleted = false;
+        renderVersionList();
+        showToast(`v${versionNum} geri getirildi ✓`);
+    } catch(e) {
+        console.error('Undelete error:', e);
+        showToast('Geri getirme başarısız');
     }
 }
 
