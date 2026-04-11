@@ -5490,15 +5490,6 @@ const VersionManager = {
         }
     },
 
-            // 50 versiyon limitini uygula (silinmeyenler için)
-            await VersionManager._pruneOldVersions(fileId);
-            return data;
-        } catch(e) {
-            console.error('Version create error:', e);
-            return null;
-        }
-    },
-
     // Versiyon listesini getir (metadata + yeni alanlar, eski şemaya fallback)
     async list(fileId) {
         if (!fileId) return [];
