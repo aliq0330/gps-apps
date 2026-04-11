@@ -937,6 +937,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .saved-file-btn.preview:hover { background: rgba(0,122,255,0.15); border-color: rgba(0,122,255,0.3); color: #007aff; }
 .saved-file-btn.code:hover { background: rgba(175,82,222,0.15); border-color: rgba(175,82,222,0.3); color: #af52de; }
 .saved-file-btn.view:hover { background: rgba(255,159,10,0.15); border-color: rgba(255,159,10,0.3); color: #ff9f0a; }
+.saved-file-btn.history:hover { background: rgba(100,210,255,0.15); border-color: rgba(100,210,255,0.3); color: #64d2ff; }
 
 .saved-files-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); backdrop-filter: blur(4px); z-index: 140; display: none; opacity: 0; transition: opacity 0.3s ease; }
 .saved-files-overlay.open { display: block; opacity: 1; }
@@ -3785,6 +3786,7 @@ let currentVersionId    = null;   // Açık dosyanın güncel version id'si
 let versionHistory      = [];     // Versiyon listesi önbelleği
 let isViewingOldVersion = false;  // Eski versiyon görüntüleniyor mu?
 let _viewingVersionNum  = null;   // Görüntülenen eski versiyon numarası
+let _versionPanelFileId = null;   // Version panelinin gösterdiği dosya ID'si
 
 // Profil state
 let currentProfile = null;
@@ -5247,8 +5249,18 @@ const VersionManager = {
 // ── Versiyon Paneli ─────────────────────────────────────────────────────
 function openVersionPanel() {
     if (!currentOpenFileId) { showToast('Önce bir dosya açın veya kaydedin'); return; }
+    _versionPanelFileId = currentOpenFileId;
     const f = savedFiles.find(f => f.id === currentOpenFileId);
     document.getElementById('versionPanelFileLabel').textContent = f ? f.filename : '';
+    document.getElementById('versionPanel').classList.add('open');
+    loadVersionHistory();
+}
+
+function openVersionPanelForFile(fileId) {
+    const f = savedFiles.find(f => f.id === fileId);
+    if (!f) return;
+    _versionPanelFileId = fileId;
+    document.getElementById('versionPanelFileLabel').textContent = f.filename;
     document.getElementById('versionPanel').classList.add('open');
     loadVersionHistory();
 }
@@ -5258,9 +5270,10 @@ function closeVersionPanel() {
 }
 
 async function loadVersionHistory() {
+    const fileId = _versionPanelFileId || currentOpenFileId;
     const listEl = document.getElementById('versionList');
     listEl.innerHTML = '<div class="version-loading">Yükleniyor...</div>';
-    versionHistory = await VersionManager.list(currentOpenFileId);
+    versionHistory = await VersionManager.list(fileId);
     renderVersionList();
 }
 
@@ -5299,6 +5312,12 @@ async function previewVersion(versionId, versionNum) {
     const ver = await VersionManager.getCode(versionId);
     if (!ver) { showToast('Versiyon yüklenemedi'); return; }
 
+    // Farklı dosyanın versiyonuysa editör bağlamını güncelle
+    if (_versionPanelFileId && _versionPanelFileId !== currentOpenFileId) {
+        const f = savedFiles.find(f => f.id === _versionPanelFileId);
+        if (f) { currentOpenFileId = _versionPanelFileId; loadedFilename = f.filename; updateFilenameDisplay(); saveToStorage(); }
+    }
+
     _tabs = _splitHtmlToTabs(`<html><body>${ver.code}</body></html>`);
     _activeTab = 'html';
     code = ver.code;
@@ -5317,16 +5336,23 @@ async function previewVersion(versionId, versionNum) {
 
 // Versiyonu geri yükle (geçmişi bozmadan yeni versiyon olarak kaydet)
 async function restoreVersion(versionId, versionNum) {
+    const fileId = _versionPanelFileId || currentOpenFileId;
     const currentNum = versionHistory[0]?.version_number || '?';
     if (!confirm(`v${versionNum} içeriğini geri yüklemek istiyor musunuz?\n\nMevcut v${currentNum} tarihçede korunacak, yeni bir versiyon oluşturulacak.`)) return;
     showToast(`v${versionNum} geri yükleniyor...`);
 
-    const restoredCode = await VersionManager.restore(currentOpenFileId, versionId, versionNum);
+    const restoredCode = await VersionManager.restore(fileId, versionId, versionNum);
     if (!restoredCode) { showToast('Geri yükleme başarısız'); return; }
 
     // Yerel state güncelle
-    const idx = savedFiles.findIndex(f => f.id === currentOpenFileId);
+    const idx = savedFiles.findIndex(f => f.id === fileId);
     if (idx !== -1) savedFiles[idx].code = restoredCode;
+
+    // Farklı dosyaysa editör bağlamını değiştir
+    if (fileId !== currentOpenFileId) {
+        const f = savedFiles.find(f => f.id === fileId);
+        if (f) { currentOpenFileId = fileId; loadedFilename = f.filename; updateFilenameDisplay(); }
+    }
 
     _tabs = _splitHtmlToTabs(`<html><body>${restoredCode}</body></html>`);
     _activeTab = 'html';
@@ -5339,11 +5365,11 @@ async function restoreVersion(versionId, versionNum) {
     if (window.cm) cm.setOption('readOnly', false);
     setSaveButtonState('saved');
     _hideOldVersionBanner();
-    saveToStorage(); // currentOpenFileId'yi koru
+    saveToStorage();
     closeVersionPanel();
 
     // Rozeti güncelle
-    versionHistory = await VersionManager.list(currentOpenFileId);
+    versionHistory = await VersionManager.list(fileId);
     if (versionHistory.length) updateVersionBadge(versionHistory[0].version_number);
 
     showToast(`v${versionNum} geri yüklendi ✓`);
@@ -5487,8 +5513,14 @@ async function showDiff(versionId, versionNum) {
 
     // Eski versiyonu tab'lara böl
     const oldTabs = _splitHtmlToTabs(`<html><body>${ver.code}</body></html>`);
-    // Güncel editör içeriği
-    const nowTabs = { html: _tabs.html || '', css: _tabs.css || '', js: _tabs.js || '' };
+    // Güncel içerik: farklı dosya ise savedFiles'tan al, yoksa editör içeriği
+    let nowTabs;
+    if (_versionPanelFileId && _versionPanelFileId !== currentOpenFileId) {
+        const pf = savedFiles.find(f => f.id === _versionPanelFileId);
+        nowTabs = pf ? _splitHtmlToTabs(`<html><body>${pf.code}</body></html>`) : { html: _tabs.html || '', css: _tabs.css || '', js: _tabs.js || '' };
+    } else {
+        nowTabs = { html: _tabs.html || '', css: _tabs.css || '', js: _tabs.js || '' };
+    }
 
     // Her tab için LCS diff hesapla
     _diffData = {
@@ -6470,6 +6502,13 @@ function renderSavedFiles() {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                         </svg>
                         Görüntüleyici
+                    </button>` : ''}
+                    ${file.cloud ? `
+                    <button class="saved-file-btn history" onclick="event.stopPropagation();openVersionPanelForFile('${file.id}')">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Geçmiş
                     </button>` : ''}
                 </div>
                 ${file.cloud ? (() => {
