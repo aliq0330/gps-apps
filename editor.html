@@ -1217,6 +1217,33 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .admin-act-title { font-size: 14px; font-weight: 600; }
 .admin-act-sub { font-size: 11px; opacity: 0.7; margin-top: 2px; }
 
+/* Admin genel istatistik özeti bar */
+.admin-totals-bar {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 6px; padding: 10px 12px;
+    border-bottom: 1px solid var(--glass-border);
+    flex-shrink: 0;
+}
+.admin-total-card {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 8px 4px; border-radius: 12px;
+    border: 1px solid var(--glass-border); background: var(--glass-bg);
+    gap: 2px;
+}
+.admin-total-icon { font-size: 16px; line-height: 1; }
+.admin-total-num  { font-size: 15px; font-weight: 800; color: var(--text-primary); line-height: 1.1; }
+.admin-total-lbl  { font-size: 9px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.admin-total-card.t-files { border-color: rgba(255,149,0,0.3); background: rgba(255,149,0,0.07); }
+.admin-total-card.t-files .admin-total-num { color: #ff9500; }
+.admin-total-card.t-colls { border-color: rgba(88,86,214,0.3); background: rgba(88,86,214,0.07); }
+.admin-total-card.t-colls .admin-total-num { color: #5856d6; }
+.admin-total-card.t-cmts  { border-color: rgba(52,199,89,0.3);  background: rgba(52,199,89,0.07); }
+.admin-total-card.t-cmts  .admin-total-num { color: #34c759; }
+.admin-total-card.t-reps  { border-color: rgba(0,199,190,0.3);  background: rgba(0,199,190,0.07); }
+.admin-total-card.t-reps  .admin-total-num { color: #00c7be; }
+.admin-total-card.t-msgs  { border-color: rgba(0,122,255,0.3);  background: rgba(0,122,255,0.07); }
+.admin-total-card.t-msgs  .admin-total-num { color: #007aff; }
+
 /* Admin kullanıcı satırı istatistik rozetleri */
 .admin-user-stats { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
 .admin-user-stat-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
@@ -3717,8 +3744,35 @@ async function _adminLoadUsers() {
     _adminUserStats = {};
     document.getElementById('adminUserCount').textContent = data.length + ' kullanıcı';
     _adminRender(data);
-    // İstatistikleri arka planda yükle
+    // Genel toplamları ve kullanıcı istatistiklerini paralel yükle
+    _adminLoadTotals();
     _adminFetchAllStats(data.map(u => u.id));
+}
+
+async function _adminLoadTotals() {
+    const [
+        { count: files },
+        { count: colls },
+        { count: cmts },
+        { count: colCmts },
+        { count: reps },
+        { count: colReps },
+        { count: msgs }
+    ] = await Promise.all([
+        sb.from('files').select('id', { count: 'exact', head: true }),
+        sb.from('collections').select('id', { count: 'exact', head: true }),
+        sb.from('comments').select('id', { count: 'exact', head: true }).is('parent_id', null),
+        sb.from('collection_comments').select('id', { count: 'exact', head: true }).is('parent_id', null),
+        sb.from('comments').select('id', { count: 'exact', head: true }).not('parent_id', 'is', null),
+        sb.from('collection_comments').select('id', { count: 'exact', head: true }).not('parent_id', 'is', null),
+        sb.from('messages').select('id', { count: 'exact', head: true })
+    ]);
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val ?? '?'; };
+    set('atot-files', files ?? '?');
+    set('atot-colls', colls ?? '?');
+    set('atot-cmts',  (cmts ?? 0) + (colCmts ?? 0));
+    set('atot-reps',  (reps ?? 0) + (colReps ?? 0));
+    set('atot-msgs',  msgs ?? '?');
 }
 
 async function _adminFetchAllStats(ids) {
@@ -10161,7 +10215,14 @@ async function _shareCopyLink() {
                 style="padding:6px 10px;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text-primary);font-size:13px;font-family:inherit;width:130px;outline:none;">
         </div>
     </div>
-    <div style="padding:12px;overflow-y:auto;height:calc(100% - 56px);">
+    <div class="admin-totals-bar" id="adminTotalsBar">
+        <div class="admin-total-card t-files"><div class="admin-total-icon">📁</div><div class="admin-total-num" id="atot-files">…</div><div class="admin-total-lbl">Dosya</div></div>
+        <div class="admin-total-card t-colls"><div class="admin-total-icon">📚</div><div class="admin-total-num" id="atot-colls">…</div><div class="admin-total-lbl">Koleksiyon</div></div>
+        <div class="admin-total-card t-cmts"><div class="admin-total-icon">💬</div><div class="admin-total-num" id="atot-cmts">…</div><div class="admin-total-lbl">Yorum</div></div>
+        <div class="admin-total-card t-reps"><div class="admin-total-icon">↩️</div><div class="admin-total-num" id="atot-reps">…</div><div class="admin-total-lbl">Yanıt</div></div>
+        <div class="admin-total-card t-msgs"><div class="admin-total-icon">✉️</div><div class="admin-total-num" id="atot-msgs">…</div><div class="admin-total-lbl">Mesaj</div></div>
+    </div>
+    <div style="padding:12px;overflow-y:auto;height:calc(100% - 124px);">
         <div id="adminUserList"><div class="search-empty">Yükleniyor...</div></div>
     </div>
 </div>
