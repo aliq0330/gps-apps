@@ -2797,6 +2797,7 @@ body.preview-mode .file-title-bar { display: none !important; }
             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
         </button>
         <span id="pubProfileHeaderTitle" style="font-size:17px;font-weight:700;color:var(--text-primary);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</span>
+        <button id="pubProfileEditBtn" onclick="closePublicProfile();openProfilePanel()" style="display:none;padding:7px 14px;border-radius:10px;border:1.5px solid rgba(0,122,255,0.4);background:rgba(0,122,255,0.1);color:#007aff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">Düzenle</button>
     </div>
     <div class="pub-profile-panel" id="pubProfilePanel">
         <div class="profile-header" id="pubProfileHeader">
@@ -6360,6 +6361,8 @@ async function openPublicProfile(userId) {
     document.getElementById('pubStatFollowing').textContent = '0';
     const followBtn = document.getElementById('pubFollowBtn');
     followBtn.style.display = 'none';
+    const editBtn = document.getElementById('pubProfileEditBtn');
+    if (editBtn) editBtn.style.display = (currentUser && currentUser.id === userId) ? '' : 'none';
 
     try {
         // Profil bilgisi + dosyalar + takip verileri paralel çek
