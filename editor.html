@@ -1050,15 +1050,16 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     display: flex; align-items: center; justify-content: center;
     font-size: 32px; flex-shrink: 0;
     border: 2px solid var(--glass-border);
-    cursor: pointer; transition: var(--transition); position: relative;
+    cursor: default; transition: var(--transition); position: relative;
+    overflow: hidden;
 }
 .profile-avatar-big:hover { transform: scale(1.05); }
 .profile-avatar-big .avatar-edit-hint {
-    position: absolute; bottom: -2px; right: -2px;
+    position: absolute; bottom: 3px; right: 3px;
     width: 22px; height: 22px; border-radius: 50%;
     background: var(--glass-bg); border: 1px solid var(--glass-border);
     display: flex; align-items: center; justify-content: center;
-    font-size: 11px;
+    font-size: 11px; z-index: 1;
 }
 
 .profile-header-info { flex: 1; min-width: 0; }
@@ -1243,6 +1244,43 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .admin-total-card.t-reps  .admin-total-num { color: #00c7be; }
 .admin-total-card.t-msgs  { border-color: rgba(0,122,255,0.3);  background: rgba(0,122,255,0.07); }
 .admin-total-card.t-msgs  .admin-total-num { color: #007aff; }
+
+/* Evrensel avatar görsel stili */
+.ava-img { width:100%; height:100%; object-fit:cover; border-radius:inherit; display:block; }
+
+/* Avatar yükleme UI */
+.avatar-mode-tabs { display:flex; gap:6px; margin-bottom:10px; }
+.avatar-tab {
+    flex:1; padding:8px 4px; border-radius:10px;
+    border:1.5px solid var(--glass-border); background:var(--glass-bg);
+    font-family:inherit; font-size:13px; font-weight:600;
+    color:var(--text-secondary); cursor:pointer; transition:all 0.2s;
+}
+.avatar-tab.active { border-color:rgba(0,122,255,0.5); background:rgba(0,122,255,0.1); color:#007aff; }
+.avatar-upload-zone {
+    border:2px dashed var(--glass-border); border-radius:14px;
+    padding:22px 12px; text-align:center; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    color:var(--text-secondary); font-size:13px; font-weight:500;
+    transition:border-color 0.2s, background 0.2s;
+}
+.avatar-upload-zone:active { border-color:rgba(0,122,255,0.5); background:rgba(0,122,255,0.05); }
+.avatar-preview-wrap {
+    width:90px; height:90px; border-radius:50%; overflow:hidden;
+    margin:6px auto 0; border:2px solid var(--glass-border);
+    display:flex; align-items:center; justify-content:center; background:rgba(120,120,128,0.1);
+}
+.avatar-file-btns { display:flex; gap:8px; margin-top:10px; }
+.avatar-change-btn {
+    flex:1; padding:8px; border-radius:10px; border:1px solid var(--glass-border);
+    background:var(--glass-bg); font-family:inherit; font-size:12px; font-weight:600;
+    color:var(--text-primary); cursor:pointer;
+}
+.avatar-remove-btn {
+    flex:1; padding:8px; border-radius:10px;
+    border:1.5px solid rgba(255,59,48,0.4); background:rgba(255,59,48,0.07);
+    font-family:inherit; font-size:12px; font-weight:600; color:#ff3b30; cursor:pointer;
+}
 
 /* Admin kullanıcı satırı istatistik rozetleri */
 .admin-user-stats { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
@@ -1430,7 +1468,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     border-bottom: 1px solid var(--glass-border);
 }
 .comment-item:last-child { border-bottom: none; }
-.comment-avatar { font-size: 20px; flex-shrink: 0; line-height: 1; padding-top: 1px; }
+.comment-avatar { font-size: 20px; flex-shrink: 0; line-height: 1; padding-top: 1px; width: 28px; height: 28px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .comment-body { flex: 1; min-width: 0; }
 .comment-header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
 .comment-username { font-size: 13px; font-weight: 700; color: var(--text-primary); }
@@ -1784,7 +1822,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     width: 48px; height: 48px; border-radius: 50%;
     background: rgba(120,120,128,0.12); border: 1px solid var(--glass-border);
     display: flex; align-items: center; justify-content: center;
-    font-size: 24px; flex-shrink: 0; line-height: 1;
+    font-size: 24px; flex-shrink: 0; line-height: 1; overflow: hidden;
 }
 .conv-item-info { flex: 1; min-width: 0; }
 .conv-item-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
@@ -2311,7 +2349,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     transition: background 0.15s;
 }
 .notif-item:active { background: rgba(120,120,128,0.06); }
-.notif-avatar { font-size: 26px; flex-shrink: 0; line-height: 1; }
+.notif-avatar { font-size: 26px; flex-shrink: 0; line-height: 1; width: 38px; height: 38px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .notif-info { flex: 1; min-width: 0; }
 .notif-text {
     font-size: 14px; color: var(--text-primary); line-height: 1.4;
@@ -2837,9 +2875,8 @@ body.preview-mode .file-title-bar { display: none !important; }
 
     <!-- Başlık -->
     <div class="profile-header">
-        <div class="profile-avatar-big" id="profileAvatarBig" onclick="toggleEmojiPicker()">
-            <span id="profileAvatarEmoji">👤</span>
-            <div class="avatar-edit-hint"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></div>
+        <div class="profile-avatar-big" id="profileAvatarBig">
+            <span id="profileAvatarEmoji" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">👤</span>
         </div>
         <div class="profile-header-info">
             <div class="profile-username-display" id="profileUsernameDisplay">Kullanıcı</div>
@@ -2868,10 +2905,36 @@ body.preview-mode .file-title-bar { display: none !important; }
         </div>
     </div>
 
-    <!-- Emoji Seçici -->
-    <div class="profile-section-title">Avatar Emoji</div>
-    <div class="profile-emoji-picker" id="emojiPicker">
-        <!-- JS tarafından doldurulacak -->
+    <!-- Avatar -->
+    <div class="profile-section-title">Avatar</div>
+    <div class="avatar-mode-tabs">
+        <button class="avatar-tab" id="avatarTabPhoto" onclick="setAvatarMode('photo')">📷 Fotoğraf</button>
+        <button class="avatar-tab" id="avatarTabEmoji" onclick="setAvatarMode('emoji')">😊 Emoji</button>
+    </div>
+
+    <!-- Fotoğraf bölümü -->
+    <div id="avatarPhotoSection" style="display:none;">
+        <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarFileChange(event)">
+        <div class="avatar-upload-zone" id="avatarUploadZone" onclick="document.getElementById('avatarFileInput').click()">
+            <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <div>Fotoğraf seç veya sürükle</div>
+            <div style="font-size:10px;opacity:0.6;">1:1 kırpılır · JPEG · maks. 200 KB</div>
+        </div>
+        <div id="avatarPreviewSection" style="display:none;text-align:center;">
+            <div class="avatar-preview-wrap">
+                <img id="avatarPreviewImg" class="ava-img" alt="Önizleme">
+            </div>
+            <div id="avatarPreviewInfo" style="font-size:11px;color:var(--text-secondary);margin-top:6px;"></div>
+            <div class="avatar-file-btns">
+                <button class="avatar-change-btn" onclick="document.getElementById('avatarFileInput').click()">Değiştir</button>
+                <button class="avatar-remove-btn" onclick="removeAvatarPhoto()">Kaldır</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emoji bölümü -->
+    <div id="avatarEmojiSection" style="display:none;">
+        <div class="profile-emoji-picker" id="emojiPicker"></div>
     </div>
 
     <!-- Kullanıcı Adı -->
@@ -3582,12 +3645,25 @@ async function saveProfile() {
     btn.innerHTML = '<div class="spinner"></div> Kaydediliyor...';
 
     try {
+        // Bekleyen fotoğraf varsa yükle
+        let avatarUrl = currentProfile?.avatar_url || null;
+        const isPhotoMode = document.getElementById('avatarTabPhoto')?.classList.contains('active');
+        if (_pendingAvatarBlob) {
+            showToast('Fotoğraf yükleniyor…');
+            avatarUrl = await _uploadAvatar(_pendingAvatarBlob);
+            _pendingAvatarBlob = null;
+            if (_pendingAvatarPreviewUrl) { URL.revokeObjectURL(_pendingAvatarPreviewUrl); _pendingAvatarPreviewUrl = null; }
+        } else if (!isPhotoMode) {
+            // Kullanıcı emoji moduna geçtiyse URL'yi temizle
+            avatarUrl = null;
+        }
         const { data, error } = await sb.from('profiles')
             .upsert({
                 id: currentUser.id,
                 username,
                 bio,
                 avatar_emoji: selectedEmoji,
+                avatar_url: avatarUrl,
                 is_private: isPrivate,
                 updated_at: new Date().toISOString()
             })
@@ -3612,16 +3688,19 @@ async function saveProfile() {
 
 function updateAvatarUI() {
     const emoji = currentProfile?.avatar_emoji || selectedEmoji || '👤';
-    // Header user-pill avatarını emoji olarak güncelle
+    const url   = currentProfile?.avatar_url   || null;
+    // Header user-pill avatarını güncelle
     const avatarEl = document.getElementById('userAvatar');
     if (avatarEl) {
-        avatarEl.textContent = emoji;
-        avatarEl.style.fontSize = '16px';
+        avatarEl.innerHTML = _ava(emoji, url);
+        avatarEl.style.fontSize = url ? '' : '16px';
         avatarEl.style.background = 'transparent';
+        avatarEl.style.overflow = 'hidden';
+        avatarEl.style.borderRadius = '50%';
     }
     // Profil panelindeki büyük avatar
     const bigEmoji = document.getElementById('profileAvatarEmoji');
-    if (bigEmoji) bigEmoji.textContent = emoji;
+    if (bigEmoji) bigEmoji.innerHTML = _ava(emoji, _pendingAvatarPreviewUrl || url);
     selectedEmoji = emoji;
 }
 
@@ -3684,9 +3763,110 @@ function selectEmoji(emoji) {
 }
 
 function toggleEmojiPicker() {
-    // Zaten gösteriliyor, sadece scroll ederek buraya odaklan
+    setAvatarMode('emoji');
     const picker = document.getElementById('emojiPicker');
     if (picker) picker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ── AVATAR YÜKLEME ──────────────────────────────────────────────────────
+let _pendingAvatarBlob = null;
+let _pendingAvatarPreviewUrl = null;
+
+/** Emoji veya resim URL'den avatar HTML döndürür. Tüm şablonlarda kullanılır. */
+function _ava(emoji, url) {
+    if (url) return `<img class="ava-img" src="${url}" onerror="this.outerHTML='${(emoji||'👤').replace(/['"<>&]/g,'')}'">`;
+    return emoji || '👤';
+}
+
+/** Dosyayı canvas ile işler: 1:1 kırp → 350px → JPEG → 80-200 KB */
+async function _processAvatar(file) {
+    return new Promise((resolve, reject) => {
+        if (!file.type.startsWith('image/')) { reject(new Error('Lütfen bir görsel dosyası seçin')); return; }
+        const img = new Image();
+        const objUrl = URL.createObjectURL(file);
+        img.onload = async () => {
+            URL.revokeObjectURL(objUrl);
+            const s = Math.min(img.width, img.height);
+            const canvas = document.createElement('canvas');
+            canvas.width = 350; canvas.height = 350;
+            canvas.getContext('2d').drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 350, 350);
+            let blob = null;
+            for (const q of [0.85, 0.80, 0.75, 0.70]) {
+                blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', q));
+                if (blob && blob.size <= 200 * 1024) break;
+            }
+            if (!blob) blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.70));
+            resolve(blob);
+        };
+        img.onerror = () => { URL.revokeObjectURL(objUrl); reject(new Error('Görsel okunamadı')); };
+        img.src = objUrl;
+    });
+}
+
+/** İşlenmiş blob'u Supabase Storage'a yükler, public URL döndürür. */
+async function _uploadAvatar(blob) {
+    const path = `${currentUser.id}/avatar.jpg`;
+    const { error } = await sb.storage.from('avatars').upload(path, blob, { contentType: 'image/jpeg', upsert: true });
+    if (error) throw error;
+    const { data } = sb.storage.from('avatars').getPublicUrl(path);
+    return data.publicUrl + '?v=' + Date.now();
+}
+
+/** Dosya seçildiğinde çalışır: işle → önizle → beklet */
+async function handleAvatarFileChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    event.target.value = '';
+    const zone = document.getElementById('avatarUploadZone');
+    const prevSec = document.getElementById('avatarPreviewSection');
+    const infoEl = document.getElementById('avatarPreviewInfo');
+    const prevImg = document.getElementById('avatarPreviewImg');
+    if (zone) zone.style.display = 'none';
+    if (prevSec) { prevSec.style.display = 'block'; prevImg.src = ''; }
+    if (infoEl) infoEl.textContent = 'İşleniyor…';
+    try {
+        const blob = await _processAvatar(file);
+        if (_pendingAvatarPreviewUrl) URL.revokeObjectURL(_pendingAvatarPreviewUrl);
+        _pendingAvatarBlob = blob;
+        _pendingAvatarPreviewUrl = URL.createObjectURL(blob);
+        if (prevImg) prevImg.src = _pendingAvatarPreviewUrl;
+        if (infoEl) infoEl.textContent = `${(blob.size / 1024).toFixed(0)} KB · 350×350 · JPEG`;
+        // Büyük avatar önizlemesini de güncelle
+        const bigEmoji = document.getElementById('profileAvatarEmoji');
+        if (bigEmoji) bigEmoji.innerHTML = `<img class="ava-img" src="${_pendingAvatarPreviewUrl}">`;
+    } catch(e) {
+        if (zone) zone.style.display = '';
+        if (prevSec) prevSec.style.display = 'none';
+        showToast('Hata: ' + (e.message || 'görsel işlenemedi'));
+    }
+}
+
+/** Yüklenen fotoğrafı kaldır, emoji moduna dön */
+function removeAvatarPhoto() {
+    if (_pendingAvatarPreviewUrl) { URL.revokeObjectURL(_pendingAvatarPreviewUrl); _pendingAvatarPreviewUrl = null; }
+    _pendingAvatarBlob = null;
+    // Eğer kaydedilmiş bir URL varsa onu da temizle (kayıt sırasında null gönderilecek)
+    document.getElementById('avatarUploadZone').style.display = '';
+    document.getElementById('avatarPreviewSection').style.display = 'none';
+    // Büyük avatarı emoji'ye döndür
+    const bigEmoji = document.getElementById('profileAvatarEmoji');
+    if (bigEmoji) bigEmoji.textContent = currentProfile?.avatar_emoji || selectedEmoji || '👤';
+}
+
+/** Fotoğraf / Emoji sekmesini değiştirir */
+function setAvatarMode(mode) {
+    const tabPhoto = document.getElementById('avatarTabPhoto');
+    const tabEmoji = document.getElementById('avatarTabEmoji');
+    const photoSec = document.getElementById('avatarPhotoSection');
+    const emojiSec = document.getElementById('avatarEmojiSection');
+    if (!tabPhoto) return;
+    if (mode === 'photo') {
+        tabPhoto.classList.add('active'); tabEmoji.classList.remove('active');
+        photoSec.style.display = ''; emojiSec.style.display = 'none';
+    } else {
+        tabEmoji.classList.add('active'); tabPhoto.classList.remove('active');
+        emojiSec.style.display = ''; photoSec.style.display = 'none';
+    }
 }
 
 function openProfilePanel() {
@@ -3708,9 +3888,24 @@ function openProfilePanel() {
     if (adminBtn) adminBtn.style.display = currentProfile?.is_admin ? '' : 'none';
 
     selectedEmoji = currentProfile?.avatar_emoji || '👤';
+    _pendingAvatarBlob = null;
+    if (_pendingAvatarPreviewUrl) { URL.revokeObjectURL(_pendingAvatarPreviewUrl); _pendingAvatarPreviewUrl = null; }
     renderEmojiPicker();
     updateProfileHeader();
     updateProfileStats();
+    // Avatar sekmesini başlat
+    const hasPhoto = !!currentProfile?.avatar_url;
+    setAvatarMode(hasPhoto ? 'photo' : 'emoji');
+    if (hasPhoto) {
+        const prevImg = document.getElementById('avatarPreviewImg');
+        const prevSec = document.getElementById('avatarPreviewSection');
+        const zone    = document.getElementById('avatarUploadZone');
+        const infoEl  = document.getElementById('avatarPreviewInfo');
+        if (prevImg) prevImg.src = currentProfile.avatar_url;
+        if (prevSec) prevSec.style.display = 'block';
+        if (zone) zone.style.display = 'none';
+        if (infoEl) infoEl.textContent = 'Mevcut profil fotoğrafı';
+    }
 
     document.getElementById('profilePanelOverlay').classList.add('open');
 }
@@ -3737,7 +3932,7 @@ async function _adminLoadUsers() {
     const list = document.getElementById('adminUserList');
     list.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
     const { data, error } = await sb.from('profiles')
-        .select('id, username, avatar_emoji, bio, is_admin, created_at')
+        .select('id, username, avatar_emoji, avatar_url, bio, is_admin, created_at')
         .order('created_at', { ascending: false });
     if (error || !data) { list.innerHTML = '<div class="search-empty">Hata oluştu</div>'; return; }
     _adminAllUsers = data;
@@ -6005,7 +6200,7 @@ async function doUserSearch() {
     container.innerHTML = '<div class="search-empty"><div class="spinner" style="margin:0 auto;"></div></div>';
     try {
         const { data, error } = await sb.from('profiles')
-            .select('id, username, bio, avatar_emoji, created_at')
+            .select('id, username, bio, avatar_emoji, avatar_url, created_at')
             .ilike('username', `%${q}%`)
             .limit(20);
         if (error) throw error;
@@ -6052,7 +6247,7 @@ async function doFileSearch() {
         if (!files || files.length === 0) { container.innerHTML = '<div class="search-empty">Dosya bulunamadı</div>'; return; }
 
         const userIds = [...new Set(files.map(f => f.user_id))];
-        const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', userIds);
+        const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', userIds);
         const pMap = {};
         (profiles || []).forEach(p => { pMap[p.id] = p; });
 
@@ -6128,7 +6323,7 @@ async function openPublicProfile(userId) {
     try {
         // Profil bilgisi + dosyalar + takip verileri paralel çek
         const [{ data: prof }, { data: followers }, { data: followings }, { data: myFollow }, { data: pendingReq }] = await Promise.all([
-            sb.from('profiles').select('username, bio, avatar_emoji, created_at, is_private').eq('id', userId).single(),
+            sb.from('profiles').select('username, bio, avatar_emoji, avatar_url, created_at, is_private').eq('id', userId).single(),
             sb.from('follows').select('follower_id').eq('following_id', userId),
             sb.from('follows').select('following_id').eq('follower_id', userId),
             currentUser && currentUser.id !== userId
@@ -6160,7 +6355,10 @@ async function openPublicProfile(userId) {
         }
 
         if (prof) {
-            document.getElementById('pubProfileEmoji').textContent    = prof.avatar_emoji || '👤';
+            const pubEmojiEl = document.getElementById('pubProfileEmoji');
+            pubEmojiEl.dataset.emoji = prof.avatar_emoji || '👤';
+            pubEmojiEl.dataset.url   = prof.avatar_url   || '';
+            pubEmojiEl.innerHTML = _ava(prof.avatar_emoji, prof.avatar_url);
             document.getElementById('pubProfileUsername').textContent = prof.username || 'Kullanıcı';
             const _ht = document.getElementById('pubProfileHeaderTitle');
             if (_ht) _ht.textContent = '@' + (prof.username || 'kullanici');
@@ -6181,6 +6379,7 @@ async function openPublicProfile(userId) {
         const pubFiles = files || [];
         _pubFilesData = {};
         const _profEmoji    = prof?.avatar_emoji || '👤';
+        const _profAvatarUrl = prof?.avatar_url  || '';
         const _profUsername = prof?.username     || 'Kullanıcı';
         // Cache ve URL'i username'e güncelle
         if (prof?.username) {
@@ -6193,7 +6392,7 @@ async function openPublicProfile(userId) {
         }
         pubFiles.forEach(f => {
             _pubFilesData[f.id]    = { filename: f.filename, code: f.code, description: f.description || '' };
-            _exploreDataMap[f.id]  = { userId: userId, username: _profUsername, emoji: _profEmoji, filename: f.filename, code: f.code, description: f.description || '' };
+            _exploreDataMap[f.id]  = { userId: userId, username: _profUsername, emoji: _profEmoji, avatarUrl: _profAvatarUrl, filename: f.filename, code: f.code, description: f.description || '' };
         });
         const totalLines = pubFiles.reduce((s, f) => s + (f.code.match(/\n/g)||[]).length + 1, 0);
         const fmt = n => n >= 1000 ? (n/1000).toFixed(1) + 'k' : n;
@@ -6422,7 +6621,7 @@ async function _openFollowList(type) {
     const { data } = await sb.from('follows').select(col).eq(type === 'followers' ? 'following_id' : 'follower_id', userId);
     const ids = (data || []).map(r => r[col]);
     if (!ids.length) { items.innerHTML = '<div class="search-empty" style="padding:12px 0;">Henüz yok</div>'; return; }
-    const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', ids);
+    const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', ids);
     items.innerHTML = (profiles || []).map(p =>
         `<div class="follow-list-item" onclick="openPublicProfile('${p.id}')">
             <span class="follow-list-avatar">${p.avatar_emoji || '👤'}</span>
@@ -6835,7 +7034,7 @@ async function loadFeed() {
     const fileIds = files.map(f => f.id);
 
     const [{ data: profiles }, { data: allLikes }, { data: myLikesData }, { data: likerProfiles }, { data: allCommentRows }] = await Promise.all([
-        sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
+        sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', uids),
         sb.from('likes').select('file_id,user_id').in('file_id', fileIds),
         sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds),
         sb.from('likes').select('user_id,file_id').in('file_id', fileIds).limit(200),
@@ -6860,13 +7059,13 @@ async function loadFeed() {
     // Liker kullanıcı adlarını çek
     const likerUids = [...new Set((likerProfiles||[]).map(l => l.user_id))].filter(id => !pMap[id]);
     if (likerUids.length) {
-        const { data: lp } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', likerUids);
+        const { data: lp } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', likerUids);
         (lp||[]).forEach(p => { pMap[p.id] = p; });
     }
 
     files.forEach(f => {
         const p = pMap[f.user_id] || {};
-        _exploreDataMap[f.id] = { userId: f.user_id, username: p.username || 'Kullanıcı', emoji: p.avatar_emoji || '👤', filename: f.filename, code: f.code, description: f.description || '' };
+        _exploreDataMap[f.id] = { userId: f.user_id, username: p.username || 'Kullanıcı', emoji: p.avatar_emoji || '👤', avatarUrl: p.avatar_url || '', filename: f.filename, code: f.code, description: f.description || '' };
     });
 
     // Koleksiyon kartlarını önce yükle
@@ -6897,7 +7096,7 @@ async function loadFeed() {
         }
         return `<div class="feed-card" id="fcard-${f.id}">
             <div class="feed-card-header" onclick="openPublicProfile('${f.user_id}')">
-                <div class="feed-card-avatar">${p.avatar_emoji || '👤'}</div>
+                <div class="feed-card-avatar">${_ava(p.avatar_emoji, p.avatar_url)}</div>
                 <div class="feed-card-meta">
                     <div class="feed-card-username">@${escapeHtml(p.username || 'kullanici')}</div>
                     <div class="feed-card-date">${_timeAgo(f.updated_at)} • ${escapeHtml(f.filename || 'dosya.html')}</div>
@@ -6986,7 +7185,7 @@ async function _coLoadComments(fileId) {
     const uids = [...new Set(all.map(c => c.user_id))];
     const cmtIds = all.map(c => c.id);
     const [{ data: profs }, { data: allLikes }, { data: myLikes }] = await Promise.all([
-        sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
+        sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', uids),
         sb.from('comment_likes').select('comment_id').in('comment_id', cmtIds),
         currentUser ? sb.from('comment_likes').select('comment_id').eq('user_id', currentUser.id).in('comment_id', cmtIds) : { data: [] }
     ]);
@@ -7143,7 +7342,7 @@ async function feedLoadComments(fileId) {
     const uids = [...new Set(all.map(c => c.user_id))];
     const cmtIds = all.map(c => c.id);
     const [{ data: profs }, { data: allLikes }, { data: myLikes }] = await Promise.all([
-        sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
+        sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', uids),
         sb.from('comment_likes').select('comment_id').in('comment_id', cmtIds),
         currentUser ? sb.from('comment_likes').select('comment_id').eq('user_id', currentUser.id).in('comment_id', cmtIds) : { data: [] }
     ]);
@@ -7316,7 +7515,7 @@ async function loadExploreFiles(listId = 'exploreList') {
 
         const userIds = [...new Set((files || []).map(f => f.user_id))];
         const { data: profiles } = userIds.length
-            ? await sb.from('profiles').select('id, username, avatar_emoji, is_private').in('id', userIds)
+            ? await sb.from('profiles').select('id, username, avatar_emoji, avatar_url, is_private').in('id', userIds)
             : { data: [] };
         const profileMap = {};
         (profiles || []).forEach(p => { profileMap[p.id] = p; });
@@ -7383,15 +7582,16 @@ async function loadExploreFiles(listId = 'exploreList') {
             const prof   = profileMap[f.user_id];
             const author = prof?.username || 'Kullanıcı';
             const emoji  = prof?.avatar_emoji || '👤';
+            const avatarUrl = prof?.avatar_url || '';
             const cnt    = counts[f.id] || 0;
             const liked  = _myLikes.has(f.id);
             const rank   = i < 3 ? ['🥇','🥈','🥉'][i] : '';
             const d      = new Date(f.updated_at);
             const dateStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
-            _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, filename: f.filename, description: f.description || '' };
+            _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, avatarUrl, filename: f.filename, description: f.description || '' };
             return `<div class="feed-card" id="ewrap-${f.id}">
                 <div class="feed-card-header" onclick="openPublicProfile('${f.user_id}')">
-                    <div class="feed-card-avatar">${emoji}</div>
+                    <div class="feed-card-avatar">${_ava(emoji, avatarUrl)}</div>
                     <div class="feed-card-meta">
                         <div class="feed-card-username">${rank ? rank + ' ' : ''}@${escapeHtml(author)}</div>
                         <div class="feed-card-date">${_timeAgo(f.updated_at)} • ${escapeHtml(f.filename)}</div>
@@ -7558,7 +7758,7 @@ async function loadConversations() {
 
     // Get other user IDs
     const otherIds = convs.map(c => c.user1_id === currentUser.id ? c.user2_id : c.user1_id);
-    const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', otherIds);
+    const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', otherIds);
     const pMap = {};
     (profiles || []).forEach(p => { pMap[p.id] = p; });
 
@@ -7580,8 +7780,8 @@ async function loadConversations() {
                 </div>
             </div>
             <div class="conv-item" data-conv-id="${c.id}" data-other-id="${otherId}" data-username="${escapeHtml(prof.username||'Kullanıcı')}" data-emoji="${prof.avatar_emoji||'👤'}"
-                onclick="openConversation('${otherId}','${escapeHtml(prof.username||'Kullanıcı')}','${prof.avatar_emoji||'👤'}','${c.id}')">
-                <div class="conv-avatar">${prof.avatar_emoji||'👤'}</div>
+                onclick="openConversation('${otherId}','${escapeHtml(prof.username||'Kullanıcı')}','${prof.avatar_emoji||'👤'}','${c.id}','${prof.avatar_url||''}')">
+                <div class="conv-avatar">${_ava(prof.avatar_emoji, prof.avatar_url)}</div>
                 <div class="conv-item-info">
                     <div class="conv-item-name">${escapeHtml(prof.username||'Kullanıcı')}</div>
                     <div class="conv-item-preview ${unread > 0 ? 'unread' : ''}">${escapeHtml(preview)}</div>
@@ -7598,9 +7798,10 @@ async function loadConversations() {
     _attachConvSwipe();
 }
 
-async function openConversation(otherId, username, emoji, existingConvId) {
-    _convOtherUser = { id: otherId, username, emoji };
-    document.getElementById('convHeaderEmoji').textContent = emoji;
+async function openConversation(otherId, username, emoji, existingConvId, avatarUrl) {
+    _convOtherUser = { id: otherId, username, emoji, avatarUrl };
+    const hdrEmojiEl = document.getElementById('convHeaderEmoji');
+    if (hdrEmojiEl) { hdrEmojiEl.innerHTML = _ava(emoji, avatarUrl||null); hdrEmojiEl.style.overflow='hidden'; hdrEmojiEl.style.borderRadius='50%'; }
     document.getElementById('convHeaderName').textContent = username;
     document.getElementById('convMessages').innerHTML = '<div class="search-empty">Yükleniyor...</div>';
     document.getElementById('convInput').value = '';
@@ -7833,9 +8034,11 @@ function startMessageWithUser() {
     if (!currentUser) { showToast('Mesaj göndermek için giriş yapın'); return; }
     const userId = document.getElementById('pubProfileMsgBtn').dataset.userId;
     const username = document.getElementById('pubProfileUsername').textContent;
-    const emoji = document.getElementById('pubProfileEmoji').textContent;
+    const _pubEmojiEl = document.getElementById('pubProfileEmoji');
+    const emoji    = _pubEmojiEl.dataset.emoji || '👤';
+    const avatarUrl = _pubEmojiEl.dataset.url  || '';
     closePublicProfile();
-    setTimeout(() => openConversation(userId, username, emoji, null), 300);
+    setTimeout(() => openConversation(userId, username, emoji, null, avatarUrl), 300);
 }
 
 // ── SHARE PERSON MODAL (feed butonlarından köprü) ────────────────────
@@ -8065,7 +8268,7 @@ async function loadComments(fileId) {
     const uids = [...new Set(all.map(c => c.user_id))];
     const cmtIds = all.map(c => c.id);
     const [{ data: profiles }, { data: allLikes }, { data: myLikes }] = await Promise.all([
-        sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
+        sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', uids),
         sb.from('comment_likes').select('comment_id').in('comment_id', cmtIds),
         currentUser ? sb.from('comment_likes').select('comment_id').eq('user_id', currentUser.id).in('comment_id', cmtIds) : { data: [] }
     ]);
@@ -8251,7 +8454,7 @@ async function openFileView(fileId) {
             code = fd.code;
             _pubFilesData[fileId] = { filename: fd.filename, code: fd.code, forked_from_id: fd.forked_from_id, description: fd.description || '' };
             if (!d.filename) {
-                const { data: pr } = await sb.from('profiles').select('username,avatar_emoji').eq('id', fd.user_id).single();
+                const { data: pr } = await sb.from('profiles').select('username,avatar_emoji,avatar_url').eq('id', fd.user_id).single();
                 _exploreDataMap[fileId] = { ..._exploreDataMap[fileId], filename: fd.filename, userId: fd.user_id, username: pr?.username || 'Kullanıcı', emoji: pr?.avatar_emoji || '👤', code, forked_from_id: fd.forked_from_id, description: fd.description || '' };
                 _fvUserId = fd.user_id;
                 document.getElementById('fvFilename').textContent  = fd.filename;
@@ -8447,7 +8650,7 @@ async function _fvLoadForkChain(rootForkedFromId) {
     for (let i = 0; i < 5 && currentId; i++) {
         const { data: f } = await sb.from('files').select('id,filename,user_id,forked_from_id').eq('id', currentId).single();
         if (!f) break;
-        const { data: p } = await sb.from('profiles').select('username,avatar_emoji').eq('id', f.user_id).single();
+        const { data: p } = await sb.from('profiles').select('username,avatar_emoji,avatar_url').eq('id', f.user_id).single();
         chain.unshift({ id: f.id, filename: f.filename, username: p?.username || 'Kullanıcı', emoji: p?.avatar_emoji || '👤', forked_from_id: f.forked_from_id });
         currentId = f.forked_from_id;
     }
@@ -8474,7 +8677,7 @@ async function openForkListModal(fileId) {
     }
     title.textContent = `⑂ ${forks.length} Fork`;
     const uids = [...new Set(forks.map(f => f.user_id))];
-    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', uids);
     const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
     content.innerHTML = forks.map(f => {
         const p = pm[f.user_id] || {};
@@ -8519,7 +8722,7 @@ async function openProfileForkList() {
 
     // Forklayan kullanıcıların profillerini çek
     const uids = [...new Set(forks.map(f => f.user_id))];
-    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', uids);
     const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
 
     // Orijinal dosya isimlerini eşleştir
@@ -8569,7 +8772,7 @@ async function openForkTreeModal(fileId) {
         : { data: [] };
     const allNodes = [rootFile, ...(allForks||[]), ...(level2Forks||[])];
     const uids = [...new Set(allNodes.map(f => f.user_id))];
-    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', uids);
     const pm = {}; (profs||[]).forEach(p => { pm[p.id] = p; });
     const l2Map = {};
     (level2Forks||[]).forEach(f => { if (!l2Map[f.forked_from_id]) l2Map[f.forked_from_id]=[]; l2Map[f.forked_from_id].push(f); });
@@ -8634,7 +8837,7 @@ async function fvLoadComments() {
     const uids = [...new Set(all.map(c => c.user_id))];
     const cmtIds = all.map(c => c.id);
     const [{ data: profiles }, { data: allLikes }, { data: myLikes }] = await Promise.all([
-        sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
+        sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', uids),
         sb.from('comment_likes').select('comment_id').in('comment_id', cmtIds),
         currentUser ? sb.from('comment_likes').select('comment_id').eq('user_id', currentUser.id).in('comment_id', cmtIds) : { data: [] }
     ]);
@@ -8880,7 +9083,7 @@ async function loadNotifications() {
     const fileIds  = [...new Set(notifs.filter(n => n.file_id).map(n => n.file_id))];
     const collIds  = [...new Set(notifs.filter(n => n.collection_id).map(n => n.collection_id))];
     const fetches = [
-        sb.from('profiles').select('id,username,avatar_emoji').in('id', fromIds),
+        sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', fromIds),
         fileIds.length ? sb.from('files').select('id,filename').in('id', fileIds) : Promise.resolve({ data: [] }),
         collIds.length ? sb.from('collections').select('id,name').in('id', collIds) : Promise.resolve({ data: [] })
     ];
@@ -8916,7 +9119,7 @@ async function loadNotifications() {
         const _isCommentNotif = isComment || isReply || isReplyOnFile || isCmtLike;
         if (isFollowRequest) {
             return `<div class="notif-item" id="notif-${n.id}">
-                <div class="notif-avatar" style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${prof.avatar_emoji || '👤'}</div>
+                <div class="notif-avatar" style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${_ava(prof.avatar_emoji, prof.avatar_url)}</div>
                 <div class="notif-info">
                     <div class="notif-text"><strong style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${escapeHtml(prof.username || 'Biri')}</strong>&nbsp;seni takip etmek istiyor</div>
                     <div class="notif-time">${_fmtTime(n.created_at)}</div>
@@ -8929,7 +9132,7 @@ async function loadNotifications() {
         }
         if (isFollowAccepted) {
             return `<div class="notif-item" id="notif-${n.id}" style="cursor:pointer" onclick="closeNotifPanel();openPublicProfile('${n.from_user_id}')">
-                <div class="notif-avatar">${prof.avatar_emoji || '👤'}</div>
+                <div class="notif-avatar">${_ava(prof.avatar_emoji, prof.avatar_url)}</div>
                 <div class="notif-info">
                     <div class="notif-text"><strong>${escapeHtml(prof.username || 'Biri')}</strong>&nbsp;takip isteğini kabul etti</div>
                     <div class="notif-time">${_fmtTime(n.created_at)}</div>
@@ -8939,7 +9142,7 @@ async function loadNotifications() {
         }
         if (isNewFollower) {
             return `<div class="notif-item" id="notif-${n.id}" style="cursor:pointer" onclick="closeNotifPanel();openPublicProfile('${n.from_user_id}')">
-                <div class="notif-avatar">${prof.avatar_emoji || '👤'}</div>
+                <div class="notif-avatar">${_ava(prof.avatar_emoji, prof.avatar_url)}</div>
                 <div class="notif-info">
                     <div class="notif-text"><strong>${escapeHtml(prof.username || 'Biri')}</strong>&nbsp;artık seni takip ediyor</div>
                     <div class="notif-time">${_fmtTime(n.created_at)}</div>
@@ -8983,7 +9186,7 @@ async function loadNotifications() {
         // (follow_request and follow_accepted are handled above with early return)
         const _finalItemClick = (isCollLike||isCollComment||isCollReply||isCollReplyOnColl||isCollCmtLike) ? _collItemClick : _itemClick;
         return `<div class="notif-item" id="notif-${n.id}" ${_finalItemClick}>
-            <div class="notif-avatar" style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${prof.avatar_emoji || '👤'}</div>
+            <div class="notif-avatar" style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${_ava(prof.avatar_emoji, prof.avatar_url)}</div>
             <div class="notif-info">
                 <div class="notif-text">
                     <strong style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${escapeHtml(prof.username || 'Biri')}</strong>${action}
@@ -9465,7 +9668,7 @@ async function collLoadComments(collId, listElId, cntElId) {
     const uids = [...new Set(all.map(c => c.user_id))];
     const cmtIds = all.map(c => c.id);
     const [{ data: profs }, { data: allLikes }, { data: myLikes }] = await Promise.all([
-        sb.from('profiles').select('id,username,avatar_emoji').in('id', uids),
+        sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', uids),
         sb.from('collection_comment_likes').select('comment_id').in('comment_id', cmtIds),
         currentUser ? sb.from('collection_comment_likes').select('comment_id').eq('user_id', currentUser.id).in('comment_id', cmtIds) : Promise.resolve({ data: [] })
     ]);
@@ -9621,7 +9824,7 @@ async function _loadCollectionOverlayFiles(collId) {
     }
     document.getElementById('collOverlaySubtitle').textContent = files.length + ' dosya';
     const uids = [...new Set(files.map(f => f.user_id))];
-    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji').in('id', uids);
+    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', uids);
     const pMap = {};
     (profs || []).forEach(p => { pMap[p.id] = p; });
     const fids = files.map(f => f.id);
@@ -9635,7 +9838,7 @@ async function _loadCollectionOverlayFiles(collId) {
     Object.assign(_likeCounts, lc);
     files.forEach(f => {
         const p = pMap[f.user_id] || {};
-        _exploreDataMap[f.id] = { userId: f.user_id, username: p.username || 'Kullanıcı', emoji: p.avatar_emoji || '👤', filename: f.filename, code: f.code, description: f.description || '' };
+        _exploreDataMap[f.id] = { userId: f.user_id, username: p.username || 'Kullanıcı', emoji: p.avatar_emoji || '👤', avatarUrl: p.avatar_url || '', filename: f.filename, code: f.code, description: f.description || '' };
     });
     listEl.innerHTML = files.map(f => {
         const p = pMap[f.user_id] || {};
@@ -9645,7 +9848,7 @@ async function _loadCollectionOverlayFiles(collId) {
         const dateStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
         return `<div class="feed-card" id="cowrap-${f.id}">
             <div class="feed-card-header" onclick="openPublicProfile('${f.user_id}')">
-                <div class="feed-card-avatar">${p.avatar_emoji || '👤'}</div>
+                <div class="feed-card-avatar">${_ava(p.avatar_emoji, p.avatar_url)}</div>
                 <div class="feed-card-meta">
                     <div class="feed-card-username">@${escapeHtml(p.username || 'kullanici')}</div>
                     <div class="feed-card-date">${_timeAgo(f.updated_at)} • ${escapeHtml(f.filename)}</div>
@@ -9705,7 +9908,7 @@ async function loadPublicCollectionsForFeed() {
         .order('created_at', { ascending: false }).limit(20);
     if (!cols || !cols.length) return [];
     const uids = [...new Set(cols.map(c => c.user_id))];
-    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji,is_private').in('id', uids);
+    const { data: profs } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url,is_private').in('id', uids);
     const pMap = {};
     (profs || []).forEach(p => { pMap[p.id] = p; });
     // Gizli hesap filtresi
@@ -9869,7 +10072,7 @@ async function _sharePersonLoad(query) {
     let followedProfiles = [];
     if (followedIds.length > 0) {
         const { data: fp } = await sb.from('profiles')
-            .select('id, username, avatar_emoji').in('id', followedIds);
+            .select('id, username, avatar_emoji, avatar_url').in('id', followedIds);
         followedProfiles = (fp || []).map(p => ({
             id: p.id, username: p.username || 'kullanici',
             emoji: p.avatar_emoji || '👤',
