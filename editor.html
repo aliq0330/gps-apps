@@ -1216,6 +1216,36 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .admin-act-info { flex: 1; }
 .admin-act-title { font-size: 14px; font-weight: 600; }
 .admin-act-sub { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+
+/* Admin Accordion — ayrı ayrı silme */
+.admin-accordion { border: 1px solid var(--glass-border); border-radius: 14px; margin-bottom: 10px; overflow: hidden; }
+.admin-acc-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 13px 16px; background: var(--glass-bg);
+    border: none; font-family: inherit; font-size: 14px; font-weight: 600;
+    color: var(--text-primary); cursor: pointer; gap: 8px;
+}
+.admin-acc-hdr:active { opacity: 0.7; }
+.admin-acc-hdr-left { display: flex; align-items: center; gap: 8px; }
+.admin-acc-count { font-size: 11px; font-weight: 500; color: var(--text-secondary); background: rgba(120,120,128,0.15); padding: 2px 7px; border-radius: 20px; }
+.admin-acc-chev { color: var(--text-secondary); flex-shrink: 0; transition: transform 0.22s cubic-bezier(0.25,0.8,0.25,1); }
+.admin-acc-body { padding: 8px; background: var(--glass-bg); border-top: 1px solid var(--glass-border); max-height: 340px; overflow-y: auto; }
+.admin-item-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 10px; margin-bottom: 6px;
+    background: rgba(120,120,128,0.06); border: 1px solid var(--glass-border);
+}
+.admin-item-row:last-child { margin-bottom: 0; }
+.admin-item-icon { font-size: 16px; flex-shrink: 0; }
+.admin-item-info { flex: 1; min-width: 0; }
+.admin-item-name { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.admin-item-sub { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+.admin-item-del-btn {
+    padding: 5px 10px; border-radius: 8px; border: 1.5px solid rgba(255,59,48,0.5);
+    background: rgba(255,59,48,0.08); color: #ff3b30;
+    font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit; flex-shrink: 0;
+}
+.admin-item-del-btn:active { opacity: 0.6; }
 .private-acct-row {
     display: flex; align-items: center; justify-content: space-between;
     padding: 12px 14px; background: var(--glass-bg);
@@ -3722,11 +3752,13 @@ async function deleteUserAsAdmin(userId, username) {
 
 // ── ADMİN PROFİL DETAY ────────────────────────────────────────────────
 let _adminCurrentProfile = null;
+let _adminAccLoaded = {};
 
 async function openAdminProfile(userId) {
     const user = _adminAllUsers.find(u => u.id === userId);
     if (!user) return;
     _adminCurrentProfile = user;
+    _adminAccLoaded = {};   // accordion'ları sıfırla
     const overlay = document.getElementById('adminProfileOverlay');
     overlay.style.display = 'flex';
     overlay.style.flexDirection = 'column';
@@ -3820,6 +3852,24 @@ function _adminRenderProfile(user, stats) {
                     <div class="admin-act-sub">Tüm veriler ve hesap kalıcı olarak silinir</div>
                 </div>
             </button>` : `<div style="text-align:center;padding:16px;font-size:12px;color:var(--text-secondary);">Kendi hesabınızı silemezsiniz.</div>`}
+
+            <div class="admin-section-label" style="margin-top:24px;">Ayrı Ayrı Sil</div>
+            ${[
+                { type:'files',       icon:'📁', label:'Dosyalar',     count: stats.files },
+                { type:'collections', icon:'📚', label:'Koleksiyonlar',count: stats.collections },
+                { type:'comments',    icon:'💬', label:'Yorumlar',     count: stats.comments },
+                { type:'replies',     icon:'↩️', label:'Yanıtlar',     count: '?' }
+            ].map(s => `
+            <div class="admin-accordion" id="acc-wrap-${s.type}-${user.id}">
+                <button class="admin-acc-hdr" onclick="toggleAdminAcc('${s.type}','${user.id}')">
+                    <div class="admin-acc-hdr-left">
+                        <span>${s.icon} ${s.label}</span>
+                        <span class="admin-acc-count" id="acc-count-${s.type}-${user.id}">${s.count}</span>
+                    </div>
+                    <svg class="admin-acc-chev" id="acc-chev-${s.type}-${user.id}" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                </button>
+                <div class="admin-acc-body" id="acc-body-${s.type}-${user.id}" style="display:none;"></div>
+            </div>`).join('')}
         </div>`;
 }
 
@@ -3829,6 +3879,9 @@ async function adminDeleteUserFiles(userId, username) {
         const { error } = await sb.rpc('delete_user_files', { target_user_id: userId });
         if (error) throw error;
         showToast('Dosyalar silindi');
+        delete _adminAccLoaded[`files-${userId}`];
+        delete _adminAccLoaded[`comments-${userId}`];
+        delete _adminAccLoaded[`replies-${userId}`];
         const stats = await _adminLoadProfileStats(userId);
         _adminRenderProfile(_adminCurrentProfile, stats);
     } catch(e) { showToast('Hata: ' + (e.message || 'silinemedi')); }
@@ -3840,6 +3893,7 @@ async function adminDeleteUserCollections(userId, username) {
         const { error } = await sb.rpc('delete_user_collections', { target_user_id: userId });
         if (error) throw error;
         showToast('Koleksiyonlar silindi');
+        delete _adminAccLoaded[`collections-${userId}`];
         const stats = await _adminLoadProfileStats(userId);
         _adminRenderProfile(_adminCurrentProfile, stats);
     } catch(e) { showToast('Hata: ' + (e.message || 'silinemedi')); }
@@ -3851,6 +3905,8 @@ async function adminDeleteUserComments(userId, username) {
         const { error } = await sb.rpc('delete_user_comments', { target_user_id: userId });
         if (error) throw error;
         showToast('Yorumlar silindi');
+        delete _adminAccLoaded[`comments-${userId}`];
+        delete _adminAccLoaded[`replies-${userId}`];
         const stats = await _adminLoadProfileStats(userId);
         _adminRenderProfile(_adminCurrentProfile, stats);
     } catch(e) { showToast('Hata: ' + (e.message || 'silinemedi')); }
@@ -3865,6 +3921,164 @@ async function adminDeleteUserMessages(userId, username) {
         const stats = await _adminLoadProfileStats(userId);
         _adminRenderProfile(_adminCurrentProfile, stats);
     } catch(e) { showToast('Hata: ' + (e.message || 'silinemedi')); }
+}
+
+// ── ADMİN ACCORDION (ayrı ayrı silme) ────────────────────────────────
+async function toggleAdminAcc(type, userId) {
+    const body = document.getElementById(`acc-body-${type}-${userId}`);
+    const chev = document.getElementById(`acc-chev-${type}-${userId}`);
+    if (!body) return;
+    const isOpen = body.style.display !== 'none';
+    if (isOpen) {
+        body.style.display = 'none';
+        if (chev) chev.style.transform = '';
+        return;
+    }
+    body.style.display = 'block';
+    if (chev) chev.style.transform = 'rotate(90deg)';
+    if (!_adminAccLoaded[`${type}-${userId}`]) {
+        await _adminLoadAccItems(type, userId);
+        _adminAccLoaded[`${type}-${userId}`] = true;
+    }
+}
+
+async function _adminLoadAccItems(type, userId) {
+    const body = document.getElementById(`acc-body-${type}-${userId}`);
+    const cntEl = document.getElementById(`acc-count-${type}-${userId}`);
+    if (!body) return;
+    body.innerHTML = '<div class="search-empty" style="padding:10px 0;font-size:12px;">Yükleniyor...</div>';
+
+    if (type === 'files') {
+        const { data } = await sb.from('files')
+            .select('id, filename, is_public, created_at')
+            .eq('user_id', userId).order('created_at', { ascending: false });
+        const rows = data || [];
+        if (cntEl) cntEl.textContent = rows.length;
+        if (!rows.length) { body.innerHTML = '<div class="search-empty" style="padding:10px 0;font-size:12px;">Dosya yok</div>'; return; }
+        body.innerHTML = rows.map(f => `
+            <div class="admin-item-row" id="adm-file-${f.id}">
+                <span class="admin-item-icon">📄</span>
+                <div class="admin-item-info">
+                    <div class="admin-item-name">${escapeHtml(f.filename || 'İsimsiz dosya')}</div>
+                    <div class="admin-item-sub">${f.is_public ? 'Herkese açık' : 'Gizli'} · ${new Date(f.created_at).toLocaleDateString('tr-TR')}</div>
+                </div>
+                <button class="admin-item-del-btn" onclick="adminDeleteSingleFile(${f.id},'${userId}')">Sil</button>
+            </div>`).join('');
+
+    } else if (type === 'collections') {
+        const { data } = await sb.from('collections')
+            .select('id, name, is_public, created_at')
+            .eq('user_id', userId).order('created_at', { ascending: false });
+        const rows = data || [];
+        if (cntEl) cntEl.textContent = rows.length;
+        if (!rows.length) { body.innerHTML = '<div class="search-empty" style="padding:10px 0;font-size:12px;">Koleksiyon yok</div>'; return; }
+        body.innerHTML = rows.map(c => `
+            <div class="admin-item-row" id="adm-coll-${c.id}">
+                <span class="admin-item-icon">📚</span>
+                <div class="admin-item-info">
+                    <div class="admin-item-name">${escapeHtml(c.name || 'İsimsiz koleksiyon')}</div>
+                    <div class="admin-item-sub">${c.is_public ? 'Herkese açık' : 'Gizli'} · ${new Date(c.created_at).toLocaleDateString('tr-TR')}</div>
+                </div>
+                <button class="admin-item-del-btn" onclick="adminDeleteSingleCollection('${c.id}','${userId}')">Sil</button>
+            </div>`).join('');
+
+    } else if (type === 'comments') {
+        const [{ data: fCmts }, { data: cCmts }] = await Promise.all([
+            sb.from('comments').select('id, content, created_at').eq('user_id', userId).is('parent_id', null).order('created_at', { ascending: false }),
+            sb.from('collection_comments').select('id, content, created_at').eq('user_id', userId).is('parent_id', null).order('created_at', { ascending: false })
+        ]);
+        const all = [
+            ...(fCmts||[]).map(c => ({ ...c, _tbl: 'comments', _ctx: 'Dosya' })),
+            ...(cCmts||[]).map(c => ({ ...c, _tbl: 'collection_comments', _ctx: 'Koleksiyon' }))
+        ].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+        if (cntEl) cntEl.textContent = all.length;
+        if (!all.length) { body.innerHTML = '<div class="search-empty" style="padding:10px 0;font-size:12px;">Yorum yok</div>'; return; }
+        body.innerHTML = all.map(c => `
+            <div class="admin-item-row" id="adm-cmt-${c._tbl}-${c.id}">
+                <span class="admin-item-icon">💬</span>
+                <div class="admin-item-info">
+                    <div class="admin-item-name">${escapeHtml((c.content||'').slice(0,55))}${(c.content||'').length>55?'…':''}</div>
+                    <div class="admin-item-sub">${c._ctx} yorumu · ${new Date(c.created_at).toLocaleDateString('tr-TR')}</div>
+                </div>
+                <button class="admin-item-del-btn" onclick="adminDeleteSingleComment(${c.id},'${c._tbl}','${userId}')">Sil</button>
+            </div>`).join('');
+
+    } else if (type === 'replies') {
+        const [{ data: fReps }, { data: cReps }] = await Promise.all([
+            sb.from('comments').select('id, content, created_at').eq('user_id', userId).not('parent_id', 'is', null).order('created_at', { ascending: false }),
+            sb.from('collection_comments').select('id, content, created_at').eq('user_id', userId).not('parent_id', 'is', null).order('created_at', { ascending: false })
+        ]);
+        const all = [
+            ...(fReps||[]).map(c => ({ ...c, _tbl: 'comments', _ctx: 'Dosya' })),
+            ...(cReps||[]).map(c => ({ ...c, _tbl: 'collection_comments', _ctx: 'Koleksiyon' }))
+        ].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+        if (cntEl) cntEl.textContent = all.length;
+        if (!all.length) { body.innerHTML = '<div class="search-empty" style="padding:10px 0;font-size:12px;">Yanıt yok</div>'; return; }
+        body.innerHTML = all.map(c => `
+            <div class="admin-item-row" id="adm-rep-${c._tbl}-${c.id}">
+                <span class="admin-item-icon">↩️</span>
+                <div class="admin-item-info">
+                    <div class="admin-item-name">${escapeHtml((c.content||'').slice(0,55))}${(c.content||'').length>55?'…':''}</div>
+                    <div class="admin-item-sub">${c._ctx} yanıtı · ${new Date(c.created_at).toLocaleDateString('tr-TR')}</div>
+                </div>
+                <button class="admin-item-del-btn" onclick="adminDeleteSingleComment(${c.id},'${c._tbl}','${userId}')">Sil</button>
+            </div>`).join('');
+    }
+}
+
+async function adminDeleteSingleFile(fileId, userId) {
+    if (!confirm('Bu dosyayı silmek istediğinizden emin misiniz?\n(Yorumlar ve beğeniler de silinir)')) return;
+    try {
+        const { error } = await sb.rpc('admin_delete_file', { p_file_id: fileId });
+        if (error) throw error;
+        document.getElementById(`adm-file-${fileId}`)?.remove();
+        showToast('Dosya silindi');
+        _adminRefreshStats(userId, ['files', 'comments', 'replies']);
+    } catch(e) { showToast('Hata: ' + (e.message || 'silinemedi')); }
+}
+
+async function adminDeleteSingleCollection(collId, userId) {
+    if (!confirm('Bu koleksiyonu silmek istediğinizden emin misiniz?')) return;
+    try {
+        const { error } = await sb.rpc('admin_delete_collection', { p_collection_id: collId });
+        if (error) throw error;
+        document.getElementById(`adm-coll-${collId}`)?.remove();
+        showToast('Koleksiyon silindi');
+        _adminRefreshStats(userId, ['collections']);
+    } catch(e) { showToast('Hata: ' + (e.message || 'silinemedi')); }
+}
+
+async function adminDeleteSingleComment(commentId, table, userId) {
+    if (!confirm('Bu yorumu silmek istediğinizden emin misiniz?\n(Yanıtları da silinir)')) return;
+    const rpc = table === 'collection_comments' ? 'admin_delete_collection_comment' : 'admin_delete_comment';
+    try {
+        const { error } = await sb.rpc(rpc, { p_comment_id: commentId });
+        if (error) throw error;
+        document.getElementById(`adm-cmt-${table}-${commentId}`)?.remove();
+        document.getElementById(`adm-rep-${table}-${commentId}`)?.remove();
+        showToast('Yorum silindi');
+        _adminRefreshStats(userId, ['comments', 'replies']);
+    } catch(e) { showToast('Hata: ' + (e.message || 'silinemedi')); }
+}
+
+async function _adminRefreshStats(userId, resetAccTypes) {
+    // Accordion'ları yeniden yüklenecek şekilde işaretle
+    if (resetAccTypes) resetAccTypes.forEach(t => delete _adminAccLoaded[`${t}-${userId}`]);
+    const stats = await _adminLoadProfileStats(userId);
+    // Sadece sayaçları güncelle (tüm paneli yeniden render etme)
+    const grid = document.querySelector('#adminProfileContent .admin-profile-stats-grid');
+    if (grid) {
+        const ns = grid.querySelectorAll('.admin-profile-stat-n');
+        if (ns[0]) ns[0].textContent = stats.files;
+        if (ns[1]) ns[1].textContent = stats.collections;
+        if (ns[2]) ns[2].textContent = stats.comments;
+        if (ns[3]) ns[3].textContent = stats.messages;
+    }
+    // Toplu silme butonlarının alt yazısını güncelle
+    const subs = document.querySelectorAll('#adminProfileContent .admin-act-sub');
+    if (subs[0]) subs[0].textContent = `${stats.files} dosya · Yorumlar ve beğeniler dahil`;
+    if (subs[1]) subs[1].textContent = `${stats.collections} koleksiyon · Tüm içerik dahil`;
+    if (subs[2]) subs[2].textContent = `${stats.comments} yorum · Yanıtlar dahil`;
 }
 
 function togglePrivateAccount() {
