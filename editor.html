@@ -6025,12 +6025,12 @@ function closeTagModal() {
 async function saveVersionTag() {
     const tag = document.getElementById('tagModalInput').value.trim();
     if (!_tagEditVersionId) return;
+    const targetId = _tagEditVersionId; // closeTagModal null yapmadan önce sakla
     closeTagModal();
     showToast('Etiket kaydediliyor...');
-    const ok = await VersionManager.tag(_tagEditVersionId, tag || null);
+    const ok = await VersionManager.tag(targetId, tag || null);
     if (ok) {
-        // Önbellekteki veriyi güncelle
-        const v = versionHistory.find(v => v.id === _tagEditVersionId);
+        const v = versionHistory.find(v => v.id === targetId);
         if (v) v.tag = tag || null;
         renderVersionList();
         showToast(tag ? `Etiket eklendi: "${tag}" ✓` : 'Etiket kaldırıldı ✓');
@@ -6041,11 +6041,12 @@ async function saveVersionTag() {
 
 async function removeVersionTag() {
     if (!_tagEditVersionId) return;
+    const targetId = _tagEditVersionId; // closeTagModal null yapmadan önce sakla
     closeTagModal();
     showToast('Etiket kaldırılıyor...');
-    const ok = await VersionManager.tag(_tagEditVersionId, null);
+    const ok = await VersionManager.tag(targetId, null);
     if (ok) {
-        const v = versionHistory.find(v => v.id === _tagEditVersionId);
+        const v = versionHistory.find(v => v.id === targetId);
         if (v) v.tag = null;
         renderVersionList();
         showToast('Etiket kaldırıldı ✓');
@@ -6134,21 +6135,23 @@ async function downloadVersion(versionId, versionNum) {
 // ── Feature 7: Versiyon Filtreleme ve Arama ────────────────────────────
 function _getFilteredVersions() {
     return versionHistory.filter(v => {
-        // Filtre modu
-        if (_versionFilterMode === 'autosave'  && !v.is_autosave)  return false;
-        if (_versionFilterMode === 'tagged'    && !v.tag)           return false;
-        if (_versionFilterMode === 'deleted'   && !v.is_deleted)    return false;
-        if (_versionFilterMode === 'all'       && false)            return false; // tümü
+        // Belirli filtre modları
+        if (_versionFilterMode === 'autosave' && !v.is_autosave)  return false;
+        if (_versionFilterMode === 'tagged'   && !v.tag)           return false;
+        if (_versionFilterMode === 'deleted'  && !v.is_deleted)    return false;
+        // 'all' modda: silinmiş versiyonlar da gösterilir (tombstone olarak)
 
-        // Silindileri "deleted" filtresinde göster, diğerlerinde gizle
-        if (_versionFilterMode !== 'deleted' && v.is_deleted) return false;
-
-        // Arama
+        // Arama: silinmiş versiyonlarda sadece version numarasına bak
         if (_versionSearchQuery) {
             const q = _versionSearchQuery.toLowerCase();
-            const inSummary = (v.summary || '').toLowerCase().includes(q);
-            const inTag     = (v.tag     || '').toLowerCase().includes(q);
-            if (!inSummary && !inTag) return false;
+            if (v.is_deleted) {
+                // Silinmiş: sadece "v6" gibi numara araması
+                if (!`v${v.version_number}`.includes(q)) return false;
+            } else {
+                const inSummary = (v.summary || '').toLowerCase().includes(q);
+                const inTag     = (v.tag     || '').toLowerCase().includes(q);
+                if (!inSummary && !inTag) return false;
+            }
         }
         return true;
     });
