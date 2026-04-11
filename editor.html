@@ -6628,6 +6628,20 @@ let _cardMenuUserId = null;
 let _cardMenuType = null;   // 'file' | 'collection'
 let _cardMenuId = null;
 let _cardMenuTitle = null;
+let _cardMenuAnchorBtn = null;
+function _positionCardMenu(dd, btn) {
+    const rect = btn.getBoundingClientRect();
+    const menuW = 170;
+    let left = rect.right - menuW;
+    if (left < 8) left = 8;
+    dd.style.top  = (rect.bottom + 4) + 'px';
+    dd.style.left = left + 'px';
+}
+function _onCardMenuScroll() {
+    const dd = document.getElementById('cardMenuDropdown');
+    if (!dd || !_cardMenuAnchorBtn) return;
+    _positionCardMenu(dd, _cardMenuAnchorBtn);
+}
 function _openCardMenu(userId, btn, cardType, cardId, cardTitle) {
     if (!currentUser) { showToast('Takip etmek için giriş yapın'); return; }
     if (userId === currentUser.id) return;
@@ -6635,29 +6649,28 @@ function _openCardMenu(userId, btn, cardType, cardId, cardTitle) {
     _cardMenuType = cardType || null;
     _cardMenuId = cardId || null;
     _cardMenuTitle = cardTitle || null;
+    _cardMenuAnchorBtn = btn;
     const dd = document.getElementById('cardMenuDropdown');
     const label = document.getElementById('cardMenuFollowLabel');
     const followBtn = document.getElementById('cardMenuFollowBtn');
     const isFollowing = _followingSet.has(userId);
     label.textContent = isFollowing ? 'Takibi Bırak' : 'Takip Et';
     followBtn.classList.toggle('following', isFollowing);
-    const rect = btn.getBoundingClientRect();
-    const menuW = 170;
-    let left = rect.right - menuW;
-    if (left < 8) left = 8;
-    dd.style.top = (rect.bottom + 4) + 'px';
-    dd.style.left = left + 'px';
     dd.style.right = 'auto';
+    _positionCardMenu(dd, btn);
     dd.classList.add('open');
     setTimeout(() => {
         document.addEventListener('click', _closeCardMenu, { once: true });
+        window.addEventListener('scroll', _onCardMenuScroll, { capture: true, passive: true });
     }, 0);
 }
 function _closeCardMenu() {
     const dd = document.getElementById('cardMenuDropdown');
     if (dd) dd.classList.remove('open');
     _cardMenuUserId = null;
+    _cardMenuAnchorBtn = null;
     document.removeEventListener('click', _closeCardMenu);
+    window.removeEventListener('scroll', _onCardMenuScroll, { capture: true });
 }
 async function _cardMenuFollow() {
     if (!currentUser || !_cardMenuUserId) return;
