@@ -4956,6 +4956,12 @@ function showApp() {
     _updateNotifBadge();
     updateFilenameDisplay();
     updateTabDotColor();
+    // Sayfa yenilenince açık dosyanın versiyon rozetini geri yükle
+    if (currentOpenFileId) {
+        VersionManager.list(currentOpenFileId).then(list => {
+            if (list.length) updateVersionBadge(list[0].version_number);
+        });
+    }
 }
 
 function updateUserUI(user) {
@@ -5771,7 +5777,11 @@ function toggleFabMenu() {
 
 // ── Storage ────────────────────────────────────────────────────────────
 function saveToStorage() {
-    localStorage.setItem('mobilKodEditor', JSON.stringify({ code, filename: loadedFilename, timestamp: new Date().toISOString() }));
+    localStorage.setItem('mobilKodEditor', JSON.stringify({
+        code, filename: loadedFilename,
+        timestamp: new Date().toISOString(),
+        openFileId: currentOpenFileId ?? null
+    }));
 }
 
 function loadFromStorage() {
@@ -5783,6 +5793,7 @@ function loadFromStorage() {
             _activeTab = 'html';
         }
         if (d.filename !== undefined) loadedFilename = d.filename;
+        if (d.openFileId)             currentOpenFileId = d.openFileId;
     } catch(e) {}
 }
 
