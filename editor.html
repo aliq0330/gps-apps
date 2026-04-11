@@ -7252,7 +7252,7 @@ async function _updateUnreadBadge() {
 function _setBadge(n) {
     const b = document.getElementById('bbMsgBadge');
     if (!b) return;
-    if (n > 0) { b.style.display = ''; b.textContent = n > 99 ? '99+' : n; }
+    if (n > 0) { b.style.display = 'inline-block'; b.textContent = n > 99 ? '99+' : n; }
     else { b.style.display = 'none'; }
 }
 
