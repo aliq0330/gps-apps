@@ -2599,6 +2599,89 @@ body.preview-mode .file-title-bar { display: none !important; }
     border: 1px solid rgba(255,159,10,0.4); background: rgba(255,159,10,0.15);
     color: #ff9f0a; cursor: pointer; white-space: nowrap;
 }
+/* ── DIFF PANELİ ─────────────────────────────────────────── */
+.diff-panel {
+    position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0;
+    z-index: 4600; background: var(--bg);
+    transform: translateX(100%); transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+    display: flex; flex-direction: column; overflow: hidden;
+}
+.diff-panel.open { transform: translateX(0); }
+.diff-panel-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; border-bottom: 1px solid var(--glass-border);
+    background: var(--card-bg); backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur)); flex-shrink: 0;
+}
+.diff-panel-title { font-size: 15px; font-weight: 700; color: var(--text-primary); flex: 1; }
+.diff-panel-subtitle { font-size: 11px; color: var(--text-secondary); }
+.diff-panel-back {
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
+    background: var(--glass-bg); color: var(--text-secondary);
+}
+.diff-tab-bar {
+    display: flex; border-bottom: 1px solid var(--glass-border);
+    background: var(--card-bg); flex-shrink: 0; padding: 0 12px; gap: 0;
+}
+.diff-tab {
+    padding: 10px 16px; font-size: 12px; font-weight: 700; cursor: pointer;
+    color: var(--text-secondary); border-bottom: 2px solid transparent;
+    background: none; border-top: none; border-left: none; border-right: none;
+    transition: all 0.15s;
+}
+.diff-tab.active { color: #007aff; border-bottom-color: #007aff; }
+.diff-tab .diff-tab-badge {
+    display: inline-block; margin-left: 4px; font-size: 10px; font-weight: 700;
+    background: rgba(255,69,58,0.15); color: #ff453a; border-radius: 5px; padding: 1px 4px;
+}
+.diff-tab.has-adds .diff-tab-badge { background: rgba(52,199,89,0.15); color: #34c759; }
+.diff-stats {
+    display: flex; align-items: center; gap: 14px;
+    padding: 8px 16px; border-bottom: 1px solid var(--glass-border);
+    background: var(--card-bg); flex-shrink: 0; font-size: 12px; font-weight: 600;
+}
+.diff-stat-add { color: #34c759; }
+.diff-stat-del { color: #ff453a; }
+.diff-stat-same { color: var(--text-secondary); font-weight: 400; }
+.diff-content {
+    flex: 1; overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.65;
+}
+.diff-line {
+    display: flex; min-height: 22px; align-items: flex-start;
+}
+.diff-line.added   { background: rgba(52,199,89,0.10); }
+.diff-line.removed { background: rgba(255,69,58,0.10); }
+.diff-line.same    { background: transparent; }
+.diff-line-num {
+    width: 34px; flex-shrink: 0; text-align: right; padding: 2px 6px 0 8px;
+    color: var(--text-secondary); opacity: 0.45; user-select: none; font-size: 10px;
+}
+.diff-line-marker {
+    width: 16px; flex-shrink: 0; text-align: center; font-size: 12px;
+    font-weight: 700; padding-top: 2px; user-select: none;
+}
+.diff-line.added   .diff-line-marker { color: #34c759; }
+.diff-line.removed .diff-line-marker { color: #ff453a; }
+.diff-line.same    .diff-line-marker { color: transparent; }
+.diff-line-text {
+    flex: 1; white-space: pre-wrap; word-break: break-all;
+    padding: 2px 12px 2px 4px; color: var(--text-primary);
+}
+.diff-line.removed .diff-line-text { color: #ff453a; }
+.diff-line.added   .diff-line-text { color: #1a8c3b; }
+@media (prefers-color-scheme: dark) {
+    .diff-line.added   .diff-line-text { color: #5de07a; }
+    .diff-line.removed .diff-line-text { color: #ff6b6b; }
+}
+.diff-empty { text-align: center; padding: 48px 16px; color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.diff-no-change { text-align: center; padding: 48px 16px; color: #34c759; font-size: 13px; }
+.diff-loading { text-align: center; padding: 40px 16px; color: var(--text-secondary); font-size: 14px; }
+/* Fark butonu */
+.version-action-btn.diff-btn {
+    color: #ff9f0a; border-color: rgba(255,159,10,0.3); background: rgba(255,159,10,0.08);
+}
 /* Toolbar geçmiş butonu */
 .toolbar-btn-history {
     display: flex; align-items: center; gap: 5px; padding: 7px 10px;
@@ -3630,6 +3713,30 @@ body.preview-mode .file-title-bar { display: none !important; }
             <button onclick="closeVersionSummaryModal()" class="modal-btn"
                 style="width:100%;margin-top:4px;height:44px;border-radius:22px;opacity:0.75;font-size:13px;">İptal</button>
         </div>
+    </div>
+</div>
+
+<!-- Diff Paneli -->
+<div id="diffPanel" class="diff-panel">
+    <div class="diff-panel-header">
+        <button class="diff-panel-back" onclick="closeDiffPanel()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
+        <div>
+            <div class="diff-panel-title" id="diffPanelTitle">Fark Görünümü</div>
+            <div class="diff-panel-subtitle" id="diffPanelSubtitle"></div>
+        </div>
+    </div>
+    <div class="diff-tab-bar">
+        <button class="diff-tab active" id="diffTabHtml" onclick="switchDiffTab('html')">HTML</button>
+        <button class="diff-tab" id="diffTabCss"  onclick="switchDiffTab('css')">CSS</button>
+        <button class="diff-tab" id="diffTabJs"   onclick="switchDiffTab('js')">JS</button>
+    </div>
+    <div class="diff-stats" id="diffStats"></div>
+    <div class="diff-content" id="diffContent">
+        <div class="diff-loading">Yükleniyor...</div>
     </div>
 </div>
 
@@ -5204,6 +5311,7 @@ function renderVersionList() {
             </div>
             <div class="version-actions">
                 <button class="version-action-btn" onclick="previewVersion('${v.id}', ${v.version_number})">Önizle</button>
+                ${!isCurrent ? `<button class="version-action-btn diff-btn" onclick="showDiff('${v.id}', ${v.version_number})">Fark</button>` : ''}
                 ${!isCurrent ? `<button class="version-action-btn restore" onclick="restoreVersion('${v.id}', ${v.version_number})">Geri Yükle</button>` : ''}
             </div>
         </div>`;
@@ -5223,9 +5331,12 @@ async function previewVersion(versionId, versionNum) {
     _viewingVersionNum = versionNum;
 
     updateEditor();
+    // CodeMirror'u salt okunur yap
+    if (window.cm) cm.setOption('readOnly', 'nocursor');
     handleViewSwitch('preview');
     closeVersionPanel();
     _showOldVersionBanner(versionNum);
+    _setOldVersionSaveBtn(versionNum);
     showToast(`v${versionNum} görüntüleniyor`);
 }
 
@@ -5250,6 +5361,7 @@ async function restoreVersion(versionId, versionNum) {
     hasUnsavedChanges = false;
 
     updateEditor(); updateTabDotColor();
+    if (window.cm) cm.setOption('readOnly', false);
     setSaveButtonState('saved');
     _hideOldVersionBanner();
     closeVersionPanel();
@@ -5272,6 +5384,7 @@ function exitOldVersionView() {
     _viewingVersionNum = null;
     hasUnsavedChanges = false;
     updateEditor(); updateTabDotColor();
+    if (window.cm) cm.setOption('readOnly', false);
     setSaveButtonState('saved');
     _hideOldVersionBanner();
     handleViewSwitch('code');
@@ -5288,6 +5401,23 @@ function _showOldVersionBanner(num) {
 function _hideOldVersionBanner() {
     const banner = document.getElementById('oldVersionBanner');
     if (banner) banner.style.display = 'none';
+}
+
+// Eski versiyon açıkken kaydet butonunu "Bu Versiyonu Geri Yükle" olarak güncelle
+function _setOldVersionSaveBtn(versionNum) {
+    const tbBtn = document.getElementById('toolbarSaveBtn');
+    if (!tbBtn) return;
+    tbBtn.style.color = '#ff9f0a';
+    tbBtn.onclick = () => restoreVersionFromSaveBtn(versionNum);
+    tbBtn.querySelector('svg').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>';
+    tbBtn.childNodes[tbBtn.childNodes.length - 1].textContent = ` v${versionNum}'ü Geri Yükle`;
+}
+
+async function restoreVersionFromSaveBtn(versionNum) {
+    // versionHistory'den id bul
+    const v = versionHistory.find(v => v.version_number === versionNum);
+    if (!v) { showToast('Versiyon bulunamadı'); return; }
+    await restoreVersion(v.id, versionNum);
 }
 
 // Toolbar'daki versiyon rozeti güncelle
@@ -5352,6 +5482,161 @@ async function _doUpdateWithVersion(summary) {
     setSaveButtonState('saved');
     isViewingOldVersion = false;
     _hideOldVersionBanner();
+}
+
+// ── Diff Görünümü ───────────────────────────────────────────────────────
+let _diffData       = null;   // { html:[...], css:[...], js:[...] }
+let _diffActiveTab  = 'html';
+let _diffVersionNum = null;
+
+async function showDiff(versionId, versionNum) {
+    const panel = document.getElementById('diffPanel');
+    panel.classList.add('open');
+    document.getElementById('diffPanelTitle').textContent = `Fark: Güncel ↔ v${versionNum}`;
+    document.getElementById('diffPanelSubtitle').textContent = 'Güncel versiyon ile karşılaştırılıyor';
+    document.getElementById('diffContent').innerHTML = '<div class="diff-loading">Fark hesaplanıyor...</div>';
+    document.getElementById('diffStats').innerHTML = '';
+    _diffActiveTab  = 'html';
+    _diffVersionNum = versionNum;
+    ['Html','Css','Js'].forEach(t => {
+        const el = document.getElementById('diffTab' + t);
+        if (el) { el.classList.toggle('active', t === 'Html'); el.innerHTML = t.toUpperCase(); }
+    });
+
+    const ver = await VersionManager.getCode(versionId);
+    if (!ver) {
+        document.getElementById('diffContent').innerHTML = '<div class="diff-empty">Versiyon kodu yüklenemedi.</div>';
+        return;
+    }
+
+    // Eski versiyonu tab'lara böl
+    const oldTabs = _splitHtmlToTabs(`<html><body>${ver.code}</body></html>`);
+    // Güncel editör içeriği
+    const nowTabs = { html: _tabs.html || '', css: _tabs.css || '', js: _tabs.js || '' };
+
+    // Her tab için LCS diff hesapla
+    _diffData = {
+        html: _computeDiff(oldTabs.html || '', nowTabs.html),
+        css:  _computeDiff(oldTabs.css  || '', nowTabs.css),
+        js:   _computeDiff(oldTabs.js   || '', nowTabs.js)
+    };
+
+    // Tab badge'leri güncelle (kaç değişiklik var)
+    ['html','css','js'].forEach(t => {
+        const lines  = _diffData[t];
+        const chg    = lines.filter(l => l.type !== 'same').length;
+        const adds   = lines.filter(l => l.type === 'added').length;
+        const el     = document.getElementById('diffTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (!el) return;
+        el.innerHTML = t.toUpperCase() + (chg ? ` <span class="diff-tab-badge${adds > 0 ? ' has-adds' : ''}">${chg}</span>` : '');
+    });
+
+    _renderDiffTab('html');
+}
+
+function closeDiffPanel() {
+    document.getElementById('diffPanel').classList.remove('open');
+}
+
+function switchDiffTab(tab) {
+    _diffActiveTab = tab;
+    ['html','css','js'].forEach(t => {
+        document.getElementById('diffTab' + t.charAt(0).toUpperCase() + t.slice(1))
+            ?.classList.toggle('active', t === tab);
+    });
+    _renderDiffTab(tab);
+}
+
+function _renderDiffTab(tab) {
+    const lines = _diffData?.[tab];
+    if (!lines) return;
+
+    const added   = lines.filter(l => l.type === 'added').length;
+    const removed = lines.filter(l => l.type === 'removed').length;
+    const same    = lines.filter(l => l.type === 'same').length;
+
+    document.getElementById('diffStats').innerHTML =
+        `<span class="diff-stat-add">+${added} ekleme</span>` +
+        `<span class="diff-stat-del">−${removed} silme</span>` +
+        `<span class="diff-stat-same">${same} değişmedi</span>`;
+
+    if (!lines.length) {
+        document.getElementById('diffContent').innerHTML = '<div class="diff-empty">Bu sekmede içerik yok.</div>';
+        return;
+    }
+    if (added === 0 && removed === 0) {
+        document.getElementById('diffContent').innerHTML =
+            `<div class="diff-no-change">✓ Bu sekmede hiç değişiklik yok<br><span style="font-size:12px;opacity:0.6;">${same} satır aynı</span></div>`;
+        return;
+    }
+
+    // Satır numarası: sadece eski (removed) satırlar için eski numara, geri kalanlar için yeni numara
+    let oldNum = 0, newNum = 0;
+    const html = lines.map(l => {
+        if (l.type === 'added')   { newNum++; }
+        else if (l.type === 'removed') { oldNum++; }
+        else { oldNum++; newNum++; }
+
+        const marker  = l.type === 'added' ? '+' : l.type === 'removed' ? '−' : ' ';
+        const lineNum = l.type === 'removed' ? oldNum : newNum;
+        return `<div class="diff-line ${l.type}">` +
+            `<span class="diff-line-num">${lineNum}</span>` +
+            `<span class="diff-line-marker">${marker}</span>` +
+            `<span class="diff-line-text">${escapeHtml(l.value)}</span>` +
+            `</div>`;
+    }).join('');
+
+    document.getElementById('diffContent').innerHTML = html;
+}
+
+// LCS tabanlı satır diff — O(m*n) DP
+function _computeDiff(oldText, newText) {
+    const a = oldText.split('\n');
+    const b = newText.split('\n');
+    // Çok büyük dosyalar için basit blok diff'e düşüş
+    if (a.length > 1500 || b.length > 1500) return _simpleDiff(a, b);
+    return _lcsDiff(a, b);
+}
+
+function _lcsDiff(a, b) {
+    const m = a.length, n = b.length;
+    // DP tablosu (Int32Array ile bellek tasarrufu)
+    const dp = new Array(m + 1);
+    for (let i = 0; i <= m; i++) dp[i] = new Int32Array(n + 1);
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            dp[i][j] = a[i-1] === b[j-1]
+                ? dp[i-1][j-1] + 1
+                : (dp[i-1][j] > dp[i][j-1] ? dp[i-1][j] : dp[i][j-1]);
+        }
+    }
+    // Geri izleme (backtrack)
+    const result = [];
+    let i = m, j = n;
+    while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && a[i-1] === b[j-1]) {
+            result.push({ type: 'same', value: a[i-1] }); i--; j--;
+        } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+            result.push({ type: 'added', value: b[j-1] }); j--;
+        } else {
+            result.push({ type: 'removed', value: a[i-1] }); i--;
+        }
+    }
+    result.reverse();
+    return result;
+}
+
+// Büyük dosyalar için basit satır-satır karşılaştırma
+function _simpleDiff(a, b) {
+    const result = [];
+    const len = Math.min(a.length, b.length);
+    for (let i = 0; i < len; i++) {
+        if (a[i] === b[i]) result.push({ type: 'same', value: a[i] });
+        else { result.push({ type: 'removed', value: a[i] }); result.push({ type: 'added', value: b[i] }); }
+    }
+    for (let i = len; i < a.length; i++) result.push({ type: 'removed', value: a[i] });
+    for (let i = len; i < b.length; i++) result.push({ type: 'added', value: b[i] });
+    return result;
 }
 
 // ── Switcher Init ──────────────────────────────────────────────────────
@@ -5828,6 +6113,12 @@ async function confirmNewSave() {
 }
 
 function handleQuickSave() {
+    // Eski versiyon görüntülenirken buton zaten override edilir (_setOldVersionSaveBtn)
+    // Güvenlik olarak buraya da kontrol ekle
+    if (isViewingOldVersion && _viewingVersionNum) {
+        restoreVersionFromSaveBtn(_viewingVersionNum);
+        return;
+    }
     if (currentOpenFileId && hasUnsavedChanges) openSaveOptionsModal();
     else createNewSave();
 }
