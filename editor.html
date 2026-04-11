@@ -5426,29 +5426,69 @@ const VersionManager = {
 
             // Aynı checksum varsa kaydetme (oto-kayıt değilse)
             if (!opts.isAutosave) {
-                const { data: dup } = await sb.from('file_versions')
-                    .select('id')
-                    .eq('file_id', fileId)
-                    .eq('checksum', checksum)
-                    .eq('is_deleted', false)
-                    .maybeSingle();
-                if (dup) return { skipped: true, reason: 'same_content' };
+                try {
+                    const { data: dup } = await sb.from('file_versions')
+                        .select('id')
+                        .eq('file_id', fileId)
+                        .eq('checksum', checksum)
+                        .eq('is_deleted', false)
+                        .maybeSingle();
+                    if (dup) return { skipped: true, reason: 'same_content' };
+                } catch(_) {
+                    // is_deleted kolonu henüz yok — eski yöntemle dene
+                    const { data: dup2 } = await sb.from('file_versions')
+                        .select('id')
+                        .eq('file_id', fileId)
+                        .eq('checksum', checksum)
+                        .maybeSingle();
+                    if (dup2) return { skipped: true, reason: 'same_content' };
+                }
             }
 
-            const { data, error } = await sb.from('file_versions')
-                .insert({
+            // Önce yeni kolonlarla dene, hata alırsa eski şemayla tekrar dene
+            const newRow = {
+                file_id: fileId,
+                user_id: currentUser.id,
+                version_number: nextNum,
+                code: code,
+                summary: summary || `v${nextNum} kaydedildi`,
+                checksum: checksum,
+                is_autosave: opts.isAutosave || false,
+                is_deleted: false,
+                tag: null
+            };
+
+            let { data, error } = await sb.from('file_versions')
+                .insert(newRow)
+                .select().single();
+
+            // Kolon bulunamadı hatası → migration henüz çalıştırılmamış
+            if (error && (error.code === '42703' || error.message?.includes('column'))) {
+                const legacyRow = {
                     file_id: fileId,
                     user_id: currentUser.id,
                     version_number: nextNum,
                     code: code,
                     summary: summary || `v${nextNum} kaydedildi`,
-                    checksum: checksum,
-                    is_autosave: opts.isAutosave || false,
-                    is_deleted: false,
-                    tag: null
-                })
-                .select().single();
+                    checksum: checksum
+                };
+                const res2 = await sb.from('file_versions')
+                    .insert(legacyRow)
+                    .select().single();
+                data  = res2.data;
+                error = res2.error;
+            }
+
             if (error) throw error;
+
+            // 50 versiyon limitini uygula
+            await VersionManager._pruneOldVersions(fileId);
+            return data;
+        } catch(e) {
+            console.error('Version create error:', e);
+            return null;
+        }
+    },
 
             // 50 versiyon limitini uygula (silinmeyenler için)
             await VersionManager._pruneOldVersions(fileId);
@@ -5459,18 +5499,35 @@ const VersionManager = {
         }
     },
 
-    // Versiyon listesini getir (metadata + yeni alanlar)
+    // Versiyon listesini getir (metadata + yeni alanlar, eski şemaya fallback)
     async list(fileId) {
         if (!fileId) return [];
+        // Önce yeni kolonlarla dene
         try {
             const { data, error } = await sb.from('file_versions')
                 .select('id, version_number, summary, created_at, checksum, tag, is_autosave, is_deleted')
                 .eq('file_id', fileId)
                 .order('version_number', { ascending: false })
-                .limit(VersionManager.MAX_VERSIONS + 20); // silinen tombstone'lar için biraz fazla al
+                .limit(VersionManager.MAX_VERSIONS + 20);
             if (error) throw error;
             return data || [];
         } catch(e) {
+            // Yeni kolonlar yoksa eski şemayla tekrar dene
+            if (e.code === '42703' || e.message?.includes('column')) {
+                try {
+                    const { data, error: e2 } = await sb.from('file_versions')
+                        .select('id, version_number, summary, created_at, checksum')
+                        .eq('file_id', fileId)
+                        .order('version_number', { ascending: false })
+                        .limit(VersionManager.MAX_VERSIONS);
+                    if (e2) throw e2;
+                    // Eksik kolonları varsayılan değerlerle doldur
+                    return (data || []).map(v => ({ ...v, tag: null, is_autosave: false, is_deleted: false }));
+                } catch(e3) {
+                    console.error('Version list fallback error:', e3);
+                    return [];
+                }
+            }
             console.error('Version list error:', e);
             return [];
         }
@@ -5486,6 +5543,20 @@ const VersionManager = {
             if (error) throw error;
             return data;
         } catch(e) {
+            // Yeni kolonlar yoksa eski şemayla dene
+            if (e.code === '42703' || e.message?.includes('column')) {
+                try {
+                    const { data, error: e2 } = await sb.from('file_versions')
+                        .select('code, version_number, summary')
+                        .eq('id', versionId)
+                        .single();
+                    if (e2) throw e2;
+                    return { ...data, tag: null, is_autosave: false, is_deleted: false };
+                } catch(e3) {
+                    console.error('Version getCode fallback error:', e3);
+                    return null;
+                }
+            }
             console.error('Version getCode error:', e);
             return null;
         }
@@ -5593,17 +5664,27 @@ const VersionManager = {
         }
     },
 
-    // 50 limitini aşan eski versiyonları sil (silinmiş olanları saymadan)
+    // 50 limitini aşan eski versiyonları sil
     async _pruneOldVersions(fileId) {
         try {
-            const { data } = await sb.from('file_versions')
+            // Önce yeni şemayla dene (is_deleted filtresi)
+            let query = sb.from('file_versions')
                 .select('id, version_number')
                 .eq('file_id', fileId)
-                .eq('is_deleted', false)
                 .order('version_number', { ascending: false });
+
+            let { data, error } = await query;
+            if (error) return; // hata varsa prune'u atla, veri kaybetme
+
             if (!data || data.length <= VersionManager.MAX_VERSIONS) return;
             const toDelete = data.slice(VersionManager.MAX_VERSIONS).map(v => v.id);
-            await sb.from('file_versions').update({ is_deleted: true }).in('id', toDelete);
+
+            // Yeni şemada soft-delete, eskisinde gerçek silme
+            try {
+                await sb.from('file_versions').update({ is_deleted: true }).in('id', toDelete);
+            } catch(_) {
+                await sb.from('file_versions').delete().in('id', toDelete);
+            }
         } catch(e) { console.error('Version prune error:', e); }
     },
 
