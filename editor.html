@@ -2347,31 +2347,22 @@ body.preview-mode .file-title-bar { display: none !important; }
     border: 2px solid var(--glass-bg);
 }
 .notif-overlay {
-    position: fixed; inset: 0; z-index: 300;
-    background: rgba(0,0,0,0.3); backdrop-filter: blur(6px);
-    display: none; align-items: flex-end;
-}
-.notif-overlay.open { display: flex; }
-.notif-panel {
-    width: 100%; background: var(--glass-bg);
-    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
-    border-top: 1px solid var(--glass-border);
-    border-radius: 24px 24px 0 0; height: 50%;
+    position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0; z-index: 7500;
     display: flex; flex-direction: column;
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    transition: height 0.35s cubic-bezier(0.25,0.8,0.25,1); overflow: hidden;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.25,0.8,0.25,1);
+    background: #f2f2f7;
 }
+@media (prefers-color-scheme: dark) { .notif-overlay { background: #0a1225; } }
+.notif-overlay.open { transform: translateX(0); display: flex; }
+.notif-panel { display: contents; }
 .notif-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 20px 12px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 20px; border-bottom: 1px solid var(--glass-border);
+    background: rgba(242,242,247,0.95); flex-shrink: 0;
 }
-.notif-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
-.notif-clear-btn {
-    font-size: 13px; font-weight: 600; color: #ff3b30;
-    background: none; border: none; cursor: pointer;
-    font-family: inherit; padding: 4px 8px;
-}
+@media (prefers-color-scheme: dark) { .notif-header { background: #0b1326; } }
+.notif-title { font-size: 17px; font-weight: 700; color: var(--text-primary); flex: 1; }
 .notif-list { overflow-y: auto; flex: 1; }
 .notif-item {
     display: flex; align-items: center; gap: 12px;
@@ -4994,7 +4985,7 @@ function _switchEditorTab(tab) {
 document.addEventListener('DOMContentLoaded', async () => {
     _initCodeMirror();
     // messagesPanel converted to full-screen slide — no bottom sheet
-    _initBottomSheet('notifPanel',     closeNotifPanel);
+    // notifPanel: artık bottom sheet değil, tam ekran panel
     _initConvSwipeBack();
     _initFileViewSwipeBack();
 
@@ -9181,15 +9172,11 @@ function _initFileViewSwipeBack() {
 // ── BİLDİRİMLER ────────────────────────────────────────────────────────
 function openNotifPanel() {
     _closeAllPanels('notif');
-    _sheetReset('notifPanel');
     document.getElementById('notifOverlay').classList.add('open');
     loadNotifications();
 }
 function closeNotifPanel() {
     document.getElementById('notifOverlay').classList.remove('open');
-}
-function handleNotifOverlayClick(e) {
-    if (e.target.id === 'notifOverlay') closeNotifPanel();
 }
 
 async function loadNotifications() {
@@ -9396,25 +9383,6 @@ async function rejectFollowRequest(notifId, fromUserId) {
             if (el) { el.style.transition = 'opacity 0.3s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }
         }, 3000);
     } catch(e) { showToast('Hata oluştu'); loadNotifications(); }
-}
-
-async function clearAllNotifs() {
-    // follow_request tipini silme — ayrı tut
-    await sb.from('like_notifications')
-        .delete()
-        .eq('to_user_id', currentUser.id)
-        .neq('type', 'follow_request');
-    // DOM'dan follow_request olmayanları kaldır
-    const list = document.getElementById('notifList');
-    if (list) {
-        list.querySelectorAll('.notif-item').forEach(el => {
-            if (!el.querySelector('[data-fr-btns]')) el.remove();
-        });
-        if (!list.querySelector('.notif-item')) {
-            list.innerHTML = '<div class="search-empty">Bildirim yok</div>';
-        }
-    }
-    _setNotifBadge(0);
 }
 
 async function _updateNotifBadge() {
@@ -10333,12 +10301,13 @@ async function _shareCopyLink() {
 </script>
 
 <!-- ── BİLDİRİMLER PANELİ ──────────────────────────────────────────────── -->
-<div class="notif-overlay" id="notifOverlay" onclick="handleNotifOverlayClick(event)">
+<div class="notif-overlay" id="notifOverlay">
     <div class="notif-panel" id="notifPanel">
-        <div class="profile-drag-bar"></div>
         <div class="notif-header">
+            <button class="fv-back-btn" onclick="closeNotifPanel()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            </button>
             <div class="notif-title">Bildirimler</div>
-            <button class="notif-clear-btn" onclick="clearAllNotifs()">Tümünü Sil</button>
         </div>
         <div class="notif-list" id="notifList">
             <div class="search-empty">Yükleniyor...</div>
