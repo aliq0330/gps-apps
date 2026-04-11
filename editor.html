@@ -3572,42 +3572,6 @@ body.preview-mode .file-title-bar { display: none !important; }
     </div>
 </div>
 
-<!-- Kaydetme Seçenekleri Modalı -->
-
-<div id="saveOptionsModalOverlay" class="modal-overlay" onclick="handleSaveOptionsOverlayClick(event)">
-    <div class="modal-box" style="max-width:400px;">
-        <div class="modal-header">
-            <div class="modal-icon-wrap" style="background:rgba(52,199,89,0.15);border-color:rgba(52,199,89,0.3);">
-                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
-            </div>
-            <div class="modal-title">Değişiklikleri Kaydet</div>
-            <div class="modal-subtitle">Nasıl kaydetmek istiyorsunuz?</div>
-        </div>
-        <div style="margin-bottom:24px;padding:16px;background:var(--glass-bg);border-radius:16px;border:1px solid var(--glass-border);">
-            <p style="margin:0;font-size:14px;color:var(--text-secondary);line-height:1.5;">
-                <strong style="color:var(--text-primary);" id="currentFileNameDisplay">Dosya</strong> üzerinde değişiklik yaptınız.
-            </p>
-        </div>
-        <div class="modal-actions" style="flex-direction:column;gap:10px;">
-            <button onclick="updateExistingFile()" class="modal-btn" style="background:rgba(0,122,255,0.15);border-color:rgba(0,122,255,0.3);color:#007aff;width:100%;height:50px;border-radius:22px;">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                </svg>
-                Mevcut Dosyayı Güncelle
-            </button>
-            <button onclick="createNewSave()" class="modal-btn" style="background:rgba(52,199,89,0.15);border-color:rgba(52,199,89,0.3);color:#34c759;width:100%;height:50px;border-radius:22px;">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Yeni Kayıt Oluştur
-            </button>
-            <button onclick="closeSaveOptionsModal()" class="modal-btn" style="width:100%;margin-top:6px;height:48px;border-radius:22px;opacity:0.8;">İptal</button>
-        </div>
-    </div>
-</div>
-
 <!-- Kaydedilmemiş Değişiklikler Modalı -->
 
 <div id="unsavedModalOverlay" class="modal-overlay" onclick="handleUnsavedOverlayClick(event)">
@@ -3709,6 +3673,10 @@ body.preview-mode .file-title-bar { display: none !important; }
             <button onclick="skipVersionSummary()" class="modal-btn"
                 style="background:rgba(52,199,89,0.1);border-color:rgba(52,199,89,0.25);color:#34c759;width:100%;height:44px;border-radius:22px;font-size:13px;">
                 Özetsiz Kaydet
+            </button>
+            <button onclick="saveAsNewFile()" class="modal-btn"
+                style="background:rgba(255,159,10,0.1);border-color:rgba(255,159,10,0.25);color:#ff9f0a;width:100%;height:44px;border-radius:22px;font-size:13px;">
+                Yeni Dosya Olarak Kaydet
             </button>
             <button onclick="closeVersionSummaryModal()" class="modal-btn"
                 style="width:100%;margin-top:4px;height:44px;border-radius:22px;opacity:0.75;font-size:13px;">İptal</button>
@@ -6052,7 +6020,6 @@ async function _doSave(filename, description = '') {
 }
 
 async function createNewSave() {
-    closeSaveOptionsModal();
     if (!code.trim()) { showToast('Kaydedilecek kod yok'); return; }
     openNewSaveModal();
 }
@@ -6113,36 +6080,22 @@ async function confirmNewSave() {
 }
 
 function handleQuickSave() {
-    // Eski versiyon görüntülenirken buton zaten override edilir (_setOldVersionSaveBtn)
-    // Güvenlik olarak buraya da kontrol ekle
     if (isViewingOldVersion && _viewingVersionNum) {
         restoreVersionFromSaveBtn(_viewingVersionNum);
         return;
     }
-    if (currentOpenFileId && hasUnsavedChanges) openSaveOptionsModal();
-    else createNewSave();
+    // Açık dosya varsa direkt versiyon özeti modal'ı aç (ara modal yok)
+    if (currentOpenFileId && hasUnsavedChanges) {
+        openVersionSummaryModal();
+        return;
+    }
+    createNewSave();
 }
 
-// ── Save Options Modal ─────────────────────────────────────────────────
-function openSaveOptionsModal() {
-    const currentFile = savedFiles.find(f => f.id === currentOpenFileId);
-    document.getElementById('currentFileNameDisplay').textContent =
-        (currentFile ? currentFile.filename : loadedFilename) || DEFAULT_NAME;
-    document.getElementById('saveOptionsModalOverlay').classList.add('open');
-}
-function closeSaveOptionsModal() {
-    document.getElementById('saveOptionsModalOverlay').classList.remove('open');
-}
-function handleSaveOptionsOverlayClick(e) {
-    if (e.target.id === 'saveOptionsModalOverlay') closeSaveOptionsModal();
-}
-
-async function updateExistingFile() {
-    closeSaveOptionsModal();
-    if (!currentOpenFileId) return;
-    // Kullanıcıya değişiklik özeti sor — versiyon özeti modalı açılır
-    // Gerçek kayıt confirmVersionSave() veya skipVersionSummary() ile yapılır
-    openVersionSummaryModal();
+// Versiyon özeti modal'ından "Yeni Dosya Olarak Kaydet" seçeneği
+function saveAsNewFile() {
+    closeVersionSummaryModal();
+    openNewSaveModal();
 }
 
 // ── Saved Files Panel ──────────────────────────────────────────────────
