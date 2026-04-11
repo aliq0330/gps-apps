@@ -8474,7 +8474,7 @@ async function openFileView(fileId) {
 
     // Header bilgileri hemen set et
     document.getElementById('fvFilename').textContent  = d.filename || pub.filename || '...';
-    document.getElementById('fvAuthorBtn').textContent = (d.emoji || '👤') + ' ' + (d.username || '...');
+    document.getElementById('fvAuthorBtn').innerHTML = _ava(d.emoji, d.avatarUrl) + ' ' + escapeHtml(d.username || '...');
 
     // Overlay aç, ilk sekme
     fvSwitchTab('code', false);
@@ -8496,10 +8496,10 @@ async function openFileView(fileId) {
             _pubFilesData[fileId] = { filename: fd.filename, code: fd.code, forked_from_id: fd.forked_from_id, description: fd.description || '' };
             if (!d.filename) {
                 const { data: pr } = await sb.from('profiles').select('username,avatar_emoji,avatar_url').eq('id', fd.user_id).single();
-                _exploreDataMap[fileId] = { ..._exploreDataMap[fileId], filename: fd.filename, userId: fd.user_id, username: pr?.username || 'Kullanıcı', emoji: pr?.avatar_emoji || '👤', code, forked_from_id: fd.forked_from_id, description: fd.description || '' };
+                _exploreDataMap[fileId] = { ..._exploreDataMap[fileId], filename: fd.filename, userId: fd.user_id, username: pr?.username || 'Kullanıcı', emoji: pr?.avatar_emoji || '👤', avatarUrl: pr?.avatar_url || '', code, forked_from_id: fd.forked_from_id, description: fd.description || '' };
                 _fvUserId = fd.user_id;
                 document.getElementById('fvFilename').textContent  = fd.filename;
-                document.getElementById('fvAuthorBtn').textContent = (_exploreDataMap[fileId].emoji) + ' ' + (_exploreDataMap[fileId].username);
+                document.getElementById('fvAuthorBtn').innerHTML = _ava(_exploreDataMap[fileId].emoji, _exploreDataMap[fileId].avatarUrl) + ' ' + escapeHtml(_exploreDataMap[fileId].username);
             }
             _fvDescCurrent = fd.description || '';
             _fvRenderDesc(_fvDescCurrent, fd.user_id);
