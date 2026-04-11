@@ -1217,6 +1217,15 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .admin-act-title { font-size: 14px; font-weight: 600; }
 .admin-act-sub { font-size: 11px; opacity: 0.7; margin-top: 2px; }
 
+/* Admin kullanıcı satırı istatistik rozetleri */
+.admin-user-stats { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.admin-user-stat-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
+.admin-user-stat-badge.s-files { background: rgba(255,149,0,0.12); color: #ff9500; }
+.admin-user-stat-badge.s-colls { background: rgba(88,86,214,0.12); color: #5856d6; }
+.admin-user-stat-badge.s-cmts  { background: rgba(52,199,89,0.12);  color: #34c759; }
+.admin-user-stat-badge.s-reps  { background: rgba(0,199,190,0.12);  color: #00c7be; }
+.admin-user-stat-badge.s-msgs  { background: rgba(0,122,255,0.12);  color: #007aff; }
+
 /* Admin Accordion — ayrı ayrı silme */
 .admin-accordion { border: 1px solid var(--glass-border); border-radius: 14px; margin-bottom: 10px; overflow: hidden; }
 .admin-acc-hdr {
@@ -3681,6 +3690,7 @@ function openProfilePanel() {
 
 // ── ADMİN PANELİ ──────────────────────────────────────────────────────
 let _adminAllUsers = [];
+let _adminUserStats = {};   // { [userId]: { f, c, cm, r, msg } }
 
 async function openAdminPanel() {
     const overlay = document.getElementById('adminOverlay');
@@ -3704,8 +3714,50 @@ async function _adminLoadUsers() {
         .order('created_at', { ascending: false });
     if (error || !data) { list.innerHTML = '<div class="search-empty">Hata oluştu</div>'; return; }
     _adminAllUsers = data;
+    _adminUserStats = {};
     document.getElementById('adminUserCount').textContent = data.length + ' kullanıcı';
     _adminRender(data);
+    // İstatistikleri arka planda yükle
+    _adminFetchAllStats(data.map(u => u.id));
+}
+
+async function _adminFetchAllStats(ids) {
+    if (!ids.length) return;
+    const [
+        { data: files },
+        { data: colls },
+        { data: cmts },
+        { data: colCmts },
+        { data: msgs }
+    ] = await Promise.all([
+        sb.from('files').select('user_id').in('user_id', ids),
+        sb.from('collections').select('user_id').in('user_id', ids),
+        sb.from('comments').select('user_id, parent_id').in('user_id', ids),
+        sb.from('collection_comments').select('user_id, parent_id').in('user_id', ids),
+        sb.from('messages').select('sender_id').in('sender_id', ids)
+    ]);
+    ids.forEach(id => { _adminUserStats[id] = { f:0, c:0, cm:0, r:0, msg:0 }; });
+    (files   ||[]).forEach(r => { if (_adminUserStats[r.user_id])  _adminUserStats[r.user_id].f++; });
+    (colls   ||[]).forEach(r => { if (_adminUserStats[r.user_id])  _adminUserStats[r.user_id].c++; });
+    (cmts    ||[]).forEach(r => { if (_adminUserStats[r.user_id])  r.parent_id ? _adminUserStats[r.user_id].r++ : _adminUserStats[r.user_id].cm++; });
+    (colCmts ||[]).forEach(r => { if (_adminUserStats[r.user_id])  r.parent_id ? _adminUserStats[r.user_id].r++ : _adminUserStats[r.user_id].cm++; });
+    (msgs    ||[]).forEach(r => { if (_adminUserStats[r.sender_id]) _adminUserStats[r.sender_id].msg++; });
+    // DOM'u güncelle
+    ids.forEach(id => {
+        const el = document.getElementById(`ustats-${id}`);
+        if (!el) return;
+        const s = _adminUserStats[id];
+        el.innerHTML = _adminStatsBadges(s);
+    });
+}
+
+function _adminStatsBadges(s) {
+    if (!s) return '<span style="font-size:10px;color:var(--text-secondary);">···</span>';
+    return `<span class="admin-user-stat-badge s-files">📁 ${s.f}</span>` +
+           `<span class="admin-user-stat-badge s-colls">📚 ${s.c}</span>` +
+           `<span class="admin-user-stat-badge s-cmts">💬 ${s.cm}</span>` +
+           `<span class="admin-user-stat-badge s-reps">↩️ ${s.r}</span>` +
+           `<span class="admin-user-stat-badge s-msgs">✉️ ${s.msg}</span>`;
 }
 
 function _adminRender(users) {
@@ -3717,6 +3769,7 @@ function _adminRender(users) {
             <div class="admin-user-info">
                 <div class="admin-user-name">@${escapeHtml(u.username || 'isimsiz')}${u.is_admin ? ' 🛡️' : ''}${u.id === currentUser?.id ? ' <span style="font-size:10px;color:var(--text-secondary);">(Sen)</span>' : ''}</div>
                 <div class="admin-user-email">${u.id}</div>
+                <div class="admin-user-stats" id="ustats-${u.id}">${_adminStatsBadges(_adminUserStats[u.id])}</div>
             </div>
             <svg class="admin-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
         </div>`).join('');
