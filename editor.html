@@ -3650,7 +3650,12 @@ async function saveProfile() {
         const isPhotoMode = document.getElementById('avatarTabPhoto')?.classList.contains('active');
         if (_pendingAvatarBlob) {
             showToast('Fotoğraf yükleniyor…');
-            avatarUrl = await _uploadAvatar(_pendingAvatarBlob);
+            try {
+                avatarUrl = await _uploadAvatar(_pendingAvatarBlob);
+            } catch (storageErr) {
+                console.warn('Storage yüklemesi başarısız, veri URL\'si kullanılıyor:', storageErr);
+                avatarUrl = await _blobToDataUrl(_pendingAvatarBlob);
+            }
             _pendingAvatarBlob = null;
             if (_pendingAvatarPreviewUrl) { URL.revokeObjectURL(_pendingAvatarPreviewUrl); _pendingAvatarPreviewUrl = null; }
         } else if (!isPhotoMode) {
@@ -3810,6 +3815,16 @@ async function _uploadAvatar(blob) {
     if (error) throw error;
     const { data } = sb.storage.from('avatars').getPublicUrl(path);
     return data.publicUrl + '?v=' + Date.now();
+}
+
+/** Blob'u base64 data URL'e dönüştürür (Storage yedeği). */
+function _blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
 }
 
 /** Dosya seçildiğinde çalışır: işle → önizle → beklet */
