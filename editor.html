@@ -7021,6 +7021,8 @@ function closeConversation() {
     if (_msgPollTimer) { clearInterval(_msgPollTimer); _msgPollTimer = null; }
     _activeConvId = null; _convOtherUser = null; _renderedMsgIds = new Set();
     _updateUnreadBadge();
+    // Mesajlar listesini sıfırdan yenile
+    loadConversations();
 }
 
 function _initConvSwipeBack() {
