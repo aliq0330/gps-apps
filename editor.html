@@ -3602,6 +3602,17 @@ const PROFILE_EMOJIS = [
 // ── Profil Fonksiyonları ───────────────────────────────────────────────
 async function loadProfile() {
     if (!currentUser) return;
+    // Cache'den hemen göster, ağ gecikmesindeki varsayılan flash'ı önle
+    const _cacheKey = `profile_cache_${currentUser.id}`;
+    try {
+        const cached = localStorage.getItem(_cacheKey);
+        if (cached) {
+            currentProfile = JSON.parse(cached);
+            selectedEmoji  = currentProfile.avatar_emoji || '👤';
+            updateAvatarUI();
+            updateProfileHeader();
+        }
+    } catch(_) {}
     try {
         const { data, error } = await sb.from('profiles')
             .select('*')
@@ -3611,6 +3622,7 @@ async function loadProfile() {
         if (data) {
             currentProfile = data;
             selectedEmoji  = data.avatar_emoji || '👤';
+            try { localStorage.setItem(_cacheKey, JSON.stringify(data)); } catch(_) {}
         } else {
             await createProfile();
         }
@@ -3688,6 +3700,7 @@ async function saveProfile() {
             .select().single();
         if (error) throw error;
         currentProfile = data;
+        try { localStorage.setItem(`profile_cache_${currentUser.id}`, JSON.stringify(data)); } catch(_) {}
         updateAvatarUI();
         updateProfileHeader();
         showToast('Profil kaydedildi ✓');
