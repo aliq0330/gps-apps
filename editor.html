@@ -8379,6 +8379,9 @@ async function deleteNotif(id) {
 
 async function acceptFollowRequest(notifId, fromUserId) {
     if (!currentUser) return;
+    // Elemanı hemen kaldır (animasyon sorunlarını önler)
+    const el = document.getElementById('notif-' + notifId);
+    if (el) el.remove();
     try {
         // Follows tablosuna normal takip kaydı ekle (status yok)
         const { error: fErr } = await sb.from('follows')
@@ -8392,19 +8395,25 @@ async function acceptFollowRequest(notifId, fromUserId) {
             type: 'follow_accepted',
             seen: false
         });
-        // Takip isteği bildirimini sil
-        await deleteNotif(notifId);
+        // Takip isteği bildirimini DB'den sil
+        await sb.from('like_notifications').delete().eq('id', notifId);
         showToast('Takip isteği kabul edildi');
-    } catch(e) { showToast('Hata oluştu'); }
+    } catch(e) {
+        // Hata olursa elemanı geri yüklemek yerine paneli yenile
+        showToast('Hata: ' + (e.message || 'bilinmeyen'));
+        loadNotifications();
+    }
 }
 
 async function rejectFollowRequest(notifId, fromUserId) {
     if (!currentUser) return;
+    // Elemanı hemen kaldır
+    const el = document.getElementById('notif-' + notifId);
+    if (el) el.remove();
     try {
-        // Sadece bildirimi sil — follows tablosunda kayıt zaten yok
-        await deleteNotif(notifId);
+        await sb.from('like_notifications').delete().eq('id', notifId);
         showToast('Takip isteği reddedildi');
-    } catch(e) { showToast('Hata oluştu'); }
+    } catch(e) { showToast('Hata oluştu'); loadNotifications(); }
 }
 
 async function clearAllNotifs() {
