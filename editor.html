@@ -1931,7 +1931,8 @@ body.preview-mode .file-title-bar { display: none !important; }
 .fv-back-btn:active { background: rgba(120,120,128,0.25); }
 .fv-header-info { flex: 1; min-width: 0; }
 .fv-filename { font-size: 14px; font-weight: 700; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fv-author-btn { font-size: 12px; color: var(--text-secondary); font-weight: 500; background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; margin-top: 2px; display: block; text-align: left; }
+.fv-author-btn { font-size: 12px; color: var(--text-secondary); font-weight: 500; background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; margin-top: 2px; display: flex; align-items: center; gap: 5px; text-align: left; }
+.fv-author-btn .ava-img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 .fv-author-btn:active { opacity: 0.6; }
 .fv-like-btn {
     display: flex; align-items: center; gap: 5px; flex-shrink: 0;
