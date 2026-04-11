@@ -7891,7 +7891,12 @@ async function loadConversations() {
         const lastMsg = msgs[msgs.length - 1];
         const unread = msgs.filter(m => !m.read && m.sender_id !== currentUser.id).length;
         totalUnread += unread;
-        const preview = lastMsg ? (lastMsg.sender_id === currentUser.id ? 'Sen: ' : '') + lastMsg.content : 'Konuşmaya başla';
+        let preview = 'Konuşmaya başla';
+        if (lastMsg) {
+            const _lCard = _parseMsgCard(lastMsg.content);
+            const _lText = _lCard ? (_lCard.__card === 'file' ? '📄 ' : '📁 ') + _lCard.name : lastMsg.content;
+            preview = (lastMsg.sender_id === currentUser.id ? 'Sen: ' : '') + _lText;
+        }
         const timeStr = lastMsg ? _fmtTime(lastMsg.created_at) : '';
         return `<div class="swipe-wrapper" data-conv-id="${c.id}" style="border-radius:14px;margin:0 12px 10px;">
             <div class="swipe-delete-bg">
