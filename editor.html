@@ -8290,7 +8290,7 @@ async function loadNotifications() {
                 <div class="notif-info">
                     <div class="notif-text"><strong style="cursor:pointer" onclick="event.stopPropagation();closeNotifPanel();openPublicProfile('${n.from_user_id}')">${escapeHtml(prof.username || 'Biri')}</strong>&nbsp;seni takip etmek istiyor</div>
                     <div class="notif-time">${_fmtTime(n.created_at)}</div>
-                    <div style="display:flex;gap:8px;margin-top:8px;">
+                    <div data-fr-btns style="display:flex;gap:8px;margin-top:8px;">
                         <button onclick="event.stopPropagation();acceptFollowRequest('${n.id}','${n.from_user_id}')" style="flex:1;padding:7px;border-radius:10px;border:none;background:#007aff;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Onayla</button>
                         <button onclick="event.stopPropagation();rejectFollowRequest('${n.id}','${n.from_user_id}')" style="flex:1;padding:7px;border-radius:10px;border:1px solid var(--glass-border);background:transparent;color:var(--text-primary);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Reddet</button>
                     </div>
@@ -8379,27 +8379,26 @@ async function deleteNotif(id) {
 
 async function acceptFollowRequest(notifId, fromUserId) {
     if (!currentUser) return;
-    // Elemanı hemen kaldır (animasyon sorunlarını önler)
     const el = document.getElementById('notif-' + notifId);
-    if (el) el.remove();
+    const btnWrap = el?.querySelector('[data-fr-btns]');
+    // Butonları hemen devre dışı bırak
+    if (btnWrap) {
+        btnWrap.innerHTML = '<button style="flex:1;padding:7px;border-radius:10px;border:none;background:#34c759;color:#fff;font-size:13px;font-weight:700;cursor:default;font-family:inherit;">Onaylandı ✓</button>';
+    }
     try {
-        // Follows tablosuna normal takip kaydı ekle (status yok)
         const { error: fErr } = await sb.from('follows')
             .insert({ follower_id: fromUserId, following_id: currentUser.id });
-        if (fErr && fErr.code !== '23505') throw fErr; // 23505 = duplicate, zaten takipçi
-        // Kabul bildirimini kişiye gönder
+        if (fErr && fErr.code !== '23505') throw fErr;
         await sb.from('like_notifications').insert({
-            to_user_id: fromUserId,
-            from_user_id: currentUser.id,
-            file_id: null,
-            type: 'follow_accepted',
-            seen: false
+            to_user_id: fromUserId, from_user_id: currentUser.id,
+            file_id: null, type: 'follow_accepted', seen: false
         });
-        // Takip isteği bildirimini DB'den sil
         await sb.from('like_notifications').delete().eq('id', notifId);
-        showToast('Takip isteği kabul edildi');
+        // 3 sn sonra elemanı kaldır
+        setTimeout(() => {
+            if (el) { el.style.transition = 'opacity 0.3s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }
+        }, 3000);
     } catch(e) {
-        // Hata olursa elemanı geri yüklemek yerine paneli yenile
         showToast('Hata: ' + (e.message || 'bilinmeyen'));
         loadNotifications();
     }
@@ -8407,12 +8406,16 @@ async function acceptFollowRequest(notifId, fromUserId) {
 
 async function rejectFollowRequest(notifId, fromUserId) {
     if (!currentUser) return;
-    // Elemanı hemen kaldır
     const el = document.getElementById('notif-' + notifId);
-    if (el) el.remove();
+    const btnWrap = el?.querySelector('[data-fr-btns]');
+    if (btnWrap) {
+        btnWrap.innerHTML = '<button style="flex:1;padding:7px;border-radius:10px;border:none;background:#ff3b30;color:#fff;font-size:13px;font-weight:700;cursor:default;font-family:inherit;">Reddedildi ✕</button>';
+    }
     try {
         await sb.from('like_notifications').delete().eq('id', notifId);
-        showToast('Takip isteği reddedildi');
+        setTimeout(() => {
+            if (el) { el.style.transition = 'opacity 0.3s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }
+        }, 3000);
     } catch(e) { showToast('Hata oluştu'); loadNotifications(); }
 }
 
