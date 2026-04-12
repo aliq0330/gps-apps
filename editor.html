@@ -9187,14 +9187,16 @@ async function openPublicProfile(userId) {
             });
         }
 
-        // Beğeni ve yorum sayılarını çek
+        // Beğeni, yorum sayıları ve etiketleri çek
         let _commentCountMap = {};
+        let _pubFileLabelMap = {}; // fileId -> [label, ...]
         if (pubFiles.length > 0) {
             const fileIds = pubFiles.map(f => f.id);
-            const [{ data: fileLikes }, { data: myFileLikes }, { data: commentRows }] = await Promise.all([
+            const [{ data: fileLikes }, { data: myFileLikes }, { data: commentRows }, { data: pubLabelLinks }] = await Promise.all([
                 sb.from('likes').select('file_id').in('file_id', fileIds),
                 currentUser ? sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds) : { data: [] },
-                sb.from('comments').select('file_id').in('file_id', fileIds)
+                sb.from('comments').select('file_id').in('file_id', fileIds),
+                sb.from('file_label_links').select('file_id,label_id').in('file_id', fileIds)
             ]);
             await _loadForkCounts(fileIds);
             const _freshCounts = {};
@@ -9202,6 +9204,17 @@ async function openPublicProfile(userId) {
             Object.assign(_likeCounts, _freshCounts);
             (myFileLikes || []).forEach(l => { _myLikes.add(l.file_id); });
             (commentRows || []).forEach(c => { _commentCountMap[c.file_id] = (_commentCountMap[c.file_id] || 0) + 1; });
+            // Etiketleri çöz
+            if (pubLabelLinks && pubLabelLinks.length) {
+                const lblIds = [...new Set(pubLabelLinks.map(l => l.label_id))];
+                const { data: lblData } = await sb.from('file_labels').select('id,name,color').in('id', lblIds);
+                const lblMap = {};
+                (lblData || []).forEach(l => { lblMap[l.id] = l; });
+                pubLabelLinks.forEach(lnk => {
+                    if (!_pubFileLabelMap[lnk.file_id]) _pubFileLabelMap[lnk.file_id] = [];
+                    if (lblMap[lnk.label_id]) _pubFileLabelMap[lnk.file_id].push(lblMap[lnk.label_id]);
+                });
+            }
         }
 
         // Gizli hesap uyarısı
@@ -9233,6 +9246,7 @@ async function openPublicProfile(userId) {
                         <div class="pub-file-info">
                             <div class="pub-file-name">${escapeHtml(f.filename)}</div>
                             ${f.description ? `<div class="pub-file-desc" style="font-size:12px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(f.description)}</div>` : ''}
+                            ${(_pubFileLabelMap[f.id]||[]).length ? `<div class="flabel-card-row">${_flabelChipsHtml(_pubFileLabelMap[f.id], true)}</div>` : ''}
                             <div class="pub-file-meta">${date} · ${lines} satır</div>
                         </div>
                         <div class="pub-file-right">
