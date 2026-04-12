@@ -10019,6 +10019,7 @@ let _exploreLoadedInFeed = false;
 
 function switchFeedTab(tab, animate = true) {
     _navigate(tab === 'explore' ? '#feed/explore' : '#feed');
+    const prevTab = _feedTab;
     _feedTab = tab;
     document.getElementById('feedTabFollowing').classList.toggle('active', tab === 'following');
     document.getElementById('feedTabExplore').classList.toggle('active', tab === 'explore');
@@ -10027,7 +10028,28 @@ function switchFeedTab(tab, animate = true) {
         if (!animate) { track.style.transition = 'none'; requestAnimationFrame(() => { track.style.transform = tab === 'explore' ? 'translateX(-50%)' : 'translateX(0)'; requestAnimationFrame(() => track.style.transition = ''); }); }
         else track.style.transform = tab === 'explore' ? 'translateX(-50%)' : 'translateX(0)';
     }
-    if (tab === 'explore' && !_exploreLoadedInFeed) {
+    if (prevTab !== tab) {
+        // Önceki sekmenin içeriğini DOM'dan tamamen kaldır (unmount).
+        // Böylece her iki sekmede aynı fileId olsa bile duplicate ID çakışması yaşanmaz;
+        // yorum kutusu / beğeni state'i bir önceki sekmede sıfırlanmış olur.
+        if (prevTab === 'following') {
+            const list = document.getElementById('feedList');
+            if (list) list.innerHTML = '';
+            _feedLoaded = false;
+        } else if (prevTab === 'explore') {
+            const list = document.getElementById('feedExploreList');
+            if (list) list.innerHTML = '';
+            _exploreLoadedInFeed = false;
+        }
+        // Yeni sekmenin içeriğini yükle (fresh mount)
+        if (tab === 'explore' && !_exploreLoadedInFeed) {
+            _exploreLoadedInFeed = true;
+            loadExploreFiles('feedExploreList');
+        } else if (tab === 'following' && !_feedLoaded && currentUser) {
+            loadFeed();
+        }
+    } else if (tab === 'explore' && !_exploreLoadedInFeed) {
+        // İlk açılışta doğrudan explore sekmesine gelinen durum
         _exploreLoadedInFeed = true;
         loadExploreFiles('feedExploreList');
     }
