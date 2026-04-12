@@ -8711,11 +8711,24 @@ async function doFileSearch() {
         }
 
         const userIds = [...new Set(files.map(f => f.user_id))];
-        const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', userIds);
+        const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url,is_private').in('id', userIds);
         const pMap = {};
         (profiles || []).forEach(p => { pMap[p.id] = p; });
 
-        const fileIds = files.map(f => f.id);
+        // Gizli hesap filtresi: takip etmediğimiz gizli profillerin dosyalarını aramada gizle
+        const _srchPrivateUIds = new Set((profiles || []).filter(p => p.is_private).map(p => p.id));
+        let _srchVisibleFiles = files;
+        if (_srchPrivateUIds.size > 0) {
+            let _srchFollowSet = new Set();
+            if (currentUser) {
+                const { data: _srchFollows } = await sb.from('follows').select('following_id').eq('follower_id', currentUser.id);
+                _srchFollowSet = new Set((_srchFollows || []).map(r => r.following_id));
+                _srchFollowSet.add(currentUser.id);
+            }
+            _srchVisibleFiles = files.filter(f => !_srchPrivateUIds.has(f.user_id) || _srchFollowSet.has(f.user_id));
+        }
+
+        const fileIds = _srchVisibleFiles.map(f => f.id);
         const [{ data: allLikes }, { data: myL }] = await Promise.all([
             sb.from('likes').select('file_id').in('file_id', fileIds),
             currentUser ? sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds) : { data: [] }
@@ -8747,7 +8760,11 @@ async function doFileSearch() {
             ? `<div style="padding:4px 4px 10px;border-bottom:1px solid var(--glass-border);margin-bottom:6px;"><div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;">🏷 Konu Etiketi ile Filtrele</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${publicMatchedLabels.map(l => `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color)}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name)}')">${escapeHtml(l.name)}</span>`).join('')}</div></div>` : '';
 
         const pad = n => String(n).padStart(2, '0');
-        container.innerHTML = labelSugHeaderHtml + '<div class="search-file-list">' + files.map(f => {
+        if (!_srchVisibleFiles.length) {
+            container.innerHTML = `<div class="search-empty">Dosya bulunamadı</div>`;
+            return;
+        }
+        container.innerHTML = labelSugHeaderHtml + '<div class="search-file-list">' + _srchVisibleFiles.map(f => {
             const prof   = pMap[f.user_id] || {};
             const author = prof.username || 'Kullanıcı';
             const cnt    = counts[f.id] || 0;
@@ -9047,10 +9064,27 @@ async function _flabelFilteredSearch(labelId, labelName) {
             return;
         }
         const userIds = [...new Set(files.map(f => f.user_id))];
-        const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', userIds);
+        const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url,is_private').in('id', userIds);
         const pMap = {}; (profiles || []).forEach(p => { pMap[p.id] = p; });
 
-        const fIds = files.map(f => f.id);
+        // Gizli hesap filtresi: takip etmediğimiz gizli profillerin dosyalarını gizle
+        const _flPrivateUIds = new Set((profiles || []).filter(p => p.is_private).map(p => p.id));
+        let _flVisibleFiles = files;
+        if (_flPrivateUIds.size > 0) {
+            let _flFollowSet = new Set();
+            if (currentUser) {
+                const { data: _flFollows } = await sb.from('follows').select('following_id').eq('follower_id', currentUser.id);
+                _flFollowSet = new Set((_flFollows || []).map(r => r.following_id));
+                _flFollowSet.add(currentUser.id);
+            }
+            _flVisibleFiles = files.filter(f => !_flPrivateUIds.has(f.user_id) || _flFollowSet.has(f.user_id));
+        }
+        if (!_flVisibleFiles.length) {
+            container.innerHTML = `<div class="search-empty">"${escapeHtml(labelName)}" etiketli public dosya bulunamadı</div>`;
+            return;
+        }
+
+        const fIds = _flVisibleFiles.map(f => f.id);
         const [{ data: allLikes }, { data: myL }] = await Promise.all([
             sb.from('likes').select('file_id').in('file_id', fIds),
             currentUser ? sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fIds) : { data: [] }
@@ -9076,7 +9110,7 @@ async function _flabelFilteredSearch(labelId, labelName) {
         });
 
         const pad = n => String(n).padStart(2, '0');
-        container.innerHTML = `<div style="font-size:12px;color:var(--text-secondary);padding:4px 4px 10px;font-weight:600;">${files.length} dosya bulundu</div><div class="search-file-list">` + files.map(f => {
+        container.innerHTML = `<div style="font-size:12px;color:var(--text-secondary);padding:4px 4px 10px;font-weight:600;">${_flVisibleFiles.length} dosya bulundu</div><div class="search-file-list">` + _flVisibleFiles.map(f => {
             const prof   = pMap[f.user_id] || {};
             const author = prof.username || 'Kullanıcı';
             const cnt    = counts[f.id] || 0;
@@ -9119,25 +9153,43 @@ async function _flabelLoadPopular() {
             .limit(50);
         if (!allLabels?.length) { section.style.display = 'none'; return; }
 
-        // Sadece public dosyalarda geçen etiketleri göster
+        // Sadece public & görünür dosyalarda geçen etiketleri göster (gizli profiller hariç)
         const { data: pubFiles } = await sb.from('files')
-            .select('id').eq('is_public', true).limit(400);
-        const pubFileIds = (pubFiles || []).map(f => f.id);
+            .select('id, user_id').eq('is_public', true).limit(400);
+        const _popAllPubUserIds = [...new Set((pubFiles || []).map(f => f.user_id))];
+        let _popVisibleFileIds = (pubFiles || []).map(f => f.id);
+        if (_popAllPubUserIds.length) {
+            const { data: _popProfs } = await sb.from('profiles').select('id,is_private').in('id', _popAllPubUserIds);
+            const _popPrivateUIds = new Set((_popProfs || []).filter(p => p.is_private).map(p => p.id));
+            if (_popPrivateUIds.size > 0) {
+                let _popFollowSet = new Set();
+                if (currentUser) {
+                    const { data: _popFollows } = await sb.from('follows').select('following_id').eq('follower_id', currentUser.id);
+                    _popFollowSet = new Set((_popFollows || []).map(r => r.following_id));
+                    _popFollowSet.add(currentUser.id);
+                }
+                _popVisibleFileIds = (pubFiles || []).filter(f => !_popPrivateUIds.has(f.user_id) || _popFollowSet.has(f.user_id)).map(f => f.id);
+            }
+        }
         let publicLabelIdSet = null;
-        if (pubFileIds.length) {
+        const _popVisibleLabelCounts = {};
+        if (_popVisibleFileIds.length) {
             const { data: pubLinks } = await sb.from('file_label_links')
-                .select('label_id').in('file_id', pubFileIds);
+                .select('label_id').in('file_id', _popVisibleFileIds);
             publicLabelIdSet = new Set((pubLinks || []).map(l => l.label_id));
+            (pubLinks || []).forEach(l => { _popVisibleLabelCounts[l.label_id] = (_popVisibleLabelCounts[l.label_id] || 0) + 1; });
         }
 
-        const labels = publicLabelIdSet
-            ? allLabels.filter(l => publicLabelIdSet.has(l.id)).slice(0, 20)
-            : allLabels.slice(0, 20);
+        const labels = (publicLabelIdSet
+            ? allLabels.filter(l => publicLabelIdSet.has(l.id))
+            : allLabels
+        ).sort((a, b) => (_popVisibleLabelCounts[b.id] || 0) - (_popVisibleLabelCounts[a.id] || 0)).slice(0, 20);
 
         if (!labels.length) { section.style.display = 'none'; return; }
-        chips.innerHTML = labels.map(l =>
-            `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color || _flabelColorFromName(l.name))}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}');">${escapeHtml(l.name)}${l.usage_count > 0 ? `<span style="font-size:10px;opacity:.6;margin-left:3px;">${l.usage_count}</span>` : ''}</span>`
-        ).join('');
+        chips.innerHTML = labels.map(l => {
+            const cnt = _popVisibleLabelCounts[l.id] || 0;
+            return `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color || _flabelColorFromName(l.name))}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}');">${escapeHtml(l.name)}${cnt > 0 ? `<span style="font-size:10px;opacity:.6;margin-left:3px;">${cnt}</span>` : ''}</span>`;
+        }).join('');
         section.style.display = '';
     } catch(e) { section.style.display = 'none'; }
 }
@@ -10599,20 +10651,27 @@ async function loadExploreFiles(listId = 'exploreList') {
                 .select('id, name, color, usage_count')
                 .order('usage_count', { ascending: false })
                 .limit(40);
-            // Public dosyalara bağlı etiket ID'leri
-            const _expPubFileIds = files_filtered.map(f => f.id); // zaten public
+            // Public & görünür dosyalara bağlı etiket ID'leri (gizli profil dosyaları files_filtered'dan zaten çıkarılmış)
+            const _expPubFileIds = files_filtered.map(f => f.id);
             let _expPubLabelIds = new Set();
+            const _expVisibleLabelCounts = {};
             if (_expPubFileIds.length) {
                 const { data: _expLinks } = await sb.from('file_label_links')
                     .select('label_id').in('file_id', _expPubFileIds);
-                (_expLinks || []).forEach(l => _expPubLabelIds.add(l.label_id));
+                (_expLinks || []).forEach(l => {
+                    _expPubLabelIds.add(l.label_id);
+                    _expVisibleLabelCounts[l.label_id] = (_expVisibleLabelCounts[l.label_id] || 0) + 1;
+                });
             }
-            const popLabels = (popLabelsAll || []).filter(l => _expPubLabelIds.has(l.id)).slice(0, 12);
+            const popLabels = (popLabelsAll || [])
+                .filter(l => _expPubLabelIds.has(l.id))
+                .sort((a, b) => (_expVisibleLabelCounts[b.id] || 0) - (_expVisibleLabelCounts[a.id] || 0))
+                .slice(0, 12);
             if (popLabels && popLabels.length) {
                 exploreTagsHtml = `<div style="margin-bottom:14px;padding:12px 14px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:14px;">
                     <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:9px;">🔥 Popüler Etiketler</div>
                     <div style="display:flex;flex-wrap:wrap;gap:6px;">${popLabels.map(l =>
-                        `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color || _flabelColorFromName(l.name))}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}');closeExplorePanel();">${escapeHtml(l.name)}<span style="font-size:10px;opacity:.65;margin-left:4px;">${l.usage_count}</span></span>`
+                        `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color || _flabelColorFromName(l.name))}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}');closeExplorePanel();">${escapeHtml(l.name)}<span style="font-size:10px;opacity:.65;margin-left:4px;">${_expVisibleLabelCounts[l.id] || 0}</span></span>`
                     ).join('')}</div>
                 </div>`;
             }
