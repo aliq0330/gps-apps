@@ -10016,6 +10016,7 @@ function _closeAllPanels(skip) {
 let _feedLoaded = false;
 let _feedTab = 'following';
 let _exploreLoadedInFeed = false;
+let _feedRenderToken = 0; // her switchFeedTab(following→explore) artırılır, loadFeed iptal eder
 
 function switchFeedTab(tab, animate = true) {
     _navigate(tab === 'explore' ? '#feed/explore' : '#feed');
@@ -10036,6 +10037,7 @@ function switchFeedTab(tab, animate = true) {
             const list = document.getElementById('feedList');
             if (list) list.innerHTML = '';
             _feedLoaded = false;
+            _feedRenderToken++; // uçuştaki loadFeed() render'ını iptal et
         } else if (prevTab === 'explore') {
             const list = document.getElementById('feedExploreList');
             if (list) list.innerHTML = '';
@@ -10120,10 +10122,13 @@ function closeFeedPanel() {
 
 async function loadFeed() {
     _feedLoaded = true;
+    const myToken = ++_feedRenderToken; // bu render turu için token al
     const listEl = document.getElementById('feedList');
     listEl.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
 
     const { data: followRows } = await sb.from('follows').select('following_id').eq('follower_id', currentUser.id);
+    if (myToken !== _feedRenderToken) return; // sekme değişti, render iptal
+
     const followingIds = (followRows || []).map(r => r.following_id);
 
     if (!followingIds.length) {
@@ -10137,6 +10142,7 @@ async function loadFeed() {
         .select('id, filename, code, updated_at, user_id, description')
         .in('user_id', followingIds).eq('is_public', true)
         .order('updated_at', { ascending: false }).limit(60);
+    if (myToken !== _feedRenderToken) return; // sekme değişti, render iptal
 
     if (!files || !files.length) {
         listEl.innerHTML = '<div class="search-empty" style="padding:40px 0;">Takip ettiklerinizin henüz paylaştığı dosya yok</div>';
@@ -10154,6 +10160,7 @@ async function loadFeed() {
         sb.from('comments').select('file_id').in('file_id', fileIds).is('parent_id', null)
     ]);
     await _loadForkCounts(fileIds);
+    if (myToken !== _feedRenderToken) return; // sekme değişti, render iptal
 
     const commentCounts = {};
     (allCommentRows || []).forEach(c => { commentCounts[c.file_id] = (commentCounts[c.file_id] || 0) + 1; });
@@ -10185,6 +10192,7 @@ async function loadFeed() {
     let collCardsHtml = '';
     try {
         const pubCols = await loadPublicCollectionsForFeed();
+        if (myToken !== _feedRenderToken) return; // sekme değişti, render iptal
         const feedCols = pubCols.filter(c => followingIds.includes(c.user_id));
         if (feedCols.length) {
             collCardsHtml = `<div style="font-size:12px;font-weight:700;color:var(--text-secondary);padding:4px 2px 8px;">📁 Koleksiyonlar</div>` + feedCols.map(c => _renderCollectionCard(c)).join('');
@@ -10192,6 +10200,7 @@ async function loadFeed() {
         }
     } catch(e) { /* koleksiyonlar yüklenemezse devam et */ }
 
+    if (myToken !== _feedRenderToken) return; // son kontrol — DOM'a yazmadan önce
     listEl.innerHTML = collCardsHtml + files.map(f => {
         const p = pMap[f.user_id] || {};
         const liked = _myLikes.has(f.id);
