@@ -9031,12 +9031,11 @@ async function _flabelLoadPopular() {
     try {
         const { data } = await sb.from('file_labels')
             .select('id, name, color, usage_count')
-            .gt('usage_count', 0)
             .order('usage_count', { ascending: false })
-            .limit(15);
+            .limit(20);
         if (!data || !data.length) { section.style.display = 'none'; return; }
         chips.innerHTML = data.map(l =>
-            `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color || _flabelColorFromName(l.name))}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}');">${escapeHtml(l.name)}</span>`
+            `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color || _flabelColorFromName(l.name))}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}');">${escapeHtml(l.name)}${l.usage_count > 0 ? `<span style="font-size:10px;opacity:.6;margin-left:3px;">${l.usage_count}</span>` : ''}</span>`
         ).join('');
         section.style.display = '';
     } catch(e) { section.style.display = 'none'; }
@@ -10497,7 +10496,6 @@ async function loadExploreFiles(listId = 'exploreList') {
         try {
             const { data: popLabels } = await sb.from('file_labels')
                 .select('id, name, color, usage_count')
-                .gt('usage_count', 0)
                 .order('usage_count', { ascending: false })
                 .limit(12);
             if (popLabels && popLabels.length) {
