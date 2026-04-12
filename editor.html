@@ -11867,11 +11867,16 @@ async function openFileView(fileId) {
     document.getElementById('fvFrame').dataset.code = code || '';
 
     // Beğeni + fork sayısı
-    _fvUpdateLike();
     _fvUpdateForkCount();
 
-    // Sayfa yenilenince _myLikes sıfırlanır — bu dosyanın gerçek beğeni durumunu DB'den çek
-    // (Optimistik gösterimden bağımsız, arka planda düzeltir)
+    // Beğeni butonu: DB yanıtı gelene kadar tıklanamaz yap (stale state sorunu).
+    // Sayfa yenilenince _myLikes boşalır; kullanıcı ♡ görüp tıklarsa
+    // toggleLike DB'de beğeniyi bulur → unlike yapar → tekrar tıklayınca
+    // yeni bildirim gider. Butonu kilitleyip doğru durumu göster.
+    const _fvLikeBtnEl = document.getElementById('fvLikeBtn');
+    if (_fvLikeBtnEl) _fvLikeBtnEl.disabled = true;
+    _fvUpdateLike(); // önizleme (stale olabilir ama hızlı)
+
     if (currentUser) {
         Promise.all([
             sb.from('likes').select('id').eq('file_id', fileId),
@@ -11880,8 +11885,13 @@ async function openFileView(fileId) {
             _likeCounts[fileId] = (allLikes || []).length;
             if (myLikeArr && myLikeArr.length > 0) _myLikes.add(fileId);
             else _myLikes.delete(fileId);
-            _fvUpdateLike(); // UI'ı gerçek duruma göre güncelle
+            _fvUpdateLike(); // gerçek DB durumunu yansıt
+            if (_fvLikeBtnEl) _fvLikeBtnEl.disabled = false; // artık tıklanabilir
+        }).catch(() => {
+            if (_fvLikeBtnEl) _fvLikeBtnEl.disabled = false;
         });
+    } else {
+        if (_fvLikeBtnEl) _fvLikeBtnEl.disabled = false;
     }
 
     // Konu etiketlerini yükle (versiyon etiketlerinden bağımsız: file_labels tablosu)
