@@ -10456,9 +10456,11 @@ function _feedUpdateLikeUI(fileId) {
     // Koleksiyon overlay dosya kart butonu (colike- prefix)
     const coBtn = document.getElementById('colike-' + fileId);
     if (coBtn) { coBtn.classList.toggle('liked', nowLiked); if (coBtn.childNodes[0]) coBtn.childNodes[0].textContent = nowLiked ? '♥ ' : '♡ '; }
-    // Sayaç
+    // Sayaç (feed/explore: flikecnt-, koleksiyon overlay: colikecnt-)
     const cntEl = document.getElementById('flikecnt-' + fileId);
     if (cntEl) cntEl.textContent = cnt || '';
+    const coCntEl = document.getElementById('colikecnt-' + fileId);
+    if (coCntEl) coCntEl.textContent = cnt || '';
     // Beğeni metni (sadece following feed kartlarında var)
     const textEl = document.getElementById('fliketext-' + fileId);
     if (textEl) {
