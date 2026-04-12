@@ -1382,6 +1382,26 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
     max-height: 80vh; display: flex; flex-direction: column;
 }
 .search-input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+/* Kayıtlar paneli arama çubuğu */
+.sf-search-wrap {
+    padding: 6px 14px 4px; display: flex; align-items: center; gap: 8px; position: relative;
+}
+.sf-search-input-wrap { flex: 1; position: relative; }
+.sf-search-input-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; }
+.sf-search-input {
+    width: 100%; padding: 9px 30px 9px 34px; border-radius: 12px;
+    border: 1px solid var(--glass-border); background: var(--glass-bg);
+    color: var(--text-primary); font-size: 14px; font-family: inherit; outline: none;
+    box-sizing: border-box;
+}
+.sf-search-input:focus { border-color: #007aff55; background: var(--card-bg); }
+.sf-search-clear-btn {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--text-secondary); cursor: pointer;
+    font-size: 13px; padding: 2px 4px; line-height: 1;
+}
+.sf-search-empty { padding: 40px 20px; text-align: center; font-size: 13px; color: var(--text-secondary); }
+
 .search-input-wrap { flex: 1; position: relative; }
 .search-input-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; }
 
@@ -3647,6 +3667,16 @@ body.preview-mode .file-title-bar { display: none !important; }
     <div class="sf-tab-bar">
         <button class="sf-tab active" data-tab="files" onclick="switchSavedTab('files')">Kayıtlar</button>
         <button class="sf-tab" data-tab="trash" onclick="switchSavedTab('trash')">Silinenler<span class="sf-tab-badge" id="trashBadge" style="display:none">0</span></button>
+    </div>
+    <div class="sf-search-wrap" id="sfSearchWrap">
+        <div class="sf-search-input-wrap">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" id="sfSearchInput" class="sf-search-input"
+                placeholder="İsim veya etiket ara..."
+                oninput="_sfSearchInput(this.value)"
+                autocomplete="off" autocorrect="off" spellcheck="false">
+            <button class="sf-search-clear-btn" id="sfSearchClearBtn" style="display:none;" onclick="_sfClearSearch()">✕</button>
+        </div>
     </div>
     <div class="saved-files-list" id="savedFilesList"></div>
 </div>
@@ -7557,6 +7587,12 @@ function closeSavedFilesPanel() {
     document.getElementById('savedFilesPanel').classList.remove('open');
     editingFileId = null;
     _setBottomActive('bbEditorBtn');
+    // Arama kutusunu temizle
+    _sfSearchQuery = '';
+    const _si = document.getElementById('sfSearchInput');
+    if (_si) _si.value = '';
+    const _sc = document.getElementById('sfSearchClearBtn');
+    if (_sc) _sc.style.display = 'none';
 }
 
 
@@ -7805,6 +7841,10 @@ async function permanentDeleteFromTrash(id) {
 function renderSavedFiles() {
     if (_savedTab === 'trash') { renderTrash(); return; }
     const container = document.getElementById('savedFilesList');
+    // Arama çubuğunu trash sekmesinde gizle
+    const _sfSW = document.getElementById('sfSearchWrap');
+    if (_sfSW) _sfSW.style.display = _savedTab === 'trash' ? 'none' : '';
+
     if (!savedFiles.length) {
         container.innerHTML = `
             <div class="empty-state">
@@ -7825,6 +7865,21 @@ function renderSavedFiles() {
         container.innerHTML = `<div class="empty-state"><div class="empty-state-text">Bu koleksiyonda dosya yok</div></div>`;
         return;
     }
+
+    // Arama filtresi (isim veya etiket)
+    if (_sfSearchQuery) {
+        const q = _sfSearchQuery;
+        filtered = filtered.filter(f => {
+            if (f.filename.toLowerCase().includes(q)) return true;
+            const tags = _sfLabelCache[f.id] || [];
+            return tags.some(t => t.name.toLowerCase().includes(q));
+        });
+        if (!filtered.length) {
+            container.innerHTML = `<div class="sf-search-empty">🔍 "<strong>${escapeHtml(_sfSearchQuery)}</strong>" ile eşleşen dosya bulunamadı</div>`;
+            return;
+        }
+    }
+
     const sorted = filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     const pad = n => String(n).padStart(2, '0');
 
@@ -8018,6 +8073,26 @@ async function saveFileDesc(fileId) {
     saveToStorage();
 }
 
+// ── Kayıtlar paneli arama — state ──────────────────────────────────────
+let _sfSearchQuery = '';
+let _sfLabelCache  = {}; // fileId -> [{id,name,color}]
+
+function _sfSearchInput(val) {
+    _sfSearchQuery = val.trim().toLowerCase();
+    const clearBtn = document.getElementById('sfSearchClearBtn');
+    if (clearBtn) clearBtn.style.display = _sfSearchQuery ? '' : 'none';
+    renderSavedFiles();
+}
+
+function _sfClearSearch() {
+    _sfSearchQuery = '';
+    const inp = document.getElementById('sfSearchInput');
+    if (inp) inp.value = '';
+    const clearBtn = document.getElementById('sfSearchClearBtn');
+    if (clearBtn) clearBtn.style.display = 'none';
+    renderSavedFiles();
+}
+
 // ── Kayıtlı dosya kartlarındaki etiketleri arka planda yükle ve göster ──
 async function _sfRenderLabels() {
     const cloudFiles = (savedFiles || []).filter(f => f.cloud);
@@ -8025,6 +8100,8 @@ async function _sfRenderLabels() {
     try {
         const fileIds = cloudFiles.map(f => f.id);
         const { data: links } = await sb.from('file_label_links').select('file_id,label_id').in('file_id', fileIds);
+        // Cache sıfırla ve yeniden doldur (arama filtresi için)
+        _sfLabelCache = {};
         if (!links || !links.length) return;
         const labelIds = [...new Set(links.map(l => l.label_id))];
         const { data: lblData } = await sb.from('file_labels').select('id,name,color').in('id', labelIds);
@@ -8036,6 +8113,8 @@ async function _sfRenderLabels() {
             if (!fileLabelMap[lnk.file_id]) fileLabelMap[lnk.file_id] = [];
             if (lMap[lnk.label_id]) fileLabelMap[lnk.file_id].push(lMap[lnk.label_id]);
         });
+        // Cache kaydet (arama için) ve DOM güncelle
+        Object.assign(_sfLabelCache, fileLabelMap);
         cloudFiles.forEach(f => {
             const el = document.getElementById(`sfLabels-${f.id}`);
             if (!el) return;
@@ -8587,7 +8666,7 @@ async function doFileSearch() {
             .limit(10);
 
         let filesByLabel = [];
-        let labelMatchMap = {}; // fileId -> [labelName, ...]
+        let labelMatchMap = {}; // fileId -> [label obj, ...]
         if (matchedLabels && matchedLabels.length) {
             const labelIds = matchedLabels.map(l => l.id);
             const { data: links } = await sb.from('file_label_links')
@@ -8595,7 +8674,6 @@ async function doFileSearch() {
                 .in('label_id', labelIds);
             if (links && links.length) {
                 const linkedFileIds = [...new Set(links.map(l => l.file_id))];
-                // label adını eşleştir
                 const lMap = {}; matchedLabels.forEach(l => { lMap[l.id] = l; });
                 links.forEach(lnk => {
                     if (!labelMatchMap[lnk.file_id]) labelMatchMap[lnk.file_id] = [];
@@ -8610,18 +8688,24 @@ async function doFileSearch() {
             }
         }
 
+        // Sadece public dosyalarda geçen etiket önerileri (private dosya etiketlerini gizle)
+        const _pubFileIdSet = new Set(filesByLabel.map(f => f.id));
+        const _pubLabelIdSet = new Set();
+        Object.entries(labelMatchMap).forEach(([fid, lbls]) => {
+            if (_pubFileIdSet.has(fid)) lbls.forEach(l => _pubLabelIdSet.add(l.id));
+        });
+        const publicMatchedLabels = (matchedLabels || []).filter(l => _pubLabelIdSet.has(l.id));
+
         // Önce etiket eşleşmeleri, sonra isim eşleşmeleri, tekrarlar hariç
         const seen = new Set();
         const files = [];
-        // Tam etiket eşleşmeleri önce
         filesByLabel.forEach(f => { if (!seen.has(f.id)) { seen.add(f.id); files.push(f); } });
-        // Dosya adı eşleşmeleri arkadan
         (filesByName || []).forEach(f => { if (!seen.has(f.id)) { seen.add(f.id); files.push(f); } });
 
         if (!files.length) {
-            // Hiç dosya yoksa etiket önerisi göster
-            const labelSugHtml = (matchedLabels && matchedLabels.length)
-                ? `<div style="padding:12px 4px 0;"><div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">🏷 Eşleşen Konu Etiketleri</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${matchedLabels.map(l => `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color)}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name)}')">${escapeHtml(l.name)}</span>`).join('')}</div></div>` : '';
+            // Hiç dosya yoksa etiket önerisi göster (yalnızca public dosya etiketleri)
+            const labelSugHtml = publicMatchedLabels.length
+                ? `<div style="padding:12px 4px 0;"><div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">🏷 Eşleşen Konu Etiketleri</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${publicMatchedLabels.map(l => `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color)}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name)}')">${escapeHtml(l.name)}</span>`).join('')}</div></div>` : '';
             container.innerHTML = `<div class="search-empty">Dosya bulunamadı</div>${labelSugHtml}`;
             return;
         }
@@ -8658,9 +8742,9 @@ async function doFileSearch() {
             if (allLabelsMap[lnk.label_id]) fileLabelMap[lnk.file_id].push(allLabelsMap[lnk.label_id]);
         });
 
-        // Etiket önerisi (header chip'leri)
-        const labelSugHeaderHtml = (matchedLabels && matchedLabels.length)
-            ? `<div style="padding:4px 4px 10px;border-bottom:1px solid var(--glass-border);margin-bottom:6px;"><div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;">🏷 Konu Etiketi ile Filtrele</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${matchedLabels.map(l => `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color)}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name)}')">${escapeHtml(l.name)}</span>`).join('')}</div></div>` : '';
+        // Etiket önerisi (header chip'leri) — sadece public dosyalarda geçen etiketler
+        const labelSugHeaderHtml = publicMatchedLabels.length
+            ? `<div style="padding:4px 4px 10px;border-bottom:1px solid var(--glass-border);margin-bottom:6px;"><div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;">🏷 Konu Etiketi ile Filtrele</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${publicMatchedLabels.map(l => `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color)}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name)}')">${escapeHtml(l.name)}</span>`).join('')}</div></div>` : '';
 
         const pad = n => String(n).padStart(2, '0');
         container.innerHTML = labelSugHeaderHtml + '<div class="search-file-list">' + files.map(f => {
@@ -9029,12 +9113,29 @@ async function _flabelLoadPopular() {
     const chips   = document.getElementById('flabelPopularChips');
     if (!section || !chips) return;
     try {
-        const { data } = await sb.from('file_labels')
+        const { data: allLabels } = await sb.from('file_labels')
             .select('id, name, color, usage_count')
             .order('usage_count', { ascending: false })
-            .limit(20);
-        if (!data || !data.length) { section.style.display = 'none'; return; }
-        chips.innerHTML = data.map(l =>
+            .limit(50);
+        if (!allLabels?.length) { section.style.display = 'none'; return; }
+
+        // Sadece public dosyalarda geçen etiketleri göster
+        const { data: pubFiles } = await sb.from('files')
+            .select('id').eq('is_public', true).limit(400);
+        const pubFileIds = (pubFiles || []).map(f => f.id);
+        let publicLabelIdSet = null;
+        if (pubFileIds.length) {
+            const { data: pubLinks } = await sb.from('file_label_links')
+                .select('label_id').in('file_id', pubFileIds);
+            publicLabelIdSet = new Set((pubLinks || []).map(l => l.label_id));
+        }
+
+        const labels = publicLabelIdSet
+            ? allLabels.filter(l => publicLabelIdSet.has(l.id)).slice(0, 20)
+            : allLabels.slice(0, 20);
+
+        if (!labels.length) { section.style.display = 'none'; return; }
+        chips.innerHTML = labels.map(l =>
             `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color || _flabelColorFromName(l.name))}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}');">${escapeHtml(l.name)}${l.usage_count > 0 ? `<span style="font-size:10px;opacity:.6;margin-left:3px;">${l.usage_count}</span>` : ''}</span>`
         ).join('');
         section.style.display = '';
@@ -10491,13 +10592,22 @@ async function loadExploreFiles(listId = 'exploreList') {
             }
         } catch(e) { /* devam et */ }
 
-        // Popüler etiketler bölümü (keşfet sayfasında)
+        // Popüler etiketler bölümü (keşfet sayfasında) — sadece public dosyalarda geçenler
         let exploreTagsHtml = '';
         try {
-            const { data: popLabels } = await sb.from('file_labels')
+            const { data: popLabelsAll } = await sb.from('file_labels')
                 .select('id, name, color, usage_count')
                 .order('usage_count', { ascending: false })
-                .limit(12);
+                .limit(40);
+            // Public dosyalara bağlı etiket ID'leri
+            const _expPubFileIds = files_filtered.map(f => f.id); // zaten public
+            let _expPubLabelIds = new Set();
+            if (_expPubFileIds.length) {
+                const { data: _expLinks } = await sb.from('file_label_links')
+                    .select('label_id').in('file_id', _expPubFileIds);
+                (_expLinks || []).forEach(l => _expPubLabelIds.add(l.label_id));
+            }
+            const popLabels = (popLabelsAll || []).filter(l => _expPubLabelIds.has(l.id)).slice(0, 12);
             if (popLabels && popLabels.length) {
                 exploreTagsHtml = `<div style="margin-bottom:14px;padding:12px 14px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:14px;">
                     <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:9px;">🔥 Popüler Etiketler</div>
