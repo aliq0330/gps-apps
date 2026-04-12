@@ -1384,6 +1384,22 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .search-input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .search-input-wrap { flex: 1; position: relative; }
 .search-input-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; }
+
+/* Ana arama çubuğu etiket öneri dropdown */
+.search-tag-suggest {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
+    background: var(--card-bg); border: 1px solid var(--glass-border);
+    border-radius: 14px; padding: 4px 0; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    max-height: 220px; overflow-y: auto;
+}
+.search-tag-suggest-item {
+    display: flex; align-items: center; gap: 8px; padding: 9px 14px; cursor: pointer;
+}
+.search-tag-suggest-item:active { background: var(--glass-bg); }
+.search-tag-suggest-hint {
+    font-size: 11px; color: var(--text-secondary); padding: 4px 14px 6px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+}
 .search-input {
     width: 100%; padding: 13px 14px 13px 42px;
     background: rgba(120,120,128,0.12); border: 1px solid transparent;
@@ -3260,8 +3276,10 @@ body.preview-mode .file-title-bar { display: none !important; }
                 </svg>
                 <input type="text" id="userSearchInput" class="search-input"
                     placeholder="Ara..."
-                    oninput="debounceSearch()"
+                    oninput="debounceSearch();_searchTagSuggestDebounce()"
+                    onblur="setTimeout(()=>{const el=document.getElementById('searchTagSuggest');if(el)el.style.display='none';},200)"
                     autocomplete="off" autocorrect="off" spellcheck="false">
+                <div id="searchTagSuggest" class="search-tag-suggest" style="display:none;"></div>
             </div>
             <button class="search-close-btn" onclick="closeSearchPanel()">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -8462,6 +8480,44 @@ function debounceSearch() {
     searchDebounceTimer = setTimeout(_searchTab === 'users' ? doUserSearch : doFileSearch, 400);
 }
 
+// ── Ana arama çubuğu — etiket autocomplete (Dosyalar sekmesinde) ──────
+let _searchTagSuggestTimer = null;
+function _searchTagSuggestDebounce() {
+    clearTimeout(_searchTagSuggestTimer);
+    _searchTagSuggestTimer = setTimeout(_showSearchTagSuggest, 220);
+}
+
+async function _showSearchTagSuggest() {
+    const box = document.getElementById('searchTagSuggest');
+    if (!box) return;
+    if (_searchTab !== 'files') { box.style.display = 'none'; return; }
+    const q = document.getElementById('userSearchInput').value.trim();
+    if (!q || q.length < 1) { box.style.display = 'none'; return; }
+    try {
+        const { data } = await sb.from('file_labels')
+            .select('id, name, color, usage_count')
+            .ilike('name', `%${q}%`)
+            .order('usage_count', { ascending: false })
+            .limit(6);
+        if (!data || !data.length) { box.style.display = 'none'; return; }
+        box.innerHTML = `<div class="search-tag-suggest-hint">🏷 Etiketle filtrele</div>` +
+            data.map(l => `
+            <div class="search-tag-suggest-item" onmousedown="event.preventDefault();_pickSearchTag('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}')">
+                <span class="flabel-chip" style="${_flabelChipStyle(l.color || _flabelColorFromName(l.name))};pointer-events:none;">${escapeHtml(l.name)}</span>
+                ${l.usage_count > 0 ? `<span style="font-size:11px;color:var(--text-secondary);">${l.usage_count} dosya</span>` : ''}
+                <span style="margin-left:auto;font-size:11px;color:#007aff;font-weight:600;">→ filtrele</span>
+            </div>`).join('');
+        box.style.display = '';
+    } catch(e) { box.style.display = 'none'; }
+}
+
+function _pickSearchTag(labelId, labelName) {
+    const box = document.getElementById('searchTagSuggest');
+    if (box) box.style.display = 'none';
+    document.getElementById('userSearchInput').value = '';
+    searchByFileLabel(labelId, labelName);
+}
+
 async function doUserSearch() {
     const q = document.getElementById('userSearchInput').value.trim();
     const container = document.getElementById('searchResults');
@@ -9068,6 +9124,8 @@ function openSearchPanel() {
     document.getElementById('searchPanelOverlay').classList.add('open');
     document.getElementById('userSearchInput').value = '';
     document.getElementById('searchResults').innerHTML = '<div class="search-empty">Aramak istediğiniz kişi veya dosya adını yazın</div>';
+    const _stg = document.getElementById('searchTagSuggest');
+    if (_stg) _stg.style.display = 'none';
     // Aktif filtre sıfırla (arama paneli her açılışında temizle)
     if (!_flabelActiveFilter) {
         const bar = document.getElementById('flabelSearchFilterBar');
