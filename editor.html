@@ -4300,19 +4300,101 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <script>
 /*
- * SUPABASE — likes tablosu (bir kez çalıştır):
+ * ══════════════════════════════════════════════════════════════════════
+ * SUPABASE MIGRATION — Beğeni & Bildirim Sistemi (bir kez çalıştır)
+ * ══════════════════════════════════════════════════════════════════════
  *
- * CREATE TABLE likes (
+ * ── 1. likes tablosu ─────────────────────────────────────────────────
+ * CREATE TABLE IF NOT EXISTS likes (
  *   id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
  *   user_id    uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
  *   file_id    bigint REFERENCES files(id) ON DELETE CASCADE NOT NULL,
  *   created_at timestamptz DEFAULT now(),
- *   UNIQUE(user_id, file_id)
+ *   UNIQUE(user_id, file_id)          -- duplicate beğeniyi DB seviyesinde engeller
  * );
  * ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
- * CREATE POLICY "Herkes okuyabilir" ON likes FOR SELECT USING (true);
+ * CREATE POLICY "Herkes okuyabilir"          ON likes FOR SELECT USING (true);
  * CREATE POLICY "Kendi beğenisini ekleyebilir" ON likes FOR INSERT WITH CHECK (auth.uid() = user_id);
- * CREATE POLICY "Kendi beğenisini silebilir" ON likes FOR DELETE USING (auth.uid() = user_id);
+ * CREATE POLICY "Kendi beğenisini silebilir"   ON likes FOR DELETE  USING  (auth.uid() = user_id);
+ *
+ * ── 2. like_notifications tablosu ────────────────────────────────────
+ * CREATE TABLE IF NOT EXISTS like_notifications (
+ *   id              uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+ *   to_user_id      uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,  -- alıcı
+ *   from_user_id    uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,  -- gönderen
+ *   file_id         bigint REFERENCES files(id) ON DELETE CASCADE,
+ *   collection_id   bigint REFERENCES collections(id) ON DELETE CASCADE,
+ *   comment_id      bigint,
+ *   comment_preview text,
+ *   type            text NOT NULL,   -- 'like' | 'comment' | 'reply' | 'fork' | 'new_follower' | ...
+ *   seen            boolean DEFAULT false NOT NULL,
+ *   created_at      timestamptz DEFAULT now()
+ * );
+ * ALTER TABLE like_notifications ENABLE ROW LEVEL SECURITY;
+ * -- Kullanıcı sadece kendi bildirimlerini okuyabilir/silebilir:
+ * CREATE POLICY "Kendi bildirimlerini okuyabilir"
+ *   ON like_notifications FOR SELECT USING (auth.uid() = to_user_id);
+ * CREATE POLICY "Bildirim ekleyebilir (authenticated)"
+ *   ON like_notifications FOR INSERT WITH CHECK (auth.uid() = from_user_id);
+ * CREATE POLICY "Kendi bildirimini silebilir"
+ *   ON like_notifications FOR DELETE USING (auth.uid() = to_user_id OR auth.uid() = from_user_id);
+ * CREATE POLICY "Kendi bildirimini güncelleyebilir (seen)"
+ *   ON like_notifications FOR UPDATE USING (auth.uid() = to_user_id);
+ *
+ * ── 3. Supabase Realtime etkinleştirme ───────────────────────────────
+ * Dashboard → Database → Replication → Supabase Realtime bölümünde
+ * "like_notifications" tablosunu publication'a ekle:
+ *
+ *   ALTER PUBLICATION supabase_realtime ADD TABLE like_notifications;
+ *
+ * ── 4. PostgreSQL Trigger — otomatik bildirim (opsiyonel) ─────────────
+ * Eğer bildirim oluşturmayı frontend JS yerine DB seviyesinde yapmak istersen:
+ *
+ * CREATE OR REPLACE FUNCTION notify_on_like()
+ * RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+ * DECLARE
+ *   v_owner uuid;
+ * BEGIN
+ *   -- Dosyanın sahibini bul
+ *   SELECT user_id INTO v_owner FROM files WHERE id = NEW.file_id;
+ *   -- Kendi dosyasını beğenirse bildirim gönderme
+ *   IF v_owner IS NOT NULL AND v_owner <> NEW.user_id THEN
+ *     -- Aynı kişiden aynı dosyaya duplicate bildirim varsa ekleme
+ *     INSERT INTO like_notifications (to_user_id, from_user_id, file_id, type, seen)
+ *     SELECT v_owner, NEW.user_id, NEW.file_id, 'like', false
+ *     WHERE NOT EXISTS (
+ *       SELECT 1 FROM like_notifications
+ *       WHERE from_user_id = NEW.user_id
+ *         AND file_id      = NEW.file_id
+ *         AND type         = 'like'
+ *     );
+ *   END IF;
+ *   RETURN NEW;
+ * END;
+ * $$;
+ *
+ * CREATE TRIGGER trg_like_notification
+ * AFTER INSERT ON likes
+ * FOR EACH ROW EXECUTE FUNCTION notify_on_like();
+ *
+ * -- Unlike yapıldığında bildirimi otomatik sil:
+ * CREATE OR REPLACE FUNCTION remove_like_notification()
+ * RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+ * BEGIN
+ *   DELETE FROM like_notifications
+ *   WHERE from_user_id = OLD.user_id
+ *     AND file_id      = OLD.file_id
+ *     AND type         = 'like';
+ *   RETURN OLD;
+ * END;
+ * $$;
+ *
+ * CREATE TRIGGER trg_remove_like_notification
+ * AFTER DELETE ON likes
+ * FOR EACH ROW EXECUTE FUNCTION remove_like_notification();
+ *
+ * NOT: Trigger kullanıyorsan frontend JS'deki bildirim insert/delete
+ * satırlarını kaldır — ikisi birden çalışırsa duplicate oluşur.
  *
  * ── GELİŞMİŞ VERSİYON KONTROL — Supabase migration (bir kez çalıştır):
  *
@@ -4391,9 +4473,11 @@ let _pubFilesData  = {};
 let _exploreDataMap = {}; // fileId -> { userId, username, emoji, filename }
 
 // Beğeni state
-let _myLikes      = new Set(); // current user's liked file IDs
-let _likeCounts   = {};        // file_id -> like count
-let _myLikesLoaded = false;
+let _myLikes        = new Set(); // current user's liked file IDs
+let _likeCounts     = {};        // file_id -> like count
+let _myLikesLoaded  = false;
+let _likeBusy       = new Set(); // race condition: işlem devam ederken aynı id'ye ikinci tıklamayı engeller
+let _fileOwnerCache = {};        // file_id -> sahibinin user_id'si (bildirim için)
 
 // Takip state
 let _followingSet  = new Set(); // current user's following IDs
@@ -5615,6 +5699,10 @@ async function handleSignOut() {
     closeUserDropdown();
     await sb.auth.signOut();
     currentUser = null;
+    // Realtime kanallarını kapat (memory leak önleme)
+    if (_notifRealtime)  { sb.removeChannel(_notifRealtime);  _notifRealtime  = null; }
+    if (_globalMsgSub)   { sb.removeChannel(_globalMsgSub);   _globalMsgSub   = null; }
+    if (_badgePollTimer) { clearInterval(_badgePollTimer);     _badgePollTimer = null; }
     savedFiles = []; currentOpenFileId = null; _trash = [];
     _updateTrashBadge();
     updateGuestUI();
@@ -5670,6 +5758,7 @@ function showApp() {
     updateEditor();
     _updateUnreadBadge();
     _subscribeGlobalMsg();
+    _subscribeNotifRealtime(); // anlık bildirim kanalını aç
     _updateNotifBadge();
     updateFilenameDisplay();
     updateTabDotColor();
@@ -8789,6 +8878,7 @@ async function doFileSearch() {
             const d      = new Date(f.updated_at);
             const date   = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
             if (!_exploreDataMap[f.id]) _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji: prof.avatar_emoji || '👤', avatarUrl: prof.avatar_url || '', filename: f.filename, description: f.description || '' };
+            _fileOwnerCache[f.id] = f.user_id; // beğeni bildirimi için önbellek
             const fileLabels = fileLabelMap[f.id] || [];
             const matchingLabels = labelMatchMap[f.id] || [];
             const matchingLabelIds = new Set(matchingLabels.map(l => l.id));
@@ -9409,6 +9499,7 @@ async function openPublicProfile(userId) {
         pubFiles.forEach(f => {
             _pubFilesData[f.id]    = { filename: f.filename, code: f.code, description: f.description || '' };
             _exploreDataMap[f.id]  = { userId: userId, username: _profUsername, emoji: _profEmoji, avatarUrl: _profAvatarUrl, filename: f.filename, code: f.code, description: f.description || '' };
+            _fileOwnerCache[f.id] = userId; // beğeni bildirimi için önbellek
         });
         const totalLines = pubFiles.reduce((s, f) => s + (f.code.match(/\n/g)||[]).length + 1, 0);
         const fmt = n => n >= 1000 ? (n/1000).toFixed(1) + 'k' : n;
@@ -9465,6 +9556,7 @@ async function openPublicProfile(userId) {
         } else {
             const pad = n => String(n).padStart(2, '0');
             document.getElementById('pubFilesList').innerHTML = pubFiles.map(f => {
+                _fileOwnerCache[f.id] = f.user_id; // beğeni bildirimi için önbellek
                 const d2   = new Date(f.updated_at);
                 const date = `${pad(d2.getDate())}.${pad(d2.getMonth()+1)}.${d2.getFullYear()}`;
                 const lines = (f.code.match(/\n/g)||[]).length + 1;
@@ -9784,39 +9876,114 @@ async function _sendNotif(type, toUserId, fileId, extra = {}) {
 }
 
 // ── BEĞEN ─────────────────────────────────────────────────────────────
+// Tüm beğeni butonlarının görünümünü tek yerden günceller
+function _updateLikeUI(fileId) {
+    const nowLiked = _myLikes.has(fileId);
+    const cnt      = _likeCounts[fileId] || 0;
+    document.querySelectorAll(`[data-like-id="${fileId}"]`).forEach(btn => {
+        btn.classList.toggle('liked', nowLiked);
+        const span = btn.querySelector('span');
+        if (span) span.textContent = cnt || '';
+        // İlk text node: kalp sembolü
+        if (btn.childNodes[0] && btn.childNodes[0].nodeType === Node.TEXT_NODE) {
+            btn.childNodes[0].textContent = nowLiked ? '♥ ' : '♡ ';
+        }
+    });
+    document.querySelectorAll(`[data-like-count="${fileId}"]`).forEach(el => {
+        el.textContent = cnt || 0;
+    });
+}
+
 async function toggleLike(fileId) {
     if (!currentUser) { showToast('Beğenmek için giriş yapın'); return; }
-    const liked = _myLikes.has(fileId);
-    // Optimistik güncelle
-    if (liked) {
+    // Race condition önleme: aynı dosyaya çift tıklamayı engelle
+    if (_likeBusy.has(fileId)) return;
+    _likeBusy.add(fileId);
+
+    // İşlem sırasında butonları devre dışı bırak
+    document.querySelectorAll(`[data-like-id="${fileId}"]`).forEach(btn => { btn.disabled = true; });
+
+    const wasLiked = _myLikes.has(fileId);
+
+    // Optimistik UI güncellemesi (anında geri bildirim)
+    if (wasLiked) {
         _myLikes.delete(fileId);
         _likeCounts[fileId] = Math.max(0, (_likeCounts[fileId] || 1) - 1);
     } else {
         _myLikes.add(fileId);
         _likeCounts[fileId] = (_likeCounts[fileId] || 0) + 1;
     }
-    // Tüm like butonlarını güncelle
-    document.querySelectorAll(`[data-like-id="${fileId}"]`).forEach(btn => {
-        const nowLiked = _myLikes.has(fileId);
-        btn.classList.toggle('liked', nowLiked);
-        btn.querySelector('span') && (btn.querySelector('span').textContent = _likeCounts[fileId] || 0);
-        btn.childNodes[0].textContent = nowLiked ? '♥ ' : '♡ ';
-    });
-    document.querySelectorAll(`[data-like-count="${fileId}"]`).forEach(el => {
-        el.textContent = _likeCounts[fileId] || 0;
-    });
+    _updateLikeUI(fileId);
+
     try {
-        if (liked) {
-            await sb.from('likes').delete().eq('user_id', currentUser.id).eq('file_id', fileId);
+        if (wasLiked) {
+            // ── Beğeniyi kaldır ──────────────────────────────────────────
+            const { error } = await sb.from('likes')
+                .delete()
+                .eq('user_id', currentUser.id)
+                .eq('file_id', fileId);
+            if (error) throw error;
+            // İlgili "like" bildirimini de sil (dosya sahibine gitmişti)
+            await sb.from('like_notifications')
+                .delete()
+                .eq('from_user_id', currentUser.id)
+                .eq('file_id', fileId)
+                .eq('type', 'like');
         } else {
-            await sb.from('likes').insert({ user_id: currentUser.id, file_id: fileId });
+            // ── Beğeni ekle ──────────────────────────────────────────────
+            const { error } = await sb.from('likes')
+                .insert({ user_id: currentUser.id, file_id: fileId });
+            // 23505 = unique_violation: kullanıcı zaten beğenmiş (race condition)
+            if (error && error.code !== '23505') throw error;
+            if (!error) {
+                // Dosya sahibini bul (önce cache, yoksa DB'den çek)
+                let ownerId = _fileOwnerCache[fileId];
+                if (!ownerId) {
+                    const { data: fd } = await sb.from('files')
+                        .select('user_id')
+                        .eq('id', fileId)
+                        .single();
+                    if (fd?.user_id) {
+                        ownerId = fd.user_id;
+                        _fileOwnerCache[fileId] = ownerId;
+                    }
+                }
+                // Bildirim gönder (kendi dosyasına beğeni varsa gönderme)
+                if (ownerId && ownerId !== currentUser.id) {
+                    // Önce aynı tip bildirim var mı kontrol et (duplicate önleme)
+                    const { data: existing } = await sb.from('like_notifications')
+                        .select('id')
+                        .eq('from_user_id', currentUser.id)
+                        .eq('file_id', fileId)
+                        .eq('type', 'like')
+                        .maybeSingle();
+                    if (!existing) {
+                        await sb.from('like_notifications').insert({
+                            to_user_id:   ownerId,
+                            from_user_id: currentUser.id,
+                            file_id:      fileId,
+                            type:         'like',
+                            seen:         false
+                        });
+                    }
+                }
+            }
         }
-    } catch(e) {
-        // Hata olursa geri al
-        if (liked) { _myLikes.add(fileId); _likeCounts[fileId]++; }
-        else { _myLikes.delete(fileId); _likeCounts[fileId] = Math.max(0, (_likeCounts[fileId] || 1) - 1); }
+    } catch (e) {
+        // Hata → optimistik güncellemeyi geri al
+        if (wasLiked) {
+            _myLikes.add(fileId);
+            _likeCounts[fileId] = (_likeCounts[fileId] || 0) + 1;
+        } else {
+            _myLikes.delete(fileId);
+            _likeCounts[fileId] = Math.max(0, (_likeCounts[fileId] || 1) - 1);
+        }
+        _updateLikeUI(fileId);
         console.error('Like error:', e);
         showToast('Beğeni kaydedilemedi');
+    } finally {
+        _likeBusy.delete(fileId);
+        document.querySelectorAll(`[data-like-id="${fileId}"]`).forEach(btn => { btn.disabled = false; });
     }
 }
 
@@ -10186,6 +10353,7 @@ async function loadFeed() {
     files.forEach(f => {
         const p = pMap[f.user_id] || {};
         _exploreDataMap[f.id] = { userId: f.user_id, username: p.username || 'Kullanıcı', emoji: p.avatar_emoji || '👤', avatarUrl: p.avatar_url || '', filename: f.filename, code: f.code, description: f.description || '' };
+        _fileOwnerCache[f.id] = f.user_id; // beğeni bildirimi için önbellek
     });
 
     // Koleksiyon kartlarını önce yükle
@@ -11234,6 +11402,54 @@ function _setBadge(n) {
 }
 
 // ── GLOBAL GERÇEK ZAMANLI MESAJ BADGEi ────────────────────────────────
+let _notifRealtime  = null; // Supabase Realtime kanalı — gelen bildirimler
+
+// ── GERÇEK ZAMANLI BİLDİRİM ABONELİĞİ ────────────────────────────────
+// like_notifications tablosuna INSERT yapıldığında anlık badge + toast gösterir.
+// Sadece currentUser'ın kendi to_user_id'sine ait satırları dinler.
+function _subscribeNotifRealtime() {
+    if (!currentUser || _notifRealtime) return;
+    _notifRealtime = sb.channel('notif-rt-' + currentUser.id)
+        .on('postgres_changes', {
+            event:  'INSERT',
+            schema: 'public',
+            table:  'like_notifications',
+            filter: `to_user_id=eq.${currentUser.id}`
+        }, payload => {
+            const n = payload.new;
+            // Badge sayacını artır
+            const badge = document.getElementById('notifBadge');
+            const cur   = parseInt(badge?.textContent || '0') || 0;
+            _setNotifBadge(cur + 1);
+            // Bildirim paneli açıksa içeriği yenile
+            const panel = document.getElementById('notifOverlay');
+            if (panel?.classList.contains('open')) loadNotifications();
+            // Toast göster
+            _showNotifToast(n.type);
+        })
+        .subscribe();
+}
+
+// Bildirim türüne göre kısa toast mesajı
+function _showNotifToast(type) {
+    const msgs = {
+        like:             '♥ Birisi dosyanı beğendi',
+        comment:          '💬 Dosyana yeni bir yorum yapıldı',
+        reply:            '💬 Yorumuna yanıt geldi',
+        reply_on_file:    '💬 Dosyanda bir yoruma yanıt geldi',
+        fork:             '⑂ Dosyan fork edildi',
+        comment_like:     '♥ Yorumun beğenildi',
+        coll_like:        '♥ Koleksiyonun beğenildi',
+        coll_comment:     '💬 Koleksiyonuna yorum yapıldı',
+        coll_reply:       '💬 Koleksiyonundaki yorumuna yanıt geldi',
+        coll_comment_like:'♥ Koleksiyonundaki yorum beğenildi',
+        new_follower:     '👤 Yeni bir takipçin var',
+        follow_request:   '👤 Yeni bir takip isteği var',
+        follow_accepted:  '✓ Takip isteğin kabul edildi',
+    };
+    showToast(msgs[type] || '🔔 Yeni bildirim');
+}
+
 let _globalMsgSub = null;
 let _badgePollTimer = null;
 function _subscribeGlobalMsg() {
@@ -12991,6 +13207,7 @@ async function _loadCollectionOverlayFiles(collId) {
     files.forEach(f => {
         const p = pMap[f.user_id] || {};
         _exploreDataMap[f.id] = { userId: f.user_id, username: p.username || 'Kullanıcı', emoji: p.avatar_emoji || '👤', avatarUrl: p.avatar_url || '', filename: f.filename, code: f.code, description: f.description || '' };
+        _fileOwnerCache[f.id] = f.user_id; // beğeni bildirimi için önbellek
     });
     listEl.innerHTML = files.map(f => {
         const p = pMap[f.user_id] || {};
