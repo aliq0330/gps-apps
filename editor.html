@@ -9905,14 +9905,16 @@ async function toggleLike(fileId) {
 
     try {
         // ── Kaynak gerçek: DB'den gerçek like durumunu sorgula ───────────
-        // _myLikes'a güvenmiyoruz: sayfa yenilenince boşalır ve stale
-        // (yanlış) state üzerinden duplicate bildirim gidebilir.
-        const { data: dbLike } = await sb.from('likes')
+        // NOT: maybeSingle() KULLANMA — DB'de duplicate satır varsa (UNIQUE
+        // constraint yoksa) error döndürür ve data=null gelir; kod yanlışlıkla
+        // "beğenilmemiş" sanıp tekrar insert + bildirim gönderir.
+        // limit(1) ile array döndürüp length kontrol ediyoruz.
+        const { data: dbLikeArr } = await sb.from('likes')
             .select('id')
             .eq('user_id', currentUser.id)
             .eq('file_id', fileId)
-            .maybeSingle();
-        const wasLiked = !!dbLike;
+            .limit(1);
+        const wasLiked = !!(dbLikeArr && dbLikeArr.length > 0);
 
         // _myLikes'ı DB gerçeğiyle hizala
         if (wasLiked) _myLikes.add(fileId); else _myLikes.delete(fileId);
@@ -9957,14 +9959,15 @@ async function toggleLike(fileId) {
                 }
                 // Bildirim gönder — kendi dosyasına beğeni varsa gönderme
                 if (ownerId && ownerId !== currentUser.id) {
-                    // DB'de bu bildirim zaten var mı? (duplicate önleme)
-                    const { data: existingNotif } = await sb.from('like_notifications')
+                    // maybeSingle() yerine limit(1)+array: duplicate bildirim satırı
+                    // varsa maybeSingle() error döndürür ve yanlışlıkla tekrar insert olur.
+                    const { data: existingNotifArr } = await sb.from('like_notifications')
                         .select('id')
                         .eq('from_user_id', currentUser.id)
                         .eq('file_id', fileId)
                         .eq('type', 'like')
-                        .maybeSingle();
-                    if (!existingNotif) {
+                        .limit(1);
+                    if (!existingNotifArr || existingNotifArr.length === 0) {
                         await sb.from('like_notifications').insert({
                             to_user_id:   ownerId,
                             from_user_id: currentUser.id,
@@ -9978,9 +9981,9 @@ async function toggleLike(fileId) {
         }
     } catch (e) {
         // Hata → DB'den gerçek durumu çekip UI'ı düzelt
-        const { data: check } = await sb.from('likes')
-            .select('id').eq('user_id', currentUser.id).eq('file_id', fileId).maybeSingle();
-        if (check) _myLikes.add(fileId); else _myLikes.delete(fileId);
+        const { data: checkArr } = await sb.from('likes')
+            .select('id').eq('user_id', currentUser.id).eq('file_id', fileId).limit(1);
+        if (checkArr && checkArr.length > 0) _myLikes.add(fileId); else _myLikes.delete(fileId);
         _updateLikeUI(fileId);
         console.error('Like error:', e);
         showToast('Beğeni kaydedilemedi');
@@ -11872,10 +11875,10 @@ async function openFileView(fileId) {
     if (currentUser) {
         Promise.all([
             sb.from('likes').select('id').eq('file_id', fileId),
-            sb.from('likes').select('id').eq('user_id', currentUser.id).eq('file_id', fileId).maybeSingle()
-        ]).then(([{ data: allLikes }, { data: myLike }]) => {
+            sb.from('likes').select('id').eq('user_id', currentUser.id).eq('file_id', fileId).limit(1)
+        ]).then(([{ data: allLikes }, { data: myLikeArr }]) => {
             _likeCounts[fileId] = (allLikes || []).length;
-            if (myLike) _myLikes.add(fileId);
+            if (myLikeArr && myLikeArr.length > 0) _myLikes.add(fileId);
             else _myLikes.delete(fileId);
             _fvUpdateLike(); // UI'ı gerçek duruma göre güncelle
         });
