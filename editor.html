@@ -2878,6 +2878,159 @@ body.preview-mode .file-title-bar { display: none !important; }
     font-size: 13px; padding: 11px;
 }
 
+/* ── DOSYA KONU ETİKET SİSTEMİ (file_labels + file_label_links) ──────
+   VERSİYON GEÇMİŞİ ETİKETLERİNDEN (version-tag-badge) TAMAMEN AYRIDIR.
+   Versiyon etiketleri sarı renkte, sadece sürüm geçmişine aittir.
+   Konu etiketleri renkli chip'ler olup dosyaları kategorize eder.
+─────────────────────────────────────────────────────────────────────── */
+
+/* Dosya kartlarında ve arama sonuçlarında gösterilen küçük renkli chip */
+.flabel-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+    border: 1px solid; white-space: nowrap; flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+.flabel-chip.clickable { cursor: pointer; }
+.flabel-chip.clickable:hover { opacity: 0.8; transform: scale(1.04); }
+.flabel-chip.removable { padding-right: 4px; }
+.flabel-chip-remove {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; border-radius: 50%;
+    font-size: 10px; cursor: pointer; margin-left: 2px;
+    background: rgba(0,0,0,0.12); border: none;
+    color: inherit; line-height: 1; padding: 0;
+    transition: background 0.15s;
+}
+.flabel-chip-remove:hover { background: rgba(0,0,0,0.25); }
+
+/* Modal içi konu etiketi bölümü */
+.flabel-section {
+    margin-top: 14px;
+}
+.flabel-section-header {
+    font-size: 12px; font-weight: 700; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.04em;
+    margin-bottom: 8px; margin-left: 4px;
+    display: flex; align-items: center; gap: 6px;
+}
+.flabel-section-header span { font-weight: 400; opacity: 0.7; text-transform: none; letter-spacing: 0; }
+
+/* Etiket giriş alanı */
+.flabel-input-wrap { position: relative; }
+.flabel-input {
+    width: 100%; padding: 11px 14px;
+    background: rgba(120,120,128,0.1);
+    border: 1px solid transparent; border-radius: 14px;
+    color: var(--text-primary); font-size: 14px;
+    font-family: inherit; font-weight: 500;
+    outline: none; transition: all 0.2s ease;
+    -webkit-appearance: none;
+}
+.flabel-input:focus {
+    background: rgba(120,120,128,0.18);
+    border-color: var(--glass-border);
+    box-shadow: 0 0 0 3px rgba(120,120,128,0.1);
+}
+.flabel-input::placeholder { color: var(--text-secondary); }
+
+/* Otomatik tamamlama dropdown */
+.flabel-autocomplete {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    z-index: 9500; display: none;
+    max-height: 220px; overflow-y: auto;
+}
+.flabel-autocomplete.open { display: block; }
+.flabel-autocomplete-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px; cursor: pointer;
+    font-size: 14px; font-weight: 500; color: var(--text-primary);
+    transition: background 0.1s ease;
+    border-bottom: 1px solid var(--glass-border);
+}
+.flabel-autocomplete-item:last-child { border-bottom: none; }
+.flabel-autocomplete-item:hover { background: rgba(120,120,128,0.1); }
+.flabel-autocomplete-item.create-new { color: #007aff; font-weight: 700; }
+.flabel-autocomplete-item.create-new .flabel-chip { opacity: 0.85; }
+.flabel-autocomplete-count {
+    margin-left: auto; font-size: 11px; color: var(--text-secondary); font-weight: 600;
+}
+
+/* Seçili etiketlerin gösterildiği alan */
+.flabel-selected-area {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 4px;
+}
+
+/* Popüler konu etiketleri bölümü (arama panelinde) */
+.flabel-popular-section {
+    padding: 10px 0 8px;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 4px;
+}
+.flabel-popular-title {
+    font-size: 11px; font-weight: 700; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 8px; padding: 0 2px;
+}
+.flabel-popular-chips {
+    display: flex; flex-wrap: wrap; gap: 6px;
+}
+
+/* Aktif etiket filtresi çubuğu (arama panelinde) */
+.flabel-filter-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 12px;
+    background: rgba(0,122,255,0.08);
+    border: 1px solid rgba(0,122,255,0.2);
+    margin-bottom: 10px; font-size: 13px;
+    color: var(--text-primary);
+}
+.flabel-filter-label { flex: 1; font-weight: 600; }
+.flabel-filter-clear {
+    padding: 3px 8px; border-radius: 10px; border: none;
+    background: rgba(0,122,255,0.15); color: #007aff;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+}
+
+/* Etiket düzenleme modalı (mevcut dosyalar için) */
+.flabel-editor-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 8500;
+    align-items: flex-end; justify-content: center; padding: 20px;
+}
+.flabel-editor-overlay.open { display: flex; }
+.flabel-editor-box {
+    background: var(--card-bg); border-radius: 24px 24px 20px 20px; padding: 24px 20px 32px;
+    width: 100%; max-width: 440px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.2);
+    animation: slideUp 0.3s cubic-bezier(0.25,0.8,0.25,1);
+}
+@keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.flabel-editor-title {
+    font-size: 16px; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 4px;
+}
+.flabel-editor-subtitle {
+    font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;
+}
+.flabel-editor-close {
+    position: absolute; top: 18px; right: 18px;
+    padding: 6px; border-radius: 10px; border: none;
+    background: var(--glass-bg); color: var(--text-secondary);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+
+/* Arama sonuçlarında dosya kartındaki etiket satırı */
+.flabel-card-row {
+    display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px;
+}
+
 /* Görsel diff iframeleri */
 .visual-diff-container {
     display: flex; flex: 1; overflow: hidden; gap: 1px;
@@ -3081,6 +3234,16 @@ body.preview-mode .file-title-bar { display: none !important; }
         <div class="search-tabs">
             <button class="search-tab active" id="stab-users" onclick="switchSearchTab('users')"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Kişiler</button>
             <button class="search-tab" id="stab-files" onclick="switchSearchTab('files')"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Dosyalar</button>
+        </div>
+        <!-- Aktif konu etiketi filtresi (versiyon etiketlerinden farklı) -->
+        <div class="flabel-filter-bar" id="flabelSearchFilterBar" style="display:none;">
+            <span class="flabel-filter-label" id="flabelSearchFilterText"></span>
+            <button class="flabel-filter-clear" onclick="_flabelClearSearchFilter()">Filtreyi Kaldır ✕</button>
+        </div>
+        <!-- Popüler konu etiketleri — sorgu yokken dosyalar sekmesinde gösterilir -->
+        <div class="flabel-popular-section" id="flabelPopularSection" style="display:none;">
+            <div class="flabel-popular-title">🔥 Popüler Konu Etiketleri</div>
+            <div class="flabel-popular-chips" id="flabelPopularChips"></div>
         </div>
         <div class="search-results" id="searchResults">
             <div class="search-empty">Aramak istediğiniz kişi veya dosya adını yazın</div>
@@ -3771,6 +3934,20 @@ body.preview-mode .file-title-bar { display: none !important; }
             <div class="new-save-coll-label">📁 Koleksiyona ekle <span style="font-weight:400;opacity:.6">(isteğe bağlı)</span></div>
             <div class="new-save-coll-list" id="newSaveCollList"></div>
         </div>
+        <!-- Konu Etiketleri — versiyon geçmişi etiketlerinden (version-tag-badge) AYRI -->
+        <div class="flabel-section">
+            <div class="flabel-section-header">🏷 Konu Etiketleri <span>(isteğe bağlı)</span></div>
+            <div class="flabel-input-wrap">
+                <input type="text" id="flabelNewSaveInput" class="flabel-input"
+                       placeholder="Etiket yaz, seç veya oluştur..."
+                       autocomplete="off" autocorrect="off" spellcheck="false"
+                       oninput="_flabelOnInput('newSave')"
+                       onkeydown="_flabelInputKeydown(event,'newSave')"
+                       onfocus="_flabelOnInput('newSave')">
+                <div class="flabel-autocomplete" id="flabelNewSaveAC"></div>
+            </div>
+            <div class="flabel-selected-area" id="flabelNewSaveSelected"></div>
+        </div>
         <div class="modal-actions" style="margin-top:20px;">
             <button onclick="closeNewSaveModal()" class="modal-btn">İptal</button>
             <button onclick="confirmNewSave()" class="modal-btn modal-btn-save">
@@ -3981,6 +4158,41 @@ body.preview-mode .file-title-bar { display: none !important; }
             <button class="tag-modal-btn save" onclick="saveVersionTag()">⭐ Etiketi Kaydet</button>
             <button class="tag-modal-btn remove" onclick="removeVersionTag()" id="tagModalRemoveBtn">Etiketi Kaldır</button>
             <button class="tag-modal-btn cancel" onclick="closeTagModal()">İptal</button>
+        </div>
+    </div>
+</div>
+
+<!-- Konu Etiketi Düzenleyici Modalı (mevcut dosyalar için)
+     NOT: Bu modal versiyon geçmiş etiket modalından (tagModalOverlay) tamamen farklıdır.
+     Versiyon etiketi: versions tablosuna yazılır, sarı renkli.
+     Konu etiketi: file_labels + file_label_links tablolarına yazılır, renkli chip'ler. -->
+<div id="flabelEditorOverlay" class="flabel-editor-overlay" onclick="if(event.target===this)_flabelCloseEditor()">
+    <div class="flabel-editor-box" style="position:relative;">
+        <button class="flabel-editor-close" onclick="_flabelCloseEditor()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+        <div class="flabel-editor-title">🏷 Konu Etiketleri</div>
+        <div class="flabel-editor-subtitle" id="flabelEditorSubtitle">Dosyayı kategorize etmek için etiket ekleyin</div>
+        <div class="flabel-input-wrap">
+            <input type="text" id="flabelEditorInput" class="flabel-input"
+                   placeholder="Etiket yaz, seç veya oluştur..."
+                   autocomplete="off" autocorrect="off" spellcheck="false"
+                   oninput="_flabelOnInput('editor')"
+                   onkeydown="_flabelInputKeydown(event,'editor')"
+                   onfocus="_flabelOnInput('editor')">
+            <div class="flabel-autocomplete" id="flabelEditorAC"></div>
+        </div>
+        <div class="flabel-selected-area" id="flabelEditorSelected" style="margin-top:10px;"></div>
+        <div style="margin-top:16px;">
+            <button onclick="_flabelSaveEditorLabels()"
+                    style="width:100%;padding:14px;border-radius:18px;border:1px solid rgba(0,122,255,0.35);background:rgba(0,122,255,0.12);color:#007aff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Etiketleri Kaydet
+            </button>
         </div>
     </div>
 </div>
@@ -7061,6 +7273,11 @@ async function _doSave(filename, description = '') {
         }
     }
 
+    // Konu etiketlerini kaydet (versiyon etiketlerinden farklı: file_labels + file_label_links)
+    if (cloudResult && cloudResult.id && (_flabelSelected['newSave'] || []).length) {
+        await _flabelSaveLinks(cloudResult.id, 'newSave');
+    }
+
     // Kaydedildi durumuna geç
     setSaveButtonState('saved');
 }
@@ -7092,6 +7309,13 @@ async function openNewSaveModal() {
     document.getElementById('newSaveDesc').value = '';
     _pendingSaveColls.clear();
     _renderNewSaveCollChips();
+    // Konu etiketi alanını sıfırla (versiyon etiketlerinden bağımsız)
+    _flabelSelected['newSave'] = [];
+    const flabelInp = document.getElementById('flabelNewSaveInput');
+    if (flabelInp) flabelInp.value = '';
+    const flabelAC = document.getElementById('flabelNewSaveAC');
+    if (flabelAC) { flabelAC.innerHTML = ''; flabelAC.classList.remove('open'); }
+    _flabelRenderSelected('newSave');
     document.getElementById('newSaveModalOverlay').classList.add('open');
     setTimeout(() => { inp.focus(); inp.select(); }, 100);
     // Koleksiyonlar henüz yüklenmemişse yükle ve chipsleri güncelle
@@ -7510,6 +7734,13 @@ function renderSavedFiles() {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         Geçmiş
+                    </button>` : ''}
+                    ${file.cloud ? `
+                    <button class="saved-file-btn" style="color:#007aff;border-color:rgba(0,122,255,0.25);background:rgba(0,122,255,0.06);" onclick="event.stopPropagation();openFileLabelEditor(${file.id})">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3H5a2 2 0 00-2 2v2a1 1 0 00.293.707l9 9a1 1 0 001.414 0l6-6a1 1 0 000-1.414l-9-9A1 1 0 0010 3H7z"/>
+                        </svg>
+                        Etiket
                     </button>` : ''}
                 </div>
                 ${file.cloud ? (() => {
@@ -8084,41 +8315,123 @@ async function doUserSearch() {
 async function doFileSearch() {
     const q = document.getElementById('userSearchInput').value.trim();
     const container = document.getElementById('searchResults');
-    if (!q) { container.innerHTML = '<div class="search-empty">Dosya adı ile arayın</div>'; return; }
+
+    // Eğer aktif konu etiketi filtresi varsa, label ile filtreli arama yap
+    if (_flabelActiveFilter) {
+        await _flabelFilteredSearch(_flabelActiveFilter.id, _flabelActiveFilter.name);
+        return;
+    }
+
+    if (!q) {
+        container.innerHTML = '<div class="search-empty">Dosya adı veya konu etiketi ile arayın</div>';
+        return;
+    }
     container.innerHTML = '<div class="search-empty"><div class="spinner" style="margin:0 auto;"></div></div>';
     try {
-        const { data: files, error } = await sb.from('files')
+        // 1) Dosya adı araması
+        const { data: filesByName, error } = await sb.from('files')
             .select('id, filename, updated_at, user_id, description')
             .eq('is_public', true)
             .ilike('filename', `%${q}%`)
             .limit(40);
         if (error) throw error;
-        if (!files || files.length === 0) { container.innerHTML = '<div class="search-empty">Dosya bulunamadı</div>'; return; }
+
+        // 2) Konu etiketi araması (versiyon etiketlerinden farklı: file_labels tablosu)
+        const { data: matchedLabels } = await sb.from('file_labels')
+            .select('id, name, color')
+            .ilike('name', `%${q}%`)
+            .limit(10);
+
+        let filesByLabel = [];
+        let labelMatchMap = {}; // fileId -> [labelName, ...]
+        if (matchedLabels && matchedLabels.length) {
+            const labelIds = matchedLabels.map(l => l.id);
+            const { data: links } = await sb.from('file_label_links')
+                .select('file_id, label_id')
+                .in('label_id', labelIds);
+            if (links && links.length) {
+                const linkedFileIds = [...new Set(links.map(l => l.file_id))];
+                // label adını eşleştir
+                const lMap = {}; matchedLabels.forEach(l => { lMap[l.id] = l; });
+                links.forEach(lnk => {
+                    if (!labelMatchMap[lnk.file_id]) labelMatchMap[lnk.file_id] = [];
+                    if (lMap[lnk.label_id]) labelMatchMap[lnk.file_id].push(lMap[lnk.label_id]);
+                });
+                const { data: lFiles } = await sb.from('files')
+                    .select('id, filename, updated_at, user_id, description')
+                    .eq('is_public', true)
+                    .in('id', linkedFileIds)
+                    .limit(40);
+                filesByLabel = lFiles || [];
+            }
+        }
+
+        // Önce etiket eşleşmeleri, sonra isim eşleşmeleri, tekrarlar hariç
+        const seen = new Set();
+        const files = [];
+        // Tam etiket eşleşmeleri önce
+        filesByLabel.forEach(f => { if (!seen.has(f.id)) { seen.add(f.id); files.push(f); } });
+        // Dosya adı eşleşmeleri arkadan
+        (filesByName || []).forEach(f => { if (!seen.has(f.id)) { seen.add(f.id); files.push(f); } });
+
+        if (!files.length) {
+            // Hiç dosya yoksa etiket önerisi göster
+            const labelSugHtml = (matchedLabels && matchedLabels.length)
+                ? `<div style="padding:12px 4px 0;"><div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">🏷 Eşleşen Konu Etiketleri</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${matchedLabels.map(l => `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color)}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name)}')">${escapeHtml(l.name)}</span>`).join('')}</div></div>` : '';
+            container.innerHTML = `<div class="search-empty">Dosya bulunamadı</div>${labelSugHtml}`;
+            return;
+        }
 
         const userIds = [...new Set(files.map(f => f.user_id))];
         const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', userIds);
         const pMap = {};
         (profiles || []).forEach(p => { pMap[p.id] = p; });
 
+        const fileIds = files.map(f => f.id);
         const [{ data: allLikes }, { data: myL }] = await Promise.all([
-            sb.from('likes').select('file_id').in('file_id', files.map(f => f.id)),
-            currentUser ? sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', files.map(f => f.id)) : { data: [] }
+            sb.from('likes').select('file_id').in('file_id', fileIds),
+            currentUser ? sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fileIds) : { data: [] }
         ]);
         const counts = {};
         (allLikes || []).forEach(l => { counts[l.file_id] = (counts[l.file_id] || 0) + 1; });
-        (myL || []).forEach(l => { _myLikes.add(l.file_id); Object.assign(_likeCounts, counts); });
+        (myL || []).forEach(l => { _myLikes.add(l.file_id); });
         Object.assign(_likeCounts, counts);
-        await _loadForkCounts(files.map(f => f.id));
+        await _loadForkCounts(fileIds);
+
+        // Tüm dosyaların konu etiketlerini çek
+        const { data: allLinks } = await sb.from('file_label_links')
+            .select('file_id, label_id')
+            .in('file_id', fileIds);
+        const linkLabelIds = [...new Set((allLinks || []).map(l => l.label_id))];
+        let allLabelsMap = {}; // labelId -> label obj
+        if (linkLabelIds.length) {
+            const { data: allLabelObjs } = await sb.from('file_labels').select('id,name,color').in('id', linkLabelIds);
+            (allLabelObjs || []).forEach(l => { allLabelsMap[l.id] = l; });
+        }
+        const fileLabelMap = {}; // fileId -> [label obj, ...]
+        (allLinks || []).forEach(lnk => {
+            if (!fileLabelMap[lnk.file_id]) fileLabelMap[lnk.file_id] = [];
+            if (allLabelsMap[lnk.label_id]) fileLabelMap[lnk.file_id].push(allLabelsMap[lnk.label_id]);
+        });
+
+        // Etiket önerisi (header chip'leri)
+        const labelSugHeaderHtml = (matchedLabels && matchedLabels.length)
+            ? `<div style="padding:4px 4px 10px;border-bottom:1px solid var(--glass-border);margin-bottom:6px;"><div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;">🏷 Konu Etiketi ile Filtrele</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${matchedLabels.map(l => `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color)}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name)}')">${escapeHtml(l.name)}</span>`).join('')}</div></div>` : '';
 
         const pad = n => String(n).padStart(2, '0');
-        container.innerHTML = '<div class="search-file-list">' + files.map(f => {
+        container.innerHTML = labelSugHeaderHtml + '<div class="search-file-list">' + files.map(f => {
             const prof   = pMap[f.user_id] || {};
             const author = prof.username || 'Kullanıcı';
             const cnt    = counts[f.id] || 0;
             const liked  = _myLikes.has(f.id);
             const d      = new Date(f.updated_at);
             const date   = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
-            if (!_exploreDataMap[f.id]) _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji, filename: f.filename, description: f.description || '' };
+            if (!_exploreDataMap[f.id]) _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji: prof.avatar_emoji || '👤', avatarUrl: prof.avatar_url || '', filename: f.filename, description: f.description || '' };
+            const fileLabels = fileLabelMap[f.id] || [];
+            const matchingLabels = labelMatchMap[f.id] || [];
+            const matchingLabelIds = new Set(matchingLabels.map(l => l.id));
+            const labelsHtml = fileLabels.length
+                ? `<div class="flabel-card-row">${fileLabels.map(l => `<span class="flabel-chip clickable${matchingLabelIds.has(l.id) ? ' flabel-chip-matched' : ''}" style="${_flabelChipStyle(l.color)}${matchingLabelIds.has(l.id) ? ';box-shadow:0 0 0 2px currentColor;' : ''}" onclick="event.stopPropagation();searchByFileLabel('${l.id}','${escapeHtml(l.name)}')">${escapeHtml(l.name)}</span>`).join('')}</div>` : '';
             return `
             <div class="pub-file-wrap">
                 <div class="pub-file-card" onclick="openFileView('${f.id}')">
@@ -8130,6 +8443,7 @@ async function doFileSearch() {
                     <div class="pub-file-info">
                         <div class="pub-file-name">${escapeHtml(f.filename)}</div>
                         ${f.description ? `<div class="pub-file-desc" style="font-size:12px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(f.description)}</div>` : ''}
+                        ${labelsHtml}
                         <div class="pub-file-meta"><span style="cursor:pointer" onclick="event.stopPropagation();openPublicProfile('${f.user_id}')">${_ava(prof.avatar_emoji, prof.avatar_url)} ${escapeHtml(author)}</span> · ${date}</div>
                     </div>
                     <div class="pub-file-right">
@@ -8146,6 +8460,435 @@ async function doFileSearch() {
         console.error('File search error:', e);
         container.innerHTML = '<div class="search-empty">Arama başarısız</div>';
     }
+}
+
+
+// ════════════════════════════════════════════════════════════════════════
+// DOSYA KONU ETİKET SİSTEMİ
+// ────────────────────────────────────────────────────────────────────────
+// ÖNEMLI NOT: Bu sistem VERSİYON GEÇMİŞİ ETİKETLERİNDEN TAMAMEN AYRIDIR.
+//   - Versiyon etiketleri : versions tablosu, sarı renk, openTagModal() ile yönetilir
+//   - Konu etiketleri     : file_labels (global havuz) + file_label_links (bağlantı)
+//                           mavi/yeşil/renkli chip'ler, _flabel* fonksiyonları
+//
+// Gerekli Supabase tabloları (bir kez çalıştır):
+// --------------------------------------------------
+// CREATE TABLE IF NOT EXISTS file_labels (
+//   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+//   name       text NOT NULL,
+//   color      text NOT NULL DEFAULT '#007aff',
+//   usage_count int NOT NULL DEFAULT 0,
+//   created_by uuid REFERENCES auth.users(id),
+//   created_at timestamptz DEFAULT now(),
+//   CONSTRAINT file_labels_name_unique UNIQUE (lower(name))
+// );
+// ALTER TABLE file_labels ENABLE ROW LEVEL SECURITY;
+// CREATE POLICY "Herkes okuyabilir" ON file_labels FOR SELECT USING (true);
+// CREATE POLICY "Giris yapan olusturabilir" ON file_labels FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+// CREATE POLICY "Admin silebilir" ON file_labels FOR DELETE USING (auth.uid() IN (SELECT id FROM profiles WHERE username = 'admin'));
+//
+// CREATE TABLE IF NOT EXISTS file_label_links (
+//   file_id    uuid NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+//   label_id   uuid NOT NULL REFERENCES file_labels(id) ON DELETE CASCADE,
+//   tagged_by  uuid REFERENCES auth.users(id),
+//   created_at timestamptz DEFAULT now(),
+//   PRIMARY KEY (file_id, label_id)
+// );
+// ALTER TABLE file_label_links ENABLE ROW LEVEL SECURITY;
+// CREATE POLICY "Herkes okuyabilir" ON file_label_links FOR SELECT USING (true);
+// CREATE POLICY "Dosya sahibi ekleyip cikarabilir" ON file_label_links
+//   FOR ALL USING (
+//     auth.uid() = tagged_by OR
+//     auth.uid() IN (SELECT user_id FROM files WHERE id = file_id)
+//   );
+// ════════════════════════════════════════════════════════════════════════
+
+// ── Renk paleti (isim hash'ine göre atanır) ──────────────────────────
+const _FLABEL_PALETTE = [
+    '#007aff', '#34c759', '#ff9500', '#bf5af2',
+    '#ff375f', '#30d158', '#32ade6', '#ff6b00',
+    '#5856d6', '#ac8e68', '#ff453a', '#64d2ff'
+];
+
+function _flabelColorFromName(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (Math.imul(31, h) + name.charCodeAt(i)) | 0;
+    return _FLABEL_PALETTE[Math.abs(h) % _FLABEL_PALETTE.length];
+}
+
+// Chip inline style (hex renk -> arka plan + border + yazı rengi)
+function _flabelChipStyle(color) {
+    const c = color || '#007aff';
+    return `background:${c}22;border-color:${c}55;color:${c};`;
+}
+
+// ── State ─────────────────────────────────────────────────────────────
+let _flabelSelected = {};    // context -> [{id,name,color}]  (newSave | editor)
+let _flabelEditorFileId = null;
+let _flabelActiveFilter = null; // {id, name} — arama panelinde aktif filtre
+let _flabelDebounce = {};
+
+function _flabelCtxInput(ctx)    { return document.getElementById(ctx === 'newSave' ? 'flabelNewSaveInput' : 'flabelEditorInput'); }
+function _flabelCtxAC(ctx)       { return document.getElementById(ctx === 'newSave' ? 'flabelNewSaveAC' : 'flabelEditorAC'); }
+function _flabelCtxSelected(ctx) { return document.getElementById(ctx === 'newSave' ? 'flabelNewSaveSelected' : 'flabelEditorSelected'); }
+
+function _flabelGetSelected(ctx) { return _flabelSelected[ctx] || (_flabelSelected[ctx] = []); }
+
+// ── Autocomplete ──────────────────────────────────────────────────────
+function _flabelOnInput(ctx) {
+    clearTimeout(_flabelDebounce[ctx]);
+    _flabelDebounce[ctx] = setTimeout(() => _flabelDoSuggest(ctx), 260);
+}
+
+async function _flabelDoSuggest(ctx) {
+    const inp = _flabelCtxInput(ctx);
+    const ac  = _flabelCtxAC(ctx);
+    if (!inp || !ac) return;
+    const q = inp.value.trim().toLowerCase();
+
+    if (!q) { ac.classList.remove('open'); ac.innerHTML = ''; return; }
+
+    // Zaten seçili olanları filtrele
+    const selected = _flabelGetSelected(ctx);
+    const selIds = new Set(selected.map(l => l.id));
+
+    try {
+        const { data } = await sb.from('file_labels')
+            .select('id, name, color, usage_count')
+            .ilike('name', `%${q}%`)
+            .order('usage_count', { ascending: false })
+            .limit(8);
+
+        const existing = (data || []).filter(l => !selIds.has(l.id));
+        // Tam eşleşme var mı?
+        const exactMatch = (data || []).some(l => l.name.toLowerCase() === q);
+
+        let html = existing.map(l => `
+            <div class="flabel-autocomplete-item" onclick="_flabelPickExisting('${ctx}','${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}','${l.color || _flabelColorFromName(l.name)}')">
+                <span class="flabel-chip" style="${_flabelChipStyle(l.color || _flabelColorFromName(l.name))}">${escapeHtml(l.name)}</span>
+                ${l.usage_count > 0 ? `<span class="flabel-autocomplete-count">${l.usage_count} dosyada</span>` : ''}
+            </div>`).join('');
+
+        if (!exactMatch) {
+            const newColor = _flabelColorFromName(q);
+            html += `<div class="flabel-autocomplete-item create-new" onclick="_flabelCreateAndPick('${ctx}','${escapeHtml(q).replace(/'/g,"\\'")}','${newColor}')">
+                <span class="flabel-chip" style="${_flabelChipStyle(newColor)}">${escapeHtml(q)}</span>
+                <span style="font-size:12px;color:#007aff;margin-left:auto;">+ Yeni etiket oluştur</span>
+            </div>`;
+        }
+
+        if (!html) { ac.classList.remove('open'); ac.innerHTML = ''; return; }
+        ac.innerHTML = html;
+        ac.classList.add('open');
+    } catch(e) { console.error('Etiket öneri hatası:', e); }
+}
+
+function _flabelPickExisting(ctx, id, name, color) {
+    const selected = _flabelGetSelected(ctx);
+    if (selected.find(l => l.id === id)) return;
+    selected.push({ id, name, color });
+    _flabelRenderSelected(ctx);
+    const inp = _flabelCtxInput(ctx);
+    if (inp) { inp.value = ''; inp.focus(); }
+    _flabelCtxAC(ctx).classList.remove('open');
+}
+
+async function _flabelCreateAndPick(ctx, name, color) {
+    if (!currentUser) { showToast('Yeni etiket oluşturmak için giriş yapın'); return; }
+    // Önce mevcut kontrolü (yarış önleme)
+    const { data: existing } = await sb.from('file_labels')
+        .select('id, name, color')
+        .ilike('name', name)
+        .maybeSingle();
+    if (existing) { _flabelPickExisting(ctx, existing.id, existing.name, existing.color || color); return; }
+    // Yeni oluştur
+    const { data: created, error } = await sb.from('file_labels')
+        .insert({ name, color, created_by: currentUser.id })
+        .select().single();
+    if (error) { showToast('Etiket oluşturulamadı: ' + error.message); return; }
+    _flabelPickExisting(ctx, created.id, created.name, created.color);
+}
+
+function _flabelInputKeydown(e, ctx) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        const inp = _flabelCtxInput(ctx);
+        const q = inp ? inp.value.trim() : '';
+        if (q) _flabelCreateAndPick(ctx, q, _flabelColorFromName(q));
+    } else if (e.key === 'Escape') {
+        _flabelCtxAC(ctx).classList.remove('open');
+    }
+}
+
+function _flabelRenderSelected(ctx) {
+    const area = _flabelCtxSelected(ctx);
+    if (!area) return;
+    const selected = _flabelGetSelected(ctx);
+    if (!selected.length) { area.innerHTML = ''; return; }
+    area.innerHTML = selected.map(l =>
+        `<span class="flabel-chip removable" style="${_flabelChipStyle(l.color)}">${escapeHtml(l.name)}<button class="flabel-chip-remove" onclick="_flabelRemove('${ctx}','${l.id}')" title="Kaldır">✕</button></span>`
+    ).join('');
+}
+
+function _flabelRemove(ctx, id) {
+    _flabelSelected[ctx] = (_flabelSelected[ctx] || []).filter(l => l.id !== id);
+    _flabelRenderSelected(ctx);
+}
+
+// ── Kaydetme: dosya-etiket bağlantısı ──────────────────────────────
+async function _flabelSaveLinks(fileId, ctx) {
+    const selected = _flabelGetSelected(ctx);
+    if (!selected.length || !fileId) return;
+    // Mevcut bağlantıları sil (sadece bu dosyaya ait olanları)
+    await sb.from('file_label_links').delete().eq('file_id', fileId);
+    // Yeniden ekle
+    const rows = selected.map(l => ({ file_id: fileId, label_id: l.id, tagged_by: currentUser?.id || null }));
+    const { error } = await sb.from('file_label_links').insert(rows);
+    if (error) { console.error('Etiket kaydetme hatası:', error.message); return; }
+    // usage_count güncelle
+    for (const l of selected) {
+        const { data: cnt } = await sb.from('file_label_links').select('label_id', { count: 'exact', head: true }).eq('label_id', l.id);
+        await sb.from('file_labels').update({ usage_count: cnt || 0 }).eq('id', l.id);
+    }
+    _flabelSelected[ctx] = [];
+}
+
+// ── Dosyanın mevcut etiketlerini çek ─────────────────────────────────
+async function _flabelGetForFile(fileId) {
+    const { data: links } = await sb.from('file_label_links').select('label_id').eq('file_id', fileId);
+    if (!links || !links.length) return [];
+    const labelIds = links.map(l => l.label_id);
+    const { data: labels } = await sb.from('file_labels').select('id,name,color').in('id', labelIds);
+    return labels || [];
+}
+
+// ── Etiket chip HTML (okuma amaçlı, tıklanabilir) ───────────────────
+function _flabelChipsHtml(labels, clickable = true) {
+    if (!labels || !labels.length) return '';
+    return labels.map(l =>
+        `<span class="flabel-chip${clickable ? ' clickable' : ''}" style="${_flabelChipStyle(l.color || _flabelColorFromName(l.name))}"${clickable ? ` onclick="event.stopPropagation();searchByFileLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}');"` : ''}>${escapeHtml(l.name)}</span>`
+    ).join('');
+}
+
+// ── Konu etiketiyle arama / filtre ───────────────────────────────────
+function searchByFileLabel(labelId, labelName) {
+    _flabelActiveFilter = { id: labelId, name: labelName };
+    // Arama panelini aç (veya dosyalar sekmesine geç)
+    openSearchPanel();
+    switchSearchTab('files');
+    // Filtre çubuğunu göster
+    const bar  = document.getElementById('flabelSearchFilterBar');
+    const text = document.getElementById('flabelSearchFilterText');
+    const pop  = document.getElementById('flabelPopularSection');
+    if (bar)  { bar.style.display = 'flex';  }
+    if (text) text.textContent = `🏷 "${labelName}" etiketli dosyalar`;
+    if (pop)  pop.style.display = 'none';
+    // Sonuçları yükle
+    _flabelFilteredSearch(labelId, labelName);
+}
+
+function _flabelClearSearchFilter() {
+    _flabelActiveFilter = null;
+    const bar = document.getElementById('flabelSearchFilterBar');
+    const pop = document.getElementById('flabelPopularSection');
+    if (bar) bar.style.display = 'none';
+    if (pop) pop.style.display = '';
+    document.getElementById('userSearchInput').value = '';
+    document.getElementById('searchResults').innerHTML = '<div class="search-empty">Dosya adı veya konu etiketi ile arayın</div>';
+    _flabelLoadPopular();
+}
+
+async function _flabelFilteredSearch(labelId, labelName) {
+    const container = document.getElementById('searchResults');
+    container.innerHTML = '<div class="search-empty"><div class="spinner" style="margin:0 auto;"></div></div>';
+    try {
+        const { data: links } = await sb.from('file_label_links').select('file_id').eq('label_id', labelId);
+        if (!links || !links.length) {
+            container.innerHTML = `<div class="search-empty">"${escapeHtml(labelName)}" etiketli dosya bulunamadı</div>`;
+            return;
+        }
+        const fileIds = links.map(l => l.file_id);
+        const { data: files } = await sb.from('files')
+            .select('id, filename, updated_at, user_id, description')
+            .eq('is_public', true)
+            .in('id', fileIds)
+            .order('updated_at', { ascending: false })
+            .limit(60);
+        if (!files || !files.length) {
+            container.innerHTML = `<div class="search-empty">"${escapeHtml(labelName)}" etiketli public dosya bulunamadı</div>`;
+            return;
+        }
+        const userIds = [...new Set(files.map(f => f.user_id))];
+        const { data: profiles } = await sb.from('profiles').select('id,username,avatar_emoji,avatar_url').in('id', userIds);
+        const pMap = {}; (profiles || []).forEach(p => { pMap[p.id] = p; });
+
+        const fIds = files.map(f => f.id);
+        const [{ data: allLikes }, { data: myL }] = await Promise.all([
+            sb.from('likes').select('file_id').in('file_id', fIds),
+            currentUser ? sb.from('likes').select('file_id').eq('user_id', currentUser.id).in('file_id', fIds) : { data: [] }
+        ]);
+        const counts = {};
+        (allLikes || []).forEach(l => { counts[l.file_id] = (counts[l.file_id] || 0) + 1; });
+        (myL || []).forEach(l => { _myLikes.add(l.file_id); });
+        Object.assign(_likeCounts, counts);
+        await _loadForkCounts(fIds);
+
+        // Her dosyanın tüm etiketlerini çek
+        const { data: allLinks2 } = await sb.from('file_label_links').select('file_id,label_id').in('file_id', fIds);
+        const allLabelIds2 = [...new Set((allLinks2 || []).map(l => l.label_id))];
+        let allLabelsMap2 = {};
+        if (allLabelIds2.length) {
+            const { data: alb } = await sb.from('file_labels').select('id,name,color').in('id', allLabelIds2);
+            (alb || []).forEach(l => { allLabelsMap2[l.id] = l; });
+        }
+        const fileLabelMap2 = {};
+        (allLinks2 || []).forEach(lnk => {
+            if (!fileLabelMap2[lnk.file_id]) fileLabelMap2[lnk.file_id] = [];
+            if (allLabelsMap2[lnk.label_id]) fileLabelMap2[lnk.file_id].push(allLabelsMap2[lnk.label_id]);
+        });
+
+        const pad = n => String(n).padStart(2, '0');
+        container.innerHTML = `<div style="font-size:12px;color:var(--text-secondary);padding:4px 4px 10px;font-weight:600;">${files.length} dosya bulundu</div><div class="search-file-list">` + files.map(f => {
+            const prof   = pMap[f.user_id] || {};
+            const author = prof.username || 'Kullanıcı';
+            const cnt    = counts[f.id] || 0;
+            const liked  = _myLikes.has(f.id);
+            const d      = new Date(f.updated_at);
+            const date   = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
+            if (!_exploreDataMap[f.id]) _exploreDataMap[f.id] = { userId: f.user_id, username: author, emoji: prof.avatar_emoji || '👤', avatarUrl: prof.avatar_url || '', filename: f.filename, description: f.description || '' };
+            const fileLabels2 = fileLabelMap2[f.id] || [];
+            const labelsHtml2 = fileLabels2.length
+                ? `<div class="flabel-card-row">${fileLabels2.map(l => `<span class="flabel-chip clickable${l.id === labelId ? '' : ''}" style="${_flabelChipStyle(l.color)}${l.id === labelId ? ';box-shadow:0 0 0 2px ' + (l.color||'#007aff') + ';' : ''}" onclick="event.stopPropagation();searchByFileLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}');">${escapeHtml(l.name)}</span>`).join('')}</div>` : '';
+            return `
+            <div class="pub-file-wrap">
+                <div class="pub-file-card" onclick="openFileView('${f.id}')">
+                    <div class="pub-file-icon"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg></div>
+                    <div class="pub-file-info">
+                        <div class="pub-file-name">${escapeHtml(f.filename)}</div>
+                        ${f.description ? `<div class="pub-file-desc" style="font-size:12px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(f.description)}</div>` : ''}
+                        ${labelsHtml2}
+                        <div class="pub-file-meta"><span style="cursor:pointer" onclick="event.stopPropagation();openPublicProfile('${f.user_id}')">${_ava(prof.avatar_emoji, prof.avatar_url)} ${escapeHtml(author)}</span> · ${date}</div>
+                    </div>
+                    <div class="pub-file-right">
+                        <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}" onclick="event.stopPropagation();toggleLike('${f.id}')">${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt || ''}</span></button>
+                        ${_forkCounts[f.id] ? `<span class="fork-count-badge" id="forkcount-${f.id}" style="margin-left:4px;"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4zM12 21a2 2 0 100-4 2 2 0 000 4zM7 7v3a2 2 0 002 2h6a2 2 0 002-2V7M12 13v4"/></svg> ${_forkCounts[f.id]}</span>` : ''}
+                    </div>
+                </div>
+            </div>`;
+        }).join('') + '</div>';
+    } catch(e) { console.error('Etiket filtre hatası:', e); container.innerHTML = '<div class="search-empty">Yükleme başarısız</div>'; }
+}
+
+// ── Popüler etiketler ──────────────────────────────────────────────────
+async function _flabelLoadPopular() {
+    const section = document.getElementById('flabelPopularSection');
+    const chips   = document.getElementById('flabelPopularChips');
+    if (!section || !chips) return;
+    try {
+        const { data } = await sb.from('file_labels')
+            .select('id, name, color, usage_count')
+            .gt('usage_count', 0)
+            .order('usage_count', { ascending: false })
+            .limit(15);
+        if (!data || !data.length) { section.style.display = 'none'; return; }
+        chips.innerHTML = data.map(l =>
+            `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color || _flabelColorFromName(l.name))}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}');">${escapeHtml(l.name)}</span>`
+        ).join('');
+        section.style.display = '';
+    } catch(e) { section.style.display = 'none'; }
+}
+
+// ── Etiket düzenleyici (mevcut dosyalar için) ─────────────────────────
+async function openFileLabelEditor(fileId) {
+    _flabelEditorFileId = fileId;
+    _flabelSelected['editor'] = [];
+    const overlay = document.getElementById('flabelEditorOverlay');
+    if (!overlay) return;
+    // Mevcut etiketleri yükle
+    const labels = await _flabelGetForFile(fileId);
+    _flabelSelected['editor'] = labels.map(l => ({ id: l.id, name: l.name, color: l.color || _flabelColorFromName(l.name) }));
+    _flabelRenderSelected('editor');
+    // Dosya adını subtitle'a yaz
+    const sf = savedFiles.find(f => f.id === fileId);
+    const sub = document.getElementById('flabelEditorSubtitle');
+    if (sub && sf) sub.textContent = sf.filename + '.html dosyasına etiket ekleyin';
+    overlay.classList.add('open');
+    setTimeout(() => { const inp = document.getElementById('flabelEditorInput'); if (inp) inp.focus(); }, 300);
+}
+
+function _flabelCloseEditor() {
+    document.getElementById('flabelEditorOverlay')?.classList.remove('open');
+    _flabelSelected['editor'] = [];
+    _flabelEditorFileId = null;
+    document.getElementById('flabelEditorInput') && (document.getElementById('flabelEditorInput').value = '');
+    document.getElementById('flabelEditorAC')?.classList.remove('open');
+}
+
+async function _flabelSaveEditorLabels() {
+    if (!_flabelEditorFileId) return;
+    if (!currentUser) { showToast('Etiket kaydetmek için giriş yapın'); return; }
+    const selected = _flabelGetSelected('editor');
+    // Önce mevcut bağlantıları sil
+    await sb.from('file_label_links').delete().eq('file_id', _flabelEditorFileId);
+    if (selected.length) {
+        const rows = selected.map(l => ({ file_id: _flabelEditorFileId, label_id: l.id, tagged_by: currentUser.id }));
+        const { error } = await sb.from('file_label_links').insert(rows);
+        if (error) { showToast('Etiket kaydetme hatası: ' + error.message); return; }
+        // usage_count güncelle
+        for (const l of selected) {
+            const { count } = await sb.from('file_label_links').select('label_id', { count: 'exact', head: true }).eq('label_id', l.id);
+            await sb.from('file_labels').update({ usage_count: count || 0 }).eq('id', l.id);
+        }
+    }
+    showToast('Etiketler kaydedildi ✓');
+    _flabelCloseEditor();
+    // Dosya kartını güncelle (sadece arama sonuçlarında görünür olanlar)
+    renderSavedFiles();
+}
+
+// ── switchSearchTab override (popüler etiketleri dosyalar sekmesinde göster) ─
+const _origSwitchSearchTab = switchSearchTab;
+// Aşağıdaki davranış switchSearchTab'ı replace eder:
+function switchSearchTab(tab) {
+    _searchTab = tab;
+    document.getElementById('stab-users').classList.toggle('active', tab === 'users');
+    document.getElementById('stab-files').classList.toggle('active', tab === 'files');
+    const q = document.getElementById('userSearchInput').value.trim();
+    if (q) {
+        debounceSearch();
+    } else {
+        const empty = tab === 'users' ? 'Kullanıcı adı ile arayın' : 'Dosya adı veya konu etiketi ile arayın';
+        document.getElementById('searchResults').innerHTML = `<div class="search-empty">${empty}</div>`;
+        // Dosyalar sekmesinde popüler etiketleri yükle
+        const pop = document.getElementById('flabelPopularSection');
+        const bar = document.getElementById('flabelSearchFilterBar');
+        if (tab === 'files' && pop && !_flabelActiveFilter) {
+            _flabelLoadPopular();
+        } else if (pop) {
+            pop.style.display = 'none';
+        }
+        if (bar && tab !== 'files') { bar.style.display = 'none'; _flabelActiveFilter = null; }
+    }
+}
+
+// ── openSearchPanel'de de popüler etiket yükleme ─────────────────────
+const _origOpenSearchPanel = openSearchPanel;
+function openSearchPanel() {
+    _navigate('#search');
+    _closeAllPanels('search');
+    _setBottomActive('bbSearchBtn');
+    document.getElementById('searchPanelOverlay').classList.add('open');
+    document.getElementById('userSearchInput').value = '';
+    document.getElementById('searchResults').innerHTML = '<div class="search-empty">Aramak istediğiniz kişi veya dosya adını yazın</div>';
+    // Aktif filtre sıfırla (arama paneli her açılışında temizle)
+    if (!_flabelActiveFilter) {
+        const bar = document.getElementById('flabelSearchFilterBar');
+        if (bar) bar.style.display = 'none';
+    }
+    switchSearchTab(_searchTab);
+    const inp = document.getElementById('userSearchInput');
+    inp.setAttribute('autofocus', '');
+    setTimeout(() => { inp.focus(); inp.click(); }, 300);
 }
 
 
@@ -10403,6 +11146,21 @@ async function openFileView(fileId) {
     // Beğeni + fork sayısı
     _fvUpdateLike();
     _fvUpdateForkCount();
+
+    // Konu etiketlerini yükle (versiyon etiketlerinden bağımsız: file_labels tablosu)
+    _fvLoadLabels(fileId);
+}
+
+async function _fvLoadLabels(fileId) {
+    const area = document.getElementById('fvLabelArea');
+    if (!area) return;
+    try {
+        const labels = await _flabelGetForFile(fileId);
+        if (!labels.length) { area.style.display = 'none'; area.innerHTML = ''; return; }
+        const isOwner = currentUser && _fvUserId === currentUser.id;
+        area.style.display = '';
+        area.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">${_flabelChipsHtml(labels, true)}${isOwner ? `<button onclick="openFileLabelEditor('${fileId}')" style="padding:3px 8px;border-radius:12px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text-secondary);font-size:11px;font-weight:700;cursor:pointer;">+ Düzenle</button>` : ''}</div>`;
+    } catch(e) { area.style.display = 'none'; }
 }
 
 function _fvDetectMode(filename) {
@@ -12158,6 +12916,8 @@ async function _shareCopyLink() {
     </div>
     <div class="fv-fork-banner" id="fvForkBanner" style="display:none;"></div>
     <div id="fvDescArea" style="display:none;"></div>
+    <!-- Konu etiketleri (versiyon etiketlerinden farklı) -->
+    <div id="fvLabelArea" style="padding:0 16px 10px;display:none;"></div>
     <div class="fv-tabs">
         <button class="fv-tab active" id="fvTabCode"    onclick="fvSwitchTab('code')">Kod</button>
         <button class="fv-tab"        id="fvTabPreview" onclick="fvSwitchTab('preview')">Önizleme</button>
