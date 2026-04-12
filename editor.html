@@ -4489,6 +4489,7 @@ let _collectionFilter  = null;
 let _fileCollectionMap = {};   // fileId -> Set of collectionIds
 let _colMyLikes        = new Set();
 let _colLikeCounts     = {};
+let _colLikeBusy       = new Set(); // race condition: koleksiyon beğenisinde çift tıklamayı engeller
 let _colCmtLikes       = {};         // commentId -> count
 let _colMyCmtLikes     = new Set();  // current user liked collection comment IDs
 let _colOwnerMap       = {};         // collectionId -> owner user_id
@@ -10445,26 +10446,88 @@ async function loadFeed() {
     document.querySelectorAll('#feedList [id^="fcard-"]').forEach(el => obs.observe(el));
 }
 
-async function feedToggleLike(fileId) {
-    const liked = _myLikes.has(fileId);
-    const btn = document.getElementById('flike-' + fileId);
-    const cntEl = document.getElementById('flikecnt-' + fileId);
-    const textEl = document.getElementById('fliketext-' + fileId);
-    if (liked) { _myLikes.delete(fileId); _likeCounts[fileId] = Math.max(0,(_likeCounts[fileId]||1)-1); }
-    else { _myLikes.add(fileId); _likeCounts[fileId] = (_likeCounts[fileId]||0)+1; }
+// Feed kartı beğeni UI'ını günceller (flike-, colike-, flikecnt-, fliketext- elementleri)
+function _feedUpdateLikeUI(fileId) {
+    const nowLiked = _myLikes.has(fileId);
     const cnt = _likeCounts[fileId] || 0;
-    if (btn) { btn.classList.toggle('liked', !liked); btn.childNodes[0].textContent = !liked ? '♥ ' : '♡ '; }
+    // Feed/explore kart butonu (flike- prefix)
+    const btn = document.getElementById('flike-' + fileId);
+    if (btn) { btn.classList.toggle('liked', nowLiked); if (btn.childNodes[0]) btn.childNodes[0].textContent = nowLiked ? '♥ ' : '♡ '; }
+    // Koleksiyon overlay dosya kart butonu (colike- prefix)
+    const coBtn = document.getElementById('colike-' + fileId);
+    if (coBtn) { coBtn.classList.toggle('liked', nowLiked); if (coBtn.childNodes[0]) coBtn.childNodes[0].textContent = nowLiked ? '♥ ' : '♡ '; }
+    // Sayaç
+    const cntEl = document.getElementById('flikecnt-' + fileId);
     if (cntEl) cntEl.textContent = cnt || '';
+    // Beğeni metni (sadece following feed kartlarında var)
+    const textEl = document.getElementById('fliketext-' + fileId);
     if (textEl) {
-        if (cnt === 0) { textEl.style.display='none'; textEl.textContent=''; }
-        else { textEl.style.display=''; textEl.textContent = !liked ? `Sen ve ${cnt-1 > 0 ? cnt-1+' kişi daha' : ''} beğendi`.replace(' ve  beğendi',' beğendi') : (cnt===1 ? '1 kişi beğendi' : cnt+' kişi beğendi'); }
+        if (cnt === 0) { textEl.style.display = 'none'; textEl.textContent = ''; }
+        else { textEl.style.display = ''; textEl.textContent = nowLiked ? (cnt === 1 ? 'Sen beğendin' : `Sen ve ${cnt - 1} kişi daha beğendi`) : (cnt === 1 ? '1 kişi beğendi' : `${cnt} kişi beğendi`); }
     }
+}
+
+async function feedToggleLike(fileId) {
+    if (!currentUser) { showToast('Beğenmek için giriş yapın'); return; }
+    // Race condition önleme: aynı dosyaya çift tıklamayı engelle
+    if (_likeBusy.has(fileId)) return;
+    _likeBusy.add(fileId);
+    const btn = document.getElementById('flike-' + fileId);
+    if (btn) btn.disabled = true;
     try {
-        if (liked) await sb.from('likes').delete().eq('user_id',currentUser.id).eq('file_id',fileId);
-        else await sb.from('likes').insert({user_id:currentUser.id,file_id:fileId});
+        // ── DB-first: sayfa yenileme sonrası stale _myLikes'tan kaçın ──────
+        // _myLikes boşken ♡ görünür → tıklanır → unlike yapılır → hatalı bildirim gider.
+        // Önce DB'den gerçek durumu sorgula, sonra toggle et.
+        const { data: dbLikeArr } = await sb.from('likes')
+            .select('id').eq('user_id', currentUser.id).eq('file_id', fileId).limit(1);
+        const wasLiked = !!(dbLikeArr && dbLikeArr.length > 0);
+        // _myLikes'ı DB gerçeğiyle hizala
+        if (wasLiked) _myLikes.add(fileId); else _myLikes.delete(fileId);
+        // Optimistik UI
+        if (wasLiked) { _myLikes.delete(fileId); _likeCounts[fileId] = Math.max(0, (_likeCounts[fileId] || 1) - 1); }
+        else { _myLikes.add(fileId); _likeCounts[fileId] = (_likeCounts[fileId] || 0) + 1; }
+        _feedUpdateLikeUI(fileId);
+        if (wasLiked) {
+            // ── Beğeniyi kaldır ──────────────────────────────────────────
+            const { error } = await sb.from('likes').delete().eq('user_id', currentUser.id).eq('file_id', fileId);
+            if (error) throw error;
+            // İlgili "like" bildirimini de sil
+            await sb.from('like_notifications').delete()
+                .eq('from_user_id', currentUser.id).eq('file_id', fileId).eq('type', 'like');
+        } else {
+            // ── Beğeni ekle ──────────────────────────────────────────────
+            const { error } = await sb.from('likes').insert({ user_id: currentUser.id, file_id: fileId });
+            if (error && error.code !== '23505') throw error;
+            if (!error) {
+                // Dosya sahibini bul (önce cache, yoksa DB'den çek)
+                let ownerId = _fileOwnerCache[fileId];
+                if (!ownerId) {
+                    const { data: fd } = await sb.from('files').select('user_id').eq('id', fileId).single();
+                    if (fd?.user_id) { ownerId = fd.user_id; _fileOwnerCache[fileId] = ownerId; }
+                }
+                // Bildirim gönder — kendi dosyası veya daha önce gönderilmişse gönderme
+                if (ownerId && ownerId !== currentUser.id) {
+                    const { data: existingArr } = await sb.from('like_notifications')
+                        .select('id').eq('from_user_id', currentUser.id).eq('file_id', fileId).eq('type', 'like').limit(1);
+                    if (!existingArr || existingArr.length === 0) {
+                        await sb.from('like_notifications').insert({
+                            to_user_id: ownerId, from_user_id: currentUser.id, file_id: fileId, type: 'like', seen: false
+                        });
+                    }
+                }
+            }
+        }
     } catch(e) {
-        if (liked) { _myLikes.add(fileId); _likeCounts[fileId]++; } else { _myLikes.delete(fileId); _likeCounts[fileId]=Math.max(0,(_likeCounts[fileId]||1)-1); }
+        // Hata → DB'den gerçek durumu çekip UI'ı düzelt
+        const { data: checkArr } = await sb.from('likes')
+            .select('id').eq('user_id', currentUser.id).eq('file_id', fileId).limit(1);
+        if (checkArr && checkArr.length > 0) _myLikes.add(fileId); else _myLikes.delete(fileId);
+        _feedUpdateLikeUI(fileId);
+        console.error('Feed like error:', e);
         showToast('Beğeni kaydedilemedi');
+    } finally {
+        _likeBusy.delete(fileId);
+        if (btn) btn.disabled = false;
     }
 }
 
@@ -13402,31 +13465,67 @@ function _initCollCardThumbs(col) {
     });
 }
 
+function _updateColLikeUI(collId) {
+    const nowLiked = _colMyLikes.has(collId);
+    const cnt = _colLikeCounts[collId] || 0;
+    const btn = document.getElementById('cclike-' + collId);
+    if (btn) { btn.classList.toggle('liked', nowLiked); if (btn.childNodes[0]) btn.childNodes[0].textContent = nowLiked ? '♥ ' : '♡ '; const span = document.getElementById('cclikecnt-' + collId); if (span) span.textContent = cnt || ''; }
+    if (_colOverlayId === collId) _updateCollOverlayLikeBtn(collId);
+}
+
 async function toggleColLike(collId) {
     if (!currentUser) { showToast('Beğenmek için giriş yapın'); return; }
-    const liked = _colMyLikes.has(collId);
-    if (liked) {
-        _colMyLikes.delete(collId);
-        _colLikeCounts[collId] = Math.max(0, (_colLikeCounts[collId] || 1) - 1);
-        await sb.from('collection_likes').delete().eq('collection_id', collId).eq('user_id', currentUser.id);
-    } else {
-        _colMyLikes.add(collId);
-        _colLikeCounts[collId] = (_colLikeCounts[collId] || 0) + 1;
-        await sb.from('collection_likes').insert({ collection_id: collId, user_id: currentUser.id });
-        // Bildirim: koleksiyon sahibine
-        const _ownerId = _colOwnerMap[collId];
-        if (_ownerId) _sendNotif('coll_like', _ownerId, null, { collection_id: collId });
-    }
-    // Kart butonu
+    // Race condition önleme
+    if (_colLikeBusy.has(collId)) return;
+    _colLikeBusy.add(collId);
     const btn = document.getElementById('cclike-' + collId);
-    if (btn) {
-        btn.classList.toggle('liked', _colMyLikes.has(collId));
-        btn.childNodes[0].textContent = _colMyLikes.has(collId) ? '♥ ' : '♡ ';
-        const span = document.getElementById('cclikecnt-' + collId);
-        if (span) span.textContent = _colLikeCounts[collId] || '';
+    if (btn) btn.disabled = true;
+    try {
+        // ── DB-first: stale _colMyLikes'tan kaçın ──────────────────────────
+        const { data: dbArr } = await sb.from('collection_likes')
+            .select('id').eq('collection_id', collId).eq('user_id', currentUser.id).limit(1);
+        const wasLiked = !!(dbArr && dbArr.length > 0);
+        // _colMyLikes'ı DB gerçeğiyle hizala
+        if (wasLiked) _colMyLikes.add(collId); else _colMyLikes.delete(collId);
+        // Optimistik UI
+        if (wasLiked) { _colMyLikes.delete(collId); _colLikeCounts[collId] = Math.max(0, (_colLikeCounts[collId] || 1) - 1); }
+        else { _colMyLikes.add(collId); _colLikeCounts[collId] = (_colLikeCounts[collId] || 0) + 1; }
+        _updateColLikeUI(collId);
+        if (wasLiked) {
+            // ── Beğeniyi kaldır ──────────────────────────────────────────
+            const { error } = await sb.from('collection_likes').delete().eq('collection_id', collId).eq('user_id', currentUser.id);
+            if (error) throw error;
+            // İlgili "coll_like" bildirimini sil
+            await sb.from('like_notifications').delete()
+                .eq('from_user_id', currentUser.id).eq('type', 'coll_like').eq('collection_id', collId);
+        } else {
+            // ── Beğeni ekle ──────────────────────────────────────────────
+            const { error } = await sb.from('collection_likes').insert({ collection_id: collId, user_id: currentUser.id });
+            if (error && error.code !== '23505') throw error;
+            if (!error) {
+                const ownerId = _colOwnerMap[collId];
+                if (ownerId && ownerId !== currentUser.id) {
+                    // Duplicate bildirim koruması
+                    const { data: existingArr } = await sb.from('like_notifications')
+                        .select('id').eq('from_user_id', currentUser.id).eq('type', 'coll_like').eq('collection_id', collId).limit(1);
+                    if (!existingArr || existingArr.length === 0) {
+                        _sendNotif('coll_like', ownerId, null, { collection_id: collId });
+                    }
+                }
+            }
+        }
+    } catch(e) {
+        // Hata → DB'den gerçek durumu çekip UI'ı düzelt
+        const { data: checkArr } = await sb.from('collection_likes')
+            .select('id').eq('collection_id', collId).eq('user_id', currentUser.id).limit(1);
+        if (checkArr && checkArr.length > 0) _colMyLikes.add(collId); else _colMyLikes.delete(collId);
+        _updateColLikeUI(collId);
+        console.error('Collection like error:', e);
+        showToast('Beğeni kaydedilemedi');
+    } finally {
+        _colLikeBusy.delete(collId);
+        if (btn) btn.disabled = false;
     }
-    // Modal butonu
-    if (_colOverlayId === collId) _updateCollOverlayLikeBtn(collId);
 }
 
 // ── PAYLAŞ ──────────────────────────────────────────────────────────────
