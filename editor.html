@@ -1499,8 +1499,13 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 }
 .pub-file-info { flex: 1; min-width: 0; }
 .pub-file-name { font-size: 14px; font-weight: 700; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pub-file-meta { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-top: 2px; }
+.pub-file-meta { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-top: 2px; display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.pub-meta-ava-wrap { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; overflow:hidden; flex-shrink:0; }
+.pub-meta-ava-wrap .ava-img { width:16px !important; height:16px !important; }
 .pub-file-wrap { margin-bottom: 10px; }
+.srch-cross-hint { display:flex; align-items:center; flex-wrap:wrap; gap:4px; font-size:12px; color:var(--text-secondary); padding:8px 12px; margin-bottom:8px; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:10px; }
+.srch-cross-link { color:var(--accent,#007aff); font-weight:600; cursor:pointer; white-space:nowrap; }
+.srch-cross-link:hover { text-decoration:underline; }
 /* ── YORUMLAR ───────────────────────────────────────────── */
 .comments-section {
     border: 1px solid var(--glass-border); border-top: none;
@@ -8601,6 +8606,8 @@ async function doUserSearch() {
     const q = document.getElementById('userSearchInput').value.trim();
     const container = document.getElementById('searchResults');
     if (!q) { container.innerHTML = '<div class="search-empty">Kullanıcı adı ile arayın</div>'; return; }
+    // Dosya sayısını paralelde hesapla
+    const _fCntProm = sb.from('files').select('id', { count: 'exact', head: true }).eq('is_public', true).ilike('filename', `%${q}%`);
     container.innerHTML = '<div class="search-empty"><div class="spinner" style="margin:0 auto;"></div></div>';
     try {
         const { data, error } = await sb.from('profiles')
@@ -8629,6 +8636,14 @@ async function doUserSearch() {
                 </svg>
             </div>`;
         }).join('');
+        // Dosyalar sekmesi çapraz ipucu
+        try {
+            const { count: _fCnt } = await _fCntProm;
+            if (_fCnt > 0) {
+                const _hint = `<div class="srch-cross-hint">📄 "<b>${escapeHtml(q)}</b>" sorgusuna ait <b>${_fCnt} dosya</b> bulundu &nbsp;<span class="srch-cross-link" onclick="switchSearchTab('files')">Dosyalara geç →</span></div>`;
+                container.insertAdjacentHTML('afterbegin', _hint);
+            }
+        } catch(e) {}
     } catch(e) {
         console.error('Search error:', e);
         container.innerHTML = '<div class="search-empty">Arama başarısız</div>';
@@ -8649,6 +8664,8 @@ async function doFileSearch() {
         container.innerHTML = '<div class="search-empty">Dosya adı veya konu etiketi ile arayın</div>';
         return;
     }
+    // Kişi sayısını paralelde hesapla
+    const _uCntProm = sb.from('profiles').select('id', { count: 'exact', head: true }).ilike('username', `%${q}%`);
     container.innerHTML = '<div class="search-empty"><div class="spinner" style="margin:0 auto;"></div></div>';
     try {
         // 1) Dosya adı araması
@@ -8789,7 +8806,7 @@ async function doFileSearch() {
                         <div class="pub-file-name">${escapeHtml(f.filename)}</div>
                         ${f.description ? `<div class="pub-file-desc" style="font-size:12px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(f.description)}</div>` : ''}
                         ${labelsHtml}
-                        <div class="pub-file-meta"><span style="cursor:pointer" onclick="event.stopPropagation();openPublicProfile('${f.user_id}')">${_ava(prof.avatar_emoji, prof.avatar_url)} ${escapeHtml(author)}</span> · ${date}</div>
+                        <div class="pub-file-meta"><span style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;" onclick="event.stopPropagation();openPublicProfile('${f.user_id}')"><span class="pub-meta-ava-wrap">${_ava(prof.avatar_emoji, prof.avatar_url)}</span>${escapeHtml(author)}</span> · ${date}</div>
                     </div>
                     <div class="pub-file-right">
                         <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}"
@@ -8801,6 +8818,14 @@ async function doFileSearch() {
                 </div>
             </div>`;
         }).join('') + '</div>';
+        // Kişiler sekmesi çapraz ipucu
+        try {
+            const { count: _uCnt } = await _uCntProm;
+            if (_uCnt > 0) {
+                const _hint = `<div class="srch-cross-hint">👤 "<b>${escapeHtml(q)}</b>" sorgusuna ait <b>${_uCnt} kişi</b> bulundu &nbsp;<span class="srch-cross-link" onclick="switchSearchTab('users')">Kişilere geç →</span></div>`;
+                container.insertAdjacentHTML('afterbegin', _hint);
+            }
+        } catch(e) {}
     } catch(e) {
         console.error('File search error:', e);
         container.innerHTML = '<div class="search-empty">Arama başarısız</div>';
@@ -9129,7 +9154,7 @@ async function _flabelFilteredSearch(labelId, labelName) {
                         <div class="pub-file-name">${escapeHtml(f.filename)}</div>
                         ${f.description ? `<div class="pub-file-desc" style="font-size:12px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(f.description)}</div>` : ''}
                         ${labelsHtml2}
-                        <div class="pub-file-meta"><span style="cursor:pointer" onclick="event.stopPropagation();openPublicProfile('${f.user_id}')">${_ava(prof.avatar_emoji, prof.avatar_url)} ${escapeHtml(author)}</span> · ${date}</div>
+                        <div class="pub-file-meta"><span style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;" onclick="event.stopPropagation();openPublicProfile('${f.user_id}')"><span class="pub-meta-ava-wrap">${_ava(prof.avatar_emoji, prof.avatar_url)}</span>${escapeHtml(author)}</span> · ${date}</div>
                     </div>
                     <div class="pub-file-right">
                         <button class="like-btn${liked ? ' liked' : ''}" data-like-id="${f.id}" onclick="event.stopPropagation();toggleLike('${f.id}')">${liked ? '♥' : '♡'} <span data-like-count="${f.id}">${cnt || ''}</span></button>
