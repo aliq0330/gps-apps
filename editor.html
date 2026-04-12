@@ -3048,6 +3048,44 @@ body.preview-mode .file-title-bar { display: none !important; }
     flex: 1; border: none; background: #fff;
 }
 
+/* Admin — Etiket Yönetimi */
+.admin-total-card.t-labels { border-color: rgba(191,90,242,0.3); background: rgba(191,90,242,0.07); cursor:pointer; }
+.admin-total-card.t-labels .admin-total-num { color: #bf5af2; }
+.admin-label-mgr-header { display:flex; align-items:center; gap:10px; padding:10px 12px 6px; }
+.admin-label-mgr-back { background:none; border:none; cursor:pointer; color:var(--text-secondary); font-size:13px; padding:4px 8px; border-radius:8px; }
+.admin-label-mgr-back:active { opacity:.6; }
+.admin-label-row {
+    display:flex; align-items:center; gap:8px; padding:8px 12px;
+    border-bottom:1px solid var(--glass-border);
+}
+.admin-label-row:last-child { border-bottom:none; }
+.admin-label-usage { font-size:11px; color:var(--text-secondary); white-space:nowrap; flex-shrink:0; }
+.admin-label-actions { display:flex; gap:6px; margin-left:auto; flex-shrink:0; }
+.admin-label-btn {
+    font-size:11px; font-weight:600; padding:3px 10px; border-radius:8px;
+    border:1px solid; cursor:pointer; background:none; font-family:inherit;
+}
+.admin-label-btn.merge { border-color:rgba(88,86,214,0.45); color:#5856d6; background:rgba(88,86,214,0.07); }
+.admin-label-btn.merge:active { opacity:.6; }
+.admin-label-btn.del   { border-color:rgba(255,59,48,0.45);  color:#ff3b30; background:rgba(255,59,48,0.07); }
+.admin-label-btn.del:active { opacity:.6; }
+.admin-merge-picker {
+    position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:10200;
+    display:flex; align-items:flex-end; justify-content:center;
+}
+.admin-merge-box {
+    width:100%; max-width:430px; background:var(--card-bg); border-radius:18px 18px 0 0;
+    padding:18px 16px 32px; max-height:70vh; overflow-y:auto;
+}
+.admin-merge-title { font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:4px; }
+.admin-merge-sub   { font-size:12px; color:var(--text-secondary); margin-bottom:14px; }
+.admin-merge-item  {
+    display:flex; align-items:center; gap:8px; padding:9px 10px; border-radius:10px;
+    cursor:pointer; border:1px solid transparent;
+}
+.admin-merge-item:hover, .admin-merge-item:active { background:var(--glass-bg); border-color:var(--glass-border); }
+.admin-merge-cancel { margin-top:10px; width:100%; padding:11px; border-radius:12px; border:1px solid var(--glass-border); background:var(--glass-bg); color:var(--text-secondary); font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+
 /* Versiyon özet hatası */
 .version-summary-error {
     font-size: 12px; color: #ff453a; font-weight: 600;
@@ -4711,6 +4749,7 @@ function openProfilePanel() {
 // ── ADMİN PANELİ ──────────────────────────────────────────────────────
 let _adminAllUsers = [];
 let _adminUserStats = {};   // { [userId]: { f, c, cm, r, msg } }
+let _adminAllLabels = [];   // Etiket yönetimi için yüklenen etiketler
 
 async function openAdminPanel() {
     const overlay = document.getElementById('adminOverlay');
@@ -4724,6 +4763,121 @@ function closeAdminPanel() {
     const overlay = document.getElementById('adminOverlay');
     overlay.style.display = 'none';
     _ovPop(overlay);
+    adminCloseLabelMgr();
+}
+
+// ── Admin: Etiket Yönetimi ────────────────────────────────────────────
+async function adminOpenLabelMgr() {
+    document.getElementById('adminUserSection').style.display = 'none';
+    document.getElementById('adminLabelSection').style.display = '';
+    document.getElementById('adminUserCount').textContent = 'Etiket Yönetimi';
+    await _adminLoadLabels();
+}
+
+function adminCloseLabelMgr() {
+    document.getElementById('adminLabelSection').style.display = 'none';
+    document.getElementById('adminUserSection').style.display = '';
+    document.getElementById('adminUserCount').textContent = _adminAllUsers.length + ' kullanıcı';
+    const inp = document.getElementById('adminLabelSearch');
+    if (inp) inp.value = '';
+}
+
+async function _adminLoadLabels() {
+    const container = document.getElementById('adminLabelList');
+    if (container) container.innerHTML = '<div class="search-empty">Yükleniyor...</div>';
+    const { data, error } = await sb.from('file_labels')
+        .select('id, name, color, usage_count, created_at')
+        .order('usage_count', { ascending: false });
+    if (error || !data) {
+        if (container) container.innerHTML = '<div class="search-empty">Hata oluştu</div>';
+        return;
+    }
+    _adminAllLabels = data;
+    const countEl = document.getElementById('adminLabelCount');
+    if (countEl) countEl.textContent = data.length + ' etiket';
+    _adminRenderLabels(data);
+}
+
+function _adminRenderLabels(labels) {
+    const container = document.getElementById('adminLabelList');
+    if (!container) return;
+    if (!labels.length) { container.innerHTML = '<div class="search-empty">Etiket bulunamadı</div>'; return; }
+    container.innerHTML = labels.map(l => {
+        const color = l.color || _flabelColorFromName(l.name);
+        return `<div class="admin-label-row" id="admin-label-row-${l.id}">
+            <span class="flabel-chip" style="${_flabelChipStyle(color)};flex-shrink:0;max-width:120px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(l.name)}</span>
+            <span class="admin-label-usage">${l.usage_count} dosya</span>
+            <div class="admin-label-actions">
+                <button class="admin-label-btn merge" onclick="adminMergeLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}')">Birleştir</button>
+                <button class="admin-label-btn del"   onclick="adminDeleteLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}')">Sil</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function _adminFilterLabels(q) {
+    if (!q) { _adminRenderLabels(_adminAllLabels); return; }
+    const filtered = _adminAllLabels.filter(l => l.name.toLowerCase().includes(q.toLowerCase()));
+    _adminRenderLabels(filtered);
+}
+
+async function adminDeleteLabel(labelId, labelName) {
+    if (!confirm(`"${labelName}" etiketini global havuzdan kalıcı olarak silmek istiyor musunuz?\n\nBu etiketi kullanan tüm dosyalardan da kaldırılır.`)) return;
+    try {
+        // Bağlantıları sil (CASCADE yoksa manuel)
+        await sb.from('file_label_links').delete().eq('label_id', labelId);
+        const { error } = await sb.from('file_labels').delete().eq('id', labelId);
+        if (error) throw error;
+        showToast(`"${labelName}" silindi`);
+        await _adminLoadLabels();
+        await _adminLoadTotals();
+    } catch(e) { showToast('Hata: ' + (e.message || 'silinemedi')); }
+}
+
+function adminMergeLabel(sourceId, sourceName) {
+    const others = _adminAllLabels.filter(l => l.id !== sourceId);
+    if (!others.length) { showToast('Birleştirilecek başka etiket yok'); return; }
+    const picker  = document.getElementById('adminMergePicker');
+    const title   = document.getElementById('adminMergeTitle');
+    const sub     = document.getElementById('adminMergeSub');
+    const list    = document.getElementById('adminMergeList');
+    if (!picker) return;
+    title.innerHTML = `<span class="flabel-chip" style="${_flabelChipStyle(_adminAllLabels.find(l=>l.id===sourceId)?.color||'#007aff')}">${escapeHtml(sourceName)}</span> → hangi etikete birleştirilsin?`;
+    sub.textContent = `"${sourceName}" silinir, tüm bağlantılar hedef etikete aktarılır.`;
+    list.innerHTML = others.map(t => `
+        <div class="admin-merge-item" onclick="_adminDoMerge('${sourceId}','${escapeHtml(sourceName).replace(/'/g,"\\'")}','${t.id}','${escapeHtml(t.name).replace(/'/g,"\\'")}')">
+            <span class="flabel-chip" style="${_flabelChipStyle(t.color || _flabelColorFromName(t.name))}">${escapeHtml(t.name)}</span>
+            <span class="admin-label-usage" style="font-size:11px;">${t.usage_count} dosya</span>
+        </div>`).join('');
+    picker.style.display = 'flex';
+}
+
+async function _adminDoMerge(sourceId, sourceName, targetId, targetName) {
+    document.getElementById('adminMergePicker').style.display = 'none';
+    if (!confirm(`"${sourceName}" → "${targetName}" birleştirme yapılacak.\n"${sourceName}" silinecek, dosyalar "${targetName}" etiketine aktarılacak.\n\nDevam?`)) return;
+    try {
+        // source'u kullanan dosyaları al
+        const { data: srcLinks } = await sb.from('file_label_links').select('file_id').eq('label_id', sourceId);
+        if (srcLinks && srcLinks.length) {
+            const { data: tgtLinks } = await sb.from('file_label_links').select('file_id').eq('label_id', targetId);
+            const tgtSet = new Set((tgtLinks || []).map(l => l.file_id));
+            // Target zaten yoksa ekle
+            const toInsert = srcLinks
+                .filter(l => !tgtSet.has(l.file_id))
+                .map(l => ({ file_id: l.file_id, label_id: targetId, tagged_by: currentUser?.id || null }));
+            if (toInsert.length) await sb.from('file_label_links').insert(toInsert);
+        }
+        // Source bağlantılarını sil
+        await sb.from('file_label_links').delete().eq('label_id', sourceId);
+        // Target usage_count güncelle
+        const { count: tcount } = await sb.from('file_label_links').select('label_id', { count: 'exact', head: true }).eq('label_id', targetId);
+        await sb.from('file_labels').update({ usage_count: tcount || 0 }).eq('id', targetId);
+        // Source etiketi sil
+        await sb.from('file_labels').delete().eq('id', sourceId);
+        showToast(`"${sourceName}" → "${targetName}" birleştirildi ✓`);
+        await _adminLoadLabels();
+        await _adminLoadTotals();
+    } catch(e) { showToast('Birleştirme hatası: ' + (e.message || 'bilinmiyor')); }
 }
 
 async function _adminLoadUsers() {
@@ -4750,7 +4904,8 @@ async function _adminLoadTotals() {
         { count: colCmts },
         { count: reps },
         { count: colReps },
-        { count: msgs }
+        { count: msgs },
+        { count: labels }
     ] = await Promise.all([
         sb.from('files').select('id', { count: 'exact', head: true }),
         sb.from('collections').select('id', { count: 'exact', head: true }),
@@ -4758,14 +4913,16 @@ async function _adminLoadTotals() {
         sb.from('collection_comments').select('id', { count: 'exact', head: true }).is('parent_id', null),
         sb.from('comments').select('id', { count: 'exact', head: true }).not('parent_id', 'is', null),
         sb.from('collection_comments').select('id', { count: 'exact', head: true }).not('parent_id', 'is', null),
-        sb.from('messages').select('id', { count: 'exact', head: true })
+        sb.from('messages').select('id', { count: 'exact', head: true }),
+        sb.from('file_labels').select('id', { count: 'exact', head: true })
     ]);
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val ?? '?'; };
-    set('atot-files', files ?? '?');
-    set('atot-colls', colls ?? '?');
-    set('atot-cmts',  (cmts ?? 0) + (colCmts ?? 0));
-    set('atot-reps',  (reps ?? 0) + (colReps ?? 0));
-    set('atot-msgs',  msgs ?? '?');
+    set('atot-files',  files ?? '?');
+    set('atot-colls',  colls ?? '?');
+    set('atot-cmts',   (cmts ?? 0) + (colCmts ?? 0));
+    set('atot-reps',   (reps ?? 0) + (colReps ?? 0));
+    set('atot-msgs',   msgs ?? '?');
+    set('atot-labels', labels ?? '?');
 }
 
 async function _adminFetchAllStats(ids) {
@@ -7695,6 +7852,7 @@ function renderSavedFiles() {
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                     </button>
                 </div>
+                ${file.cloud ? `<div id="sfLabels-${file.id}" class="flabel-card-row" style="padding:2px 0 0;"></div>` : ''}
                 <div class="saved-file-actions">
                     <button class="saved-file-btn preview" onclick="event.stopPropagation();previewSavedFile(${file.id})">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -7775,6 +7933,9 @@ function renderSavedFiles() {
         attachSwipeToItem(wrapper, fileId);
     });
 
+    // Bulut dosyalarının etiketlerini arka planda yükle
+    _sfRenderLabels();
+
     if (!swipeHintShown && sorted.length > 0) {
         swipeHintShown = true;
         localStorage.setItem(HINT_SHOWN_KEY, '1');
@@ -7837,6 +7998,33 @@ async function saveFileDesc(fileId) {
         await sb.from('files').update({ description: desc || null }).eq('id', fileId).eq('user_id', currentUser.id);
     }
     saveToStorage();
+}
+
+// ── Kayıtlı dosya kartlarındaki etiketleri arka planda yükle ve göster ──
+async function _sfRenderLabels() {
+    const cloudFiles = (savedFiles || []).filter(f => f.cloud);
+    if (!cloudFiles.length) return;
+    try {
+        const fileIds = cloudFiles.map(f => f.id);
+        const { data: links } = await sb.from('file_label_links').select('file_id,label_id').in('file_id', fileIds);
+        if (!links || !links.length) return;
+        const labelIds = [...new Set(links.map(l => l.label_id))];
+        const { data: lblData } = await sb.from('file_labels').select('id,name,color').in('id', labelIds);
+        if (!lblData || !lblData.length) return;
+        const lMap = {};
+        lblData.forEach(l => { lMap[l.id] = l; });
+        const fileLabelMap = {};
+        links.forEach(lnk => {
+            if (!fileLabelMap[lnk.file_id]) fileLabelMap[lnk.file_id] = [];
+            if (lMap[lnk.label_id]) fileLabelMap[lnk.file_id].push(lMap[lnk.label_id]);
+        });
+        cloudFiles.forEach(f => {
+            const el = document.getElementById(`sfLabels-${f.id}`);
+            if (!el) return;
+            const lbls = fileLabelMap[f.id];
+            if (lbls && lbls.length) el.innerHTML = _flabelChipsHtml(lbls, true);
+        });
+    } catch(e) { /* etiket yükleme hatası — sessizce geç */ }
 }
 
 function escapeHtml(text) {
@@ -8647,8 +8835,8 @@ async function _flabelSaveLinks(fileId, ctx) {
     if (error) { console.error('Etiket kaydetme hatası:', error.message); return; }
     // usage_count güncelle
     for (const l of selected) {
-        const { data: cnt } = await sb.from('file_label_links').select('label_id', { count: 'exact', head: true }).eq('label_id', l.id);
-        await sb.from('file_labels').update({ usage_count: cnt || 0 }).eq('id', l.id);
+        const { count: lcount } = await sb.from('file_label_links').select('label_id', { count: 'exact', head: true }).eq('label_id', l.id);
+        await sb.from('file_labels').update({ usage_count: lcount || 0 }).eq('id', l.id);
     }
     _flabelSelected[ctx] = [];
 }
@@ -10232,7 +10420,25 @@ async function loadExploreFiles(listId = 'exploreList') {
             }
         } catch(e) { /* devam et */ }
 
-        list.innerHTML = exploreCollHtml + sorted.map((f, i) => {
+        // Popüler etiketler bölümü (keşfet sayfasında)
+        let exploreTagsHtml = '';
+        try {
+            const { data: popLabels } = await sb.from('file_labels')
+                .select('id, name, color, usage_count')
+                .gt('usage_count', 0)
+                .order('usage_count', { ascending: false })
+                .limit(12);
+            if (popLabels && popLabels.length) {
+                exploreTagsHtml = `<div style="margin-bottom:14px;padding:12px 14px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:14px;">
+                    <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:9px;">🔥 Popüler Etiketler</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;">${popLabels.map(l =>
+                        `<span class="flabel-chip clickable" style="${_flabelChipStyle(l.color || _flabelColorFromName(l.name))}" onclick="searchByFileLabel('${l.id}','${escapeHtml(l.name).replace(/'/g,"\\'")}');closeExplorePanel();">${escapeHtml(l.name)}<span style="font-size:10px;opacity:.65;margin-left:4px;">${l.usage_count}</span></span>`
+                    ).join('')}</div>
+                </div>`;
+            }
+        } catch(e) { /* sessiz geç */ }
+
+        list.innerHTML = exploreTagsHtml + exploreCollHtml + sorted.map((f, i) => {
             const prof   = profileMap[f.user_id];
             const author = prof?.username || 'Kullanıcı';
             const emoji  = prof?.avatar_emoji || '👤';
@@ -13085,9 +13291,33 @@ async function _shareCopyLink() {
         <div class="admin-total-card t-cmts"><div class="admin-total-icon">💬</div><div class="admin-total-num" id="atot-cmts">…</div><div class="admin-total-lbl">Yorum</div></div>
         <div class="admin-total-card t-reps"><div class="admin-total-icon">↩️</div><div class="admin-total-num" id="atot-reps">…</div><div class="admin-total-lbl">Yanıt</div></div>
         <div class="admin-total-card t-msgs"><div class="admin-total-icon">✉️</div><div class="admin-total-num" id="atot-msgs">…</div><div class="admin-total-lbl">Mesaj</div></div>
+        <div class="admin-total-card t-labels" onclick="adminOpenLabelMgr()" title="Etiket Yönetimi"><div class="admin-total-icon">🏷</div><div class="admin-total-num" id="atot-labels">…</div><div class="admin-total-lbl">Etiket</div></div>
     </div>
-    <div style="padding:12px;overflow-y:auto;height:calc(100% - 124px);">
+    <!-- Kullanıcı listesi -->
+    <div id="adminUserSection" style="padding:12px;overflow-y:auto;height:calc(100% - 124px);">
         <div id="adminUserList"><div class="search-empty">Yükleniyor...</div></div>
+    </div>
+    <!-- Etiket Yönetimi Bölümü (kullanıcı listesinin yerine gösterilir) -->
+    <div id="adminLabelSection" style="display:none;overflow-y:auto;height:calc(100% - 124px);">
+        <div class="admin-label-mgr-header">
+            <button class="admin-label-mgr-back" onclick="adminCloseLabelMgr()">← Kullanıcılar</button>
+            <span style="font-size:13px;font-weight:700;color:var(--text-primary);">🏷 Etiket Yönetimi</span>
+            <span id="adminLabelCount" style="font-size:11px;color:var(--text-secondary);margin-left:auto;"></span>
+        </div>
+        <div style="padding:0 12px 8px;">
+            <input id="adminLabelSearch" type="text" placeholder="Etiket ara..." oninput="_adminFilterLabels(this.value)"
+                style="width:100%;padding:7px 11px;border-radius:10px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text-primary);font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;">
+        </div>
+        <div id="adminLabelList"><div class="search-empty">Yükleniyor...</div></div>
+    </div>
+    <!-- Birleştirme seçici (overlay) -->
+    <div id="adminMergePicker" class="admin-merge-picker" style="display:none;" onclick="if(event.target===this)document.getElementById('adminMergePicker').style.display='none'">
+        <div class="admin-merge-box">
+            <div class="admin-merge-title" id="adminMergeTitle">Birleştir</div>
+            <div class="admin-merge-sub" id="adminMergeSub"></div>
+            <div id="adminMergeList"></div>
+            <button class="admin-merge-cancel" onclick="document.getElementById('adminMergePicker').style.display='none'">Vazgeç</button>
+        </div>
     </div>
 </div>
 
