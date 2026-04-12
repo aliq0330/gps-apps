@@ -3935,6 +3935,12 @@ body.preview-mode .file-title-bar { display: none !important; }
                       rows="3" style="resize:none;line-height:1.5;"
                       onkeypress="if(event.key==='Enter'&&event.ctrlKey)confirmNewSave()"></textarea>
         </div>
+        <div class="modal-field" style="margin-top:12px;">
+            <label class="modal-label">🏷️ Etiketler <span style="font-weight:400;opacity:.6">(isteğe bağlı, virgülle ayırın)</span></label>
+            <input type="text" id="newSaveTagsInput" class="modal-input"
+                placeholder="web, proje, deneme..."
+                onkeypress="if(event.key==='Enter')confirmNewSave()">
+        </div>
         <div class="new-save-coll-section" id="newSaveCollSection" style="display:none;">
             <div class="new-save-coll-label">📁 Koleksiyona ekle <span style="font-weight:400;opacity:.6">(isteğe bağlı)</span></div>
             <div class="new-save-coll-list" id="newSaveCollList"></div>
@@ -5737,16 +5743,19 @@ async function loadTagsForFile(fileId) {
     if (!container) return;
     const tags = await getFileTags(fileId);
     _fileTags[fileId] = tags;
-    if (!tags.length) { container.style.display = 'none'; return; }
     container.style.display = 'flex';
-    const visible = tags.slice(0, 3);
-    const extra   = tags.length - visible.length;
+    const addBtn = `<button class="file-tag-add-btn" onclick="event.stopPropagation();openTagModal(${fileId})" title="Etiket ekle">+</button>`;
+    if (!tags.length) {
+        container.innerHTML = addBtn;
+        return;
+    }
+    const visible  = tags.slice(0, 3);
+    const extra    = tags.length - visible.length;
     const tagsHtml = visible.map(t =>
         `<span class="file-tag" onclick="event.stopPropagation();filterByTag('${escapeHtml(t)}')">#${escapeHtml(t)}</span>`
     ).join('');
     const moreHtml = extra > 0 ? `<span class="file-tag-more">+${extra}</span>` : '';
-    container.innerHTML = tagsHtml + moreHtml +
-        `<button class="file-tag-add-btn" onclick="event.stopPropagation();openTagModal(${fileId})" title="Etiket ekle">+</button>`;
+    container.innerHTML = tagsHtml + moreHtml + addBtn;
 }
 
 // ── Etiket Filtresi ──────────────────────────────────────────────────────
@@ -7389,7 +7398,7 @@ async function confirmDuplicateSave() {
 }
 
 // ── Core Save Logic ────────────────────────────────────────────────────
-async function _doSave(filename, description = '') {
+async function _doSave(filename, description = '', pendingTags = []) {
     const localFile = {
         id: Date.now(), filename, code, description,
         timestamp: new Date().toISOString(), cloud: false
@@ -7409,6 +7418,13 @@ async function _doSave(filename, description = '') {
                 description: cloudResult.description || description
             };
             currentOpenFileId = cloudResult.id;
+        }
+        // Kayıt sonrası etiket ekle
+        if (pendingTags.length && cloudResult.id) {
+            for (const tag of pendingTags) {
+                await addFileTag(cloudResult.id, tag);
+            }
+            _fileTags[cloudResult.id] = pendingTags;
         }
     } else {
         currentOpenFileId = localFile.id;
@@ -7470,6 +7486,8 @@ async function openNewSaveModal() {
     const inp = document.getElementById('newSaveFilename');
     inp.value = uniqueName;
     document.getElementById('newSaveDesc').value = '';
+    const tgi = document.getElementById('newSaveTagsInput');
+    if (tgi) tgi.value = '';
     _pendingSaveColls.clear();
     _renderNewSaveCollChips();
     document.getElementById('newSaveModalOverlay').classList.add('open');
@@ -7499,10 +7517,14 @@ async function confirmNewSave() {
     }
     fn = fn.replace(/\.html$/i, '');
     const description = document.getElementById('newSaveDesc').value.trim();
+    const tagsRaw = (document.getElementById('newSaveTagsInput')?.value || '').trim();
+    const pendingTags = tagsRaw
+        ? tagsRaw.split(',').map(t => normalizeTag(t)).filter(Boolean).slice(0, 10)
+        : [];
     const duplicate = findDuplicateContent(code);
     closeNewSaveModal();
     if (duplicate) { openDuplicateModal(duplicate, fn); return; }
-    await _doSave(fn, description);
+    await _doSave(fn, description, pendingTags);
 }
 
 function handleQuickSave() {
