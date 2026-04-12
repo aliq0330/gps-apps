@@ -9903,19 +9903,30 @@ async function toggleLike(fileId) {
     // İşlem sırasında butonları devre dışı bırak
     document.querySelectorAll(`[data-like-id="${fileId}"]`).forEach(btn => { btn.disabled = true; });
 
-    const wasLiked = _myLikes.has(fileId);
-
-    // Optimistik UI güncellemesi (anında geri bildirim)
-    if (wasLiked) {
-        _myLikes.delete(fileId);
-        _likeCounts[fileId] = Math.max(0, (_likeCounts[fileId] || 1) - 1);
-    } else {
-        _myLikes.add(fileId);
-        _likeCounts[fileId] = (_likeCounts[fileId] || 0) + 1;
-    }
-    _updateLikeUI(fileId);
-
     try {
+        // ── Kaynak gerçek: DB'den gerçek like durumunu sorgula ───────────
+        // _myLikes'a güvenmiyoruz: sayfa yenilenince boşalır ve stale
+        // (yanlış) state üzerinden duplicate bildirim gidebilir.
+        const { data: dbLike } = await sb.from('likes')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .eq('file_id', fileId)
+            .maybeSingle();
+        const wasLiked = !!dbLike;
+
+        // _myLikes'ı DB gerçeğiyle hizala
+        if (wasLiked) _myLikes.add(fileId); else _myLikes.delete(fileId);
+
+        // Optimistik UI güncellemesi
+        if (wasLiked) {
+            _myLikes.delete(fileId);
+            _likeCounts[fileId] = Math.max(0, (_likeCounts[fileId] || 1) - 1);
+        } else {
+            _myLikes.add(fileId);
+            _likeCounts[fileId] = (_likeCounts[fileId] || 0) + 1;
+        }
+        _updateLikeUI(fileId);
+
         if (wasLiked) {
             // ── Beğeniyi kaldır ──────────────────────────────────────────
             const { error } = await sb.from('likes')
@@ -9923,7 +9934,7 @@ async function toggleLike(fileId) {
                 .eq('user_id', currentUser.id)
                 .eq('file_id', fileId);
             if (error) throw error;
-            // İlgili "like" bildirimini de sil (dosya sahibine gitmişti)
+            // İlgili "like" bildirimini de sil
             await sb.from('like_notifications')
                 .delete()
                 .eq('from_user_id', currentUser.id)
@@ -9933,31 +9944,27 @@ async function toggleLike(fileId) {
             // ── Beğeni ekle ──────────────────────────────────────────────
             const { error } = await sb.from('likes')
                 .insert({ user_id: currentUser.id, file_id: fileId });
-            // 23505 = unique_violation: kullanıcı zaten beğenmiş (race condition)
+            // 23505 = unique_violation (UNIQUE constraint varsa): güvenli yok say
             if (error && error.code !== '23505') throw error;
+
             if (!error) {
                 // Dosya sahibini bul (önce cache, yoksa DB'den çek)
                 let ownerId = _fileOwnerCache[fileId];
                 if (!ownerId) {
                     const { data: fd } = await sb.from('files')
-                        .select('user_id')
-                        .eq('id', fileId)
-                        .single();
-                    if (fd?.user_id) {
-                        ownerId = fd.user_id;
-                        _fileOwnerCache[fileId] = ownerId;
-                    }
+                        .select('user_id').eq('id', fileId).single();
+                    if (fd?.user_id) { ownerId = fd.user_id; _fileOwnerCache[fileId] = ownerId; }
                 }
-                // Bildirim gönder (kendi dosyasına beğeni varsa gönderme)
+                // Bildirim gönder — kendi dosyasına beğeni varsa gönderme
                 if (ownerId && ownerId !== currentUser.id) {
-                    // Önce aynı tip bildirim var mı kontrol et (duplicate önleme)
-                    const { data: existing } = await sb.from('like_notifications')
+                    // DB'de bu bildirim zaten var mı? (duplicate önleme)
+                    const { data: existingNotif } = await sb.from('like_notifications')
                         .select('id')
                         .eq('from_user_id', currentUser.id)
                         .eq('file_id', fileId)
                         .eq('type', 'like')
                         .maybeSingle();
-                    if (!existing) {
+                    if (!existingNotif) {
                         await sb.from('like_notifications').insert({
                             to_user_id:   ownerId,
                             from_user_id: currentUser.id,
@@ -9970,14 +9977,10 @@ async function toggleLike(fileId) {
             }
         }
     } catch (e) {
-        // Hata → optimistik güncellemeyi geri al
-        if (wasLiked) {
-            _myLikes.add(fileId);
-            _likeCounts[fileId] = (_likeCounts[fileId] || 0) + 1;
-        } else {
-            _myLikes.delete(fileId);
-            _likeCounts[fileId] = Math.max(0, (_likeCounts[fileId] || 1) - 1);
-        }
+        // Hata → DB'den gerçek durumu çekip UI'ı düzelt
+        const { data: check } = await sb.from('likes')
+            .select('id').eq('user_id', currentUser.id).eq('file_id', fileId).maybeSingle();
+        if (check) _myLikes.add(fileId); else _myLikes.delete(fileId);
         _updateLikeUI(fileId);
         console.error('Like error:', e);
         showToast('Beğeni kaydedilemedi');
@@ -11863,6 +11866,20 @@ async function openFileView(fileId) {
     // Beğeni + fork sayısı
     _fvUpdateLike();
     _fvUpdateForkCount();
+
+    // Sayfa yenilenince _myLikes sıfırlanır — bu dosyanın gerçek beğeni durumunu DB'den çek
+    // (Optimistik gösterimden bağımsız, arka planda düzeltir)
+    if (currentUser) {
+        Promise.all([
+            sb.from('likes').select('id').eq('file_id', fileId),
+            sb.from('likes').select('id').eq('user_id', currentUser.id).eq('file_id', fileId).maybeSingle()
+        ]).then(([{ data: allLikes }, { data: myLike }]) => {
+            _likeCounts[fileId] = (allLikes || []).length;
+            if (myLike) _myLikes.add(fileId);
+            else _myLikes.delete(fileId);
+            _fvUpdateLike(); // UI'ı gerçek duruma göre güncelle
+        });
+    }
 
     // Konu etiketlerini yükle (versiyon etiketlerinden bağımsız: file_labels tablosu)
     _fvLoadLabels(fileId);
