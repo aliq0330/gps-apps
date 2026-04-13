@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kod Editörü</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
@@ -22,236 +23,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/indent-fold.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
-/* === CODEPEN-STYLE EDITOR LAYOUT === */
-:root {
-  --editor-bg: #1e1e1e;
-  --editor-header-bg: #2d2d2d;
-  --preview-bg: #ffffff;
-  --resize-handle-bg: #3d3d3d;
-  --resize-handle-hover: #007acc;
-}
 
-/* Ana container - CodePen layout'u için */
-.editor-layout {
-  display: flex;
-  height: calc(100vh - 120px); /* Header ve bottom bar'ı çıkar */
-  overflow: hidden;
-}
-
-/* Sol panel - Editorler (HTML/CSS/JS) */
-.editor-panes {
-  display: flex;
-  flex-direction: column;
-  width: 50%;
-  min-width: 200px;
-  max-width: 70%;
-  background: var(--editor-bg);
-}
-
-/* Her bir editor bölümü */
-.editor-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 60px;
-  border-bottom: 1px solid #333;
-}
-
-.editor-section:last-child {
-  border-bottom: none;
-}
-
-/* Editor header (HTML/CSS/JS başlıkları) */
-.editor-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--editor-header-bg);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.editor-header.html { border-left: 3px solid #e34c26; }
-.editor-header.css  { border-left: 3px solid #264de4; }
-.editor-header.js   { border-left: 3px solid #f7df1e; color: #333; }
-
-/* Editor içerik alanı */
-.editor-content {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
-
-.editor-content textarea,
-.editor-content .CodeMirror {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: var(--editor-bg);
-  color: #d4d4d4;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 14px;
-  line-height: 1.6;
-  resize: none;
-  padding: 12px;
-}
-
-/* Resize handle - Editor ve preview arası */
-.resize-handle {
-  width: 6px;
-  background: var(--resize-handle-bg);
-  cursor: col-resize;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.resize-handle:hover,
-.resize-handle.active {
-  background: var(--resize-handle-hover);
-}
-
-.resize-handle::after {
-  content: '⋮';
-  color: #666;
-  font-size: 12px;
-}
-
-/* Sağ panel - Preview */
-.preview-pane {
-  flex: 1;
-  background: var(--preview-bg);
-  position: relative;
-  min-width: 200px;
-}
-
-.preview-pane iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: #fff;
-}
-
-/* View Switcher - Sağ üst köşe */
-.view-switcher-container {
-  position: fixed;
-  top: 70px;
-  right: 20px;
-  z-index: 100;
-  background: rgba(30, 30, 30, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.1);
-}
-
-.view-switcher-title {
-  color: #fff;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-  letter-spacing: 0.5px;
-}
-
-.view-switcher {
-  display: flex;
-  gap: 4px;
-}
-
-.view-btn {
-  width: 40px;
-  height: 32px;
-  border: 1px solid #444;
-  background: #2d2d2d;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.view-btn:hover {
-  background: #3d3d3d;
-  border-color: #555;
-}
-
-.view-btn.active {
-  background: #007acc;
-  border-color: #007acc;
-}
-
-.view-btn svg {
-  width: 18px;
-  height: 18px;
-  fill: #fff;
-}
-
-/* Layout modları */
-body.layout-left .editor-panes { order: 1; }
-body.layout-left .preview-pane { order: 3; }
-body.layout-left .resize-handle { order: 2; }
-
-body.layout-right .editor-panes { order: 3; }
-body.layout-right .preview-pane { order: 1; }
-body.layout-right .resize-handle { order: 2; }
-
-body.layout-top .editor-layout {
-  flex-direction: column;
-}
-body.layout-top .editor-panes {
-  flex-direction: row;
-  width: 100%;
-  height: 50%;
-  max-width: none;
-}
-body.layout-top .editor-section {
-  flex: 1;
-  border-bottom: none;
-  border-right: 1px solid #333;
-}
-body.layout-top .resize-handle {
-  width: 100%;
-  height: 6px;
-  cursor: row-resize;
-}
-body.layout-top .resize-handle::after {
-  content: '⋯';
-}
-
-/* Editor-only ve Preview-only modları */
-body.editor-only .preview-pane,
-body.editor-only .resize-handle,
-body.editor-only .view-switcher-container {
-  display: none;
-}
-body.editor-only .editor-panes {
-  width: 100%;
-  max-width: none;
-}
-
-body.preview-only .editor-panes,
-body.preview-only .resize-handle {
-  display: none;
-}
-body.preview-only .preview-pane {
-  width: 100%;
-}
-
-/* Mevcut dark mode uyumluluğu */
-@media (prefers-color-scheme: dark) {
-  .editor-header.js {
-    color: #f7df1e;
-    background: #3d3d3d;
-  }
-}
 
 *, *::before, *::after {
     box-sizing: border-box;
@@ -3629,55 +3401,7 @@ body.preview-mode .file-title-bar { display: none !important; }
     transition: all 0.2s ease; font-family: inherit;
 }
 .fm-dl-cancel:hover { background: rgba(120,120,128,0.18); color: var(--text-primary); }
-/* Mobil responsive */
-@media (max-width: 768px) {
-  .editor-layout {
-    flex-direction: column !important;
-    height: calc(100vh - 140px);
-  }
-  
-  .editor-panes {
-    width: 100% !important;
-    height: 50%;
-    max-width: none;
-  }
-  
-  .resize-handle {
-    width: 100% !important;
-    height: 6px;
-    cursor: row-resize;
-  }
-  
-  .resize-handle::after {
-    content: '⋯';
-  }
-  
-  .view-switcher-container {
-    top: auto;
-    bottom: 80px;
-    right: 10px;
-    left: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .view-switcher-title {
-    margin-bottom: 0;
-    white-space: nowrap;
-  }
-  
-  .editor-header {
-    padding: 6px 10px;
-    font-size: 11px;
-  }
-  
-  .editor-content textarea,
-  .editor-content .CodeMirror {
-    font-size: 13px;
-    padding: 8px;
-  }
-}
+
 </style>
 
 </head>
@@ -4418,92 +4142,55 @@ body.preview-mode .file-title-bar { display: none !important; }
         </svg>
         Yükle
     </button>
-    <input type="file" id="fileInput" accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md" style="display:none" onchange="handleFileLoad(event)">
+    <input type="file" id="fileInput" accept=".html,.htm,.js,.css,.txt,.text,.json,.xml,.md" multiple style="display:none" onchange="handleFileLoad(event)">
 </div>
 
 <main id="appMain" style="display:none;">
-  
-  <!-- View Switcher - Sağ üstte floating -->
-  <div class="view-switcher-container" id="viewSwitcherContainer">
-    <div class="view-switcher-title">Change View</div>
-    <div class="view-switcher">
-      <button class="view-btn active" onclick="setLayout('left')" title="Editör sol, önizleme sağ">
-        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="10" height="16"/><rect x="14" y="4" width="8" height="16"/></svg>
-      </button>
-      <button class="view-btn" onclick="setLayout('top')" title="Editör üst, önizleme alt">
-        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="8"/><rect x="2" y="14" width="20" height="6"/></svg>
-      </button>
-      <button class="view-btn" onclick="setLayout('right')" title="Editör sağ, önizleme sol">
-        <svg viewBox="0 0 24 24"><rect x="4" y="4" width="8" height="16"/><rect x="14" y="4" width="10" height="16"/></svg>
-      </button>
+    <div class="code-area" id="codeArea">
+        <div class="editor-tab-bar" id="editorTabBar">
+            <button class="editor-tab active" data-tab="html" onclick="_switchEditorTab('html')">
+                <span class="tab-dot tab-dot-html"></span> Sayfa
+            </button>
+            <button class="editor-tab" data-tab="css" onclick="_switchEditorTab('css')">
+                <span class="tab-dot tab-dot-css"></span> Stil
+            </button>
+            <button class="editor-tab" data-tab="js" onclick="_switchEditorTab('js')">
+                <span class="tab-dot tab-dot-js"></span> Kod
+            </button>
+        </div>
+        <div class="fm-sub-tab-bar" id="fmSubTabBar"></div>
+        <div class="editor-search-panel" id="searchPanel">
+            <div class="search-row">
+                <input type="text" id="searchInput" class="search-input"
+                       placeholder="Ara..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                       oninput="_doSearch()" onkeydown="_searchKeydown(event)">
+                <span class="search-count" id="searchCount"></span>
+                <button class="search-btn" onclick="_searchPrev()" title="Önceki (↑)">↑</button>
+                <button class="search-btn" onclick="_searchNext()" title="Sonraki (↓)">↓</button>
+                <button class="search-btn search-opt" id="btnCase" onclick="_toggleCase()" title="Büyük/Küçük Harf">Aa</button>
+                <button class="search-btn search-opt" id="btnRegex" onclick="_toggleRegex()" title="Regex">.*</button>
+                <button class="search-btn search-close" onclick="_closeSearch()">✕</button>
+            </div>
+            <div class="search-row">
+                <input type="text" id="replaceInput" class="search-input"
+                       placeholder="Değiştir..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                       onkeydown="_replaceKeydown(event)">
+                <button class="search-btn search-replace" onclick="_replaceOne()">Değiştir</button>
+                <button class="search-btn search-replace" onclick="_replaceAll()">Tümü</button>
+            </div>
+        </div>
+        <textarea id="editor" class="code-input" spellcheck="false"
+                  oninput="updateCode()" onkeydown="handleKeydown(event)"></textarea>
     </div>
-  </div>
-
-  <!-- Ana Editor Layout -->
-  <div class="editor-layout" id="editorLayout">
-    
-    <!-- Sol Panel: Editorler -->
-    <div class="editor-panes" id="editorPanes">
-      
-      <!-- HTML Editor -->
-      <div class="editor-section" id="htmlSection">
-        <div class="editor-header html">
-          <span>🔴 HTML</span>
-          <div class="editor-actions">
-            <button onclick="formatCode('html')" title="Format">⚙️</button>
-            <button onclick="toggleSection('html')" title="Küçült">−</button>
-          </div>
-        </div>
-        <div class="editor-content">
-          <textarea id="htmlEditor" placeholder="<!-- HTML kodunuzu buraya yazın -->" spellcheck="false"></textarea>
-        </div>
-      </div>
-
-      <!-- CSS Editor -->
-      <div class="editor-section" id="cssSection">
-        <div class="editor-header css">
-          <span>🔵 CSS</span>
-          <div class="editor-actions">
-            <button onclick="formatCode('css')" title="Format">⚙️</button>
-            <button onclick="toggleSection('css')" title="Küçült">−</button>
-          </div>
-        </div>
-        <div class="editor-content">
-          <textarea id="cssEditor" placeholder="/* CSS kodunuzu buraya yazın */" spellcheck="false"></textarea>
-        </div>
-      </div>
-
-      <!-- JS Editor -->
-      <div class="editor-section" id="jsSection">
-        <div class="editor-header js">
-          <span>🟡 JS</span>
-          <div class="editor-actions">
-            <button onclick="formatCode('js')" title="Format">⚙️</button>
-            <button onclick="toggleSection('js')" title="Küçült">−</button>
-          </div>
-        </div>
-        <div class="editor-content">
-          <textarea id="jsEditor" placeholder="// JavaScript kodunuzu buraya yazın" spellcheck="false"></textarea>
-        </div>
-      </div>
-
+    <div class="preview-area" id="previewArea">
+        <iframe id="previewFrameInline" class="preview-frame-inline"></iframe>
+        <button class="preview-close-btn" onclick="handleViewSwitch('code')" title="Kodu görüntüle">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            </svg>
+            Kod
+        </button>
     </div>
-
-    <!-- Resize Handle -->
-    <div class="resize-handle" id="resizeHandle"></div>
-
-    <!-- Sağ Panel: Preview -->
-    <div class="preview-pane" id="previewPane">
-      <iframe id="previewFrame" sandbox="allow-scripts allow-same-origin"></iframe>
-    </div>
-
-  </div>
-
-  <!-- Eski yapıyı gizli tut (geriye uyumluluk için) -->
-  <div class="code-area" id="codeArea" style="display:none;">
-    <!-- Eski içerik burada kalabilir -->
-  </div>
-  
 </main>
 
 <textarea id="hiddenCopyArea" class="hidden-copy-area" readonly></textarea>
@@ -4880,241 +4567,6 @@ body.preview-mode .file-title-bar { display: none !important; }
 </div>
 
 <script>
-
-    // === CODEPEN-STYLE EDITOR MANAGER ===
-
-// Layout state
-let currentLayout = 'left'; // 'left', 'right', 'top', 'editor-only', 'preview-only'
-let editorSizes = { html: 1, css: 1, js: 1 }; // Her bölümün göreceli boyutu
-let isResizing = false;
-let resizeStartX = 0;
-let resizeStartWidth = 0;
-
-// Editor içerikleri
-let editorContent = {
-  html: '',
-  css: '',
-  js: ''
-};
-
-// Layout değiştirme
-function setLayout(mode) {
-  currentLayout = mode;
-  const body = document.body;
-  
-  // Tüm layout classlarını temizle
-  body.classList.remove('layout-left', 'layout-right', 'layout-top', 'editor-only', 'preview-only');
-  
-  // Yeni layout'u uygula
-  if (mode === 'left') body.classList.add('layout-left');
-  else if (mode === 'right') body.classList.add('layout-right');
-  else if (mode === 'top') body.classList.add('layout-top');
-  else if (mode === 'editor-only') body.classList.add('editor-only');
-  else if (mode === 'preview-only') body.classList.add('preview-only');
-  
-  // View switcher butonlarını güncelle
-  document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
-  event?.target?.classList.add('active');
-  
-  // LocalStorage'a kaydet
-  localStorage.setItem('editor_layout', mode);
-  
-  // Preview'u güncelle
-  updatePreview();
-}
-
-// Editor bölümlerini aç/kapat
-function toggleSection(type) {
-  const section = document.getElementById(type + 'Section');
-  const content = section.querySelector('.editor-content');
-  
-  if (content.style.display === 'none') {
-    content.style.display = '';
-    section.style.flex = editorSizes[type] || 1;
-  } else {
-    editorSizes[type] = section.style.flex || 1;
-    content.style.display = 'none';
-    section.style.flex = '0 0 auto';
-  }
-  
-  // Header'daki butonu güncelle
-  const btn = section.querySelector('.editor-header button:last-child');
-  btn.textContent = content.style.display === 'none' ? '+' : '−';
-}
-
-// Editor içeriğini güncelle ve preview'u yenile
-function updateEditorContent(type, value) {
-  editorContent[type] = value;
-  updatePreview();
-  markAsUnsaved();
-}
-
-// Preview iframe'ini güncelle
-function updatePreview() {
-  const frame = document.getElementById('previewFrame');
-  if (!frame) return;
-  
-  const html = editorContent.html || '';
-  const css = editorContent.css || '';
-  const js = editorContent.js || '';
-  
-  const fullHTML = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>${css}</style>
-</head>
-<body>
-  ${html}
-  <script>
-    try {
-      ${js}
-    } catch(e) {
-      console.error('JS Error:', e);
-    }
-  <\/script>
-</body>
-</html>`;
-  
-  frame.srcdoc = fullHTML;
-}
-
-// Resize handle için event listeners
-function initResizeHandle() {
-  const handle = document.getElementById('resizeHandle');
-  const panes = document.getElementById('editorPanes');
-  
-  handle.addEventListener('mousedown', (e) => {
-    isResizing = true;
-    resizeStartX = e.clientX;
-    resizeStartWidth = panes.offsetWidth;
-    handle.classList.add('active');
-    document.body.style.cursor = 'col-resize';
-    e.preventDefault();
-  });
-  
-  document.addEventListener('mousemove', (e) => {
-    if (!isResizing) return;
-    
-    const delta = e.clientX - resizeStartX;
-    const newWidth = currentLayout === 'right' 
-      ? resizeStartWidth - delta 
-      : resizeStartWidth + delta;
-    
-    const containerWidth = document.getElementById('editorLayout').offsetWidth;
-    const percentage = (newWidth / containerWidth) * 100;
-    
-    // Min/max sınırları
-    if (percentage >= 20 && percentage <= 80) {
-      panes.style.width = percentage + '%';
-    }
-  });
-  
-  document.addEventListener('mouseup', () => {
-    if (isResizing) {
-      isResizing = false;
-      handle.classList.remove('active');
-      document.body.style.cursor = '';
-    }
-  });
-}
-
-// Editor event listener'larını bağla
-function initEditors() {
-  const editors = ['html', 'css', 'js'];
-  
-  editors.forEach(type => {
-    const el = document.getElementById(type + 'Editor');
-    if (!el) return;
-    
-    // Input event - debounce ile preview güncelleme
-    let timeout;
-    el.addEventListener('input', () => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        updateEditorContent(type, el.value);
-      }, 300); // 300ms debounce
-    });
-    
-    // Tab tuşu desteği
-    el.addEventListener('keydown', (e) => {
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        const start = el.selectionStart;
-        const end = el.selectionEnd;
-        el.value = el.value.substring(0, start) + '  ' + el.value.substring(end);
-        el.selectionStart = el.selectionEnd = start + 2;
-        updateEditorContent(type, el.value);
-      }
-    });
-  });
-}
-
-// Kaydedilmemiş değişiklik işaretleme
-function markAsUnsaved() {
-  hasUnsavedChanges = true;
-  updateSaveButtonState('unsaved');
-}
-
-// Kaydetme fonksiyonu - Tüm editörleri birleştir
-function getCombinedCode() {
-  const html = editorContent.html || '';
-  const css = editorContent.css || '';
-  const js = editorContent.js || '';
-  
-  return `<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${loadedFilename || 'Untitled'}</title>
-  <style>
-${css}
-  </style>
-</head>
-<body>
-${html}
-  <script>
-${js}
-  <\/script>
-</body>
-</html>`;
-}
-
-// Dosya yükleme - Editörlere ayır
-function loadCodeToEditors(fullCode) {
-  // Basit parser - gerçek uygulamada daha robust olmalı
-  const htmlMatch = fullCode.match(/<body>([\s\S]*?)<\/body>/i);
-  const cssMatch = fullCode.match(/<style>([\s\S]*?)<\/style>/i);
-  const jsMatch = fullCode.match(/<script>([\s\S]*?)<\/script>/i);
-  
-  editorContent.html = htmlMatch ? htmlMatch[1].trim() : fullCode;
-  editorContent.css = cssMatch ? cssMatch[1].trim() : '';
-  editorContent.js = jsMatch ? jsMatch[1].trim() : '';
-  
-  // Editörlere yaz
-  document.getElementById('htmlEditor').value = editorContent.html;
-  document.getElementById('cssEditor').value = editorContent.css;
-  document.getElementById('jsEditor').value = editorContent.js;
-  
-  updatePreview();
-}
-
-// LocalStorage'dan layout'u yükle
-function loadSavedLayout() {
-  const saved = localStorage.getItem('editor_layout');
-  if (saved && saved !== 'left') {
-    setLayout(saved);
-  }
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  initResizeHandle();
-  initEditors();
-  loadSavedLayout();
-});
 /*
  * ══════════════════════════════════════════════════════════════════════
  * SUPABASE MIGRATION — Beğeni & Bildirim Sistemi (bir kez çalıştır)
@@ -6581,31 +6033,7 @@ function showApp() {
     updateTabDotColor();
     // Not: versiyon rozeti loadSavedFilesFromCloud() tamamlandıktan sonra yüklenir
 }
-function openFile(fileId) {
-  const file = savedFiles.find(f => f.id === fileId);
-  if (!file) return;
-  
-  // Yeni yapıya yükle
-  if (file.html || file.css || file.js) {
-    // Ayrı kaydedilmiş
-    editorContent.html = file.html || '';
-    editorContent.css = file.css || '';
-    editorContent.js = file.js || '';
-  } else {
-    // Eski combined format - parse et
-    loadCodeToEditors(file.code);
-  }
-  
-  // UI güncelle
-  document.getElementById('htmlEditor').value = editorContent.html;
-  document.getElementById('cssEditor').value = editorContent.css;
-  document.getElementById('jsEditor').value = editorContent.js;
-  
-  updatePreview();
-  currentOpenFileId = fileId;
-  loadedFilename = file.filename;
-  updateFilenameDisplay();
-}
+
 function updateUserUI(user) {
     const email   = user.email || '';
     const initial = email.charAt(0).toUpperCase();
@@ -8017,7 +7445,7 @@ function handleViewSwitch(view) {
     syncSwitchers(view);
     if (view === 'preview') {
         document.body.classList.add('preview-mode');
-        document.getElementById('previewFrameInline').srcdoc = buildPage();
+        document.getElementById('previewFrameInline').srcdoc = _buildPreviewHtml();
         previewArea.classList.add('active');
     } else {
         document.body.classList.remove('preview-mode');
@@ -8055,6 +7483,23 @@ function buildPage() {
     const styleTag  = css ? `<style>\n${css}\n</style>` : '';
     const scriptTag = js  ? `<script>\n${js}\n<\/script>` : '';
     return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">${styleTag}</head><body>${html}${scriptTag}</body></html>`;
+}
+
+// Aktif proje varsa TÜM CSS/JS dosyalarını birleştirerek önizleme HTML'i oluşturur
+function _buildPreviewHtml() {
+    if (_fmActiveProjectId) {
+        const p = _fmProjects.find(x => x.id === _fmActiveProjectId);
+        if (p) {
+            _fmSaveCurrentToMemory();
+            const html = p.files.filter(f => f.file_type === 'page').map(f => f.content).join('\n');
+            const css  = p.files.filter(f => f.file_type === 'style').map(f => f.content).join('\n').trim();
+            const js   = p.files.filter(f => f.file_type === 'code').map(f => f.content).join('\n').trim();
+            const styleTag  = css ? `<style>\n${css}\n</style>` : '';
+            const scriptTag = js  ? `<script>\n${js}\n<\/script>` : '';
+            return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">${styleTag}</head><body>${html}${scriptTag}</body></html>`;
+        }
+    }
+    return buildPage();
 }
 
 // ── Tab Split / Merge ──────────────────────────────────────────────────
@@ -8298,53 +7743,23 @@ function updateSavedCount() {
 
 // ── Editor ─────────────────────────────────────────────────────────────
 function updateCode() {
-    // YENİ: CodePen-style 3 editör var mı kontrol et
-    const htmlEl = document.getElementById('htmlEditor');
-    const cssEl = document.getElementById('cssEditor');
-    const jsEl = document.getElementById('jsEditor');
-    
-    if (htmlEl && cssEl && jsEl) {
-        // YENİ SİSTEM: 3 ayrı editör
-        editorContent.html = htmlEl.value;
-        editorContent.css = cssEl.value;
-        editorContent.js = jsEl.value;
-        
-        // Eski _tabs yapısını da senkronize tut (geriye uyumluluk)
-        _tabs.html = editorContent.html;
-        _tabs.css = editorContent.css;
-        _tabs.js = editorContent.js;
-        
-        code = getCombinedCode();
-    } else {
-        // ESKİ SİSTEM: Tek editör, tab geçişli
-        _tabs[_activeTab] = document.getElementById('editor').value;
-        code = _mergeBodyContent();
-    }
-    
+    _tabs[_activeTab] = document.getElementById('editor').value;
+    code = _mergeBodyContent();
     hasUnsavedChanges = true;
-    saveToStorage();
-    updateTabDotColor();
-    updateQuickSaveButton();
+    saveToStorage(); updateTabDotColor(); updateQuickSaveButton();
 
-    // Yazı değişince buton idle'a döner
+    // Yazı değişince buton idle'a döner (kaydedildi durumunu temizle)
     if (saveButtonState === 'saved') {
         setSaveButtonState('idle');
     }
 
-    // Preview güncelle
-    if (currentView === 'preview') {
-        const frame = document.getElementById('previewFrameInline') || document.getElementById('previewFrame');
-        if (frame) frame.srcdoc = buildPage();
-    }
-    
-    // YENİ: CodePen preview varsa onu da güncelle
-    if (document.getElementById('previewFrame')) {
-        updatePreview();
-    }
+    if (currentView === 'preview')
+        document.getElementById('previewFrameInline').srcdoc = _buildPreviewHtml();
 
     // Proje dosyasını otomatik kaydet
     _fmScheduleSave();
 }
+
 function _getCMMode(filename) {
     const ext = (filename || '').split('.').pop().toLowerCase();
     return { html:'htmlmixed', htm:'htmlmixed', js:'javascript', css:'css', xml:'xml', svg:'xml', json:'javascript', md:'markdown', markdown:'markdown' }[ext] || 'htmlmixed';
@@ -8365,23 +7780,6 @@ function updateEditor() {
 }
 
 function handleKeydown(e) {
-    // YENİ: 3 editörden biri mi kontrol et
-    const isNewEditor = ['htmlEditor', 'cssEditor', 'jsEditor'].includes(e.target.id);
-    
-    if (isNewEditor) {
-        // YENİ SİSTEM: 3 editör için Tab handling
-        if (e.key === 'Tab') {
-            e.preventDefault();
-            const el = e.target;
-            const s = el.selectionStart;
-            el.value = el.value.substring(0, s) + '  ' + el.value.substring(el.selectionEnd);
-            el.selectionStart = el.selectionEnd = s + 2;
-            updateCode();
-        }
-        return;
-    }
-    
-    // ESKİ SİSTEM: Tek editör (mevcut kod)
     if (window.cm) return; // CodeMirror handles keyboard
     if (e.key === 'Tab') {
         e.preventDefault();
@@ -8421,7 +7819,7 @@ function _initCodeMirror() {
         hasUnsavedChanges = true;
         saveToStorage(); updateTabDotColor(); updateQuickSaveButton();
         if (saveButtonState === 'saved') setSaveButtonState('idle');
-        if (currentView === 'preview') document.getElementById('previewFrameInline').srcdoc = buildPage();
+        if (currentView === 'preview') document.getElementById('previewFrameInline').srcdoc = _buildPreviewHtml();
     });
 }
 
@@ -8577,20 +7975,17 @@ async function confirmNewSave() {
     await _doSave(fn, description);
 }
 
-async function handleQuickSave() {
-  const combinedCode = getCombinedCode();
-  
-  // Mevcut kaydetme mantığını kullan ama combinedCode ile
-  const fileData = {
-    id: currentOpenFileId,
-    filename: loadedFilename || 'untitled.html',
-    code: combinedCode,
-    html: editorContent.html,
-    css: editorContent.css,
-    js: editorContent.js
-  };
-  
-  // ... mevcut kaydetme devamı ...
+function handleQuickSave() {
+    if (isViewingOldVersion && _viewingVersionNum) {
+        restoreVersionFromSaveBtn(_viewingVersionNum);
+        return;
+    }
+    // Açık dosya varsa direkt versiyon özeti modal'ı aç (ara modal yok)
+    if (currentOpenFileId && hasUnsavedChanges) {
+        openVersionSummaryModal();
+        return;
+    }
+    createNewSave();
 }
 
 // Versiyon özeti modal'ından "Yeni Dosya Olarak Kaydet" seçeneği
@@ -9336,8 +8731,15 @@ function confirmSaveFromModal() {
 function loadFile() { document.getElementById('fileInput').click(); }
 
 function handleFileLoad(event) {
-    const file = event.target.files[0]; if (!file) return;
+    const files = Array.from(event.target.files);
     event.target.value = '';
+    if (!files.length) return;
+
+    // Çoklu dosya → tek proje oluştur
+    if (files.length > 1) { _fmImportMultipleFiles(files); return; }
+
+    // Tekli dosya → mevcut davranış
+    const file = files[0];
     const baseName = file.name.replace(/\.[^/.]+$/, '');
     loadedFilename = baseName;
     currentOpenFileId = null;
@@ -9367,6 +8769,59 @@ function handleFileLoad(event) {
     r.readAsText(file);
 }
 
+async function _fmImportMultipleFiles(files) {
+    const typeMap  = { html: 'page', htm: 'page', css: 'style', js: 'code' };
+    const collected = [];
+    await Promise.all(files.map((file, i) => new Promise(resolve => {
+        const ext      = file.name.split('.').pop().toLowerCase();
+        const fileType = typeMap[ext];
+        if (!fileType) { resolve(); return; }
+        const r = new FileReader();
+        r.onload = e => { collected.push({ file_type: fileType, name: file.name, content: e.target.result, sort_order: i }); resolve(); };
+        r.onerror = () => resolve();
+        r.readAsText(file);
+    })));
+    if (!collected.length) { showToast('Desteklenmeyen dosya türleri'); return; }
+
+    // Türe göre sırala, her türün ilki birincil
+    const pages  = collected.filter(f => f.file_type === 'page').sort((a,b) => a.sort_order - b.sort_order);
+    const styles = collected.filter(f => f.file_type === 'style').sort((a,b) => a.sort_order - b.sort_order);
+    const codes  = collected.filter(f => f.file_type === 'code').sort((a,b) => a.sort_order - b.sort_order);
+    [...pages, ...styles, ...codes].forEach((f, i) => { f.is_primary = (i === 0 || f === styles[0] || f === codes[0]); f.sort_order = i; });
+    if (pages[0])  pages[0].is_primary  = true;
+    if (styles[0]) styles[0].is_primary = true;
+    if (codes[0])  codes[0].is_primary  = true;
+    // Eksik türler için boş birincil dosya ekle
+    if (!pages.length)  pages.push({  file_type: 'page',  name: 'index.html', content: '', is_primary: true, sort_order: 900 });
+    if (!styles.length) styles.push({ file_type: 'style', name: 'style.css',  content: '', is_primary: true, sort_order: 901 });
+    if (!codes.length)  codes.push({  file_type: 'code',  name: 'script.js',  content: '', is_primary: true, sort_order: 902 });
+
+    const projectName = (pages.find(f => f.is_primary)?.name || collected[0].name).replace(/\.[^/.]+$/, '');
+    const allFiles    = [...pages, ...styles, ...codes];
+
+    if (!currentUser) {
+        _tabs = { html: pages[0].content || '', css: styles[0].content || '', js: codes[0].content || '' };
+        _activeTab = 'html'; loadedFilename = projectName; hasUnsavedChanges = false;
+        updateEditor(); updateFilenameDisplay(); saveToStorage(); _fmUpdateSubTabs();
+        showToast(projectName + ' yüklendi (' + files.length + ' dosya)');
+        return;
+    }
+    try {
+        const sortOrder = _fmProjects.length;
+        const { data: proj, error: pe } = await sb.from('projects')
+            .insert({ user_id: currentUser.id, name: projectName, sort_order: sortOrder, is_default: false })
+            .select().single();
+        if (pe) throw pe;
+        const { data: cf, error: fe } = await sb.from('project_files')
+            .insert(allFiles.map(f => ({ project_id: proj.id, user_id: currentUser.id, file_type: f.file_type, name: f.name, content: f.content, is_primary: f.is_primary, sort_order: f.sort_order })))
+            .select();
+        if (fe) throw fe;
+        _fmProjects.push({ id: proj.id, name: proj.name, sort_order: sortOrder, is_default: false, expanded: true, files: cf.map(f => ({ id: f.id, project_id: f.project_id, file_type: f.file_type, name: f.name, content: f.content || '', is_primary: f.is_primary, sort_order: f.sort_order })) });
+        _fmOpenProject(proj.id, true);
+        showToast('"' + projectName + '" projesi oluşturuldu (' + collected.length + ' dosya)');
+    } catch(e) { console.error('FM multi-import error:', e); showToast('Proje oluşturulamadı'); }
+}
+
 // ── Misc ───────────────────────────────────────────────────────────────
 
 function copyAll() {
@@ -9377,34 +8832,15 @@ function copyAll() {
 
 function pasteCode() {
     navigator.clipboard.readText().then(text => {
-        // YENİ: 3 editörden biri aktif mi kontrol et
-        const activeNewEditor = ['htmlEditor', 'cssEditor', 'jsEditor'].find(id => {
-            const el = document.getElementById(id);
-            return el && el === document.activeElement;
-        });
-        
-        if (activeNewEditor) {
-            // YENİ SİSTEM: 3 editöre yapıştır
-            const el = document.getElementById(activeNewEditor);
-            const s = el.selectionStart;
-            el.value = el.value.substring(0, s) + text + el.value.substring(el.selectionEnd);
-            el.selectionStart = el.selectionEnd = s + text.length;
-            updateCode();
-        } else if (window.cm) {
-            // ESKİ SİSTEM: CodeMirror
+        if (window.cm) {
             cm.replaceRange(text, cm.getCursor());
-            updateCode();
         } else {
-            // ESKİ SİSTEM: Normal textarea
-            const el = document.getElementById('editor');
-            const s = el.selectionStart;
+            const el = document.getElementById('editor'), s = el.selectionStart;
             el.value = el.value.substring(0, s) + text + el.value.substring(el.selectionEnd);
             el.selectionStart = el.selectionEnd = s + text.length;
             updateCode();
         }
-        
-        if (isFabOpen) toggleFabMenu();
-        showToast('Yapıştırıldı');
+        if (isFabOpen) toggleFabMenu(); showToast('Yapıştırıldı');
     }).catch(() => showToast('Yapıştırma başarısız'));
 }
 
@@ -15617,12 +15053,13 @@ function _fmDlOverlayClick(e) {
 
 function _fmDlSingleHtml() {
     closeFmDlModal();
+    _fmSaveCurrentToMemory(); // Editördeki son içeriği belleğe al
     const p = _fmDlProjectId ? _fmProjects.find(x => x.id === _fmDlProjectId) : null;
 
     let html = '', css = '', js = '', title = '';
     if (p) {
-        // Aktif proje dosyalarından birleştir
-        html  = (p.files.find(f => f.file_type === 'page')?.content  || '');
+        // Aktif proje: ilk sayfa + TÜM CSS + TÜM JS birleştir
+        html  = p.files.filter(f => f.file_type === 'page').map(f => f.content).join('\n');
         css   = p.files.filter(f => f.file_type === 'style').map(f => f.content).join('\n\n');
         js    = p.files.filter(f => f.file_type === 'code').map(f => f.content).join('\n\n');
         title = p.name;
@@ -15647,33 +15084,31 @@ function _fmDlSingleHtml() {
     showToast(fn + ' indirildi');
 }
 
-function _fmDlRaw() {
+async function _fmDlRaw() {
     closeFmDlModal();
+    _fmSaveCurrentToMemory(); // Editördeki son içeriği belleğe al
     const p = _fmDlProjectId ? _fmProjects.find(x => x.id === _fmDlProjectId) : null;
 
-    let filesToDownload = [];
+    let filesToZip = [];
     if (p) {
-        filesToDownload = p.files.map(f => ({
-            name: f.name,
-            content: f.content,
-            mime: f.file_type === 'style' ? 'text/css' : f.file_type === 'code' ? 'text/javascript' : 'text/html'
-        }));
+        filesToZip = p.files.map(f => ({ name: f.name, content: f.content }));
     } else {
-        if (_tabs.html) filesToDownload.push({ name: (loadedFilename || 'index') + '.html', content: _tabs.html, mime: 'text/html' });
-        if (_tabs.css)  filesToDownload.push({ name: (loadedFilename || 'style')  + '.css',  content: _tabs.css,  mime: 'text/css' });
-        if (_tabs.js)   filesToDownload.push({ name: (loadedFilename || 'script') + '.js',   content: _tabs.js,   mime: 'text/javascript' });
+        if (_tabs.html) filesToZip.push({ name: (loadedFilename || 'index')  + '.html', content: _tabs.html });
+        if (_tabs.css)  filesToZip.push({ name: (loadedFilename || 'style')  + '.css',  content: _tabs.css  });
+        if (_tabs.js)   filesToZip.push({ name: (loadedFilename || 'script') + '.js',   content: _tabs.js   });
     }
+    if (!filesToZip.length) { showToast('İndirilecek dosya yok'); return; }
 
-    filesToDownload.forEach((f, i) => {
-        setTimeout(() => {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([f.content], { type: f.mime }));
-            a.download = f.name;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            URL.revokeObjectURL(a.href);
-        }, i * 300);
-    });
-    showToast(filesToDownload.length + ' dosya indiriliyor...');
+    const zip     = new JSZip();
+    filesToZip.forEach(f => zip.file(f.name, f.content || ''));
+    const zipName = (p?.name || loadedFilename || 'proje').replace(/[\\/:*?"<>|]/g, '_') + '.zip';
+    const blob    = await zip.generateAsync({ type: 'blob' });
+    const a       = document.createElement('a');
+    a.href        = URL.createObjectURL(blob);
+    a.download    = zipName;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    showToast(zipName + ' indirildi (' + filesToZip.length + ' dosya)');
 }
 </script>
 
@@ -16047,9 +15482,9 @@ function _fmDlRaw() {
             <button class="fm-dl-opt" onclick="_fmDlRaw()">
                 <span class="fm-dl-opt-title">
                     <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
-                    Raw (Ayrı Dosyalar)
+                    Raw (ZIP Arşivi)
                 </span>
-                <span class="fm-dl-opt-desc">Her dosya ayrı ayrı indirilir (.html, .css, .js)</span>
+                <span class="fm-dl-opt-desc">Tüm dosyalar orijinal isimleriyle tek bir .zip içinde indirilir</span>
             </button>
         </div>
         <button class="fm-dl-cancel" onclick="closeFmDlModal()">İptal</button>
