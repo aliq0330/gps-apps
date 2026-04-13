@@ -14313,6 +14313,11 @@ function _fmOpenFile(projectId, fileId) {
     _fmActiveProjectId = projectId;
     _fmActiveFile = f;
 
+    // Proje adını başlık çubuğuna yansıt
+    loadedFilename = p.name;
+    updateFilenameDisplay();
+    saveToStorage();
+
     const tabMap = { page: 'html', style: 'css', code: 'js' };
     const editorTab = tabMap[f.file_type];
 
