@@ -14151,12 +14151,10 @@ async function _fmLoad() {
             }))
         }));
         _fmLoaded = true;
-        // Başlık çubuğuna ilk proje adını yaz (henüz bir proje açılmamışsa)
-        if ((!loadedFilename || loadedFilename === DEFAULT_NAME) && _fmProjects.length > 0) {
-            loadedFilename = _fmProjects[0].name;
-            updateFilenameDisplay();
-        }
         _fmRender();
+        // Sayfa yenilendiğinde varsayılan/ilk projeyi editöre otomatik yükle
+        const autoProj = _fmProjects.find(p => p.is_default) || _fmProjects[0];
+        if (autoProj) _fmOpenProject(autoProj.id, true);
     } catch(e) {
         console.error('FM load error:', e);
         if (list) list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#ff453a;font-size:14px;">Yüklenemedi. İnternet bağlantısını kontrol edin.</div>';
@@ -14183,12 +14181,9 @@ async function _fmCreateDefaultProject() {
             files: createdFiles.map(f => ({ id: f.id, project_id: f.project_id, file_type: f.file_type, name: f.name, content: f.content || '', is_primary: f.is_primary, sort_order: f.sort_order }))
         }];
         _fmLoaded = true;
-        // Varsayılan proje adını başlık çubuğuna yaz
-        if (!loadedFilename || loadedFilename === DEFAULT_NAME) {
-            loadedFilename = proj.name;
-            updateFilenameDisplay();
-        }
         _fmRender();
+        // Oluşturulan varsayılan projeyi editöre yükle
+        _fmOpenProject(proj.id, true);
     } catch(e) { console.error('FM default project error:', e); }
 }
 
@@ -14397,10 +14392,8 @@ async function _fmCtxAction(action) {
     const f = p?.files.find(x => x.id === t.fileId);
     if (!f) return;
 
-    if (action === 'open') {
-        _fmOpenFile(t.projectId, t.fileId);
-    } else if (action === 'rename') {
-        if (!document.getElementById('fmOverlay').classList.contains('open')) openFileManager();
+    if (action === 'rename') {
+        if (!document.getElementById('fmSidebar').classList.contains('open')) openFileManager();
         if (!p.expanded) { p.expanded = true; _fmRender(); }
         setTimeout(() => _fmStartRenameFile(t.fileId), 80);
     } else if (action === 'copy') {
@@ -14645,11 +14638,12 @@ document.addEventListener('click', e => {
 });
 
 // ── Proje Aç ──────────────────────────────────────────────────────────────
-function _fmOpenProject(id) {
+function _fmOpenProject(id, silent = false) {
     const p = _fmProjects.find(x => x.id === id);
     if (!p) return;
     _fmSaveCurrentToMemory();
     _fmActiveProjectId = id;
+    p.expanded = true;
 
     // Tüm sekme içeriklerini proje dosyalarından yükle
     const pageFile  = p.files.find(f => f.file_type === 'page');
@@ -14674,8 +14668,10 @@ function _fmOpenProject(id) {
     updateEditor();
     _fmUpdateSubTabs();
     _fmRender();
-    closeFileManager();
-    showToast(p.name + ' açıldı');
+    if (!silent) {
+        closeFileManager();
+        showToast(p.name + ' açıldı');
+    }
 }
 
 // ── Proje Context Menu ────────────────────────────────────────────────────
@@ -14685,11 +14681,12 @@ function _fmOpenProjCtx(e, projectId) {
     const p = _fmProjects.find(x => x.id === projectId);
     if (!p) return;
 
-    // Temizle vs Sil: varsayılan proje temizlenebilir ama silinemez
-    const delBtn   = document.getElementById('fmProjCtxDeleteBtn');
-    const clearBtn = document.getElementById('fmProjCtxClearBtn');
-    if (delBtn)   delBtn.style.display   = p.is_default ? 'none' : '';
-    if (clearBtn) clearBtn.style.display = p.is_default ? '' : 'none';
+    // Sil: varsayılan proje silinemez
+    const delBtn = document.getElementById('fmProjCtxDeleteBtn');
+    const sep    = document.getElementById('fmProjCtxSep');
+    const canDel = !p.is_default;
+    if (delBtn) delBtn.style.display = canDel ? '' : 'none';
+    if (sep)    sep.style.display    = canDel ? '' : 'none';
 
     // Dosya Yapıştır: kopyalanmış dosya varsa aktif
     const filePasteBtn = document.getElementById('fmProjCtxFilePasteBtn');
@@ -14737,8 +14734,6 @@ async function _fmProjCtxAction(action) {
         await _fmPasteFileToProject(id);
     } else if (action === 'download') {
         openFmDownloadModal(id);
-    } else if (action === 'clear') {
-        await _fmClearProject(id);
     } else if (action === 'delete') {
         await _fmDeleteProject(id);
     }
@@ -14829,41 +14824,6 @@ async function _fmDeleteProject(id) {
     }
     _fmRender();
     showToast('"' + p.name + '" silindi');
-}
-
-// ── Proje Temizle (varsayılan proje için) ─────────────────────────────────
-async function _fmClearProject(id) {
-    const p = _fmProjects.find(x => x.id === id);
-    if (!p) return;
-    if (!confirm('"' + p.name + '" projesinin tüm içeriği silinecek. Emin misiniz?')) return;
-    if (!currentUser) return;
-    try {
-        // Birincil olmayan dosyaları sil
-        const nonPrimary = p.files.filter(f => !f.is_primary);
-        if (nonPrimary.length) {
-            await sb.from('project_files').delete()
-                .in('id', nonPrimary.map(f => f.id))
-                .eq('user_id', currentUser.id);
-        }
-        // Birincil dosyaların içeriğini boşalt
-        const primary = p.files.filter(f => f.is_primary);
-        for (const f of primary) {
-            await sb.from('project_files')
-                .update({ content: '', updated_at: new Date().toISOString() })
-                .eq('id', f.id).eq('user_id', currentUser.id);
-            f.content = '';
-        }
-        p.files = primary; // Sadece birincil dosyaları bırak
-    } catch(e) { console.error('FM clear error:', e); showToast('Temizlenemedi'); return; }
-
-    // Aktif projeyse editörü de temizle
-    if (_fmActiveProjectId === id) {
-        _tabs = { html: '', css: '', js: '' };
-        _fmActiveFile = p.files.find(f => f.file_type === 'page') || null;
-        updateEditor(); _fmUpdateSubTabs();
-    }
-    _fmRender();
-    showToast('"' + p.name + '" temizlendi');
 }
 
 // ── İndirme Modalı ────────────────────────────────────────────────────────
@@ -15264,14 +15224,7 @@ function _fmDlRaw() {
         </svg>
         İndir
     </button>
-    <div class="fm-ctx-sep"></div>
-    <!-- Sil: default proje için gizli; Temizle: default proje için göster -->
-    <button class="fm-ctx-item" id="fmProjCtxClearBtn" style="display:none;" onclick="_fmProjCtxAction('clear')">
-        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-        Temizle
-    </button>
+    <div class="fm-ctx-sep" id="fmProjCtxSep"></div>
     <button class="fm-ctx-item danger" id="fmProjCtxDeleteBtn" onclick="_fmProjCtxAction('delete')">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -15317,13 +15270,6 @@ function _fmDlRaw() {
 
 <!-- ── DOSYA YÖNETİCİSİ CONTEXT MENU ──────────────────────────────────── -->
 <div class="fm-ctx-menu" id="fmCtxMenu">
-    <button class="fm-ctx-item" onclick="_fmCtxAction('open')">
-        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 9h6M9 13h4"/>
-        </svg>
-        Aç
-    </button>
     <button class="fm-ctx-item" onclick="_fmCtxAction('rename')">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
