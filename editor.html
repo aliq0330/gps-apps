@@ -887,21 +887,14 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 
 .saved-file-date { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
 .saved-file-desc {
-    font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;
-    line-height: 1.4; display: flex; align-items: flex-start; gap: 6px;
+    font-size: 12px; color: var(--text-secondary); margin: 0 -8px 8px;
+    cursor: pointer; padding: 4px 8px; border-radius: 8px;
+    transition: var(--transition); display: flex; align-items: center; gap: 6px;
 }
-.saved-file-desc-text { flex: 1; font-style: italic; font-family: 'Times New Roman', Times, serif; font-size: 14px; cursor: pointer; }
-.saved-file-desc-text.empty { opacity: 0.45; font-style: normal; }
-.saved-file-desc-edit { background: none; border: none; padding: 2px 4px; cursor: pointer;
-    color: var(--text-secondary); border-radius: 5px; flex-shrink: 0; display: flex; opacity: 0.6; }
-.saved-file-desc-edit:hover { opacity: 1; color: var(--accent); }
-.saved-file-desc-input-wrap { display: flex; gap: 6px; margin-bottom: 10px; align-items: flex-start; }
-.saved-file-desc-input { flex: 1; background: var(--glass-bg); border: 1px solid var(--glass-border);
-    border-radius: 10px; padding: 7px 10px; font-size: 12px; color: var(--text-primary);
-    font-family: inherit; resize: none; outline: none; min-height: 36px; }
-.saved-file-desc-input:focus { border-color: var(--accent); }
-.saved-file-desc-save { background: var(--accent); border: none; border-radius: 8px; padding: 7px 12px;
-    color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.saved-file-desc:hover { background: rgba(120,120,128,0.15); }
+.saved-file-desc:hover .edit-icon { opacity: 1; transform: scale(1); color: var(--accent); }
+.saved-file-desc-text { flex: 1; line-height: 1.4; }
+.saved-file-desc-text.empty { opacity: 0.45; }
 .fv-desc { padding: 6px 14px 0; font-size: 13px; color: var(--text-secondary); line-height: 1.4;
     display: flex; align-items: flex-start; gap: 6px; }
 .fv-desc-text { flex: 1; }
@@ -933,7 +926,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 }
 
 /* Kayıtlar modalı — etiket satırı */
-.sf-labels-inline-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 0 2px; }
+.sf-labels-inline-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 0 2px; margin-bottom: 8px; }
 .sf-add-label-btn {
     display: inline-flex; align-items: center; gap: 3px;
     padding: 3px 9px; border-radius: 8px;
@@ -1393,7 +1386,7 @@ body.preview-mode .fab-container { opacity: 0; pointer-events: none; transform: 
 .search-input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 /* Kayıtlar paneli arama çubuğu */
 .sf-search-wrap {
-    padding: 6px 14px 4px; display: flex; align-items: center; gap: 8px; position: relative;
+    padding: 9px 14px 4px; display: flex; align-items: center; gap: 8px; position: relative;
 }
 .sf-search-input-wrap { flex: 1; position: relative; }
 .sf-search-input-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none; }
@@ -2030,9 +2023,10 @@ body.preview-mode .file-title-bar { display: none !important; }
 .fv-tab.active { color: #007aff; border-bottom-color: #007aff; }
 /* İçerik alanları — yatay slider */
 .fv-body { flex: 1; overflow: hidden; }
-.fv-slider { display: flex; width: 300%; height: 100%; transition: transform 0.3s cubic-bezier(0.25,0.8,0.25,1); will-change: transform; }
+.fv-slider { display: flex; width: 400%; height: 100%; transition: transform 0.3s cubic-bezier(0.25,0.8,0.25,1); will-change: transform; }
 .fv-slider.no-transition { transition: none; }
-.fv-pane { flex: 0 0 33.3333%; height: 100%; overflow: hidden; }
+.fv-pane { flex: 0 0 25%; height: 100%; overflow: hidden; }
+.fv-desc-pane { overflow-y: auto; padding: 16px; background: var(--bg); }
 /* Kod paneli */
 .fv-code-pane { background: #f2f2f7; }
 @media (prefers-color-scheme: dark) { .fv-code-pane { background: #0a1225; } }
@@ -3049,7 +3043,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 /* Etiket düzenleme modalı (mevcut dosyalar için) */
 .flabel-editor-overlay {
     display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5); z-index: 8500;
+    background: rgba(0,0,0,0.5); z-index: 10500;
     align-items: flex-end; justify-content: center; padding: 20px;
 }
 .flabel-editor-overlay.open { display: flex; }
@@ -8023,11 +8017,11 @@ function renderSavedFiles() {
                     </svg>
                 </div>
                 <div class="saved-file-date">${dateStr}</div>
-                <div class="saved-file-desc" id="filedesc-${file.id}" onclick="event.stopPropagation()">
-                    <span class="saved-file-desc-text${file.description ? '' : ' empty'}" onclick="editFileDesc(${file.id})">${file.description ? escapeHtml(file.description) : 'Açıklama ekle...'}</span>
-                    <button class="saved-file-desc-edit" title="Açıklamayı düzenle" onclick="editFileDesc(${file.id})">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                    </button>
+                <div class="saved-file-desc" id="filedesc-${file.id}" onclick="event.stopPropagation();editFileDesc(${file.id})">
+                    <span class="saved-file-desc-text${file.description ? '' : ' empty'}">${file.description ? escapeHtml(file.description) : '// Açıklama ekle...'}</span>
+                    <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    </svg>
                 </div>
                 ${file.cloud ? `<div id="sfLabels-${file.id}" class="sf-labels-inline-row"><button class="sf-add-label-btn" onclick="event.stopPropagation();openFileLabelEditor(${file.id})">+ etiket</button></div>` : ''}
                 <div class="saved-file-actions">
@@ -8051,15 +8045,15 @@ function renderSavedFiles() {
                         İndir
                     </button>
                     ${file.cloud ? `
+                    <button class="saved-file-btn" onclick="event.stopPropagation();openFileCollectionMenu('${file.id}',this)">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/></svg>
+                        Koleksiyona ekle
+                    </button>
                     <button class="saved-file-btn history" onclick="event.stopPropagation();openVersionPanelForFile(${file.id})">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         Geçmiş
-                    </button>
-                    <button class="saved-file-btn" onclick="event.stopPropagation();openFileCollectionMenu('${file.id}',this)">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M5 12h14"/></svg>
-                        Koleksiyona ekle
                     </button>` : ''}
                     <button class="saved-file-btn delete" onclick="event.stopPropagation();deleteSavedFile(${file.id})">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -8144,30 +8138,30 @@ function editFileDesc(fileId) {
     if (!file) return;
     const descEl = document.getElementById('filedesc-' + fileId);
     if (!descEl) return;
-    descEl.innerHTML = `
-        <div class="saved-file-desc-input-wrap" style="width:100%">
-            <textarea class="saved-file-desc-input" id="filedescInput-${fileId}" rows="2"
-                placeholder="Kısa bir açıklama..."
-                onkeydown="if(event.key==='Escape')renderSavedFiles();if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();saveFileDesc(${fileId});}"
-            >${escapeHtml(file.description || '')}</textarea>
-            <button class="saved-file-desc-save" onclick="saveFileDesc(${fileId})">Kaydet</button>
-        </div>`;
-    const ta = document.getElementById('filedescInput-' + fileId);
-    ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
-}
-
-async function saveFileDesc(fileId) {
-    const file = savedFiles.find(f => f.id === fileId);
-    if (!file) return;
-    const ta = document.getElementById('filedescInput-' + fileId);
-    if (!ta) return;
-    const desc = ta.value.trim();
-    file.description = desc;
-    renderSavedFiles();
-    if (file.cloud && currentUser) {
-        await sb.from('files').update({ description: desc || null }).eq('id', fileId).eq('user_id', currentUser.id);
-    }
-    saveToStorage();
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = file.description || '';
+    input.placeholder = '// Açıklama ekle...';
+    input.className = 'saved-file-name editing';
+    input.style.cssText = 'font-size:12px;font-weight:400;font-family:inherit;color:var(--text-secondary);width:100%;';
+    descEl.replaceWith(input);
+    input.focus(); input.setSelectionRange(input.value.length, input.value.length);
+    let _saved = false;
+    const saveDesc = async () => {
+        if (_saved) return; _saved = true;
+        const desc = input.value.trim();
+        file.description = desc;
+        saveToStorage();
+        renderSavedFiles();
+        if (file.cloud && currentUser) {
+            await sb.from('files').update({ description: desc || null }).eq('id', fileId).eq('user_id', currentUser.id);
+        }
+    };
+    input.addEventListener('blur', saveDesc);
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        if (e.key === 'Escape') { _saved = true; renderSavedFiles(); }
+    });
 }
 
 // ── Kayıtlar paneli arama — state ──────────────────────────────────────
@@ -12007,7 +12001,7 @@ function _fvInitCM(code, filename) {
     _fvCM.setValue(code);
 }
 
-const _FV_TABS = ['code', 'preview', 'comments'];
+const _FV_TABS = ['code', 'preview', 'desc', 'comments'];
 
 function fvSwitchTab(tab, animate = true) {
     const idx = _FV_TABS.indexOf(tab);
@@ -12019,7 +12013,7 @@ function fvSwitchTab(tab, animate = true) {
     });
     const slider = document.getElementById('fvSlider');
     if (!animate) slider.classList.add('no-transition');
-    const pct = -idx * (100 / 3);
+    const pct = -idx * (100 / _FV_TABS.length);
     slider.style.transform = `translateX(${pct}%)`;
     if (!animate) requestAnimationFrame(() => slider.classList.remove('no-transition'));
     if (tab === 'preview') {
@@ -12028,6 +12022,58 @@ function fvSwitchTab(tab, animate = true) {
     }
     if (tab === 'comments' && !_fvCmtLoaded) fvLoadComments();
     if (tab === 'code' && _fvCM) setTimeout(() => _fvCM.refresh(), 30);
+    if (tab === 'desc') _fvRenderDescPane();
+}
+
+function _fvRenderDescPane() {
+    const pane = document.getElementById('fvPaneDesc');
+    if (!pane) return;
+    const isOwn = currentUser && _fvUserId && currentUser.id === _fvUserId;
+    const desc = _fvDescCurrent || '';
+    const editSvg = `<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>`;
+    if (desc) {
+        pane.innerHTML = `<div style="display:flex;align-items:flex-start;gap:8px;">
+            <p style="flex:1;margin:0;font-size:14px;color:var(--text-primary);line-height:1.6;">${escapeHtml(desc)}</p>
+            ${isOwn ? `<button style="background:none;border:none;padding:4px;cursor:pointer;color:var(--text-secondary);border-radius:6px;flex-shrink:0;opacity:0.6;" onclick="_fvEditDescPane()">${editSvg}</button>` : ''}
+        </div>`;
+    } else if (isOwn) {
+        pane.innerHTML = `<button onclick="_fvEditDescPane()" style="background:var(--glass-bg);border:1.5px dashed var(--glass-border);border-radius:12px;padding:12px 16px;width:100%;cursor:pointer;color:var(--text-secondary);font-size:13px;font-family:inherit;text-align:left;">// Açıklama ekle...</button>`;
+    } else {
+        pane.innerHTML = `<p style="color:var(--text-secondary);font-size:13px;opacity:.5;text-align:center;margin-top:32px;">Açıklama yok</p>`;
+    }
+}
+
+function _fvEditDescPane() {
+    const pane = document.getElementById('fvPaneDesc');
+    if (!pane) return;
+    const fileOwnerId = _fvUserId;
+    pane.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;">
+        <textarea id="fvDescPaneInput" rows="4" placeholder="Kısa bir açıklama..."
+            style="width:100%;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text-primary);font-family:inherit;resize:none;outline:none;box-sizing:border-box;"
+            onkeydown="if(event.key==='Escape')_fvRenderDescPane();if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();_fvSaveDescPane('${fileOwnerId}');}"
+        >${escapeHtml(_fvDescCurrent || '')}</textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button onclick="_fvRenderDescPane()" style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text-secondary);">İptal</button>
+            <button onclick="_fvSaveDescPane('${fileOwnerId}')" style="background:var(--accent);border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;color:#fff;">Kaydet</button>
+        </div>
+    </div>`;
+    const ta = document.getElementById('fvDescPaneInput');
+    if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+}
+
+async function _fvSaveDescPane(fileOwnerId) {
+    const ta = document.getElementById('fvDescPaneInput');
+    if (!ta) return;
+    const desc = ta.value.trim();
+    _fvDescCurrent = desc;
+    _fvRenderDescPane();
+    // fvDescArea'yı da güncelle (tab dışındaki yerler için)
+    _fvRenderDesc(desc, fileOwnerId);
+    if (_fvFileId && currentUser) {
+        await sb.from('files').update({ description: desc || null }).eq('id', _fvFileId).eq('user_id', currentUser.id);
+        const cached = _exploreDataMap[_fvFileId];
+        if (cached) cached.description = desc;
+    }
 }
 
 function closeFileView() {
@@ -12080,38 +12126,15 @@ async function fvToggleLike() {
     _fvUpdateLike();
 }
 
-// Dosya görüntüleyici açıklama
+// Dosya görüntüleyici açıklama — artık fvDescArea yerine Açıklama sekmesi kullanılıyor
 function _fvRenderDesc(desc, fileOwnerId) {
-    const area = document.getElementById('fvDescArea');
-    if (!area) return;
-    const isOwn = currentUser && currentUser.id === fileOwnerId;
-    if (!desc && !isOwn) { area.style.display = 'none'; return; }
-    area.style.display = '';
-    const editSvg = `<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>`;
-    if (desc) {
-        area.innerHTML = `<div class="fv-desc">
-            <span class="fv-desc-text">${escapeHtml(desc)}</span>
-            ${isOwn ? `<button class="fv-desc-edit-btn" onclick="_fvEditDesc('${escapeHtml(desc).replace(/'/g,"\\'")}',  '${fileOwnerId}')">${editSvg}</button>` : ''}
-        </div>`;
-    } else {
-        area.innerHTML = `<div class="fv-desc">
-            <span class="fv-desc-text" style="opacity:.45;font-style:italic">Açıklama ekle...</span>
-            <button class="fv-desc-edit-btn" onclick="_fvEditDesc('', '${fileOwnerId}')">${editSvg}</button>
-        </div>`;
-    }
+    // fvDescArea kaldırıldı; açıklama artık Açıklama sekmesinde (fvPaneDesc)
+    if (_fvTab === 'desc') _fvRenderDescPane();
 }
 
 function _fvEditDesc(currentDesc, fileOwnerId) {
-    const area = document.getElementById('fvDescArea');
-    if (!area) return;
-    area.innerHTML = `<div class="fv-desc-input-wrap">
-        <textarea class="fv-desc-input" id="fvDescInput" rows="2" placeholder="Kısa bir açıklama..."
-            onkeydown="if(event.key==='Escape')_fvRenderDesc(_fvDescCurrent,'${fileOwnerId}');if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();_fvSaveDesc('${fileOwnerId}');}"
-        >${escapeHtml(currentDesc)}</textarea>
-        <button class="fv-desc-save-btn" onclick="_fvSaveDesc('${fileOwnerId}')">Kaydet</button>
-    </div>`;
-    const ta = document.getElementById('fvDescInput');
-    ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+    // fvDescArea kaldırıldı; sekmeye geç ve düzenlemeyi aç
+    fvSwitchTab('desc'); setTimeout(_fvEditDescPane, 100);
 }
 
 let _fvDescCurrent = '';
@@ -12128,7 +12151,7 @@ async function _fvSaveDesc(fileOwnerId) {
     // kendi dosyalarımda da güncelle
     const sf = savedFiles.find(f => f.id === _fvFileId);
     if (sf) { sf.description = desc; saveToStorage(); renderSavedFiles(); }
-    _fvRenderDesc(desc, fileOwnerId);
+    _fvRenderDescPane();
     await sb.from('files').update({ description: desc || null }).eq('id', _fvFileId).eq('user_id', currentUser.id);
     showToast('Açıklama kaydedildi');
 }
@@ -12513,7 +12536,7 @@ function _initFileViewSwipeBack() {
         if (!isHoriz) return;
         e.preventDefault();
         const idx = _FV_TABS.indexOf(_fvTab);
-        slider.style.transform = `translateX(calc(${-idx * (100/3)}% + ${dx}px))`;
+        slider.style.transform = `translateX(calc(${-idx * (100/_FV_TABS.length)}% + ${dx}px))`;
     }, { passive: false });
     body.addEventListener('touchend', onEnd);
     body.addEventListener('touchcancel', onCancel);
@@ -12536,7 +12559,7 @@ function _initFileViewSwipeBack() {
             if (!isHoriz) return;
             e.preventDefault();
             const idx = _FV_TABS.indexOf(_fvTab);
-            slider.style.transform = `translateX(calc(${-idx * (100/3)}% + ${dx}px))`;
+            slider.style.transform = `translateX(calc(${-idx * (100/_FV_TABS.length)}% + ${dx}px))`;
         }, { passive: false });
         guard.addEventListener('touchend', onEnd);
         guard.addEventListener('touchcancel', onCancel);
@@ -13773,12 +13796,12 @@ async function _shareCopyLink() {
         <button class="fv-edit-btn" onclick="fvLoadInEditor()">Editörde Aç</button>
     </div>
     <div class="fv-fork-banner" id="fvForkBanner" style="display:none;"></div>
-    <div id="fvDescArea" style="display:none;"></div>
     <!-- Konu etiketleri (versiyon etiketlerinden farklı) -->
     <div id="fvLabelArea" style="padding:0 16px 10px;display:none;"></div>
     <div class="fv-tabs">
-        <button class="fv-tab active" id="fvTabCode"    onclick="fvSwitchTab('code')">Kod</button>
-        <button class="fv-tab"        id="fvTabPreview" onclick="fvSwitchTab('preview')">Önizleme</button>
+        <button class="fv-tab active" id="fvTabCode"     onclick="fvSwitchTab('code')">Kod</button>
+        <button class="fv-tab"        id="fvTabPreview"  onclick="fvSwitchTab('preview')">Önizleme</button>
+        <button class="fv-tab"        id="fvTabDesc"     onclick="fvSwitchTab('desc')">Açıklama</button>
         <button class="fv-tab"        id="fvTabComments" onclick="fvSwitchTab('comments')">Yorumlar <span id="fvCmtBadge"></span></button>
     </div>
     <div class="fv-body" id="fvBody">
@@ -13791,6 +13814,7 @@ async function _shareCopyLink() {
                 <div id="fvSwipeGuardL" style="position:absolute;top:0;left:0;width:28px;height:100%;z-index:2;"></div>
                 <div id="fvSwipeGuardR" style="position:absolute;top:0;right:0;width:28px;height:100%;z-index:2;"></div>
             </div>
+            <div class="fv-pane fv-desc-pane" id="fvPaneDesc"></div>
             <div class="fv-pane fv-comments-pane" id="fvPaneComments">
                 <div class="fv-cmt-list" id="fvCmtList">
                     <div class="search-empty">Yükleniyor...</div>
