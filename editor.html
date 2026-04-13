@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kod Editörü</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
@@ -4141,7 +4142,7 @@ body.preview-mode .file-title-bar { display: none !important; }
         </svg>
         Yükle
     </button>
-    <input type="file" id="fileInput" accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md" style="display:none" onchange="handleFileLoad(event)">
+    <input type="file" id="fileInput" accept=".html,.htm,.js,.css,.txt,.text,.json,.xml,.md" multiple style="display:none" onchange="handleFileLoad(event)">
 </div>
 
 <main id="appMain" style="display:none;">
@@ -7444,7 +7445,7 @@ function handleViewSwitch(view) {
     syncSwitchers(view);
     if (view === 'preview') {
         document.body.classList.add('preview-mode');
-        document.getElementById('previewFrameInline').srcdoc = buildPage();
+        document.getElementById('previewFrameInline').srcdoc = _buildPreviewHtml();
         previewArea.classList.add('active');
     } else {
         document.body.classList.remove('preview-mode');
@@ -7482,6 +7483,23 @@ function buildPage() {
     const styleTag  = css ? `<style>\n${css}\n</style>` : '';
     const scriptTag = js  ? `<script>\n${js}\n<\/script>` : '';
     return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">${styleTag}</head><body>${html}${scriptTag}</body></html>`;
+}
+
+// Aktif proje varsa TÜM CSS/JS dosyalarını birleştirerek önizleme HTML'i oluşturur
+function _buildPreviewHtml() {
+    if (_fmActiveProjectId) {
+        const p = _fmProjects.find(x => x.id === _fmActiveProjectId);
+        if (p) {
+            _fmSaveCurrentToMemory();
+            const html = p.files.filter(f => f.file_type === 'page').map(f => f.content).join('\n');
+            const css  = p.files.filter(f => f.file_type === 'style').map(f => f.content).join('\n').trim();
+            const js   = p.files.filter(f => f.file_type === 'code').map(f => f.content).join('\n').trim();
+            const styleTag  = css ? `<style>\n${css}\n</style>` : '';
+            const scriptTag = js  ? `<script>\n${js}\n<\/script>` : '';
+            return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">${styleTag}</head><body>${html}${scriptTag}</body></html>`;
+        }
+    }
+    return buildPage();
 }
 
 // ── Tab Split / Merge ──────────────────────────────────────────────────
@@ -7736,7 +7754,7 @@ function updateCode() {
     }
 
     if (currentView === 'preview')
-        document.getElementById('previewFrameInline').srcdoc = buildPage();
+        document.getElementById('previewFrameInline').srcdoc = _buildPreviewHtml();
 
     // Proje dosyasını otomatik kaydet
     _fmScheduleSave();
@@ -7801,7 +7819,7 @@ function _initCodeMirror() {
         hasUnsavedChanges = true;
         saveToStorage(); updateTabDotColor(); updateQuickSaveButton();
         if (saveButtonState === 'saved') setSaveButtonState('idle');
-        if (currentView === 'preview') document.getElementById('previewFrameInline').srcdoc = buildPage();
+        if (currentView === 'preview') document.getElementById('previewFrameInline').srcdoc = _buildPreviewHtml();
     });
 }
 
@@ -8713,8 +8731,15 @@ function confirmSaveFromModal() {
 function loadFile() { document.getElementById('fileInput').click(); }
 
 function handleFileLoad(event) {
-    const file = event.target.files[0]; if (!file) return;
+    const files = Array.from(event.target.files);
     event.target.value = '';
+    if (!files.length) return;
+
+    // Çoklu dosya → tek proje oluştur
+    if (files.length > 1) { _fmImportMultipleFiles(files); return; }
+
+    // Tekli dosya → mevcut davranış
+    const file = files[0];
     const baseName = file.name.replace(/\.[^/.]+$/, '');
     loadedFilename = baseName;
     currentOpenFileId = null;
@@ -8742,6 +8767,59 @@ function handleFileLoad(event) {
     };
     r.onerror = () => showToast('Dosya okunamadı');
     r.readAsText(file);
+}
+
+async function _fmImportMultipleFiles(files) {
+    const typeMap  = { html: 'page', htm: 'page', css: 'style', js: 'code' };
+    const collected = [];
+    await Promise.all(files.map((file, i) => new Promise(resolve => {
+        const ext      = file.name.split('.').pop().toLowerCase();
+        const fileType = typeMap[ext];
+        if (!fileType) { resolve(); return; }
+        const r = new FileReader();
+        r.onload = e => { collected.push({ file_type: fileType, name: file.name, content: e.target.result, sort_order: i }); resolve(); };
+        r.onerror = () => resolve();
+        r.readAsText(file);
+    })));
+    if (!collected.length) { showToast('Desteklenmeyen dosya türleri'); return; }
+
+    // Türe göre sırala, her türün ilki birincil
+    const pages  = collected.filter(f => f.file_type === 'page').sort((a,b) => a.sort_order - b.sort_order);
+    const styles = collected.filter(f => f.file_type === 'style').sort((a,b) => a.sort_order - b.sort_order);
+    const codes  = collected.filter(f => f.file_type === 'code').sort((a,b) => a.sort_order - b.sort_order);
+    [...pages, ...styles, ...codes].forEach((f, i) => { f.is_primary = (i === 0 || f === styles[0] || f === codes[0]); f.sort_order = i; });
+    if (pages[0])  pages[0].is_primary  = true;
+    if (styles[0]) styles[0].is_primary = true;
+    if (codes[0])  codes[0].is_primary  = true;
+    // Eksik türler için boş birincil dosya ekle
+    if (!pages.length)  pages.push({  file_type: 'page',  name: 'index.html', content: '', is_primary: true, sort_order: 900 });
+    if (!styles.length) styles.push({ file_type: 'style', name: 'style.css',  content: '', is_primary: true, sort_order: 901 });
+    if (!codes.length)  codes.push({  file_type: 'code',  name: 'script.js',  content: '', is_primary: true, sort_order: 902 });
+
+    const projectName = (pages.find(f => f.is_primary)?.name || collected[0].name).replace(/\.[^/.]+$/, '');
+    const allFiles    = [...pages, ...styles, ...codes];
+
+    if (!currentUser) {
+        _tabs = { html: pages[0].content || '', css: styles[0].content || '', js: codes[0].content || '' };
+        _activeTab = 'html'; loadedFilename = projectName; hasUnsavedChanges = false;
+        updateEditor(); updateFilenameDisplay(); saveToStorage(); _fmUpdateSubTabs();
+        showToast(projectName + ' yüklendi (' + files.length + ' dosya)');
+        return;
+    }
+    try {
+        const sortOrder = _fmProjects.length;
+        const { data: proj, error: pe } = await sb.from('projects')
+            .insert({ user_id: currentUser.id, name: projectName, sort_order: sortOrder, is_default: false })
+            .select().single();
+        if (pe) throw pe;
+        const { data: cf, error: fe } = await sb.from('project_files')
+            .insert(allFiles.map(f => ({ project_id: proj.id, user_id: currentUser.id, file_type: f.file_type, name: f.name, content: f.content, is_primary: f.is_primary, sort_order: f.sort_order })))
+            .select();
+        if (fe) throw fe;
+        _fmProjects.push({ id: proj.id, name: proj.name, sort_order: sortOrder, is_default: false, expanded: true, files: cf.map(f => ({ id: f.id, project_id: f.project_id, file_type: f.file_type, name: f.name, content: f.content || '', is_primary: f.is_primary, sort_order: f.sort_order })) });
+        _fmOpenProject(proj.id, true);
+        showToast('"' + projectName + '" projesi oluşturuldu (' + collected.length + ' dosya)');
+    } catch(e) { console.error('FM multi-import error:', e); showToast('Proje oluşturulamadı'); }
 }
 
 // ── Misc ───────────────────────────────────────────────────────────────
@@ -14975,12 +15053,13 @@ function _fmDlOverlayClick(e) {
 
 function _fmDlSingleHtml() {
     closeFmDlModal();
+    _fmSaveCurrentToMemory(); // Editördeki son içeriği belleğe al
     const p = _fmDlProjectId ? _fmProjects.find(x => x.id === _fmDlProjectId) : null;
 
     let html = '', css = '', js = '', title = '';
     if (p) {
-        // Aktif proje dosyalarından birleştir
-        html  = (p.files.find(f => f.file_type === 'page')?.content  || '');
+        // Aktif proje: ilk sayfa + TÜM CSS + TÜM JS birleştir
+        html  = p.files.filter(f => f.file_type === 'page').map(f => f.content).join('\n');
         css   = p.files.filter(f => f.file_type === 'style').map(f => f.content).join('\n\n');
         js    = p.files.filter(f => f.file_type === 'code').map(f => f.content).join('\n\n');
         title = p.name;
@@ -15005,33 +15084,31 @@ function _fmDlSingleHtml() {
     showToast(fn + ' indirildi');
 }
 
-function _fmDlRaw() {
+async function _fmDlRaw() {
     closeFmDlModal();
+    _fmSaveCurrentToMemory(); // Editördeki son içeriği belleğe al
     const p = _fmDlProjectId ? _fmProjects.find(x => x.id === _fmDlProjectId) : null;
 
-    let filesToDownload = [];
+    let filesToZip = [];
     if (p) {
-        filesToDownload = p.files.map(f => ({
-            name: f.name,
-            content: f.content,
-            mime: f.file_type === 'style' ? 'text/css' : f.file_type === 'code' ? 'text/javascript' : 'text/html'
-        }));
+        filesToZip = p.files.map(f => ({ name: f.name, content: f.content }));
     } else {
-        if (_tabs.html) filesToDownload.push({ name: (loadedFilename || 'index') + '.html', content: _tabs.html, mime: 'text/html' });
-        if (_tabs.css)  filesToDownload.push({ name: (loadedFilename || 'style')  + '.css',  content: _tabs.css,  mime: 'text/css' });
-        if (_tabs.js)   filesToDownload.push({ name: (loadedFilename || 'script') + '.js',   content: _tabs.js,   mime: 'text/javascript' });
+        if (_tabs.html) filesToZip.push({ name: (loadedFilename || 'index')  + '.html', content: _tabs.html });
+        if (_tabs.css)  filesToZip.push({ name: (loadedFilename || 'style')  + '.css',  content: _tabs.css  });
+        if (_tabs.js)   filesToZip.push({ name: (loadedFilename || 'script') + '.js',   content: _tabs.js   });
     }
+    if (!filesToZip.length) { showToast('İndirilecek dosya yok'); return; }
 
-    filesToDownload.forEach((f, i) => {
-        setTimeout(() => {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([f.content], { type: f.mime }));
-            a.download = f.name;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            URL.revokeObjectURL(a.href);
-        }, i * 300);
-    });
-    showToast(filesToDownload.length + ' dosya indiriliyor...');
+    const zip     = new JSZip();
+    filesToZip.forEach(f => zip.file(f.name, f.content || ''));
+    const zipName = (p?.name || loadedFilename || 'proje').replace(/[\\/:*?"<>|]/g, '_') + '.zip';
+    const blob    = await zip.generateAsync({ type: 'blob' });
+    const a       = document.createElement('a');
+    a.href        = URL.createObjectURL(blob);
+    a.download    = zipName;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    showToast(zipName + ' indirildi (' + filesToZip.length + ' dosya)');
 }
 </script>
 
@@ -15405,9 +15482,9 @@ function _fmDlRaw() {
             <button class="fm-dl-opt" onclick="_fmDlRaw()">
                 <span class="fm-dl-opt-title">
                     <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
-                    Raw (Ayrı Dosyalar)
+                    Raw (ZIP Arşivi)
                 </span>
-                <span class="fm-dl-opt-desc">Her dosya ayrı ayrı indirilir (.html, .css, .js)</span>
+                <span class="fm-dl-opt-desc">Tüm dosyalar orijinal isimleriyle tek bir .zip içinde indirilir</span>
             </button>
         </div>
         <button class="fm-dl-cancel" onclick="closeFmDlModal()">İptal</button>
