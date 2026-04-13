@@ -3136,6 +3136,207 @@ body.preview-mode .file-title-bar { display: none !important; }
 }
 .version-summary-error.visible { display: block; }
 
+/* ── DOSYA YÖNETİCİSİ ──────────────────────────────────────────── */
+.fm-overlay {
+    position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+}
+.fm-overlay.open { display: flex; }
+
+.fm-panel {
+    width: 100%; max-width: 420px; max-height: 80vh;
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+    animation: fmSlideIn 0.28s cubic-bezier(0.25,0.8,0.25,1);
+}
+@keyframes fmSlideIn {
+    from { opacity: 0; transform: scale(0.92) translateY(14px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.fm-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--glass-border);
+    flex-shrink: 0;
+}
+.fm-title { font-size: 17px; font-weight: 700; color: var(--text-primary); }
+.fm-header-btns { display: flex; align-items: center; gap: 8px; }
+.fm-close-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: rgba(120,120,128,0.1); color: var(--text-secondary);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; transition: all 0.2s ease;
+}
+.fm-close-btn:hover { background: rgba(255,69,58,0.15); border-color: rgba(255,69,58,0.3); }
+.fm-add-btn {
+    padding: 7px 14px; border-radius: 12px;
+    border: 1px solid rgba(0,122,255,0.3);
+    background: rgba(0,122,255,0.1); color: #007aff;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s ease; font-family: inherit;
+    display: flex; align-items: center; gap: 6px;
+}
+.fm-add-btn:hover { background: rgba(0,122,255,0.18); }
+.fm-list {
+    flex: 1; overflow-y: auto; padding: 12px 16px 20px;
+}
+.fm-list::-webkit-scrollbar { width: 6px; }
+.fm-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
+.fm-project {
+    margin-bottom: 8px;
+    border: 1px solid var(--glass-border);
+    border-radius: 14px; overflow: hidden;
+    background: var(--glass-bg);
+}
+.fm-project-header {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 12px; cursor: pointer; user-select: none;
+}
+.fm-project-header:hover { background: rgba(120,120,128,0.06); }
+.fm-arrow {
+    width: 20px; height: 20px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary); transition: transform 0.2s ease;
+    border: none; background: transparent; cursor: pointer; padding: 0;
+}
+.fm-arrow.open { transform: rotate(90deg); }
+.fm-project-icon { width: 18px; height: 18px; flex-shrink: 0; color: var(--text-secondary); }
+.fm-project-name-wrap { flex: 1; min-width: 0; }
+.fm-project-name {
+    font-size: 14px; font-weight: 600; color: var(--text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fm-project-name-input {
+    width: 100%; font-size: 14px; font-weight: 600;
+    background: rgba(120,120,128,0.1);
+    border: 1.5px solid rgba(0,122,255,0.4);
+    border-radius: 8px; outline: none;
+    color: var(--text-primary); padding: 3px 8px;
+    font-family: inherit; box-sizing: border-box;
+}
+.fm-rename-btn {
+    width: 28px; height: 28px; flex-shrink: 0;
+    border: 1px solid var(--glass-border);
+    background: rgba(120,120,128,0.1); color: var(--text-secondary);
+    border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; transition: all 0.18s ease;
+}
+.fm-rename-btn:hover { background: rgba(120,120,128,0.2); color: var(--text-primary); }
+.fm-file-list {
+    padding: 4px 8px 10px 36px;
+    display: flex; flex-direction: column; gap: 3px;
+    border-top: 1px solid var(--glass-border);
+    background: rgba(120,120,128,0.03);
+}
+.fm-file-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border-radius: 10px;
+    cursor: pointer; transition: background 0.15s ease; position: relative;
+}
+.fm-file-item:hover { background: rgba(120,120,128,0.1); }
+.fm-file-item.active { background: rgba(0,122,255,0.1); }
+.fm-file-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.fm-file-dot.page  { background: #f97316; }
+.fm-file-dot.style { background: #3b82f6; }
+.fm-file-dot.code  { background: #eab308; }
+.fm-file-name {
+    flex: 1; font-size: 13px; font-weight: 500;
+    color: var(--text-primary); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+}
+.fm-file-name-input {
+    flex: 1; font-size: 13px; font-weight: 500;
+    background: rgba(120,120,128,0.1);
+    border: 1.5px solid rgba(0,122,255,0.4);
+    border-radius: 6px; outline: none;
+    color: var(--text-primary); padding: 2px 6px; font-family: inherit;
+}
+.fm-file-menu-btn {
+    width: 26px; height: 26px; flex-shrink: 0;
+    border: none; background: transparent;
+    color: var(--text-secondary); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 15px; letter-spacing: 1px; line-height: 1;
+    transition: background 0.15s ease;
+}
+.fm-file-menu-btn:hover { background: rgba(120,120,128,0.15); }
+.fm-file-add-row {
+    display: flex; gap: 6px; padding: 4px 0 2px;
+}
+.fm-file-add-btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 10px; border-radius: 8px;
+    border: 1px dashed var(--glass-border);
+    background: transparent; cursor: pointer;
+    font-size: 12px; font-weight: 600;
+    color: var(--text-secondary); transition: all 0.15s ease; font-family: inherit;
+}
+.fm-file-add-btn.style-add:hover { border-color: rgba(59,130,246,0.5); color: #3b82f6; background: rgba(59,130,246,0.06); }
+.fm-file-add-btn.code-add:hover  { border-color: rgba(234,179,8,0.5);  color: #ca8a04; background: rgba(234,179,8,0.06); }
+
+/* ── FM CONTEXT MENU ──────────────────────────────────────────── */
+.fm-ctx-menu {
+    position: fixed; z-index: 3000;
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px; padding: 6px;
+    box-shadow: 0 4px 28px rgba(0,0,0,0.18);
+    min-width: 168px; display: none;
+    animation: ctxFade 0.14s ease;
+}
+.fm-ctx-menu.open { display: block; }
+@keyframes ctxFade {
+    from { opacity: 0; transform: scale(0.94); }
+    to   { opacity: 1; transform: scale(1); }
+}
+.fm-ctx-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 9px; cursor: pointer;
+    font-size: 14px; font-weight: 500; color: var(--text-primary);
+    transition: background 0.15s ease;
+    border: none; background: transparent;
+    width: 100%; font-family: inherit; text-align: left;
+}
+.fm-ctx-item:hover { background: rgba(120,120,128,0.12); }
+.fm-ctx-item.danger { color: #ff453a; }
+.fm-ctx-item.danger:hover { background: rgba(255,69,58,0.1); }
+.fm-ctx-sep { height: 1px; background: var(--glass-border); margin: 4px 0; }
+
+/* ── SUB-TAB BAR (Stil/Kod çoklu dosya) ───────────────────────── */
+.fm-sub-tab-bar {
+    display: none; gap: 4px;
+    padding: 5px 10px 0 60px; background: transparent;
+    flex-shrink: 0; overflow-x: auto; border-bottom: 1px solid var(--glass-border);
+}
+.fm-sub-tab-bar::-webkit-scrollbar { display: none; }
+.fm-sub-tab-bar.visible { display: flex; }
+.fm-sub-tab {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px 10px 5px; border-radius: 7px 7px 0 0;
+    border: 1px solid transparent; border-bottom: none;
+    background: transparent; font-size: 11px; font-weight: 600;
+    color: var(--text-secondary); cursor: pointer;
+    white-space: nowrap; font-family: 'JetBrains Mono', monospace;
+    transition: all 0.15s ease;
+}
+.fm-sub-tab:hover { background: rgba(120,120,128,0.1); }
+.fm-sub-tab.active {
+    background: var(--card-bg); color: var(--text-primary);
+    border-color: var(--glass-border); border-bottom-color: var(--card-bg);
+}
+
+/* ── TOOLBAR FM BUTTON ─────────────────────────────────────────── */
+.toolbar-btn-fm { flex-shrink: 0; padding: 7px 10px; }
+.toolbar-btn-fm.active { background: rgba(0,122,255,0.12); border-color: rgba(0,122,255,0.3); color: #007aff; }
+
 </style>
 
 </head>
@@ -3839,6 +4040,11 @@ body.preview-mode .file-title-bar { display: none !important; }
 </div>
 
 <div class="file-title-bar" id="fileTitleBar" style="display:none;">
+    <button class="toolbar-btn toolbar-btn-fm" id="toolbarFmBtn" onclick="openFileManager()" title="Projeler">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+        </svg>
+    </button>
     <button class="toolbar-btn" id="bbPreviewBtn" onclick="toggleBottomBarView()">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" id="bbPreviewIcon">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -3877,15 +4083,16 @@ body.preview-mode .file-title-bar { display: none !important; }
     <div class="code-area" id="codeArea">
         <div class="editor-tab-bar" id="editorTabBar">
             <button class="editor-tab active" data-tab="html" onclick="_switchEditorTab('html')">
-                <span class="tab-dot tab-dot-html"></span> HTML
+                <span class="tab-dot tab-dot-html"></span> Sayfa
             </button>
             <button class="editor-tab" data-tab="css" onclick="_switchEditorTab('css')">
-                <span class="tab-dot tab-dot-css"></span> CSS
+                <span class="tab-dot tab-dot-css"></span> Stil
             </button>
             <button class="editor-tab" data-tab="js" onclick="_switchEditorTab('js')">
-                <span class="tab-dot tab-dot-js"></span> JS
+                <span class="tab-dot tab-dot-js"></span> Kod
             </button>
         </div>
+        <div class="fm-sub-tab-bar" id="fmSubTabBar"></div>
         <div class="editor-search-panel" id="searchPanel">
             <div class="search-row">
                 <input type="text" id="searchInput" class="search-input"
@@ -7254,6 +7461,24 @@ function _buildFullHtml(title) {
 }
 
 function _switchEditorTab(tab) {
+    // Aktif proje dosyasını hafızaya kaydet
+    _fmSaveCurrentToMemory();
+    // Eğer yeni tab için aktif proje dosyası varsa yükle
+    if (_fmActiveProjectId) {
+        const p = _fmProjects.find(x => x.id === _fmActiveProjectId);
+        if (p) {
+            const typeMap = { html: 'page', css: 'style', js: 'code' };
+            const ft = typeMap[tab];
+            const activeId = ft === 'style' ? _fmActiveStyleId : ft === 'code' ? _fmActiveCodeId : null;
+            const targetFile = activeId
+                ? p.files.find(x => x.id === activeId)
+                : p.files.find(x => x.file_type === ft);
+            if (targetFile) {
+                _tabs[tab] = targetFile.content;
+                _fmActiveFile = targetFile;
+            }
+        }
+    }
     if (window.cm) _tabs[_activeTab] = cm.getValue();
     _activeTab = tab;
     document.querySelectorAll('.editor-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
@@ -7267,6 +7492,8 @@ function _switchEditorTab(tab) {
         document.getElementById('editor').value = _tabs[tab] || '';
     }
     code = _mergeBodyContent();
+    // Alt sekme çubuğunu güncelle
+    _fmUpdateSubTabs();
 }
 
 // ── App Init ───────────────────────────────────────────────────────────
@@ -7438,6 +7665,9 @@ function updateCode() {
 
     if (currentView === 'preview')
         document.getElementById('previewFrameInline').srcdoc = buildPage();
+
+    // Proje dosyasını otomatik kaydet
+    _fmScheduleSave();
 }
 
 function _getCMMode(filename) {
@@ -13732,6 +13962,562 @@ async function _shareCopyLink() {
         showToast('Kopyalanamadı');
     }
 }
+
+// ════════════════════════════════════════════════════════════════════════
+// DOSYA YÖNETİCİSİ — Projeler & Dosyalar
+// ════════════════════════════════════════════════════════════════════════
+/*
+ * SQL Migration — Dosya Yönetimi Sistemi
+ * Supabase SQL Editor'de bir kez çalıştırın:
+ *
+ * ── 1. projects tablosu ───────────────────────────────────────────────
+ * CREATE TABLE IF NOT EXISTS projects (
+ *   id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+ *   user_id     uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+ *   name        text NOT NULL DEFAULT 'Proje 1',
+ *   sort_order  integer DEFAULT 0,
+ *   is_default  boolean DEFAULT false,
+ *   created_at  timestamptz DEFAULT now(),
+ *   updated_at  timestamptz DEFAULT now()
+ * );
+ * ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ * CREATE POLICY "projects_select" ON projects FOR SELECT USING (auth.uid() = user_id);
+ * CREATE POLICY "projects_insert" ON projects FOR INSERT WITH CHECK (auth.uid() = user_id);
+ * CREATE POLICY "projects_update" ON projects FOR UPDATE USING (auth.uid() = user_id);
+ * CREATE POLICY "projects_delete" ON projects FOR DELETE USING (auth.uid() = user_id AND is_default = false);
+ *
+ * ── 2. project_files tablosu ─────────────────────────────────────────
+ * CREATE TABLE IF NOT EXISTS project_files (
+ *   id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+ *   project_id  bigint REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
+ *   user_id     uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+ *   file_type   text NOT NULL CHECK (file_type IN ('page', 'style', 'code')),
+ *   name        text NOT NULL,
+ *   content     text DEFAULT '',
+ *   is_primary  boolean DEFAULT false,
+ *   sort_order  integer DEFAULT 0,
+ *   created_at  timestamptz DEFAULT now(),
+ *   updated_at  timestamptz DEFAULT now()
+ * );
+ * ALTER TABLE project_files ENABLE ROW LEVEL SECURITY;
+ * CREATE POLICY "pfiles_select" ON project_files FOR SELECT USING (auth.uid() = user_id);
+ * CREATE POLICY "pfiles_insert" ON project_files FOR INSERT WITH CHECK (auth.uid() = user_id);
+ * CREATE POLICY "pfiles_update" ON project_files FOR UPDATE USING (auth.uid() = user_id);
+ * CREATE POLICY "pfiles_delete" ON project_files FOR DELETE USING (auth.uid() = user_id AND is_primary = false);
+ */
+
+// ── FM State ──────────────────────────────────────────────────────────────
+let _fmProjects        = [];   // [{id, name, sort_order, is_default, expanded, files:[...]}]
+let _fmActiveProjectId = null; // aktif proje id
+let _fmActiveFile      = null; // {id, project_id, file_type, name, content, is_primary}
+let _fmActiveStyleId   = null; // aktif style dosyası id
+let _fmActiveCodeId    = null; // aktif code dosyası id
+let _fmCtxTarget       = null; // {projectId, fileId} — context menü hedefi
+let _fmSaveTimer       = null;
+let _fmLoaded          = false;
+
+// ── Open / Close ──────────────────────────────────────────────────────────
+function openFileManager() {
+    document.getElementById('fmOverlay').classList.add('open');
+    const btn = document.getElementById('toolbarFmBtn');
+    if (btn) btn.classList.add('active');
+    if (!_fmLoaded && currentUser) _fmLoad();
+    else _fmRender();
+}
+function closeFileManager() {
+    document.getElementById('fmOverlay').classList.remove('open');
+    const btn = document.getElementById('toolbarFmBtn');
+    if (btn) btn.classList.remove('active');
+    _fmCloseCtx();
+}
+function _fmOverlayClick(e) {
+    if (e.target === document.getElementById('fmOverlay')) closeFileManager();
+}
+
+// ── Load from Supabase ────────────────────────────────────────────────────
+async function _fmLoad() {
+    if (!currentUser) return;
+    const list = document.getElementById('fmList');
+    if (list) list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);font-size:14px;">Yükleniyor...</div>';
+    try {
+        const [{ data: projs, error: pe }, { data: files, error: fe }] = await Promise.all([
+            sb.from('projects').select('*').eq('user_id', currentUser.id).order('sort_order'),
+            sb.from('project_files').select('*').eq('user_id', currentUser.id).order('sort_order')
+        ]);
+        if (pe) throw pe;
+        if (fe) throw fe;
+        if (!projs || projs.length === 0) {
+            await _fmCreateDefaultProject();
+            return;
+        }
+        _fmProjects = projs.map(p => ({
+            id: p.id, name: p.name, sort_order: p.sort_order,
+            is_default: p.is_default, expanded: false,
+            files: (files || []).filter(f => f.project_id === p.id).map(f => ({
+                id: f.id, project_id: f.project_id, file_type: f.file_type,
+                name: f.name, content: f.content || '',
+                is_primary: f.is_primary, sort_order: f.sort_order
+            }))
+        }));
+        _fmLoaded = true;
+        _fmRender();
+    } catch(e) {
+        console.error('FM load error:', e);
+        if (list) list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#ff453a;font-size:14px;">Yüklenemedi. İnternet bağlantısını kontrol edin.</div>';
+    }
+}
+
+// ── Create Default Project ────────────────────────────────────────────────
+async function _fmCreateDefaultProject() {
+    if (!currentUser) return;
+    try {
+        const { data: proj, error: pe } = await sb.from('projects')
+            .insert({ user_id: currentUser.id, name: 'Proje 1', sort_order: 0, is_default: true })
+            .select().single();
+        if (pe) throw pe;
+        const defaultFiles = [
+            { project_id: proj.id, user_id: currentUser.id, file_type: 'page',  name: 'index.html',  content: '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n  <p>Kodlamaya başlayın.</p>\n</div>', is_primary: true, sort_order: 0 },
+            { project_id: proj.id, user_id: currentUser.id, file_type: 'style', name: 'style.css',   content: '/* CSS kodunuzu buraya yazın */\n.container {\n  padding: 20px;\n  font-family: sans-serif;\n}', is_primary: true, sort_order: 0 },
+            { project_id: proj.id, user_id: currentUser.id, file_type: 'code',  name: 'script.js',   content: '// JavaScript kodunuzu buraya yazın\nconsole.log("Merhaba!");', is_primary: true, sort_order: 0 }
+        ];
+        const { data: createdFiles, error: fe } = await sb.from('project_files').insert(defaultFiles).select();
+        if (fe) throw fe;
+        _fmProjects = [{
+            id: proj.id, name: proj.name, sort_order: 0, is_default: true, expanded: true,
+            files: createdFiles.map(f => ({ id: f.id, project_id: f.project_id, file_type: f.file_type, name: f.name, content: f.content || '', is_primary: f.is_primary, sort_order: f.sort_order }))
+        }];
+        _fmLoaded = true;
+        _fmRender();
+    } catch(e) { console.error('FM default project error:', e); }
+}
+
+// ── Add Project ───────────────────────────────────────────────────────────
+async function _fmAddProject() {
+    if (!currentUser) { showToast('Giriş yapmanız gerekiyor'); return; }
+    const n = _fmProjects.length + 1;
+    const name = 'Proje ' + n;
+    const sortOrder = _fmProjects.length;
+    try {
+        const { data: proj, error: pe } = await sb.from('projects')
+            .insert({ user_id: currentUser.id, name, sort_order: sortOrder, is_default: false })
+            .select().single();
+        if (pe) throw pe;
+        const newFiles = [
+            { project_id: proj.id, user_id: currentUser.id, file_type: 'page',  name: 'index.html', content: '<!-- HTML kodunuzu buraya yazın -->\n<div class="container">\n  <h1>Merhaba Dünya!</h1>\n</div>', is_primary: true, sort_order: 0 },
+            { project_id: proj.id, user_id: currentUser.id, file_type: 'style', name: 'style.css',  content: '/* CSS kodunuzu buraya yazın */', is_primary: true, sort_order: 0 },
+            { project_id: proj.id, user_id: currentUser.id, file_type: 'code',  name: 'script.js',  content: '// JavaScript kodunuzu buraya yazın', is_primary: true, sort_order: 0 }
+        ];
+        const { data: cf, error: fe } = await sb.from('project_files').insert(newFiles).select();
+        if (fe) throw fe;
+        _fmProjects.push({
+            id: proj.id, name: proj.name, sort_order: sortOrder, is_default: false, expanded: true,
+            files: cf.map(f => ({ id: f.id, project_id: f.project_id, file_type: f.file_type, name: f.name, content: f.content || '', is_primary: f.is_primary, sort_order: f.sort_order }))
+        });
+        _fmRender();
+        showToast('Proje oluşturuldu');
+    } catch(e) { console.error('FM add project error:', e); showToast('Proje oluşturulamadı'); }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function _fmRender() {
+    const list = document.getElementById('fmList');
+    if (!list) return;
+    if (!currentUser) {
+        list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);font-size:14px;">Proje yönetimi için giriş yapın</div>';
+        return;
+    }
+    if (_fmProjects.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);font-size:14px;">Henüz proje yok</div>';
+        return;
+    }
+    list.innerHTML = _fmProjects.map(p => _fmRenderProject(p)).join('');
+}
+
+function _fmRenderProject(p) {
+    const arrowCls = p.expanded ? 'fm-arrow open' : 'fm-arrow';
+    const pageFiles  = p.files.filter(f => f.file_type === 'page');
+    const styleFiles = p.files.filter(f => f.file_type === 'style');
+    const codeFiles  = p.files.filter(f => f.file_type === 'code');
+
+    const filesHtml = p.expanded ? `<div class="fm-file-list">
+        ${pageFiles.map(f  => _fmRenderFile(f, p.id)).join('')}
+        ${styleFiles.map(f => _fmRenderFile(f, p.id)).join('')}
+        ${codeFiles.map(f  => _fmRenderFile(f, p.id)).join('')}
+        <div class="fm-file-add-row">
+            <button class="fm-file-add-btn style-add" onclick="event.stopPropagation();_fmAddStyleFile(${p.id})">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                CSS
+            </button>
+            <button class="fm-file-add-btn code-add" onclick="event.stopPropagation();_fmAddCodeFile(${p.id})">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                JS
+            </button>
+        </div>
+    </div>` : '';
+
+    return `<div class="fm-project" id="fmp-${p.id}">
+        <div class="fm-project-header" onclick="_fmToggleProject(${p.id})">
+            <button class="${arrowCls}" onclick="event.stopPropagation();_fmToggleProject(${p.id})">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 18l6-6-6-6"/>
+                </svg>
+            </button>
+            <svg class="fm-project-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+            </svg>
+            <div class="fm-project-name-wrap">
+                <div class="fm-project-name" id="fmpname-${p.id}">${_fmEsc(p.name)}</div>
+            </div>
+            <button class="fm-rename-btn" onclick="event.stopPropagation();_fmStartRenameProject(${p.id})" title="Yeniden Adlandır">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+            </button>
+        </div>
+        ${filesHtml}
+    </div>`;
+}
+
+function _fmRenderFile(f, projectId) {
+    const dotCls = f.file_type === 'page' ? 'page' : f.file_type === 'style' ? 'style' : 'code';
+    const isActive = _fmActiveFile && _fmActiveFile.id === f.id;
+    return `<div class="fm-file-item${isActive ? ' active' : ''}" id="fmf-${f.id}" onclick="_fmOpenFile(${projectId},${f.id})">
+        <span class="fm-file-dot ${dotCls}"></span>
+        <span class="fm-file-name" id="fmfname-${f.id}">${_fmEsc(f.name)}</span>
+        <button class="fm-file-menu-btn" onclick="event.stopPropagation();_fmOpenCtx(event,${projectId},${f.id})" title="Seçenekler">•••</button>
+    </div>`;
+}
+
+// ── Toggle Project ────────────────────────────────────────────────────────
+function _fmToggleProject(id) {
+    const p = _fmProjects.find(x => x.id === id);
+    if (p) { p.expanded = !p.expanded; _fmRender(); }
+}
+
+// ── Rename Project ────────────────────────────────────────────────────────
+function _fmStartRenameProject(id) {
+    const nameEl = document.getElementById('fmpname-' + id);
+    if (!nameEl) return;
+    const p = _fmProjects.find(x => x.id === id);
+    const current = p ? p.name : nameEl.textContent;
+    nameEl.outerHTML = `<input class="fm-project-name-input" id="fmpinput-${id}"
+        value="${_fmEsc(current)}"
+        onblur="_fmFinishRenameProject(${id})"
+        onkeydown="if(event.key==='Enter')this.blur()"
+        onclick="event.stopPropagation()">`;
+    const inp = document.getElementById('fmpinput-' + id);
+    if (inp) { inp.focus(); inp.select(); }
+}
+
+async function _fmFinishRenameProject(id) {
+    const inp = document.getElementById('fmpinput-' + id);
+    if (!inp) return;
+    const name = inp.value.trim() || 'Proje';
+    const p = _fmProjects.find(x => x.id === id);
+    if (p) p.name = name;
+    _fmRender();
+    if (!currentUser) return;
+    try {
+        await sb.from('projects').update({ name, updated_at: new Date().toISOString() }).eq('id', id).eq('user_id', currentUser.id);
+    } catch(e) { console.error('FM rename project error:', e); }
+}
+
+// ── Open File in Editor ───────────────────────────────────────────────────
+function _fmOpenFile(projectId, fileId) {
+    const p = _fmProjects.find(x => x.id === projectId);
+    if (!p) return;
+    const f = p.files.find(x => x.id === fileId);
+    if (!f) return;
+
+    // Mevcut editör içeriğini hafızaya kaydet
+    _fmSaveCurrentToMemory();
+
+    _fmActiveProjectId = projectId;
+    _fmActiveFile = f;
+
+    const tabMap = { page: 'html', style: 'css', code: 'js' };
+    const editorTab = tabMap[f.file_type];
+
+    _tabs[editorTab] = f.content;
+    _activeTab = editorTab;
+
+    if (f.file_type === 'style') _fmActiveStyleId = fileId;
+    if (f.file_type === 'code')  _fmActiveCodeId  = fileId;
+
+    updateEditor();
+    _fmUpdateSubTabs();
+    _fmRender();
+    closeFileManager();
+    showToast(f.name + ' açıldı');
+}
+
+// ── Context Menu ──────────────────────────────────────────────────────────
+function _fmOpenCtx(e, projectId, fileId) {
+    e.preventDefault(); e.stopPropagation();
+    _fmCtxTarget = { projectId, fileId };
+    const p = _fmProjects.find(x => x.id === projectId);
+    const f = p?.files.find(x => x.id === fileId);
+    if (!f) return;
+
+    // Sil: sadece primary olmayan style/code dosyaları için
+    const canDelete = !f.is_primary && (f.file_type === 'style' || f.file_type === 'code');
+    const delBtn = document.getElementById('fmCtxDeleteBtn');
+    const sep    = document.getElementById('fmCtxSep');
+    if (delBtn) delBtn.style.display = canDelete ? '' : 'none';
+    if (sep)    sep.style.display    = canDelete ? '' : 'none';
+
+    const menu = document.getElementById('fmCtxMenu');
+    menu.classList.remove('open');
+    const x = Math.min(e.clientX, window.innerWidth  - 185);
+    const y = Math.min(e.clientY, window.innerHeight - 210);
+    menu.style.left = x + 'px';
+    menu.style.top  = y + 'px';
+    menu.classList.add('open');
+}
+
+function _fmCloseCtx() {
+    const menu = document.getElementById('fmCtxMenu');
+    if (menu) menu.classList.remove('open');
+    _fmCtxTarget = null;
+}
+
+async function _fmCtxAction(action) {
+    const t = _fmCtxTarget;
+    _fmCloseCtx();
+    if (!t) return;
+    const p = _fmProjects.find(x => x.id === t.projectId);
+    const f = p?.files.find(x => x.id === t.fileId);
+    if (!f) return;
+
+    if (action === 'open') {
+        _fmOpenFile(t.projectId, t.fileId);
+    } else if (action === 'rename') {
+        if (!document.getElementById('fmOverlay').classList.contains('open')) openFileManager();
+        if (!p.expanded) { p.expanded = true; _fmRender(); }
+        setTimeout(() => _fmStartRenameFile(t.fileId), 80);
+    } else if (action === 'copy') {
+        await _fmCopyFile(t.projectId, t.fileId);
+    } else if (action === 'download') {
+        _fmDownloadFile(f);
+    } else if (action === 'delete') {
+        const canDelete = !f.is_primary && (f.file_type === 'style' || f.file_type === 'code');
+        if (canDelete) await _fmDeleteFile(t.projectId, t.fileId);
+        else showToast('Bu dosya silinemez');
+    }
+}
+
+// ── Rename File ───────────────────────────────────────────────────────────
+function _fmStartRenameFile(fileId) {
+    const nameEl = document.getElementById('fmfname-' + fileId);
+    if (!nameEl) return;
+    const current = nameEl.textContent;
+    nameEl.outerHTML = `<input class="fm-file-name-input" id="fmfinput-${fileId}"
+        value="${_fmEsc(current)}"
+        onblur="_fmFinishRenameFile(${fileId})"
+        onkeydown="if(event.key==='Enter')this.blur()"
+        onclick="event.stopPropagation()">`;
+    const inp = document.getElementById('fmfinput-' + fileId);
+    if (inp) { inp.focus(); inp.select(); }
+}
+
+async function _fmFinishRenameFile(fileId) {
+    const inp = document.getElementById('fmfinput-' + fileId);
+    if (!inp) return;
+    const name = inp.value.trim() || 'dosya';
+    for (const p of _fmProjects) {
+        const f = p.files.find(x => x.id === fileId);
+        if (f) { f.name = name; break; }
+    }
+    if (_fmActiveFile?.id === fileId) _fmActiveFile.name = name;
+    _fmRender();
+    if (!currentUser) return;
+    try {
+        await sb.from('project_files').update({ name, updated_at: new Date().toISOString() }).eq('id', fileId).eq('user_id', currentUser.id);
+    } catch(e) { console.error('FM rename file error:', e); }
+}
+
+// ── Copy File ─────────────────────────────────────────────────────────────
+async function _fmCopyFile(projectId, fileId) {
+    if (!currentUser) { showToast('Giriş yapmanız gerekiyor'); return; }
+    const p = _fmProjects.find(x => x.id === projectId);
+    const f = p?.files.find(x => x.id === fileId);
+    if (!f) return;
+    const dotIdx = f.name.lastIndexOf('.');
+    const ext  = dotIdx > -1 ? f.name.slice(dotIdx) : '';
+    const base = dotIdx > -1 ? f.name.slice(0, dotIdx) : f.name;
+    const copyName = base + '-kopya' + ext;
+    const maxSort = Math.max(0, ...p.files.filter(x => x.file_type === f.file_type).map(x => x.sort_order));
+    try {
+        const { data, error } = await sb.from('project_files')
+            .insert({ project_id: projectId, user_id: currentUser.id, file_type: f.file_type, name: copyName, content: f.content, is_primary: false, sort_order: maxSort + 1 })
+            .select().single();
+        if (error) throw error;
+        p.files.push({ id: data.id, project_id: projectId, file_type: f.file_type, name: copyName, content: f.content, is_primary: false, sort_order: maxSort + 1 });
+        _fmRender();
+        showToast('Kopyalandı: ' + copyName);
+    } catch(e) { console.error('FM copy error:', e); showToast('Kopyalanamadı'); }
+}
+
+// ── Download File ─────────────────────────────────────────────────────────
+function _fmDownloadFile(f) {
+    const blob = new Blob([f.content], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = f.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    showToast(f.name + ' indiriliyor...');
+}
+
+// ── Delete File ───────────────────────────────────────────────────────────
+async function _fmDeleteFile(projectId, fileId) {
+    const p = _fmProjects.find(x => x.id === projectId);
+    const f = p?.files.find(x => x.id === fileId);
+    if (!f) return;
+    if (f.is_primary) { showToast('Bu dosya silinemez'); return; }
+    if (f.file_type === 'page') { showToast('Sayfa dosyası silinemez'); return; }
+    const sameType = p.files.filter(x => x.file_type === f.file_type);
+    if (sameType.length <= 1) { showToast('En az bir ' + (f.file_type === 'style' ? 'CSS' : 'JS') + ' dosyası olmalı'); return; }
+    if (currentUser) {
+        try {
+            await sb.from('project_files').delete().eq('id', fileId).eq('user_id', currentUser.id);
+        } catch(e) { console.error('FM delete error:', e); showToast('Silinemedi'); return; }
+    }
+    p.files = p.files.filter(x => x.id !== fileId);
+    if (_fmActiveFile?.id === fileId) { _fmActiveFile = null; }
+    if (_fmActiveStyleId === fileId) _fmActiveStyleId = null;
+    if (_fmActiveCodeId  === fileId) _fmActiveCodeId  = null;
+    _fmRender();
+    _fmUpdateSubTabs();
+    showToast('Dosya silindi');
+}
+
+// ── Add Style / Code File ─────────────────────────────────────────────────
+async function _fmAddStyleFile(projectId) {
+    if (!currentUser) { showToast('Giriş yapmanız gerekiyor'); return; }
+    const p = _fmProjects.find(x => x.id === projectId);
+    if (!p) return;
+    const cnt = p.files.filter(f => f.file_type === 'style').length + 1;
+    const name = 'style' + cnt + '.css';
+    const maxSort = Math.max(0, ...p.files.filter(f => f.file_type === 'style').map(f => f.sort_order));
+    try {
+        const { data, error } = await sb.from('project_files')
+            .insert({ project_id: projectId, user_id: currentUser.id, file_type: 'style', name, content: '/* ' + name + ' */', is_primary: false, sort_order: maxSort + 1 })
+            .select().single();
+        if (error) throw error;
+        p.files.push({ id: data.id, project_id: projectId, file_type: 'style', name, content: data.content || '', is_primary: false, sort_order: maxSort + 1 });
+        _fmRender();
+        showToast('Stil dosyası eklendi');
+    } catch(e) { console.error('FM add style error:', e); showToast('Eklenemedi'); }
+}
+
+async function _fmAddCodeFile(projectId) {
+    if (!currentUser) { showToast('Giriş yapmanız gerekiyor'); return; }
+    const p = _fmProjects.find(x => x.id === projectId);
+    if (!p) return;
+    const cnt = p.files.filter(f => f.file_type === 'code').length + 1;
+    const name = 'script' + cnt + '.js';
+    const maxSort = Math.max(0, ...p.files.filter(f => f.file_type === 'code').map(f => f.sort_order));
+    try {
+        const { data, error } = await sb.from('project_files')
+            .insert({ project_id: projectId, user_id: currentUser.id, file_type: 'code', name, content: '// ' + name, is_primary: false, sort_order: maxSort + 1 })
+            .select().single();
+        if (error) throw error;
+        p.files.push({ id: data.id, project_id: projectId, file_type: 'code', name, content: data.content || '', is_primary: false, sort_order: maxSort + 1 });
+        _fmRender();
+        showToast('Kod dosyası eklendi');
+    } catch(e) { console.error('FM add code error:', e); showToast('Eklenemedi'); }
+}
+
+// ── Sub-tab Bar ───────────────────────────────────────────────────────────
+function _fmUpdateSubTabs() {
+    const bar = document.getElementById('fmSubTabBar');
+    if (!bar) return;
+    if (!_fmActiveProjectId) { bar.classList.remove('visible'); bar.innerHTML = ''; return; }
+    const p = _fmProjects.find(x => x.id === _fmActiveProjectId);
+    if (!p) { bar.classList.remove('visible'); bar.innerHTML = ''; return; }
+
+    if (_activeTab === 'css') {
+        const styleFiles = p.files.filter(f => f.file_type === 'style');
+        if (styleFiles.length < 2) { bar.classList.remove('visible'); bar.innerHTML = ''; return; }
+        bar.classList.add('visible');
+        bar.innerHTML = styleFiles.map(f =>
+            `<button class="fm-sub-tab${_fmActiveStyleId === f.id ? ' active' : ''}" onclick="_fmSwitchSubFile(${p.id},${f.id},'style')">${_fmEsc(f.name)}</button>`
+        ).join('');
+    } else if (_activeTab === 'js') {
+        const codeFiles = p.files.filter(f => f.file_type === 'code');
+        if (codeFiles.length < 2) { bar.classList.remove('visible'); bar.innerHTML = ''; return; }
+        bar.classList.add('visible');
+        bar.innerHTML = codeFiles.map(f =>
+            `<button class="fm-sub-tab${_fmActiveCodeId === f.id ? ' active' : ''}" onclick="_fmSwitchSubFile(${p.id},${f.id},'code')">${_fmEsc(f.name)}</button>`
+        ).join('');
+    } else {
+        bar.classList.remove('visible'); bar.innerHTML = '';
+    }
+}
+
+function _fmSwitchSubFile(projectId, fileId, fileType) {
+    _fmSaveCurrentToMemory();
+    const p = _fmProjects.find(x => x.id === projectId);
+    const f = p?.files.find(x => x.id === fileId);
+    if (!f) return;
+    _fmActiveFile = f;
+    if (fileType === 'style') { _fmActiveStyleId = fileId; _tabs.css = f.content; }
+    else                      { _fmActiveCodeId  = fileId; _tabs.js  = f.content; }
+    updateEditor();
+    _fmUpdateSubTabs();
+}
+
+// ── Auto-save Project File ────────────────────────────────────────────────
+function _fmSaveCurrentToMemory() {
+    if (!_fmActiveFile) return;
+    const tabMap = { page: 'html', style: 'css', code: 'js' };
+    const t = tabMap[_fmActiveFile.file_type];
+    if (!t) return;
+    const content = window.cm ? cm.getValue() : (document.getElementById('editor')?.value || '');
+    _tabs[t] = content;
+    _fmActiveFile.content = content;
+    // Update in-memory project file
+    for (const p of _fmProjects) {
+        const f = p.files.find(x => x.id === _fmActiveFile.id);
+        if (f) { f.content = content; break; }
+    }
+}
+
+function _fmScheduleSave() {
+    if (!_fmActiveFile || !currentUser) return;
+    clearTimeout(_fmSaveTimer);
+    _fmSaveTimer = setTimeout(_fmFlushSave, 2500);
+}
+
+async function _fmFlushSave() {
+    if (!_fmActiveFile || !currentUser) return;
+    const tabMap = { page: 'html', style: 'css', code: 'js' };
+    const t = tabMap[_fmActiveFile.file_type];
+    const content = _tabs[t] || '';
+    const fileId = _fmActiveFile.id;
+    try {
+        await sb.from('project_files')
+            .update({ content, updated_at: new Date().toISOString() })
+            .eq('id', fileId).eq('user_id', currentUser.id);
+    } catch(e) { console.error('FM auto-save error:', e); }
+}
+
+// ── Helper ────────────────────────────────────────────────────────────────
+function _fmEsc(str) {
+    return String(str || '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Context menu kapama — dışarı tıklanınca
+document.addEventListener('click', e => {
+    if (!e.target.closest('#fmCtxMenu') && !e.target.closest('.fm-file-menu-btn')) {
+        _fmCloseCtx();
+    }
+});
 </script>
 
 <!-- ── BİLDİRİMLER PANELİ ──────────────────────────────────────────────── -->
@@ -13995,6 +14781,63 @@ async function _shareCopyLink() {
             <button class="admin-merge-cancel" onclick="document.getElementById('adminMergePicker').style.display='none'">Vazgeç</button>
         </div>
     </div>
+</div>
+
+<!-- ── DOSYA YÖNETİCİSİ MODALİ ─────────────────────────────────────────── -->
+<div class="fm-overlay" id="fmOverlay" onclick="_fmOverlayClick(event)">
+    <div class="fm-panel">
+        <div class="fm-header">
+            <span class="fm-title">Projeler</span>
+            <div class="fm-header-btns">
+                <button class="fm-add-btn" onclick="_fmAddProject()">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Yeni Ekle
+                </button>
+                <button class="fm-close-btn" onclick="closeFileManager()">✕</button>
+            </div>
+        </div>
+        <div class="fm-list" id="fmList">
+            <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);font-size:14px;">Yükleniyor...</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── DOSYA YÖNETİCİSİ CONTEXT MENU ──────────────────────────────────── -->
+<div class="fm-ctx-menu" id="fmCtxMenu">
+    <button class="fm-ctx-item" onclick="_fmCtxAction('open')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 9h6M9 13h4"/>
+        </svg>
+        Aç
+    </button>
+    <button class="fm-ctx-item" onclick="_fmCtxAction('rename')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+        </svg>
+        Adını Değiştir
+    </button>
+    <button class="fm-ctx-item" onclick="_fmCtxAction('copy')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+        Kopyala
+    </button>
+    <button class="fm-ctx-item" onclick="_fmCtxAction('download')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        İndir
+    </button>
+    <div class="fm-ctx-sep" id="fmCtxSep" style="display:none;"></div>
+    <button class="fm-ctx-item danger" id="fmCtxDeleteBtn" style="display:none;" onclick="_fmCtxAction('delete')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+        Sil
+    </button>
 </div>
 
 </body>
