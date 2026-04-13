@@ -7827,8 +7827,11 @@ async function confirmDuplicateSave() {
 
 // ── Core Save Logic ────────────────────────────────────────────────────
 async function _doSave(filename, description = '') {
+    // Aktif FM projesi varsa tüm dosyaları JSON olarak serileştir
+    const saveCode = _fmActiveProjectId ? _fmSerializeProject(_fmActiveProjectId) : code;
+
     const localFile = {
-        id: Date.now(), filename, code, description,
+        id: Date.now(), filename, code: saveCode, description,
         timestamp: new Date().toISOString(), cloud: false
     };
     savedFiles.push(localFile);
@@ -7871,7 +7874,7 @@ async function _doSave(filename, description = '') {
 
     // İlk versiyon (v1) oluştur
     if (cloudResult && cloudResult.id) {
-        const v1 = await VersionManager.create(cloudResult.id, code, 'İlk versiyon');
+        const v1 = await VersionManager.create(cloudResult.id, saveCode, 'İlk versiyon');
         if (v1 && !v1.skipped) {
             currentVersionId = v1.id;
             updateVersionBadge(v1.version_number);
@@ -7888,7 +7891,7 @@ async function _doSave(filename, description = '') {
 }
 
 async function createNewSave() {
-    if (!code.trim()) { showToast('Kaydedilecek kod yok'); return; }
+    if (!_fmActiveProjectId && !code.trim()) { showToast('Kaydedilecek kod yok'); return; }
     openNewSaveModal();
 }
 
@@ -8592,7 +8595,7 @@ async function continuePreviewSavedFile(fileId) {
     isViewingOldVersion = false; _viewingVersionNum = null;
     _hideOldVersionBanner();
     closeSavedFilesPanel();
-    await _fmImportHtmlAsProject(`<html><body>${file.code}</body></html>`, file.filename);
+    await _fmImportHtmlAsProject(_fmCodeOrWrap(file.code), file.filename);
     // Kayıt takibi (quick save çalışsın diye)
     currentOpenFileId = file.id; hasUnsavedChanges = false;
     setSaveButtonState('saved'); saveToStorage();
@@ -8610,7 +8613,7 @@ async function continueViewSavedFileCode(fileId) {
     isViewingOldVersion = false; _viewingVersionNum = null;
     _hideOldVersionBanner();
     closeSavedFilesPanel();
-    await _fmImportHtmlAsProject(`<html><body>${file.code}</body></html>`, file.filename);
+    await _fmImportHtmlAsProject(_fmCodeOrWrap(file.code), file.filename);
     // Kayıt takibi (quick save çalışsın diye)
     currentOpenFileId = file.id; hasUnsavedChanges = false;
     setSaveButtonState('saved'); saveToStorage();
@@ -10084,7 +10087,7 @@ function loadPublicFile(fileId) {
 }
 
 function _loadPublicFile(filename, fileCode) {
-    _fmImportHtmlAsProject(`<html><body>${fileCode}</body></html>`, filename);
+    _fmImportHtmlAsProject(_fmCodeOrWrap(fileCode), filename);
     const r = document.querySelector('input[name="view"][value="code"]');
     if (r) { r.checked = true; handleViewSwitch('code'); }
 }
@@ -10111,7 +10114,7 @@ async function forkToEditor(sourceFileId, filename, fileCode, ...closeFns) {
     savedFiles.unshift({ id: data.id, filename: data.filename, code: data.code, timestamp: data.updated_at, cloud: true, isPublic: false });
     renderSavedFiles();
     // Editöre proje olarak yükle
-    await _fmImportHtmlAsProject(`<html><body>${data.code}</body></html>`, data.filename);
+    await _fmImportHtmlAsProject(_fmCodeOrWrap(data.code), data.filename);
     currentOpenFileId = data.id; hasUnsavedChanges = false;
     setSaveButtonState('idle'); saveToStorage();
     updateTabDotColor(); updateQuickSaveButton();
@@ -14094,7 +14097,82 @@ function toggleFileManager() {
 }
 
 // ── HTML Dosyasını Yeni Proje Olarak İçe Aktar ───────────────────────────
+// ── FM Serialize / Restore Helpers ───────────────────────────────────────
+function _fmSerializeProject(projectId) {
+    _fmSaveCurrentToMemory();
+    const p = _fmProjects.find(x => x.id === projectId);
+    if (!p) return '';
+    return JSON.stringify({
+        __fm_project: true,
+        name: p.name,
+        files: p.files.map(f => ({
+            file_type: f.file_type, name: f.name,
+            content: f.content, is_primary: f.is_primary, sort_order: f.sort_order
+        }))
+    });
+}
+
+async function _fmRestoreFromProjectData(data, projectName) {
+    const name  = (projectName || data.name || 'Proje').replace(/\.[^/.]+$/, '');
+    const files = data.files || [];
+    if (!currentUser) {
+        // Giriş yoksa tek _tabs'e yükle (birleşik)
+        const html = files.find(f => f.file_type === 'page')?.content || '';
+        const css  = files.filter(f => f.file_type === 'style').map(f => f.content).join('\n\n');
+        const js   = files.filter(f => f.file_type === 'code').map(f => f.content).join('\n\n');
+        _tabs = { html, css, js }; _activeTab = 'html';
+        loadedFilename = name; hasUnsavedChanges = false;
+        updateEditor(); updateFilenameDisplay(); saveToStorage(); _fmUpdateSubTabs();
+        showToast(name + ' yüklendi');
+        return;
+    }
+    try {
+        const sortOrder = _fmProjects.length;
+        const { data: proj, error: pe } = await sb.from('projects')
+            .insert({ user_id: currentUser.id, name, sort_order: sortOrder, is_default: false })
+            .select().single();
+        if (pe) throw pe;
+        const toInsert = files.map((f, i) => ({
+            project_id: proj.id, user_id: currentUser.id,
+            file_type: f.file_type, name: f.name, content: f.content,
+            is_primary: f.is_primary ?? true, sort_order: f.sort_order ?? i
+        }));
+        const { data: cf, error: fe } = await sb.from('project_files').insert(toInsert).select();
+        if (fe) throw fe;
+        _fmProjects.push({
+            id: proj.id, name: proj.name, sort_order: sortOrder, is_default: false, expanded: true,
+            files: cf.map(f => ({ id: f.id, project_id: f.project_id, file_type: f.file_type, name: f.name, content: f.content || '', is_primary: f.is_primary, sort_order: f.sort_order }))
+        });
+        _fmOpenProject(proj.id, true);
+        showToast('"' + name + '" projesi geri yüklendi');
+    } catch(e) {
+        console.error('FM restore error:', e);
+        const html = files.find(f => f.file_type === 'page')?.content || '';
+        const css  = files.filter(f => f.file_type === 'style').map(f => f.content).join('\n\n');
+        const js   = files.filter(f => f.file_type === 'code').map(f => f.content).join('\n\n');
+        _tabs = { html, css, js }; _activeTab = 'html';
+        loadedFilename = name; hasUnsavedChanges = false;
+        updateEditor(); updateFilenameDisplay(); saveToStorage(); _fmUpdateSubTabs();
+        showToast(name + ' yüklendi');
+    }
+}
+
+function _fmCodeOrWrap(code) {
+    return (code || '').trim().startsWith('{"__fm_project"')
+        ? code
+        : `<html><body>${code}</body></html>`;
+}
+
 async function _fmImportHtmlAsProject(rawHtml, projectName) {
+    // JSON serileştirilmiş proje mi?
+    const trimmed = (rawHtml || '').trim();
+    if (trimmed.startsWith('{"__fm_project"')) {
+        try {
+            await _fmRestoreFromProjectData(JSON.parse(trimmed), projectName);
+            return;
+        } catch(e) { console.error('FM JSON parse error:', e); }
+    }
+
     const isFullDoc = /<html[\s>]/i.test(rawHtml);
     const tabs = _splitHtmlToTabs(isFullDoc ? rawHtml : `<html><body>${rawHtml}</body></html>`);
     const name  = (projectName || 'Proje').replace(/\.[^/.]+$/, ''); // uzantıyı çıkar
