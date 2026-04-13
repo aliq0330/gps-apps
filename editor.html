@@ -4197,14 +4197,6 @@ body.preview-mode .file-title-bar { display: none !important; }
 <div class="fab-overlay" id="fabOverlay" onclick="toggleFabMenu()"></div>
 <div class="fab-container" id="fabContainer" style="display:none;">
     <div class="fab-menu" id="fabMenu">
-        <div class="fab-menu-item" onclick="clearCode()">
-            <div class="fab-menu-icon">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-            </div>
-            <span>Temizle</span>
-        </div>
         <div class="fab-menu-item" onclick="toggleFabMenu();_openSearch()">
             <div class="fab-menu-icon">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -8750,23 +8742,6 @@ function handleFileLoad(event) {
 }
 
 // ── Misc ───────────────────────────────────────────────────────────────
-function clearCode() {
-    if (confirm('Tüm kodları temizlemek istediğinize emin misiniz?')) {
-        _tabs = { html: '', css: '', js: '' }; _activeTab = 'html';
-        code = ''; loadedFilename = '';
-        currentOpenFileId = null; hasUnsavedChanges = false;
-        isViewingOldVersion = false; _viewingVersionNum = null;
-        saveToStorage(); updateEditor(); updateFilenameDisplay();
-        updateTabDotColor(); updateQuickSaveButton();
-        setSaveButtonState('idle');
-        updateVersionBadge(null);
-        _hideOldVersionBanner();
-        const r = document.querySelector('input[name="view"][value="code"]');
-        if (r && !r.checked) { r.checked = true; handleViewSwitch('code'); }
-        showToast('Kodlar temizlendi');
-    }
-    if (isFabOpen) toggleFabMenu();
-}
 
 function copyAll() {
     const h = document.getElementById('hiddenCopyArea');
