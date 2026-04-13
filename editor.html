@@ -3136,6 +3136,197 @@ body.preview-mode .file-title-bar { display: none !important; }
 }
 .version-summary-error.visible { display: block; }
 
+/* ══════════════════════════════════════════════════════════════
+   VFS — PROJE AĞACI (Project Tree Explorer)
+   ══════════════════════════════════════════════════════════════ */
+
+/* Row layout when sidebar is open (desktop) */
+#appMain.vfs-row { flex-direction: row !important; }
+
+/* Sidebar panel */
+#vfsPanel {
+    width: 256px; flex-shrink: 0;
+    display: flex; flex-direction: column;
+    background: var(--glass-bg);
+    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    border-right: 1px solid var(--glass-border);
+    overflow: hidden; z-index: 10;
+    transition: transform 0.3s cubic-bezier(0.25,0.8,0.25,1);
+}
+#vfsPanel.hidden { display: none; }
+
+/* Mobile overlay backdrop */
+#vfsOverlay {
+    display: none; position: fixed; inset: 0;
+    z-index: 4999; background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+#vfsOverlay.show { display: block; }
+
+/* Mobile: fixed overlay panel */
+@media (max-width: 768px) {
+    #appMain.vfs-row { flex-direction: column !important; }
+    #vfsPanel {
+        position: fixed; top: 0; left: 0; bottom: 0;
+        width: 82%; max-width: 320px;
+        z-index: 5000;
+        transform: translateX(-100%);
+        box-shadow: 4px 0 40px rgba(0,0,0,0.35);
+    }
+    #vfsPanel:not(.hidden).mobile-open { transform: translateX(0); }
+}
+
+/* Header */
+.vfs-header {
+    padding: 10px 10px 6px; flex-shrink: 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+.vfs-header-top {
+    display: flex; align-items: center; gap: 4px; margin-bottom: 6px;
+}
+.vfs-project-name {
+    flex: 1; min-width: 0; font-size: 12px; font-weight: 700;
+    color: var(--text-primary); cursor: pointer;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    padding: 3px 6px; border-radius: 6px; transition: background 0.15s;
+}
+.vfs-project-name:hover { background: rgba(120,120,128,0.12); }
+.vfs-header-actions { display: flex; gap: 2px; flex-shrink: 0; }
+.vfs-icon-btn {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: transparent; border: none; cursor: pointer;
+    color: var(--text-secondary); display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; flex-shrink: 0;
+}
+.vfs-icon-btn:hover { background: rgba(120,120,128,0.15); color: var(--text-primary); }
+.vfs-icon-btn:active { transform: scale(0.88); }
+
+/* Breadcrumb */
+.vfs-breadcrumb {
+    display: flex; align-items: center; flex-wrap: nowrap;
+    overflow-x: auto; gap: 1px; scrollbar-width: none;
+    font-size: 10px; color: var(--text-secondary); min-height: 16px;
+}
+.vfs-breadcrumb::-webkit-scrollbar { display: none; }
+.vfs-crumb {
+    cursor: pointer; padding: 1px 4px; border-radius: 4px;
+    white-space: nowrap; transition: background 0.15s;
+    max-width: 72px; overflow: hidden; text-overflow: ellipsis;
+}
+.vfs-crumb:hover { background: rgba(120,120,128,0.1); color: var(--text-primary); }
+.vfs-crumb.active { color: #007aff; font-weight: 600; cursor: default; }
+.vfs-crumb.active:hover { background: transparent; }
+.vfs-crumb-sep { opacity: 0.35; flex-shrink: 0; font-size: 9px; padding: 0 1px; }
+
+/* Tree scroll area */
+.vfs-tree {
+    flex: 1; overflow-y: auto; padding: 4px 0;
+    scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent;
+}
+.vfs-tree::-webkit-scrollbar { width: 4px; }
+.vfs-tree::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+
+/* Tree item row */
+.vfs-item {
+    display: flex; align-items: center;
+    height: 28px; padding: 0 6px;
+    cursor: pointer; border-radius: 7px;
+    margin: 1px 5px;
+    transition: background 0.1s;
+    position: relative; user-select: none;
+    border-left: 2px solid transparent;
+}
+.vfs-item:hover { background: rgba(120,120,128,0.1); }
+.vfs-item.active {
+    background: rgba(0,122,255,0.1);
+    border-left-color: #007aff;
+}
+.vfs-item.active .vfs-item-name { font-weight: 600; }
+.vfs-item.drag-over { background: rgba(52,199,89,0.12); border-left-color: #34c759; outline: 1px dashed rgba(52,199,89,0.5); }
+
+/* Expand/collapse arrow */
+.vfs-toggle {
+    width: 14px; height: 14px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary); font-size: 9px;
+    transition: transform 0.18s; margin-right: 1px;
+}
+.vfs-toggle.expanded { transform: rotate(90deg); }
+.vfs-toggle.leaf { opacity: 0; pointer-events: none; }
+
+/* File/folder icon */
+.vfs-item-icon {
+    flex-shrink: 0; margin-right: 5px;
+    font-size: 10px; font-weight: 800; letter-spacing: -0.04em;
+    min-width: 26px; text-align: center;
+}
+.vfs-icon-js   { color: #f7c948; }
+.vfs-icon-ts   { color: #3178c6; }
+.vfs-icon-css  { color: #4373c8; }
+.vfs-icon-html { color: #e5532d; }
+.vfs-icon-json { color: #34c759; }
+.vfs-icon-md   { color: #8e8e93; }
+.vfs-icon-py   { color: #3572a5; }
+.vfs-icon-folder { font-size: 13px; min-width: 26px; text-align: center; }
+
+/* Item name text */
+.vfs-item-name {
+    flex: 1; min-width: 0; font-size: 12px;
+    color: var(--text-primary);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Unsaved indicator dot */
+.vfs-unsaved-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #ff9f0a; flex-shrink: 0; margin-left: 3px; display: none;
+}
+.vfs-item.unsaved .vfs-unsaved-dot { display: block; }
+
+/* Empty state */
+.vfs-empty {
+    text-align: center; padding: 28px 16px;
+    color: var(--text-secondary);
+}
+.vfs-empty-icon { font-size: 32px; margin-bottom: 10px; }
+.vfs-empty-text { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.vfs-empty-sub  { font-size: 11px; opacity: 0.7; line-height: 1.5; }
+
+/* ── Context Menu ── */
+#vfsCtxMenu {
+    position: fixed; z-index: 9500;
+    background: var(--glass-bg);
+    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.1);
+    padding: 6px; min-width: 178px; display: none;
+}
+#vfsCtxMenu.show { display: block; animation: vfsCtxIn 0.13s ease; }
+@keyframes vfsCtxIn {
+    from { opacity:0; transform:scale(0.93) translateY(-4px); }
+    to   { opacity:1; transform:scale(1) translateY(0); }
+}
+.ctx-title {
+    font-size: 11px; color: var(--text-secondary); font-weight: 600;
+    padding: 2px 8px 4px; letter-spacing: 0.02em;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 166px;
+}
+.ctx-divider { height: 1px; background: var(--glass-border); margin: 3px 0; }
+.ctx-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border-radius: 8px;
+    font-size: 13px; color: var(--text-primary); font-weight: 500;
+    cursor: pointer; transition: background 0.12s; white-space: nowrap;
+}
+.ctx-item:hover { background: rgba(120,120,128,0.15); }
+.ctx-item.danger { color: #ff453a; }
+.ctx-item.danger:hover { background: rgba(255,69,58,0.1); }
+.ctx-item-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+
 </style>
 
 </head>
@@ -3836,6 +4027,15 @@ body.preview-mode .file-title-bar { display: none !important; }
         </svg>
         Kayıtlar
     </button>
+    <button class="bottom-bar-btn" id="bbVfsBtn" onclick="toggleVfsPanel()">
+        <svg class="bb-icon-o" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+        </svg>
+        <svg class="bb-icon-f" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+        </svg>
+        Proje
+    </button>
 </div>
 
 <div class="file-title-bar" id="fileTitleBar" style="display:none;">
@@ -3873,7 +4073,40 @@ body.preview-mode .file-title-bar { display: none !important; }
     <input type="file" id="fileInput" accept=".html,.htm,.txt,.text,.js,.css,.json,.xml,.md" style="display:none" onchange="handleFileLoad(event)">
 </div>
 
+<!-- VFS: mobile backdrop + context menu (outside main so z-index stacks correctly) -->
+<div id="vfsOverlay" onclick="closeVfsPanel()"></div>
+<div id="vfsCtxMenu"></div>
+
 <main id="appMain" style="display:none;">
+
+    <!-- ── VFS SIDEBAR ─────────────────────────────────────── -->
+    <div id="vfsPanel" class="hidden">
+        <div class="vfs-header">
+            <div class="vfs-header-top">
+                <span class="vfs-project-name" id="vfsProjectName" onclick="vfsRenameProject()">Proje</span>
+                <div class="vfs-header-actions">
+                    <button class="vfs-icon-btn" onclick="vfsCreateFile()" title="Yeni Dosya">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </button>
+                    <button class="vfs-icon-btn" onclick="vfsCreateFolder()" title="Yeni Klasör">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+                        </svg>
+                    </button>
+                    <button class="vfs-icon-btn" onclick="closeVfsPanel()" title="Kapat">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="vfs-breadcrumb" id="vfsBreadcrumb"></div>
+        </div>
+        <div class="vfs-tree" id="vfsTree" oncontextmenu="vfsTreeRightClick(event)" onclick="vfsTreeClick(event)"></div>
+    </div>
+
     <div class="code-area" id="codeArea">
         <div class="editor-tab-bar" id="editorTabBar">
             <button class="editor-tab active" data-tab="html" onclick="_switchEditorTab('html')">
@@ -13732,6 +13965,588 @@ async function _shareCopyLink() {
         showToast('Kopyalanamadı');
     }
 }
+
+// ══════════════════════════════════════════════════════════════
+// VFS — Proje Ağacı (Virtual File System)
+// ══════════════════════════════════════════════════════════════
+
+let vfs = { nodes: {}, rootId: null, activeFileId: null, projectName: 'Yeni Proje' };
+let _vfsMode = false;
+let _vfsDragId = null;
+let _vfsCtxTarget = null;
+let _vfsLongPressTimer = null;
+let _vfsSaveTimer = null;
+
+// ── UUID ──────────────────────────────────────────────────────
+function _vfsUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+}
+
+// ── Storage ───────────────────────────────────────────────────
+function _vfsKey() {
+    return currentUser ? 'vfs_' + currentUser.id : 'vfs_anonymous';
+}
+
+function vfsSaveToStorage() {
+    try {
+        localStorage.setItem(_vfsKey(), JSON.stringify({
+            nodes: vfs.nodes, rootId: vfs.rootId,
+            activeFileId: vfs.activeFileId, projectName: vfs.projectName
+        }));
+    } catch(e) { console.warn('VFS kayıt hatası', e); }
+}
+
+function vfsLoadFromStorage() {
+    try {
+        const raw = localStorage.getItem(_vfsKey());
+        if (!raw) { vfsInitFresh(); return; }
+        const d = JSON.parse(raw);
+        vfs.nodes = d.nodes || {};
+        vfs.rootId = d.rootId || null;
+        vfs.activeFileId = d.activeFileId || null;
+        vfs.projectName = d.projectName || 'Yeni Proje';
+        if (!vfs.rootId || !vfs.nodes[vfs.rootId]) vfsInitFresh();
+    } catch(e) { vfsInitFresh(); }
+}
+
+function vfsInitFresh() {
+    const rootId = _vfsUUID();
+    vfs.nodes = {
+        [rootId]: {
+            id: rootId, name: 'Proje', type: 'folder',
+            parentId: null, children: [], isExpanded: true,
+            createdAt: Date.now(), updatedAt: Date.now()
+        }
+    };
+    vfs.rootId = rootId;
+    vfs.activeFileId = null;
+    vfs.projectName = 'Yeni Proje';
+    vfsSaveToStorage();
+}
+
+// ── Node helpers ──────────────────────────────────────────────
+function vfsNode(id) { return vfs.nodes[id]; }
+
+function vfsDetectLanguage(name) {
+    const ext = (name.split('.').pop() || '').toLowerCase();
+    const map = {
+        js:'javascript', jsx:'javascript', ts:'javascript', tsx:'javascript',
+        css:'css', scss:'css', sass:'css',
+        html:'htmlmixed', htm:'htmlmixed',
+        json:'javascript', xml:'xml',
+        md:'markdown', markdown:'markdown',
+        py:'python'
+    };
+    return map[ext] || 'text/plain';
+}
+
+function _vfsFileIcon(name, type) {
+    if (type === 'folder') return '<span class="vfs-item-icon vfs-icon-folder">📁</span>';
+    const ext = (name.split('.').pop() || '').toLowerCase();
+    const m = {
+        js:'<span class="vfs-item-icon vfs-icon-js">JS</span>',
+        jsx:'<span class="vfs-item-icon vfs-icon-js">JSX</span>',
+        ts:'<span class="vfs-item-icon vfs-icon-ts">TS</span>',
+        tsx:'<span class="vfs-item-icon vfs-icon-ts">TSX</span>',
+        css:'<span class="vfs-item-icon vfs-icon-css">CSS</span>',
+        scss:'<span class="vfs-item-icon vfs-icon-css">SCSS</span>',
+        html:'<span class="vfs-item-icon vfs-icon-html">HTML</span>',
+        htm:'<span class="vfs-item-icon vfs-icon-html">HTML</span>',
+        json:'<span class="vfs-item-icon vfs-icon-json">⚙</span>',
+        md:'<span class="vfs-item-icon vfs-icon-md">📝</span>',
+        py:'<span class="vfs-item-icon vfs-icon-py">🐍</span>'
+    };
+    return m[ext] || '<span class="vfs-item-icon">📄</span>';
+}
+
+function _vfsEsc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Render ────────────────────────────────────────────────────
+function vfsRenderTree() {
+    const container = document.getElementById('vfsTree');
+    if (!container) return;
+    const pn = document.getElementById('vfsProjectName');
+    if (pn) pn.textContent = vfs.projectName;
+
+    const root = vfs.nodes[vfs.rootId];
+    if (!root || !root.children || root.children.length === 0) {
+        container.innerHTML = '<div class="vfs-empty">' +
+            '<div class="vfs-empty-icon">📁</div>' +
+            '<div class="vfs-empty-text">Proje boş</div>' +
+            '<div class="vfs-empty-sub">Yeni dosya veya klasör<br>oluşturmak için + düğmesini kullanın</div>' +
+            '</div>';
+        _vfsUpdateBreadcrumb();
+        return;
+    }
+
+    let html = '';
+    function renderNode(nodeId, depth) {
+        const node = vfsNode(nodeId);
+        if (!node) return;
+        const isActive = node.id === vfs.activeFileId;
+        const pl = 8 + depth * 16;
+        const togCls = node.type === 'folder' ? (node.isExpanded ? 'expanded' : '') : 'leaf';
+        html += '<div class="vfs-item' + (isActive ? ' active' : '') + (node.hasUnsavedChanges ? ' unsaved' : '') + '"' +
+            ' data-id="' + node.id + '" data-type="' + node.type + '"' +
+            ' style="padding-left:' + pl + 'px"' +
+            ' draggable="' + (node.parentId ? 'true' : 'false') + '"' +
+            ' oncontextmenu="vfsItemRightClick(event,\'' + node.id + '\')"' +
+            ' ondragstart="vfsDragStart(event,\'' + node.id + '\')"' +
+            ' ondragover="vfsDragOver(event,\'' + node.id + '\')"' +
+            ' ondragleave="vfsDragLeave(event,\'' + node.id + '\')"' +
+            ' ondrop="vfsDrop(event,\'' + node.id + '\')"' +
+            ' ondragend="vfsDragEnd(event)"' +
+            ' ontouchstart="vfsTouchStart(event,\'' + node.id + '\')"' +
+            ' ontouchend="vfsTouchEnd(event)"' +
+            '>' +
+            '<span class="vfs-toggle ' + togCls + '">▶</span>' +
+            _vfsFileIcon(node.name, node.type) +
+            '<span class="vfs-item-name">' + _vfsEsc(node.name) + '</span>' +
+            '<span class="vfs-unsaved-dot"></span>' +
+            '</div>';
+        if (node.type === 'folder' && node.isExpanded && node.children) {
+            node.children.forEach(cid => renderNode(cid, depth + 1));
+        }
+    }
+    root.children.forEach(cid => renderNode(cid, 0));
+    container.innerHTML = html;
+    _vfsUpdateBreadcrumb();
+}
+
+function _vfsUpdateBreadcrumb() {
+    const bc = document.getElementById('vfsBreadcrumb');
+    if (!bc) return;
+    if (!vfs.activeFileId) { bc.innerHTML = ''; return; }
+    let html = '';
+    let node = vfsNode(vfs.activeFileId);
+    const path = [];
+    while (node && node.parentId && node.parentId !== vfs.rootId) {
+        node = vfsNode(node.parentId);
+        if (node) path.unshift(node);
+    }
+    path.forEach(a => {
+        html += '<span class="vfs-crumb" onclick="vfsScrollTo(\'' + a.id + '\')">' + _vfsEsc(a.name) + '</span>' +
+                '<span class="vfs-crumb-sep">/</span>';
+    });
+    const active = vfsNode(vfs.activeFileId);
+    if (active) html += '<span class="vfs-crumb active">' + _vfsEsc(active.name) + '</span>';
+    bc.innerHTML = html;
+}
+
+// ── Click handler (delegated) ─────────────────────────────────
+function vfsTreeClick(event) {
+    const item = event.target.closest('.vfs-item');
+    if (!item) return;
+    const id = item.dataset.id;
+    const type = item.dataset.type;
+    if (type === 'folder') vfsToggleFolder(id);
+    else vfsOpenFile(id);
+}
+
+function vfsToggleFolder(id) {
+    const node = vfsNode(id);
+    if (!node || node.type !== 'folder') return;
+    node.isExpanded = !node.isExpanded;
+    vfsSaveToStorage();
+    vfsRenderTree();
+}
+
+// ── Open file in editor ───────────────────────────────────────
+function vfsOpenFile(id) {
+    const node = vfsNode(id);
+    if (!node || node.type !== 'file') return;
+
+    // Save current VFS file before switching
+    if (_vfsMode && vfs.activeFileId && vfs.activeFileId !== id) {
+        const cur = vfsNode(vfs.activeFileId);
+        if (cur && window.cm) { cur.content = cm.getValue(); cur.updatedAt = Date.now(); }
+    }
+
+    vfs.activeFileId = id;
+    _vfsMode = true;
+
+    if (window.cm) {
+        cm.setOption('mode', vfsDetectLanguage(node.name));
+        cm.setValue(node.content || '');
+        cm.clearHistory();
+        setTimeout(() => cm.refresh(), 10);
+    }
+
+    // Update header title
+    const t = document.getElementById('editorTitle');
+    if (t) { t.childNodes[0].nodeValue = node.name + ' '; }
+
+    // Deactivate HTML/CSS/JS tabs
+    document.querySelectorAll('.editor-tab').forEach(b => b.classList.remove('active'));
+
+    vfsSaveToStorage();
+    vfsRenderTree();
+}
+
+// ── CRUD ──────────────────────────────────────────────────────
+function vfsCreateFile(parentId) {
+    parentId = parentId || vfs.rootId;
+    const parent = vfsNode(parentId);
+    if (!parent || parent.type !== 'folder') return;
+    const name = prompt('Dosya adı:', 'yeni-dosya.js');
+    if (!name || !name.trim()) return;
+    const id = _vfsUUID();
+    vfs.nodes[id] = {
+        id, name: name.trim(), type: 'file', parentId,
+        content: '', hasUnsavedChanges: false,
+        language: vfsDetectLanguage(name.trim()),
+        createdAt: Date.now(), updatedAt: Date.now()
+    };
+    parent.children = parent.children || [];
+    parent.children.push(id);
+    parent.isExpanded = true;
+    vfsSaveToStorage();
+    vfsRenderTree();
+    vfsOpenFile(id);
+}
+
+function vfsCreateFolder(parentId) {
+    parentId = parentId || vfs.rootId;
+    const parent = vfsNode(parentId);
+    if (!parent || parent.type !== 'folder') return;
+    const name = prompt('Klasör adı:', 'yeni-klasör');
+    if (!name || !name.trim()) return;
+    const id = _vfsUUID();
+    vfs.nodes[id] = {
+        id, name: name.trim(), type: 'folder', parentId,
+        children: [], isExpanded: true,
+        createdAt: Date.now(), updatedAt: Date.now()
+    };
+    parent.children = parent.children || [];
+    parent.children.push(id);
+    parent.isExpanded = true;
+    vfsSaveToStorage();
+    vfsRenderTree();
+}
+
+function vfsRenameNode(id) {
+    const node = vfsNode(id);
+    if (!node) return;
+    const newName = prompt('Yeni ad:', node.name);
+    if (!newName || !newName.trim() || newName.trim() === node.name) return;
+    node.name = newName.trim();
+    node.updatedAt = Date.now();
+    if (node.type === 'file') node.language = vfsDetectLanguage(node.name);
+    if (node.id === vfs.activeFileId) {
+        const t = document.getElementById('editorTitle');
+        if (t) t.childNodes[0].nodeValue = node.name + ' ';
+    }
+    vfsSaveToStorage();
+    vfsRenderTree();
+}
+
+function vfsDeleteNode(id) {
+    const node = vfsNode(id);
+    if (!node) return;
+    if (!confirm('"' + node.name + '" silinsin mi? Bu işlem geri alınamaz.')) return;
+    if (node.parentId) {
+        const parent = vfsNode(node.parentId);
+        if (parent && parent.children) parent.children = parent.children.filter(c => c !== id);
+    }
+    function delRec(nid) {
+        const n = vfs.nodes[nid]; if (!n) return;
+        if (n.type === 'folder' && n.children) n.children.forEach(delRec);
+        delete vfs.nodes[nid];
+    }
+    const wasActive = vfs.activeFileId === id || _vfsIsDescendant(id, vfs.activeFileId);
+    delRec(id);
+    if (wasActive) {
+        vfs.activeFileId = null; _vfsMode = false;
+        if (window.cm) { cm.setValue(''); cm.setOption('mode', 'htmlmixed'); }
+        const t = document.getElementById('editorTitle');
+        if (t) t.childNodes[0].nodeValue = 'Yeni Dosya ';
+    }
+    vfsSaveToStorage();
+    vfsRenderTree();
+}
+
+function _vfsIsDescendant(folderId, fileId) {
+    if (!fileId) return false;
+    let node = vfsNode(fileId);
+    while (node && node.parentId) {
+        if (node.parentId === folderId) return true;
+        node = vfsNode(node.parentId);
+    }
+    return false;
+}
+
+function vfsDuplicateFile(id) {
+    const node = vfsNode(id);
+    if (!node || node.type !== 'file') return;
+    const parent = vfsNode(node.parentId);
+    if (!parent) return;
+    const newId = _vfsUUID();
+    const dot = node.name.lastIndexOf('.');
+    const newName = dot > 0
+        ? node.name.slice(0, dot) + '-kopya' + node.name.slice(dot)
+        : node.name + '-kopya';
+    vfs.nodes[newId] = Object.assign({}, node, {
+        id: newId, name: newName, createdAt: Date.now(), updatedAt: Date.now()
+    });
+    parent.children.push(newId);
+    vfsSaveToStorage();
+    vfsRenderTree();
+    showToast('Dosya kopyalandı');
+}
+
+function vfsDownloadFile(id) {
+    const node = vfsNode(id);
+    if (!node || node.type !== 'file') return;
+    if (node.id === vfs.activeFileId && window.cm) node.content = cm.getValue();
+    const blob = new Blob([node.content || ''], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = node.name; a.click();
+    URL.revokeObjectURL(url);
+}
+
+function vfsRenameProject() {
+    const name = prompt('Proje adı:', vfs.projectName);
+    if (!name || !name.trim()) return;
+    vfs.projectName = name.trim();
+    vfsSaveToStorage();
+    const pn = document.getElementById('vfsProjectName');
+    if (pn) pn.textContent = vfs.projectName;
+}
+
+// ── Context Menu ──────────────────────────────────────────────
+function vfsItemRightClick(event, id) {
+    event.preventDefault(); event.stopPropagation();
+    _vfsCtxTarget = id;
+    const node = vfsNode(id);
+    if (!node) return;
+    _vfsShowCtxNode(event.clientX, event.clientY, node);
+}
+
+function vfsTreeRightClick(event) {
+    if (event.target.closest('.vfs-item')) return;
+    event.preventDefault();
+    _vfsCtxTarget = null;
+    _vfsShowCtxRoot(event.clientX, event.clientY);
+}
+
+function _vfsShowCtxNode(x, y, node) {
+    const menu = document.getElementById('vfsCtxMenu');
+    let h = '<div class="ctx-title">' + _vfsEsc(node.name) + '</div><div class="ctx-divider"></div>';
+    if (node.type === 'folder') {
+        h += '<div class="ctx-item" onclick="vfsHideCtx();vfsCreateFile(\'' + node.id + '\')"><span class="ctx-item-icon">➕</span>Yeni Dosya...</div>' +
+             '<div class="ctx-item" onclick="vfsHideCtx();vfsCreateFolder(\'' + node.id + '\')"><span class="ctx-item-icon">📁</span>Yeni Klasör...</div>' +
+             '<div class="ctx-divider"></div>' +
+             '<div class="ctx-item" onclick="vfsHideCtx();vfsRenameNode(\'' + node.id + '\')"><span class="ctx-item-icon">✏️</span>Yeniden Adlandır</div>' +
+             '<div class="ctx-divider"></div>' +
+             '<div class="ctx-item danger" onclick="vfsHideCtx();vfsDeleteNode(\'' + node.id + '\')"><span class="ctx-item-icon">🗑️</span>Sil (İçeriğiyle)</div>';
+    } else {
+        h += '<div class="ctx-item" onclick="vfsHideCtx();vfsOpenFile(\'' + node.id + '\')"><span class="ctx-item-icon">📄</span>Aç</div>' +
+             '<div class="ctx-item" onclick="vfsHideCtx();vfsRenameNode(\'' + node.id + '\')"><span class="ctx-item-icon">✏️</span>Yeniden Adlandır</div>' +
+             '<div class="ctx-item" onclick="vfsHideCtx();vfsDuplicateFile(\'' + node.id + '\')"><span class="ctx-item-icon">📋</span>Kopyala</div>' +
+             '<div class="ctx-divider"></div>' +
+             '<div class="ctx-item" onclick="vfsHideCtx();vfsDownloadFile(\'' + node.id + '\')"><span class="ctx-item-icon">⬇️</span>İndir</div>' +
+             '<div class="ctx-divider"></div>' +
+             '<div class="ctx-item danger" onclick="vfsHideCtx();vfsDeleteNode(\'' + node.id + '\')"><span class="ctx-item-icon">🗑️</span>Sil</div>';
+    }
+    menu.innerHTML = h;
+    menu.classList.add('show');
+    _vfsPosMenu(menu, x, y);
+}
+
+function _vfsShowCtxRoot(x, y) {
+    const menu = document.getElementById('vfsCtxMenu');
+    menu.innerHTML =
+        '<div class="ctx-item" onclick="vfsHideCtx();vfsCreateFile()"><span class="ctx-item-icon">➕</span>Yeni Dosya...</div>' +
+        '<div class="ctx-item" onclick="vfsHideCtx();vfsCreateFolder()"><span class="ctx-item-icon">📁</span>Yeni Klasör...</div>';
+    menu.classList.add('show');
+    _vfsPosMenu(menu, x, y);
+}
+
+function _vfsPosMenu(menu, x, y) {
+    menu.style.left = '0'; menu.style.top = '0';
+    const r = menu.getBoundingClientRect();
+    let left = x, top = y;
+    if (left + r.width > window.innerWidth - 8) left = window.innerWidth - r.width - 8;
+    if (top + r.height > window.innerHeight - 8) top = y - r.height;
+    if (top < 8) top = 8;
+    menu.style.left = left + 'px'; menu.style.top = top + 'px';
+}
+
+function vfsHideCtx() {
+    const m = document.getElementById('vfsCtxMenu');
+    if (m) m.classList.remove('show');
+    _vfsCtxTarget = null;
+}
+
+document.addEventListener('click', e => {
+    const m = document.getElementById('vfsCtxMenu');
+    if (m && m.classList.contains('show') && !m.contains(e.target)) vfsHideCtx();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') vfsHideCtx(); });
+
+// ── Drag & Drop ───────────────────────────────────────────────
+function vfsDragStart(event, id) {
+    const node = vfsNode(id);
+    if (!node || !node.parentId) { event.preventDefault(); return; }
+    _vfsDragId = id;
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', id);
+    setTimeout(() => {
+        const el = document.querySelector('.vfs-item[data-id="' + id + '"]');
+        if (el) el.style.opacity = '0.45';
+    }, 0);
+}
+
+function vfsDragOver(event, targetId) {
+    event.preventDefault();
+    if (!_vfsDragId || _vfsDragId === targetId) return;
+    const target = vfsNode(targetId);
+    if (!target || target.type !== 'folder' || _vfsIsChildOf(_vfsDragId, targetId)) {
+        event.dataTransfer.dropEffect = 'none'; return;
+    }
+    event.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.vfs-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+    const el = document.querySelector('.vfs-item[data-id="' + targetId + '"]');
+    if (el) el.classList.add('drag-over');
+}
+
+function vfsDragLeave(event, targetId) {
+    const el = document.querySelector('.vfs-item[data-id="' + targetId + '"]');
+    if (el) el.classList.remove('drag-over');
+}
+
+function vfsDrop(event, targetId) {
+    event.preventDefault();
+    if (!_vfsDragId || _vfsDragId === targetId) { vfsDragEnd(); return; }
+    const target = vfsNode(targetId);
+    if (!target || target.type !== 'folder' || _vfsIsChildOf(_vfsDragId, targetId)) { vfsDragEnd(); return; }
+    vfsMoveNode(_vfsDragId, targetId);
+    vfsDragEnd();
+}
+
+function vfsDragEnd() {
+    if (_vfsDragId) {
+        const el = document.querySelector('.vfs-item[data-id="' + _vfsDragId + '"]');
+        if (el) el.style.opacity = '';
+    }
+    document.querySelectorAll('.vfs-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+    _vfsDragId = null;
+}
+
+function _vfsIsChildOf(childId, ancestorId) {
+    // Is ancestorId inside childId's subtree? (prevents circular moves)
+    let node = vfsNode(ancestorId);
+    while (node && node.parentId) {
+        if (node.parentId === childId) return true;
+        node = vfsNode(node.parentId);
+    }
+    return false;
+}
+
+function vfsMoveNode(nodeId, newParentId) {
+    const node = vfsNode(nodeId);
+    const newParent = vfsNode(newParentId);
+    if (!node || !newParent || nodeId === newParentId) return;
+    const oldParent = vfsNode(node.parentId);
+    if (oldParent && oldParent.children) oldParent.children = oldParent.children.filter(c => c !== nodeId);
+    node.parentId = newParentId;
+    newParent.children = newParent.children || [];
+    newParent.children.push(nodeId);
+    newParent.isExpanded = true;
+    vfsSaveToStorage();
+    vfsRenderTree();
+    showToast('Taşındı: ' + node.name);
+}
+
+// ── Mobile long-press ─────────────────────────────────────────
+function vfsTouchStart(event, id) {
+    _vfsLongPressTimer = setTimeout(() => {
+        const node = vfsNode(id); if (!node) return;
+        const t = event.touches[0];
+        _vfsCtxTarget = id;
+        _vfsShowCtxNode(t.clientX, t.clientY, node);
+    }, 500);
+}
+function vfsTouchEnd() { clearTimeout(_vfsLongPressTimer); }
+
+// ── Panel open/close ──────────────────────────────────────────
+function openVfsPanel() {
+    vfsLoadFromStorage();
+    const panel = document.getElementById('vfsPanel');
+    const appMain = document.getElementById('appMain');
+    const overlay = document.getElementById('vfsOverlay');
+    if (!panel) return;
+
+    panel.classList.remove('hidden');
+    appMain.classList.add('vfs-row');
+
+    if (window.innerWidth <= 768) {
+        requestAnimationFrame(() => panel.classList.add('mobile-open'));
+        if (overlay) overlay.classList.add('show');
+    }
+
+    const btn = document.getElementById('bbVfsBtn');
+    if (btn) btn.classList.add('bb-active');
+
+    vfsRenderTree();
+}
+
+function closeVfsPanel() {
+    const panel = document.getElementById('vfsPanel');
+    const appMain = document.getElementById('appMain');
+    const overlay = document.getElementById('vfsOverlay');
+    if (!panel) return;
+
+    if (window.innerWidth <= 768) {
+        panel.classList.remove('mobile-open');
+        if (overlay) overlay.classList.remove('show');
+        setTimeout(() => { panel.classList.add('hidden'); appMain.classList.remove('vfs-row'); }, 320);
+    } else {
+        panel.classList.add('hidden');
+        appMain.classList.remove('vfs-row');
+    }
+
+    const btn = document.getElementById('bbVfsBtn');
+    if (btn) btn.classList.remove('bb-active');
+}
+
+function toggleVfsPanel() {
+    const panel = document.getElementById('vfsPanel');
+    if (!panel) return;
+    if (panel.classList.contains('hidden')) openVfsPanel();
+    else closeVfsPanel();
+}
+
+function vfsScrollTo(id) {
+    const el = document.querySelector('.vfs-item[data-id="' + id + '"]');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── Editor integration (init after CodeMirror) ─────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    vfsLoadFromStorage();
+    // Hook into CodeMirror change to save active VFS file content
+    const _vfsHookCM = () => {
+        if (!window.cm) { setTimeout(_vfsHookCM, 200); return; }
+        cm.on('change', () => {
+            if (!_vfsMode || !vfs.activeFileId) return;
+            const node = vfsNode(vfs.activeFileId);
+            if (!node) return;
+            node.content = cm.getValue();
+            node.hasUnsavedChanges = true;
+            node.updatedAt = Date.now();
+            clearTimeout(_vfsSaveTimer);
+            _vfsSaveTimer = setTimeout(vfsSaveToStorage, 800);
+        });
+    };
+    _vfsHookCM();
+});
 </script>
 
 <!-- ── BİLDİRİMLER PANELİ ──────────────────────────────────────────────── -->
