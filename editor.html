@@ -5957,6 +5957,14 @@ function onUserLoggedIn(user) {
     loadCloudTrash();
     loadProfile();
     _loadFollowingSet();
+    // VFS: Supabase'den yükle (cihazlar arası senkronizasyon)
+    vfsLoadFromSupabase().then(loaded => {
+        if (loaded) {
+            // Panel açıksa yenile
+            const panel = document.getElementById('vfsPanel');
+            if (panel && !panel.classList.contains('hidden')) vfsRenderTree();
+        }
+    });
 }
 
 async function _loadFollowingSet() {
@@ -13990,13 +13998,82 @@ function _vfsKey() {
     return currentUser ? 'vfs_' + currentUser.id : 'vfs_anonymous';
 }
 
+function _vfsData() {
+    return { nodes: vfs.nodes, rootId: vfs.rootId,
+             activeFileId: vfs.activeFileId, projectName: vfs.projectName };
+}
+
 function vfsSaveToStorage() {
+    try { localStorage.setItem(_vfsKey(), JSON.stringify(_vfsData())); }
+    catch(e) { console.warn('VFS kayıt hatası', e); }
+    // Supabase'e debounced sync (kullanıcı giriş yapmışsa)
+    if (currentUser) {
+        clearTimeout(_vfsSupabaseTimer);
+        _vfsSupabaseTimer = setTimeout(vfsSyncToSupabase, 1500);
+    }
+}
+
+// ── Supabase Sync ─────────────────────────────────────────────
+let _vfsSupabaseTimer = null;
+let _vfsSyncing = false;
+
+async function vfsSyncToSupabase() {
+    if (!currentUser || _vfsSyncing) return;
+    _vfsSyncing = true;
+    _vfsShowSyncDot('syncing');
     try {
-        localStorage.setItem(_vfsKey(), JSON.stringify({
-            nodes: vfs.nodes, rootId: vfs.rootId,
-            activeFileId: vfs.activeFileId, projectName: vfs.projectName
-        }));
-    } catch(e) { console.warn('VFS kayıt hatası', e); }
+        const payload = { user_id: currentUser.id, vfs_data: _vfsData(), last_sync: new Date().toISOString() };
+        const { error } = await sb.from('file_tree_sync')
+            .upsert(payload, { onConflict: 'user_id' });
+        if (error) throw error;
+        _vfsShowSyncDot('ok');
+    } catch(e) {
+        console.warn('VFS Supabase sync hatası:', e);
+        _vfsShowSyncDot('error');
+    } finally { _vfsSyncing = false; }
+}
+
+async function vfsLoadFromSupabase() {
+    if (!currentUser) return false;
+    try {
+        const { data, error } = await sb.from('file_tree_sync')
+            .select('vfs_data, last_sync')
+            .eq('user_id', currentUser.id)
+            .single();
+        if (error || !data || !data.vfs_data) return false;
+
+        // localStorage'dakinden daha yeniyse Supabase'i kullan
+        const localRaw = localStorage.getItem(_vfsKey());
+        if (localRaw) {
+            try {
+                const local = JSON.parse(localRaw);
+                // Supabase'deki bir düğümün updatedAt değerini karşılaştır
+                const sbTime = new Date(data.last_sync).getTime();
+                const localTime = Object.values(local.nodes || {})
+                    .reduce((mx, n) => Math.max(mx, n.updatedAt || 0), 0);
+                if (localTime > sbTime) return false; // local daha yeni
+            } catch(_) {}
+        }
+
+        const d = data.vfs_data;
+        vfs.nodes = d.nodes || {};
+        vfs.rootId = d.rootId || null;
+        vfs.activeFileId = d.activeFileId || null;
+        vfs.projectName = d.projectName || 'Yeni Proje';
+        if (!vfs.rootId || !vfs.nodes[vfs.rootId]) vfsInitFresh();
+        // localStorage'ı da güncelle
+        try { localStorage.setItem(_vfsKey(), JSON.stringify(d)); } catch(_) {}
+        return true;
+    } catch(e) { console.warn('VFS Supabase yükleme hatası:', e); return false; }
+}
+
+function _vfsShowSyncDot(state) {
+    // Proje adının yanındaki sync göstergesi
+    const pn = document.getElementById('vfsProjectName');
+    if (!pn) return;
+    pn.title = state === 'syncing' ? 'Senkronize ediliyor...'
+             : state === 'ok'      ? 'Senkronize edildi ✓'
+             : 'Senkronizasyon hatası';
 }
 
 function vfsLoadFromStorage() {
@@ -14495,6 +14572,11 @@ function openVfsPanel() {
     if (btn) btn.classList.add('bb-active');
 
     vfsRenderTree();
+
+    // Arka planda Supabase'den taze veri çek
+    if (currentUser) {
+        vfsLoadFromSupabase().then(loaded => { if (loaded) vfsRenderTree(); });
+    }
 }
 
 function closeVfsPanel() {
