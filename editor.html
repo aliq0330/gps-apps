@@ -8586,41 +8586,39 @@ function handleUnsavedDiscard() {
 }
 
 // ── Open Saved File ────────────────────────────────────────────────────
-function continuePreviewSavedFile(fileId) {
+async function continuePreviewSavedFile(fileId) {
     const file = savedFiles.find(f => f.id === fileId);
     if (!file) return;
-    _tabs = _splitHtmlToTabs(`<html><body>${file.code}</body></html>`);
-    _activeTab = 'html';
-    code = file.code; loadedFilename = file.filename;
-    currentOpenFileId = file.id; hasUnsavedChanges = false;
     isViewingOldVersion = false; _viewingVersionNum = null;
-    updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
-    setSaveButtonState('saved');
     _hideOldVersionBanner();
-    saveToStorage(); // currentOpenFileId'yi hemen kaydet (beforeunload güvenilmez)
+    closeSavedFilesPanel();
+    await _fmImportHtmlAsProject(`<html><body>${file.code}</body></html>`, file.filename);
+    // Kayıt takibi (quick save çalışsın diye)
+    currentOpenFileId = file.id; hasUnsavedChanges = false;
+    setSaveButtonState('saved'); saveToStorage();
+    updateTabDotColor(); updateQuickSaveButton();
     VersionManager.list(fileId).then(list => { if (list.length) updateVersionBadge(list[0].version_number); else updateVersionBadge(null); });
     const r = document.querySelector('input[name="view"][value="preview"]');
     if (r) { r.checked = true; handleViewSwitch('preview'); }
-    closeSavedFilesPanel(); showToast(`${file.filename} önizleniyor`);
+    showToast(`${file.filename} önizleniyor`);
     startAutoSave();
 }
 
-function continueViewSavedFileCode(fileId) {
+async function continueViewSavedFileCode(fileId) {
     const file = savedFiles.find(f => f.id === fileId);
     if (!file) return;
-    _tabs = _splitHtmlToTabs(`<html><body>${file.code}</body></html>`);
-    _activeTab = 'html';
-    code = file.code; loadedFilename = file.filename;
-    currentOpenFileId = file.id; hasUnsavedChanges = false;
     isViewingOldVersion = false; _viewingVersionNum = null;
-    updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
-    setSaveButtonState('saved');
     _hideOldVersionBanner();
-    saveToStorage(); // currentOpenFileId'yi hemen kaydet (beforeunload güvenilmez)
+    closeSavedFilesPanel();
+    await _fmImportHtmlAsProject(`<html><body>${file.code}</body></html>`, file.filename);
+    // Kayıt takibi (quick save çalışsın diye)
+    currentOpenFileId = file.id; hasUnsavedChanges = false;
+    setSaveButtonState('saved'); saveToStorage();
+    updateTabDotColor(); updateQuickSaveButton();
     VersionManager.list(fileId).then(list => { if (list.length) updateVersionBadge(list[0].version_number); else updateVersionBadge(null); });
     const r = document.querySelector('input[name="view"][value="code"]');
     if (r) { r.checked = true; handleViewSwitch('code'); }
-    closeSavedFilesPanel(); showToast(`${file.filename} yüklendi`);
+    showToast(`${file.filename} yüklendi`);
     startAutoSave();
 }
 
@@ -8714,7 +8712,8 @@ function loadFile() { document.getElementById('fileInput').click(); }
 function handleFileLoad(event) {
     const file = event.target.files[0]; if (!file) return;
     event.target.value = '';
-    loadedFilename = file.name.replace(/\.[^/.]+$/, '');
+    const baseName = file.name.replace(/\.[^/.]+$/, '');
+    loadedFilename = baseName;
     currentOpenFileId = null;
     setSaveButtonState('idle');
     const r = new FileReader();
@@ -8722,7 +8721,8 @@ function handleFileLoad(event) {
         const raw = e.target.result;
         const ext = file.name.split('.').pop().toLowerCase();
         if (ext === 'html' || ext === 'htm') {
-            _tabs = _splitHtmlToTabs(raw);
+            _fmImportHtmlAsProject(raw, baseName);
+            return;
         } else if (ext === 'css') {
             _tabs = { html: '', css: raw, js: '' };
         } else if (ext === 'js') {
@@ -10084,15 +10084,9 @@ function loadPublicFile(fileId) {
 }
 
 function _loadPublicFile(filename, fileCode) {
-    _tabs = _splitHtmlToTabs(`<html><body>${fileCode}</body></html>`);
-    _activeTab = 'html';
-    code = fileCode; loadedFilename = filename;
-    currentOpenFileId = null; hasUnsavedChanges = false;
-    updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
-    setSaveButtonState('idle');
+    _fmImportHtmlAsProject(`<html><body>${fileCode}</body></html>`, filename);
     const r = document.querySelector('input[name="view"][value="code"]');
     if (r) { r.checked = true; handleViewSwitch('code'); }
-    showToast(`${filename} yüklendi`);
 }
 
 // Başkasının dosyasını Supabase'e kopyalayarak aç (fork)
@@ -10113,15 +10107,14 @@ async function forkToEditor(sourceFileId, filename, fileCode, ...closeFns) {
         closeFns.forEach(fn => fn && fn());
         return;
     }
-    // Editöre yükle
-    _tabs = _splitHtmlToTabs(`<html><body>${data.code}</body></html>`);
-    _activeTab = 'html';
-    code = data.code; loadedFilename = data.filename;
-    currentOpenFileId = data.id; hasUnsavedChanges = false;
     // Dosyalar listesine ekle
     savedFiles.unshift({ id: data.id, filename: data.filename, code: data.code, timestamp: data.updated_at, cloud: true, isPublic: false });
-    updateEditor(); updateFilenameDisplay(); updateTabDotColor(); updateQuickSaveButton();
-    setSaveButtonState('idle'); renderSavedFiles(); saveToStorage();
+    renderSavedFiles();
+    // Editöre proje olarak yükle
+    await _fmImportHtmlAsProject(`<html><body>${data.code}</body></html>`, data.filename);
+    currentOpenFileId = data.id; hasUnsavedChanges = false;
+    setSaveButtonState('idle'); saveToStorage();
+    updateTabDotColor(); updateQuickSaveButton();
     const r = document.querySelector('input[name="view"][value="code"]');
     if (r) { r.checked = true; handleViewSwitch('code'); }
     // Fork sayacını güncelle
@@ -14100,6 +14093,48 @@ function toggleFileManager() {
     else openFileManager();
 }
 
+// ── HTML Dosyasını Yeni Proje Olarak İçe Aktar ───────────────────────────
+async function _fmImportHtmlAsProject(rawHtml, projectName) {
+    const isFullDoc = /<html[\s>]/i.test(rawHtml);
+    const tabs = _splitHtmlToTabs(isFullDoc ? rawHtml : `<html><body>${rawHtml}</body></html>`);
+    const name  = (projectName || 'Proje').replace(/\.[^/.]+$/, ''); // uzantıyı çıkar
+
+    if (!currentUser) {
+        // Kullanıcı giriş yapmamışsa doğrudan editöre yükle
+        _tabs = tabs; _activeTab = 'html';
+        loadedFilename = name; hasUnsavedChanges = false;
+        updateEditor(); updateFilenameDisplay(); saveToStorage(); _fmUpdateSubTabs();
+        return;
+    }
+    try {
+        const sortOrder = _fmProjects.length;
+        const { data: proj, error: pe } = await sb.from('projects')
+            .insert({ user_id: currentUser.id, name, sort_order: sortOrder, is_default: false })
+            .select().single();
+        if (pe) throw pe;
+        const newFiles = [
+            { project_id: proj.id, user_id: currentUser.id, file_type: 'page',  name: 'index.html', content: tabs.html, is_primary: true, sort_order: 0 },
+            { project_id: proj.id, user_id: currentUser.id, file_type: 'style', name: 'style.css',  content: tabs.css,  is_primary: true, sort_order: 0 },
+            { project_id: proj.id, user_id: currentUser.id, file_type: 'code',  name: 'script.js',  content: tabs.js,   is_primary: true, sort_order: 0 }
+        ];
+        const { data: cf, error: fe } = await sb.from('project_files').insert(newFiles).select();
+        if (fe) throw fe;
+        _fmProjects.push({
+            id: proj.id, name: proj.name, sort_order: sortOrder, is_default: false, expanded: true,
+            files: cf.map(f => ({ id: f.id, project_id: f.project_id, file_type: f.file_type, name: f.name, content: f.content || '', is_primary: f.is_primary, sort_order: f.sort_order }))
+        });
+        _fmOpenProject(proj.id, true);
+        showToast('"' + name + '" projesi oluşturuldu');
+    } catch(e) {
+        console.error('FM import error:', e);
+        // Hata durumunda doğrudan editöre yükle
+        _tabs = tabs; _activeTab = 'html';
+        loadedFilename = name; hasUnsavedChanges = false;
+        updateEditor(); updateFilenameDisplay(); saveToStorage(); _fmUpdateSubTabs();
+        showToast(name + ' yüklendi');
+    }
+}
+
 // ── Load from Supabase ────────────────────────────────────────────────────
 async function _fmLoad() {
     if (!currentUser) return;
@@ -14713,6 +14748,9 @@ async function _fmProjCtxAction(action) {
         await _fmPasteProject();
     } else if (action === 'pastefile') {
         await _fmPasteFileToProject(id);
+    } else if (action === 'save') {
+        if (_fmActiveProjectId !== id) _fmOpenProject(id);
+        handleQuickSave();
     } else if (action === 'download') {
         openFmDownloadModal(id);
     } else if (action === 'clear') {
@@ -15235,6 +15273,12 @@ function _fmDlRaw() {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 5v14"/>
         </svg>
         Projeyi Yapıştır
+    </button>
+    <button class="fm-ctx-item" onclick="_fmProjCtxAction('save')">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+        </svg>
+        Projeyi Kaydet
     </button>
     <button class="fm-ctx-item" onclick="_fmProjCtxAction('download')">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
