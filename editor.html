@@ -3766,6 +3766,280 @@ body.preview-mode .file-title-bar { display: none !important; }
     body.split-view .preview-area { flex-basis: 50%; }
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   ── PHASE 3: Device Simulator / Multi-Editor / Breadcrumb /
+              Minimap / Command Palette
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Device simulator toolbar — preview-area üstü */
+.device-sim-bar {
+    display: none;
+    align-items: center; gap: 6px;
+    padding: 6px 10px;
+    background: var(--glass-bg);
+    backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+    border-bottom: 1px solid var(--glass-border);
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+.device-sim-btn {
+    padding: 4px 10px; border-radius: 7px;
+    background: transparent; border: 1px solid transparent;
+    color: var(--text-secondary); cursor: pointer;
+    font-family: inherit; font-size: 11.5px; font-weight: 500;
+    transition: all 0.12s;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.device-sim-btn:hover { background: rgba(120,120,128,0.15); color: var(--text-primary); }
+.device-sim-btn.active {
+    background: rgba(0,122,255,0.15);
+    border-color: rgba(0,122,255,0.3);
+    color: #007aff;
+}
+.device-sim-btn svg { width: 13px; height: 13px; }
+.device-sim-info {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+}
+.device-sim-refresh {
+    padding: 4px 8px; border-radius: 7px;
+    background: transparent; border: none;
+    color: var(--text-secondary); cursor: pointer;
+}
+.device-sim-refresh:hover { color: #007aff; }
+
+/* Önizleme çerçevesi device modunda kısıtlı genişlik */
+.preview-device-wrap {
+    width: 100%; height: calc(100% - 38px);
+    display: flex; align-items: flex-start; justify-content: center;
+    background: repeating-conic-gradient(rgba(120,120,128,0.08) 0% 25%, transparent 0% 50%) 50%/16px 16px;
+    overflow: auto; padding: 16px 0;
+}
+.preview-device-wrap .preview-frame-inline {
+    width: 100%; height: 100%;
+    max-width: var(--device-w, 100%);
+    max-height: var(--device-h, 100%);
+    box-shadow: 0 6px 32px rgba(0,0,0,0.18);
+    border-radius: 6px;
+    background: #fff;
+    transition: max-width 0.25s ease, max-height 0.25s ease;
+}
+body.device-sim-mobile  { --device-w: 375px;  --device-h: 667px; }
+body.device-sim-tablet  { --device-w: 768px;  --device-h: 1024px; }
+body.device-sim-desktop { --device-w: 100%;   --device-h: 100%; }
+
+@media (min-width: 1024px) {
+    body.split-view .device-sim-bar { display: flex; }
+    body.split-view .preview-area {
+        display: flex !important;
+        flex-direction: column;
+    }
+    body.split-view .preview-frame-inline {
+        flex: 1 1 auto;
+    }
+    /* Device wrap sadece non-desktop modda aktif */
+    body.split-view.device-sim-mobile .preview-device-wrap,
+    body.split-view.device-sim-tablet .preview-device-wrap {
+        display: flex;
+    }
+    body.split-view.device-sim-desktop .preview-device-wrap {
+        display: contents;
+    }
+}
+
+/* ── Breadcrumb ─────────────────────────────────────────────────── */
+.desktop-breadcrumb {
+    display: none;
+    align-items: center; gap: 4px;
+    padding: 4px 14px;
+    background: rgba(120,120,128,0.05);
+    border-bottom: 1px solid var(--glass-border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+.desktop-breadcrumb::-webkit-scrollbar { height: 4px; }
+.desktop-breadcrumb::-webkit-scrollbar-thumb { background: var(--glass-border); }
+.bc-item {
+    padding: 2px 5px; border-radius: 4px;
+    cursor: pointer; transition: background 0.12s, color 0.12s;
+}
+.bc-item:hover { background: rgba(120,120,128,0.18); color: var(--text-primary); }
+.bc-item.current { color: var(--text-primary); font-weight: 600; }
+.bc-sep { color: var(--text-secondary); opacity: 0.5; padding: 0 2px; }
+@media (min-width: 1024px) {
+    .desktop-breadcrumb { display: flex; }
+    /* code-area üstüne padding ekle - breadcrumb yüksekliği */
+    .editor-tab-bar { padding-top: 12px !important; }
+}
+
+/* ── Multi-Editor (üç kolon) ───────────────────────────────────── */
+.multi-editor-container {
+    display: none;
+    flex-direction: row;
+    flex: 1; min-height: 0;
+}
+.multi-editor-pane {
+    flex: 1 1 33.33%; min-width: 180px;
+    display: flex; flex-direction: column;
+    border-right: 1px solid var(--glass-border);
+    position: relative;
+}
+.multi-editor-pane:last-child { border-right: none; }
+.multi-editor-label {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 10px;
+    background: var(--glass-bg);
+    border-bottom: 1px solid var(--glass-border);
+    font-size: 11px; font-weight: 600;
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    user-select: none;
+}
+.multi-editor-label .tab-dot { width: 7px; height: 7px; border-radius: 50%; }
+.multi-editor-pane .CodeMirror {
+    flex: 1 1 auto;
+    height: auto !important;
+}
+
+@media (min-width: 1024px) {
+    body.multi-editor-mode .editor-tab-bar,
+    body.multi-editor-mode .fm-sub-tab-bar,
+    body.multi-editor-mode .code-input,
+    body.multi-editor-mode .code-area > .CodeMirror {
+        display: none !important;
+    }
+    body.multi-editor-mode .multi-editor-container {
+        display: flex;
+    }
+    body.multi-editor-mode .desktop-breadcrumb { display: none; }
+}
+
+/* ── Minimap / Outline ─────────────────────────────────────────── */
+.desktop-minimap {
+    display: none;
+    position: absolute;
+    top: 44px; right: 0; bottom: 0;
+    width: 140px;
+    background: rgba(120,120,128,0.04);
+    border-left: 1px solid var(--glass-border);
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    padding: 8px 0;
+    z-index: 5;
+}
+.desktop-minimap::-webkit-scrollbar { width: 5px; }
+.desktop-minimap::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
+.minimap-header {
+    padding: 4px 10px 6px;
+    color: var(--text-secondary);
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 4px;
+}
+.minimap-item {
+    display: flex; align-items: center; gap: 5px;
+    padding: 3px 10px;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: background 0.1s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.minimap-item:hover { background: rgba(0,122,255,0.12); color: #007aff; }
+.minimap-item.indent-1 { padding-left: 20px; }
+.minimap-item.indent-2 { padding-left: 32px; }
+.minimap-item.indent-3 { padding-left: 44px; }
+.minimap-badge {
+    font-size: 9px;
+    padding: 1px 4px; border-radius: 3px;
+    background: rgba(120,120,128,0.18);
+    color: var(--text-secondary);
+    margin-left: auto; flex-shrink: 0;
+}
+.minimap-badge.tag   { background: rgba(249,115,22,0.2); color: #f97316; }
+.minimap-badge.rule  { background: rgba(59,130,246,0.2); color: #3b82f6; }
+.minimap-badge.fn    { background: rgba(234,179,8,0.2); color: #ca8a04; }
+.minimap-empty {
+    padding: 12px; text-align: center;
+    color: var(--text-secondary); font-style: italic;
+}
+@media (min-width: 1024px) {
+    body.minimap-on .desktop-minimap { display: block; }
+    body.minimap-on .code-area .CodeMirror { margin-right: 140px; }
+    body.minimap-on.multi-editor-mode .desktop-minimap { display: none; }
+    body.minimap-on.multi-editor-mode .code-area .CodeMirror { margin-right: 0; }
+}
+
+/* ── Command Palette ───────────────────────────────────────────── */
+.cmd-palette-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 9900;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    align-items: flex-start; justify-content: center;
+    padding-top: 12vh;
+}
+.cmd-palette-overlay.open { display: flex; }
+.cmd-palette {
+    width: 100%; max-width: 560px;
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    overflow: hidden;
+    font-family: inherit;
+}
+.cmd-palette-input {
+    width: 100%;
+    padding: 14px 18px;
+    border: none; outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-family: inherit; font-size: 15px;
+    border-bottom: 1px solid var(--glass-border);
+}
+.cmd-palette-input::placeholder { color: var(--text-secondary); }
+.cmd-palette-list {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 4px;
+}
+.cmd-palette-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; border-radius: 7px;
+    cursor: pointer; color: var(--text-primary);
+    font-size: 13.5px;
+}
+.cmd-palette-item.sel,
+.cmd-palette-item:hover {
+    background: rgba(0,122,255,0.14);
+    color: #007aff;
+}
+.cmd-palette-item .cmd-sc {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+.cmd-palette-item.sel .cmd-sc { color: rgba(0,122,255,0.7); }
+.cmd-palette-empty {
+    padding: 18px; text-align: center;
+    color: var(--text-secondary); font-size: 13px;
+}
+
 </style>
 
 </head>
@@ -3986,6 +4260,16 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <!-- Menü dropdown'ları -->
 <div class="desktop-menu-dropdown" id="desktopMenuDropdown"></div>
+
+<!-- Komut Paleti (Ctrl+Shift+P) -->
+<div class="cmd-palette-overlay" id="cmdPaletteOverlay" onclick="if(event.target.id==='cmdPaletteOverlay')_dsk.closeCmd()">
+    <div class="cmd-palette">
+        <input type="text" class="cmd-palette-input" id="cmdPaletteInput"
+               placeholder="Komut ara... (örn: kaydet, bul, split, mobil)"
+               autocomplete="off" spellcheck="false">
+        <div class="cmd-palette-list" id="cmdPaletteList"></div>
+    </div>
+</div>
 
 <header class="header" id="appHeader" style="display:none;">
     <div class="header-top">
@@ -4649,6 +4933,7 @@ body.preview-mode .file-title-bar { display: none !important; }
 
 <main id="appMain" style="display:none;">
     <div class="code-area" id="codeArea">
+        <nav class="desktop-breadcrumb" id="desktopBreadcrumb"></nav>
         <div class="editor-tab-bar" id="editorTabBar">
             <button class="editor-tab active" data-tab="html" onclick="_switchEditorTab('html')">
                 <span class="tab-dot tab-dot-html"></span> Sayfa
@@ -4684,9 +4969,58 @@ body.preview-mode .file-title-bar { display: none !important; }
         <textarea id="editor" class="code-input" spellcheck="false"
                   oninput="updateCode()" onkeydown="handleKeydown(event)"></textarea>
     </div>
+    <aside class="desktop-minimap" id="desktopMinimap">
+        <div class="minimap-header">Outline</div>
+        <div id="minimapList"></div>
+    </aside>
+    <div class="multi-editor-container" id="multiEditorContainer">
+        <div class="multi-editor-pane">
+            <div class="multi-editor-label"><span class="tab-dot tab-dot-html"></span>HTML</div>
+            <textarea id="multiEditorHtml" class="multi-editor-ta" spellcheck="false"></textarea>
+        </div>
+        <div class="multi-editor-pane">
+            <div class="multi-editor-label"><span class="tab-dot tab-dot-css"></span>CSS</div>
+            <textarea id="multiEditorCss" class="multi-editor-ta" spellcheck="false"></textarea>
+        </div>
+        <div class="multi-editor-pane">
+            <div class="multi-editor-label"><span class="tab-dot tab-dot-js"></span>JS</div>
+            <textarea id="multiEditorJs" class="multi-editor-ta" spellcheck="false"></textarea>
+        </div>
+    </div>
     <div class="desktop-splitter" id="desktopSplitter" title="Sürükleyerek yeniden boyutlandır"></div>
     <div class="preview-area" id="previewArea">
-        <iframe id="previewFrameInline" class="preview-frame-inline"></iframe>
+        <div class="device-sim-bar" id="deviceSimBar">
+            <button class="device-sim-btn active" data-device="desktop" onclick="_dsk.setDevice('desktop')" title="Masaüstü (otomatik)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="12" rx="2" stroke-width="2"/>
+                    <path d="M8 20h8M12 16v4" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Desktop</span>
+            </button>
+            <button class="device-sim-btn" data-device="tablet" onclick="_dsk.setDevice('tablet')" title="Tablet 768×1024">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="5" y="3" width="14" height="18" rx="2" stroke-width="2"/>
+                    <circle cx="12" cy="18" r="1" fill="currentColor"/>
+                </svg>
+                <span>Tablet</span>
+            </button>
+            <button class="device-sim-btn" data-device="mobile" onclick="_dsk.setDevice('mobile')" title="Mobil 375×667">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="7" y="2" width="10" height="20" rx="2" stroke-width="2"/>
+                    <circle cx="12" cy="19" r="0.8" fill="currentColor"/>
+                </svg>
+                <span>Mobil</span>
+            </button>
+            <span class="device-sim-info" id="deviceSimInfo">Otomatik</span>
+            <button class="device-sim-refresh" onclick="_dsk.refreshPreview()" title="Önizlemeyi yenile">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h5M20 20v-5h-5M5 9a9 9 0 0114-4M19 15a9 9 0 01-14 4"/>
+                </svg>
+            </button>
+        </div>
+        <div class="preview-device-wrap" id="previewDeviceWrap">
+            <iframe id="previewFrameInline" class="preview-frame-inline"></iframe>
+        </div>
         <button class="preview-close-btn" onclick="handleViewSwitch('code')" title="Kodu görüntüle">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
@@ -16304,6 +16638,442 @@ const _dsk = (function () {
         }
     }
 
+    /* ════════════════════════════════════════════════════════════════
+       PHASE 3: Device Simulator / Multi-Editor / Breadcrumb /
+                Minimap / Command Palette
+       ════════════════════════════════════════════════════════════════ */
+
+    /* ── Device Simulator ───────────────────────────────────────── */
+    let currentDevice = 'desktop';
+    const DEVICE_PRESETS = {
+        desktop: { w: null, h: null, label: 'Otomatik' },
+        tablet:  { w: 768,  h: 1024, label: '768 × 1024' },
+        mobile:  { w: 375,  h: 667,  label: '375 × 667' },
+    };
+    function setDevice(dev) {
+        if (!DEVICE_PRESETS[dev]) return;
+        currentDevice = dev;
+        document.body.classList.remove('device-sim-desktop','device-sim-tablet','device-sim-mobile');
+        document.body.classList.add('device-sim-' + dev);
+        document.querySelectorAll('.device-sim-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.device === dev);
+        });
+        const info = $('deviceSimInfo');
+        if (info) info.textContent = DEVICE_PRESETS[dev].label;
+        refreshPreview();
+    }
+    function refreshPreview() {
+        _refreshSplitPreview();
+        refreshPopout();
+    }
+
+    /* ── Breadcrumb ─────────────────────────────────────────────── */
+    function updateBreadcrumb() {
+        const bc = $('desktopBreadcrumb');
+        if (!bc) return;
+        const parts = [];
+        // Proje / dosya
+        let projectName = null;
+        try {
+            if (typeof _fmActiveProjectId !== 'undefined' && _fmActiveProjectId &&
+                typeof _fmProjects !== 'undefined') {
+                const p = _fmProjects.find(x => x.id === _fmActiveProjectId);
+                if (p) projectName = p.name || 'Proje';
+            }
+        } catch(e) {}
+        parts.push({ label: 'Çalışma Alanı', click: () => sidebar('files') });
+        if (projectName) {
+            parts.push({ label: projectName, click: () => sidebar('files') });
+        }
+        const fname = (typeof loadedFilename !== 'undefined' && loadedFilename)
+            ? loadedFilename : 'Yeni Dosya';
+        parts.push({ label: fname, current: true });
+        // Aktif tab
+        const tab = (typeof _activeTab !== 'undefined') ? _activeTab : 'html';
+        const tabLabel = tab === 'html' ? 'Sayfa (HTML)' : tab === 'css' ? 'Stil (CSS)' : 'Kod (JS)';
+        parts.push({ label: tabLabel, current: true, click: () => {
+            if (typeof _switchEditorTab === 'function') _switchEditorTab(tab);
+        }});
+
+        bc.innerHTML = parts.map((p, i) => {
+            const sep = i > 0 ? '<span class="bc-sep">›</span>' : '';
+            return `${sep}<span class="bc-item${p.current ? ' current' : ''}" data-idx="${i}">${_escape(p.label)}</span>`;
+        }).join('');
+        bc.querySelectorAll('.bc-item').forEach(el => {
+            const idx = +el.dataset.idx;
+            const p = parts[idx];
+            if (p && p.click) el.addEventListener('click', p.click);
+        });
+    }
+    function _escape(s) {
+        return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+
+    /* ── Multi-Editor (3 kolon: HTML/CSS/JS aynı anda) ──────────── */
+    let multiMode = false;
+    const multiCMs = { html: null, css: null, js: null };
+    let multiSyncing = false;
+
+    function toggleMultiEditor() {
+        if (!active) { showToast && showToast('Masaüstü modunda kullanılabilir'); return; }
+        setMultiEditor(!multiMode);
+    }
+    function setMultiEditor(on) {
+        multiMode = !!on;
+        document.body.classList.toggle('multi-editor-mode', multiMode);
+        if (multiMode) initMultiCMs();
+        else refreshCM();
+    }
+    function initMultiCMs() {
+        if (typeof CodeMirror === 'undefined') return;
+        const modes = { html: 'htmlmixed', css: 'css', js: 'javascript' };
+        ['html','css','js'].forEach(key => {
+            if (multiCMs[key]) {
+                multiCMs[key].setValue(_tabs[key] || '');
+                multiCMs[key].refresh();
+                return;
+            }
+            const ta = $('multiEditor' + key.charAt(0).toUpperCase() + key.slice(1));
+            if (!ta) return;
+            ta.value = (typeof _tabs !== 'undefined' && _tabs[key]) || '';
+            const cmInst = CodeMirror.fromTextArea(ta, {
+                lineNumbers: true,
+                mode: modes[key],
+                lineWrapping: true,
+                tabSize: 2,
+                indentWithTabs: false,
+                extraKeys: {
+                    Tab: c => c.somethingSelected() ? c.indentSelection('add') : c.replaceSelection('  ', 'end'),
+                    'Shift-Tab': c => c.indentSelection('subtract'),
+                }
+            });
+            cmInst.on('change', () => {
+                if (multiSyncing) return;
+                if (typeof _tabs !== 'undefined') {
+                    _tabs[key] = cmInst.getValue();
+                    if (typeof code !== 'undefined' && typeof _mergeBodyContent === 'function') {
+                        window.code = _mergeBodyContent();
+                    }
+                    if (typeof hasUnsavedChanges !== 'undefined') window.hasUnsavedChanges = true;
+                    if (typeof saveToStorage === 'function') saveToStorage();
+                    if (typeof updateTabDotColor === 'function') updateTabDotColor();
+                    if (typeof updateQuickSaveButton === 'function') updateQuickSaveButton();
+                    // Ana CodeMirror'a yansıt (aktif tabsa)
+                    if (window.cm && typeof _activeTab !== 'undefined' && _activeTab === key) {
+                        multiSyncing = true;
+                        cm.setValue(cmInst.getValue());
+                        multiSyncing = false;
+                    }
+                }
+                if (splitView) _refreshSplitPreview();
+            });
+            multiCMs[key] = cmInst;
+        });
+        setTimeout(() => {
+            Object.values(multiCMs).forEach(c => c && c.refresh());
+        }, 80);
+
+        // Ana CM değiştikçe multi'ye de yansıt
+        if (window.cm && !window.cm._multiHooked) {
+            window.cm._multiHooked = true;
+            window.cm.on('change', () => {
+                if (!multiMode || multiSyncing) return;
+                const key = (typeof _activeTab !== 'undefined') ? _activeTab : 'html';
+                if (multiCMs[key] && multiCMs[key].getValue() !== window.cm.getValue()) {
+                    multiSyncing = true;
+                    multiCMs[key].setValue(window.cm.getValue());
+                    multiSyncing = false;
+                }
+            });
+        }
+    }
+
+    /* ── Minimap / Outline ──────────────────────────────────────── */
+    let minimapOn = false;
+    function toggleMinimap() {
+        minimapOn = !minimapOn;
+        document.body.classList.toggle('minimap-on', minimapOn);
+        if (minimapOn) updateMinimap();
+        refreshCM();
+    }
+    let _mmTimer = null;
+    function scheduleMinimap() {
+        if (!minimapOn) return;
+        clearTimeout(_mmTimer);
+        _mmTimer = setTimeout(updateMinimap, 400);
+    }
+    function updateMinimap() {
+        const list = $('minimapList');
+        if (!list || !window.cm) return;
+        const tab = (typeof _activeTab !== 'undefined') ? _activeTab : 'html';
+        const text = window.cm.getValue();
+        let items = [];
+        if (tab === 'html') items = _outlineHtml(text);
+        else if (tab === 'css') items = _outlineCss(text);
+        else items = _outlineJs(text);
+
+        if (!items.length) {
+            list.innerHTML = '<div class="minimap-empty">Öğe bulunamadı</div>';
+            return;
+        }
+        list.innerHTML = items.map((it, i) =>
+            `<div class="minimap-item indent-${it.indent||0}" data-line="${it.line}">
+                ${_escape(it.label)}
+                <span class="minimap-badge ${it.type||''}">${_escape(it.kind||'')}</span>
+            </div>`
+        ).join('');
+        list.querySelectorAll('.minimap-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const ln = +el.dataset.line;
+                if (window.cm) {
+                    cm.setCursor({ line: ln, ch: 0 });
+                    cm.scrollIntoView({ line: ln, ch: 0 }, 100);
+                    cm.focus();
+                }
+            });
+        });
+    }
+    function _outlineHtml(text) {
+        const out = [];
+        const lines = text.split('\n');
+        const stack = [];
+        const VOID_TAGS = new Set(['br','hr','img','input','meta','link','area','base','col','embed','source','track','wbr']);
+        lines.forEach((line, i) => {
+            const tags = line.matchAll(/<(\/?)(\w+)([^>]*?)(\/?)>/g);
+            for (const m of tags) {
+                const closing = m[1] === '/';
+                const tag = m[2].toLowerCase();
+                const selfClose = m[4] === '/' || VOID_TAGS.has(tag);
+                if (closing) { stack.pop(); continue; }
+                let label = '<' + tag;
+                const idm = m[3].match(/\bid\s*=\s*["']([^"']+)/);
+                const cm2 = m[3].match(/\bclass\s*=\s*["']([^"']+)/);
+                if (idm) label += ' #' + idm[1];
+                else if (cm2) label += ' .' + cm2[1].trim().split(/\s+/)[0];
+                label += '>';
+                if (['html','head','body','div','section','main','header','footer','nav','article','aside','h1','h2','h3','h4','h5','h6','ul','ol','form','button','a'].includes(tag)) {
+                    out.push({ label, line: i, indent: Math.min(stack.length, 3), type: 'tag', kind: tag });
+                }
+                if (!selfClose) stack.push(tag);
+            }
+        });
+        return out.slice(0, 200);
+    }
+    function _outlineCss(text) {
+        const out = [];
+        const lines = text.split('\n');
+        lines.forEach((line, i) => {
+            const m = line.match(/^\s*([.#]?[\w\-:,\s>+~\[\]="*]+)\s*\{/);
+            if (m && !line.trim().startsWith('//') && !line.trim().startsWith('/*')) {
+                const sel = m[1].trim().slice(0, 50);
+                out.push({ label: sel, line: i, indent: 0, type: 'rule', kind: 'css' });
+            }
+            const am = line.match(/^\s*(@media|@keyframes|@supports)[^{]*\{/);
+            if (am) out.push({ label: am[0].replace('{','').trim(), line: i, indent: 0, type: 'rule', kind: 'at' });
+        });
+        return out.slice(0, 200);
+    }
+    function _outlineJs(text) {
+        const out = [];
+        const lines = text.split('\n');
+        lines.forEach((line, i) => {
+            let m;
+            if ((m = line.match(/^\s*(?:async\s+)?function\s+(\w+)/))) {
+                out.push({ label: m[1] + '()', line: i, indent: 0, type: 'fn', kind: 'fn' });
+            } else if ((m = line.match(/^\s*(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s*)?\(?.*\)?\s*=>/))) {
+                out.push({ label: m[1] + '()', line: i, indent: 0, type: 'fn', kind: 'arr' });
+            } else if ((m = line.match(/^\s*class\s+(\w+)/))) {
+                out.push({ label: 'class ' + m[1], line: i, indent: 0, type: 'fn', kind: 'cls' });
+            } else if ((m = line.match(/^\s*(\w+)\s*\([^)]*\)\s*\{/)) && !/^\s*(if|for|while|switch|return|function)\b/.test(line)) {
+                out.push({ label: m[1] + '()', line: i, indent: 1, type: 'fn', kind: 'm' });
+            }
+        });
+        return out.slice(0, 200);
+    }
+
+    /* ── Command Palette (Ctrl+Shift+P) ─────────────────────────── */
+    const CMD_LIST = [
+        { id: 'save',          label: 'Dosyayı Kaydet',         sc: 'Ctrl+S',      run: () => menuAction('save') },
+        { id: 'newFile',       label: 'Yeni Dosya',             sc: 'Ctrl+N',      run: () => menuAction('newFile') },
+        { id: 'openFile',      label: 'Dosya Aç',               sc: 'Ctrl+O',      run: () => menuAction('openFile') },
+        { id: 'savedFiles',    label: 'Kayıtlı Dosyalar',       sc: 'Ctrl+P',      run: () => menuAction('savedFiles') },
+        { id: 'find',          label: 'Bul',                    sc: 'Ctrl+F',      run: () => menuAction('find') },
+        { id: 'replace',       label: 'Değiştir',               sc: 'Ctrl+H',      run: () => menuAction('replace') },
+        { id: 'gotoLine',      label: 'Satıra Git',             sc: 'Ctrl+G',      run: () => gotoLinePrompt() },
+        { id: 'userSearch',    label: 'Kullanıcı Ara',          sc: 'Ctrl+Shift+F',run: () => menuAction('userSearch') },
+        { id: 'toggleSplit',   label: 'Önizleme: Böl / Kapat',  sc: 'Ctrl+K V',    run: () => toggleSplit() },
+        { id: 'fullPreview',   label: 'Tam Ekran Önizleme',     sc: 'Ctrl+Shift+O',run: () => menuAction('fullPreview') },
+        { id: 'popoutPreview', label: 'Önizleme: Yeni Pencere', sc: '',            run: () => popoutPreview() },
+        { id: 'toggleMulti',   label: 'Çoklu Editör Modu (HTML/CSS/JS)', sc: 'Ctrl+K M', run: () => toggleMultiEditor() },
+        { id: 'toggleMinimap', label: 'Minimap / Outline Göster/Gizle', sc: 'Ctrl+K O', run: () => toggleMinimap() },
+        { id: 'toggleSidebar', label: 'Sol Kenar Çubuğunu Değiştir', sc: '',      run: () => menuAction('toggleSidebar') },
+        { id: 'deviceDesktop', label: 'Önizleme: Masaüstü',     sc: '',            run: () => setDevice('desktop') },
+        { id: 'deviceTablet',  label: 'Önizleme: Tablet',       sc: '',            run: () => setDevice('tablet') },
+        { id: 'deviceMobile',  label: 'Önizleme: Mobil',        sc: '',            run: () => setDevice('mobile') },
+        { id: 'tabHtml',       label: 'Tab: Sayfa (HTML)',      sc: 'Ctrl+1',      run: () => menuAction('tabHtml') },
+        { id: 'tabCss',        label: 'Tab: Stil (CSS)',        sc: 'Ctrl+2',      run: () => menuAction('tabCss') },
+        { id: 'tabJs',         label: 'Tab: Kod (JS)',          sc: 'Ctrl+3',      run: () => menuAction('tabJs') },
+        { id: 'download',      label: 'İndir',                  sc: '',            run: () => menuAction('download') },
+        { id: 'upload',        label: 'Yükle',                  sc: '',            run: () => menuAction('upload') },
+        { id: 'versions',      label: 'Versiyon Geçmişi',       sc: '',            run: () => sidebar('versions') },
+        { id: 'collections',   label: 'Koleksiyonlar',          sc: '',            run: () => menuAction('collections') },
+        { id: 'profile',       label: 'Profil',                 sc: '',            run: () => sidebar('profile') },
+        { id: 'notif',         label: 'Bildirimler',            sc: '',            run: () => sidebar('notif') },
+        { id: 'messages',      label: 'Mesajlar',               sc: '',            run: () => sidebar('messages') },
+        { id: 'feed',          label: 'Akış',                   sc: '',            run: () => sidebar('feed') },
+        { id: 'undo',          label: 'Geri Al',                sc: 'Ctrl+Z',      run: () => menuAction('undo') },
+        { id: 'redo',          label: 'Yinele',                 sc: 'Ctrl+Y',      run: () => menuAction('redo') },
+    ];
+    let cmdSelIdx = 0;
+    let cmdFiltered = CMD_LIST.slice();
+    function openCmd() {
+        const ov = $('cmdPaletteOverlay');
+        const inp = $('cmdPaletteInput');
+        if (!ov || !inp) return;
+        ov.classList.add('open');
+        inp.value = '';
+        cmdFiltered = CMD_LIST.slice();
+        cmdSelIdx = 0;
+        renderCmd();
+        setTimeout(() => inp.focus(), 40);
+    }
+    function closeCmd() {
+        const ov = $('cmdPaletteOverlay');
+        if (ov) ov.classList.remove('open');
+    }
+    function renderCmd() {
+        const list = $('cmdPaletteList');
+        if (!list) return;
+        if (!cmdFiltered.length) {
+            list.innerHTML = '<div class="cmd-palette-empty">Komut bulunamadı</div>';
+            return;
+        }
+        list.innerHTML = cmdFiltered.map((c, i) =>
+            `<div class="cmd-palette-item${i === cmdSelIdx ? ' sel' : ''}" data-i="${i}">
+                <span>${_escape(c.label)}</span>
+                ${c.sc ? `<span class="cmd-sc">${c.sc}</span>` : ''}
+            </div>`
+        ).join('');
+        list.querySelectorAll('.cmd-palette-item').forEach(el => {
+            el.addEventListener('click', () => {
+                cmdSelIdx = +el.dataset.i;
+                runCmd();
+            });
+        });
+        const sel = list.querySelector('.cmd-palette-item.sel');
+        if (sel) sel.scrollIntoView({ block: 'nearest' });
+    }
+    function filterCmd(q) {
+        q = (q || '').trim().toLowerCase();
+        if (!q) cmdFiltered = CMD_LIST.slice();
+        else {
+            cmdFiltered = CMD_LIST
+                .map(c => ({ c, s: _cmdScore(c, q) }))
+                .filter(x => x.s > 0)
+                .sort((a, b) => b.s - a.s)
+                .map(x => x.c);
+        }
+        cmdSelIdx = 0;
+        renderCmd();
+    }
+    function _cmdScore(c, q) {
+        const l = c.label.toLowerCase();
+        if (l.startsWith(q)) return 100;
+        if (l.includes(q)) return 50;
+        // Fuzzy: tüm harfler sırayla mı?
+        let qi = 0;
+        for (let i = 0; i < l.length && qi < q.length; i++) {
+            if (l[i] === q[qi]) qi++;
+        }
+        return qi === q.length ? 10 : 0;
+    }
+    function runCmd() {
+        const c = cmdFiltered[cmdSelIdx];
+        if (!c) return;
+        closeCmd();
+        setTimeout(() => c.run(), 50);
+    }
+    function onCmdKey(e) {
+        if (e.key === 'ArrowDown') {
+            cmdSelIdx = Math.min(cmdFiltered.length - 1, cmdSelIdx + 1);
+            renderCmd(); e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+            cmdSelIdx = Math.max(0, cmdSelIdx - 1);
+            renderCmd(); e.preventDefault();
+        } else if (e.key === 'Enter') {
+            runCmd(); e.preventDefault();
+        } else if (e.key === 'Escape') {
+            closeCmd(); e.preventDefault();
+        }
+    }
+
+    // Klavye kısayollarını genişlet: Ctrl+Shift+P + chord ekleri
+    const _origOnKeydown = onKeydown;
+    onKeydown = function (e) {
+        const mod = e.ctrlKey || e.metaKey;
+        // Command palette — her zaman açılabilsin
+        if (mod && e.shiftKey && e.key.toLowerCase() === 'p') {
+            e.preventDefault();
+            openCmd();
+            return;
+        }
+        if (!active) return;
+        // Chord: Ctrl+K M (multi), Ctrl+K O (minimap)
+        if (chordKey === 'k') {
+            const k = e.key.toLowerCase();
+            if (k === 'm') { chordKey = null; e.preventDefault(); toggleMultiEditor(); return; }
+            if (k === 'o') { chordKey = null; e.preventDefault(); toggleMinimap(); return; }
+        }
+        return _origOnKeydown(e);
+    };
+
+    // Phase 3 init hook — init() içine düşük invazif eklemeler
+    const _origInit = init;
+    init = function () {
+        _origInit();
+
+        // Cmd palette input
+        const cmdInp = $('cmdPaletteInput');
+        if (cmdInp) {
+            cmdInp.addEventListener('input', e => filterCmd(e.target.value));
+            cmdInp.addEventListener('keydown', onCmdKey);
+        }
+        // Overlay click'inde input odağından çıkıp kapatma
+        const cmdOv = $('cmdPaletteOverlay');
+        if (cmdOv) {
+            cmdOv.addEventListener('keydown', e => {
+                if (e.key === 'Escape') closeCmd();
+            });
+        }
+
+        // CM değişimlerini minimap + breadcrumb + multi-editor'a bağla
+        const hookMore = () => {
+            if (!window.cm) return false;
+            window.cm.on('change', () => {
+                scheduleMinimap();
+                updateBreadcrumb();
+                if (multiMode && !multiSyncing) {
+                    const key = (typeof _activeTab !== 'undefined') ? _activeTab : 'html';
+                    if (multiCMs[key] && multiCMs[key].getValue() !== window.cm.getValue()) {
+                        multiSyncing = true;
+                        multiCMs[key].setValue(window.cm.getValue());
+                        multiSyncing = false;
+                    }
+                }
+            });
+            return true;
+        };
+        if (!hookMore()) {
+            const iv = setInterval(() => { if (hookMore()) clearInterval(iv); }, 300);
+            setTimeout(() => clearInterval(iv), 10000);
+        }
+
+        // İlk render
+        updateBreadcrumb();
+        setDevice('desktop');
+        setInterval(updateBreadcrumb, 1500);
+    };
+
     // Public API
     return {
         init,
@@ -16316,6 +17086,14 @@ const _dsk = (function () {
         updateStatus,
         updateTitle,
         updateSync,
+        // Phase 3
+        setDevice,
+        refreshPreview,
+        toggleMultiEditor,
+        toggleMinimap,
+        updateBreadcrumb,
+        openCmd,
+        closeCmd,
     };
 })();
 
