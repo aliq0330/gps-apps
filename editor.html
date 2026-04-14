@@ -15190,9 +15190,11 @@ function _fmDlOverlayClick(e) {
 }
 
 function _fmDlSingleHtml() {
+    // closeFmDlModal() _fmDlProjectId'yi null yapıyor; önce yerel değişkene al
+    const dlId = _fmDlProjectId;
     closeFmDlModal();
     _fmSaveCurrentToMemory(); // Editördeki son içeriği belleğe al
-    const p = _fmDlProjectId ? _fmProjects.find(x => x.id === _fmDlProjectId) : null;
+    const p = dlId ? _fmProjects.find(x => x.id === dlId) : null;
 
     let html = '', css = '', js = '', title = '';
     if (p) {
@@ -15227,9 +15229,11 @@ function _fmDlSingleHtml() {
 }
 
 async function _fmDlRaw() {
+    // closeFmDlModal() _fmDlProjectId'yi null yapıyor; önce yerel değişkene al
+    const dlId = _fmDlProjectId;
     closeFmDlModal();
     _fmSaveCurrentToMemory(); // Editördeki son içeriği belleğe al
-    const p = _fmDlProjectId ? _fmProjects.find(x => x.id === _fmDlProjectId) : null;
+    const p = dlId ? _fmProjects.find(x => x.id === dlId) : null;
 
     let filesToZip = [];
     if (p) {
