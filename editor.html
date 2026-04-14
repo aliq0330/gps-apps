@@ -15196,10 +15196,14 @@ function _fmDlSingleHtml() {
 
     let html = '', css = '', js = '', title = '';
     if (p) {
-        // Aktif proje: ilk sayfa + TÜM CSS + TÜM JS birleştir
-        html  = p.files.filter(f => f.file_type === 'page').map(f => f.content).join('\n');
-        css   = p.files.filter(f => f.file_type === 'style').map(f => f.content).join('\n\n');
-        js    = p.files.filter(f => f.file_type === 'code').map(f => f.content).join('\n\n');
+        // Aktif proje: TÜM HTML + TÜM CSS + TÜM JS birleştir (sort_order'a göre sıralanmış)
+        const byOrder = (a, b) => (a.sort_order || 0) - (b.sort_order || 0);
+        const pages  = p.files.filter(f => f.file_type === 'page').slice().sort(byOrder);
+        const styles = p.files.filter(f => f.file_type === 'style').slice().sort(byOrder);
+        const codes  = p.files.filter(f => f.file_type === 'code').slice().sort(byOrder);
+        html  = pages.map(f => f.content || '').join('\n');
+        css   = styles.map(f => f.content || '').join('\n\n');
+        js    = codes.map(f => f.content || '').join('\n\n');
         title = p.name;
     } else {
         // Proje yoksa mevcut editör içeriği
@@ -15229,7 +15233,12 @@ async function _fmDlRaw() {
 
     let filesToZip = [];
     if (p) {
-        filesToZip = p.files.map(f => ({ name: f.name, content: f.content }));
+        // Tüm HTML/CSS/JS dosyalarını sort_order'a göre sıralanmış şekilde pakete al
+        const byOrder = (a, b) => (a.sort_order || 0) - (b.sort_order || 0);
+        filesToZip = p.files
+            .filter(f => f.file_type === 'page' || f.file_type === 'style' || f.file_type === 'code')
+            .slice().sort(byOrder)
+            .map(f => ({ name: f.name, content: f.content }));
     } else {
         if (_tabs.html) filesToZip.push({ name: (loadedFilename || 'index')  + '.html', content: _tabs.html });
         if (_tabs.css)  filesToZip.push({ name: (loadedFilename || 'style')  + '.css',  content: _tabs.css  });
