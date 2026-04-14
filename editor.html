@@ -3418,6 +3418,354 @@ body.preview-mode .file-title-bar { display: none !important; }
 }
 .fm-dl-cancel:hover { background: rgba(120,120,128,0.18); color: var(--text-primary); }
 
+/* ════════════════════════════════════════════════════════════════════
+   ── DESKTOP ADAPTATION (≥1024px) ────────────────────────────────────
+   Mobil deneyim korunur; masaüstünde sol sidebar + üst menü + split
+   view + status bar + klavye kısayolları devreye girer.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Masaüstüne özel elementler mobilde gizli */
+.desktop-sidebar,
+.desktop-topbar,
+.desktop-statusbar,
+.desktop-splitter { display: none; }
+
+.desktop-ctx-menu {
+    position: fixed; z-index: 10000;
+    min-width: 190px;
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+    padding: 5px; display: none;
+    font-family: inherit; font-size: 13px;
+    user-select: none;
+}
+.desktop-ctx-menu.open { display: block; }
+.desktop-ctx-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 12px; border-radius: 7px;
+    cursor: pointer; color: var(--text-primary);
+    white-space: nowrap;
+}
+.desktop-ctx-item:hover { background: rgba(0,122,255,0.12); color: #007aff; }
+.desktop-ctx-item .ctx-shortcut {
+    margin-left: auto; font-size: 11px;
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    padding-left: 16px;
+}
+.desktop-ctx-sep { height: 1px; background: var(--glass-border); margin: 4px 2px; }
+.desktop-menu-dropdown {
+    position: fixed; z-index: 9500;
+    min-width: 220px;
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+    padding: 5px; display: none;
+    font-family: inherit; font-size: 13px;
+}
+.desktop-menu-dropdown.open { display: block; }
+.desktop-menu-dropdown .desktop-ctx-item { font-size: 13px; }
+
+@media (min-width: 1024px) {
+    /* ── Mobil-özel elementleri gizle ───────────────────────────── */
+    .bottom-bar,
+    body .bottom-bar { display: none !important; }
+    .fab-container,
+    .fab-overlay,
+    .fab-main { display: none !important; }
+    .floating-switcher { display: none !important; }
+    .header { display: none !important; }
+
+    /* Mobilde `position: fixed` olan preview-area artık split-pane olacak */
+    .preview-area {
+        position: relative !important;
+        inset: auto !important;
+        width: 50%;
+        flex: 1 1 50%;
+        min-width: 200px;
+        opacity: 1 !important;
+        transform: none !important;
+        display: none; /* split-view açıldığında .split-view ile gösterilir */
+        z-index: 1;
+    }
+    .preview-area.active { display: block; }
+    .preview-close-btn { display: none !important; }
+
+    /* ── Sol sidebar ────────────────────────────────────────────── */
+    .desktop-sidebar {
+        display: flex !important;
+        flex-direction: column; align-items: center;
+        position: fixed; top: 0; left: 0; bottom: 0;
+        width: 56px; z-index: 150;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border-right: 1px solid var(--glass-border);
+        padding: 12px 0 10px;
+        gap: 4px;
+    }
+    .desktop-sidebar-btn {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        background: transparent; border: none;
+        color: var(--text-secondary); cursor: pointer;
+        transition: background 0.15s, color 0.15s, transform 0.1s;
+        position: relative;
+    }
+    .desktop-sidebar-btn:hover {
+        background: rgba(120,120,128,0.15);
+        color: var(--text-primary);
+    }
+    .desktop-sidebar-btn:active { transform: scale(0.92); }
+    .desktop-sidebar-btn.active {
+        background: rgba(0,122,255,0.14);
+        color: #007aff;
+    }
+    .desktop-sidebar-btn svg { width: 20px; height: 20px; }
+    .desktop-sidebar-btn::after {
+        content: attr(data-label);
+        position: absolute; left: 52px; top: 50%;
+        transform: translateY(-50%) translateX(-4px);
+        background: rgba(20,22,30,0.94); color: #fff;
+        padding: 5px 9px; border-radius: 7px;
+        font-size: 11.5px; font-weight: 500; white-space: nowrap;
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.12s, transform 0.12s;
+        z-index: 200; letter-spacing: -0.005em;
+    }
+    .desktop-sidebar-btn:hover::after {
+        opacity: 1; transform: translateY(-50%) translateX(0);
+    }
+    .desktop-sidebar-spacer { flex: 1; }
+    .desktop-sidebar-badge {
+        position: absolute; top: 4px; right: 4px;
+        min-width: 14px; height: 14px; padding: 0 3px;
+        border-radius: 7px; background: #ff3b30; color: #fff;
+        font-size: 9px; font-weight: 700; line-height: 14px;
+        text-align: center; display: none;
+    }
+    .desktop-sidebar-badge.show { display: block; }
+
+    /* ── Üst menü barı ──────────────────────────────────────────── */
+    .desktop-topbar {
+        display: flex !important;
+        position: fixed; top: 0; left: 56px; right: 0;
+        height: 40px; z-index: 140;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border-bottom: 1px solid var(--glass-border);
+        align-items: center;
+        padding: 0 12px;
+        gap: 2px;
+    }
+    .desktop-menu-item {
+        padding: 5px 11px;
+        border-radius: 7px;
+        cursor: pointer;
+        color: var(--text-primary);
+        background: transparent;
+        border: none;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        transition: background 0.12s;
+        position: relative;
+        letter-spacing: -0.005em;
+    }
+    .desktop-menu-item:hover,
+    .desktop-menu-item.open { background: rgba(120,120,128,0.18); }
+    .desktop-menu-divider {
+        width: 1px; height: 18px;
+        background: var(--glass-border);
+        margin: 0 6px;
+    }
+    .desktop-topbar-title {
+        font-size: 12.5px;
+        color: var(--text-secondary);
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 500;
+        overflow: hidden; text-overflow: ellipsis;
+        white-space: nowrap; max-width: 260px;
+        padding: 0 8px;
+    }
+    .desktop-topbar-title.dirty::after {
+        content: ' •'; color: #ff9500; margin-left: 2px;
+    }
+    .desktop-topbar-spacer { flex: 1; }
+    .desktop-topbar-action {
+        width: 30px; height: 30px; border-radius: 8px;
+        background: transparent; border: none;
+        color: var(--text-secondary); cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.12s, color 0.12s;
+    }
+    .desktop-topbar-action:hover {
+        background: rgba(120,120,128,0.15);
+        color: var(--text-primary);
+    }
+    .desktop-topbar-action svg { width: 16px; height: 16px; }
+    .desktop-topbar .user-pill {
+        margin-left: 4px;
+    }
+
+    /* ── Status bar ─────────────────────────────────────────────── */
+    .desktop-statusbar {
+        display: flex !important;
+        position: fixed; bottom: 0; left: 56px; right: 0;
+        height: 24px; z-index: 140;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border-top: 1px solid var(--glass-border);
+        align-items: center;
+        padding: 0 14px;
+        gap: 16px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: var(--text-secondary);
+        letter-spacing: 0.01em;
+    }
+    .desktop-status-item {
+        display: flex; align-items: center; gap: 5px;
+        cursor: default;
+    }
+    .desktop-status-item.clickable { cursor: pointer; }
+    .desktop-status-item.clickable:hover { color: var(--text-primary); }
+    .desktop-status-spacer { flex: 1; }
+    .desktop-status-dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: #8e8e93;
+    }
+    .desktop-status-dot.ok     { background: #34c759; }
+    .desktop-status-dot.dirty  { background: #ff9500; }
+    .desktop-status-dot.error  { background: #ff453a; }
+    .desktop-status-dot.syncing{ background: #007aff; animation: statusPulse 1.4s infinite; }
+    @keyframes statusPulse {
+        0%,100% { opacity: 1; }
+        50% { opacity: 0.35; }
+    }
+
+    /* ── Ana alan yerleşimi ─────────────────────────────────────── */
+    main#appMain {
+        position: fixed;
+        top: 40px;              /* topbar */
+        left: 56px;             /* sidebar */
+        right: 0; bottom: 24px; /* statusbar */
+        margin: 0;
+        flex-direction: row !important;
+        display: flex !important;
+        overflow: hidden;
+    }
+    .code-area {
+        flex: 1 1 auto; min-width: 200px;
+        transition: none !important;
+    }
+    body.preview-mode .code-area {
+        opacity: 1 !important; pointer-events: auto !important;
+        transform: none !important;
+    }
+    .file-title-bar {
+        display: flex !important;
+        position: absolute !important;
+        top: 0; left: 0; right: 0; z-index: 30;
+        background: var(--glass-bg);
+        backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(var(--saturation)) blur(var(--blur));
+        border-bottom: 1px solid var(--glass-border);
+        padding: 6px 10px;
+        justify-content: flex-start;
+        gap: 6px;
+    }
+    .editor-tab-bar {
+        padding-top: 44px !important;
+        padding-left: 12px !important;
+    }
+
+    /* ── Split view (editor ↔ preview yan yana) ─────────────────── */
+    body.split-view .preview-area {
+        display: block !important;
+        opacity: 1 !important;
+        transform: none !important;
+        flex: 1 1 50%;
+    }
+    body.split-view .code-area {
+        flex: 1 1 50%;
+    }
+    .desktop-splitter {
+        display: none;
+        width: 5px;
+        flex: 0 0 5px;
+        background: var(--glass-border);
+        cursor: col-resize;
+        transition: background 0.12s;
+        position: relative;
+    }
+    .desktop-splitter:hover,
+    .desktop-splitter.dragging { background: rgba(0,122,255,0.55); }
+    .desktop-splitter::after {
+        content: '';
+        position: absolute; left: -3px; right: -3px; top: 0; bottom: 0;
+    }
+    body.split-view .desktop-splitter { display: block; }
+    /* Split görünümdeyken tam ekran "preview-mode" davranışı pasif */
+    body.split-view.preview-mode .code-area { display: flex !important; }
+    body.split-view.preview-mode .file-title-bar { display: flex !important; }
+
+    /* Arama paneli masaüstünde editörün üstünde sabit */
+    .editor-search-panel { border-radius: 0; }
+
+    /* User dropdown konumu */
+    .user-dropdown { z-index: 9999; }
+
+    /* Scroll tekerleği ile preview iframe üzerinde dokunma sorunu yok */
+    .preview-frame-inline { background: #fff; }
+
+    /* Modalların masaüstünde merkezlenmesi için safe sınırlar */
+    .modal-overlay,
+    .fv-overlay,
+    .coll-overlay,
+    .profile-panel-overlay,
+    .search-panel-overlay,
+    .explore-overlay,
+    .messages-overlay,
+    .pub-profile-overlay,
+    .notif-overlay {
+        padding-left: 56px;
+    }
+}
+
+/* ── Daha geniş masaüstü (≥1440px) ───────────────────────────────── */
+@media (min-width: 1440px) {
+    .desktop-sidebar { width: 60px; }
+    main#appMain,
+    .desktop-topbar,
+    .desktop-statusbar { left: 60px; }
+    .modal-overlay,
+    .fv-overlay,
+    .coll-overlay,
+    .profile-panel-overlay,
+    .search-panel-overlay,
+    .explore-overlay,
+    .messages-overlay,
+    .pub-profile-overlay,
+    .notif-overlay {
+        padding-left: 60px;
+    }
+    .desktop-topbar-title { max-width: 360px; }
+}
+
+/* ── Workstation (≥1680px) — üçlü pane toleransı ────────────────── */
+@media (min-width: 1680px) {
+    .desktop-topbar-title { max-width: 480px; font-size: 13px; }
+    body.split-view .code-area,
+    body.split-view .preview-area { flex-basis: 50%; }
+}
+
 </style>
 
 </head>
@@ -3500,6 +3848,144 @@ body.preview-mode .file-title-bar { display: none !important; }
 </div>
 
 <!-- ── APP ──────────────────────────────────────────────────────────── -->
+
+<!-- ══════════════════════════════════════════════════════════════════
+     MASAÜSTÜ YAPILARI (sadece ≥1024px genişlikte görünür)
+     Sol sidebar · Üst menü · Status bar · Sağ tık menüsü
+     ══════════════════════════════════════════════════════════════════ -->
+<aside class="desktop-sidebar" id="desktopSidebar" style="display:none;">
+    <button class="desktop-sidebar-btn active" data-panel="files" data-label="Dosyalar (Ctrl+B)" onclick="_dsk.sidebar('files')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+        </svg>
+    </button>
+    <button class="desktop-sidebar-btn" data-panel="search" data-label="Kullanıcı Ara" onclick="_dsk.sidebar('search')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+    </button>
+    <button class="desktop-sidebar-btn" data-panel="feed" data-label="Akış" onclick="_dsk.sidebar('feed')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2L4 10v11h4v-5h8v5h4V10L12 2z"/>
+        </svg>
+    </button>
+    <button class="desktop-sidebar-btn" data-panel="preview" data-label="Önizlemeyi Böl (Ctrl+K V)" onclick="_dsk.toggleSplit()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM12 3v18"/>
+        </svg>
+    </button>
+    <button class="desktop-sidebar-btn" data-panel="messages" data-label="Mesajlar" onclick="_dsk.sidebar('messages')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+        </svg>
+        <span class="desktop-sidebar-badge" id="dskMsgBadge">0</span>
+    </button>
+    <button class="desktop-sidebar-btn" data-panel="versions" data-label="Versiyon Geçmişi" onclick="_dsk.sidebar('versions')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+    </button>
+    <div class="desktop-sidebar-spacer"></div>
+    <button class="desktop-sidebar-btn" data-panel="notif" data-label="Bildirimler" onclick="_dsk.sidebar('notif')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+        </svg>
+        <span class="desktop-sidebar-badge" id="dskNotifBadge">0</span>
+    </button>
+    <button class="desktop-sidebar-btn" data-panel="profile" data-label="Profilim" onclick="_dsk.sidebar('profile')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+    </button>
+</aside>
+
+<nav class="desktop-topbar" id="desktopTopbar" style="display:none;">
+    <button class="desktop-menu-item" data-menu="file" onclick="_dsk.menu('file',event)">Dosya</button>
+    <button class="desktop-menu-item" data-menu="edit" onclick="_dsk.menu('edit',event)">Düzen</button>
+    <button class="desktop-menu-item" data-menu="view" onclick="_dsk.menu('view',event)">Görünüm</button>
+    <button class="desktop-menu-item" data-menu="tools" onclick="_dsk.menu('tools',event)">Araçlar</button>
+    <div class="desktop-menu-divider"></div>
+    <span class="desktop-topbar-title" id="desktopFileTitle">Yeni Dosya</span>
+    <div class="desktop-topbar-spacer"></div>
+    <button class="desktop-topbar-action" title="Kaydet (Ctrl+S)" onclick="handleQuickSave()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 3v5h5M9 17h6M9 13h6"/>
+        </svg>
+    </button>
+    <button class="desktop-topbar-action" title="Bul (Ctrl+F)" onclick="_dsk.find()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+    </button>
+    <button class="desktop-topbar-action" title="Önizlemeyi Böl (Ctrl+K V)" onclick="_dsk.toggleSplit()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM12 3v18"/>
+        </svg>
+    </button>
+    <button class="desktop-topbar-action" title="Yeni Pencere Önizleme" onclick="_dsk.popoutPreview()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M10 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-5"/>
+        </svg>
+    </button>
+</nav>
+
+<footer class="desktop-statusbar" id="desktopStatusbar" style="display:none;">
+    <div class="desktop-status-item" id="dskStatusSync">
+        <span class="desktop-status-dot ok" id="dskStatusDot"></span>
+        <span id="dskStatusSyncText">Hazır</span>
+    </div>
+    <div class="desktop-status-item">
+        <span>Satır:</span><span id="dskStatusLine">1</span>
+        <span>Sütun:</span><span id="dskStatusCol">1</span>
+    </div>
+    <div class="desktop-status-item" id="dskStatusSel" style="display:none;">
+        <span id="dskStatusSelText">0 seçili</span>
+    </div>
+    <div class="desktop-status-spacer"></div>
+    <div class="desktop-status-item">
+        <span id="dskStatusLang">HTML</span>
+    </div>
+    <div class="desktop-status-item">
+        <span>UTF-8</span>
+    </div>
+    <div class="desktop-status-item">
+        <span id="dskStatusSize">0 KB</span>
+    </div>
+    <div class="desktop-status-item clickable" onclick="_dsk.toggleSplit()">
+        <span id="dskStatusSplit">Tek Görünüm</span>
+    </div>
+</footer>
+
+<!-- Sağ tık menüsü -->
+<div class="desktop-ctx-menu" id="desktopCtxMenu">
+    <div class="desktop-ctx-item" onclick="_dsk.ctxAction('cut')">
+        <span>Kes</span><span class="ctx-shortcut">Ctrl+X</span>
+    </div>
+    <div class="desktop-ctx-item" onclick="_dsk.ctxAction('copy')">
+        <span>Kopyala</span><span class="ctx-shortcut">Ctrl+C</span>
+    </div>
+    <div class="desktop-ctx-item" onclick="_dsk.ctxAction('paste')">
+        <span>Yapıştır</span><span class="ctx-shortcut">Ctrl+V</span>
+    </div>
+    <div class="desktop-ctx-sep"></div>
+    <div class="desktop-ctx-item" onclick="_dsk.ctxAction('selectAll')">
+        <span>Tümünü Seç</span><span class="ctx-shortcut">Ctrl+A</span>
+    </div>
+    <div class="desktop-ctx-item" onclick="_dsk.ctxAction('find')">
+        <span>Bul</span><span class="ctx-shortcut">Ctrl+F</span>
+    </div>
+    <div class="desktop-ctx-sep"></div>
+    <div class="desktop-ctx-item" onclick="_dsk.ctxAction('duplicateLine')">
+        <span>Satırı Çoğalt</span><span class="ctx-shortcut">Ctrl+D</span>
+    </div>
+    <div class="desktop-ctx-item" onclick="_dsk.ctxAction('deleteLine')">
+        <span>Satırı Sil</span><span class="ctx-shortcut">Ctrl+Shift+K</span>
+    </div>
+</div>
+
+<!-- Menü dropdown'ları -->
+<div class="desktop-menu-dropdown" id="desktopMenuDropdown"></div>
 
 <header class="header" id="appHeader" style="display:none;">
     <div class="header-top">
@@ -4198,6 +4684,7 @@ body.preview-mode .file-title-bar { display: none !important; }
         <textarea id="editor" class="code-input" spellcheck="false"
                   oninput="updateCode()" onkeydown="handleKeydown(event)"></textarea>
     </div>
+    <div class="desktop-splitter" id="desktopSplitter" title="Sürükleyerek yeniden boyutlandır"></div>
     <div class="preview-area" id="previewArea">
         <iframe id="previewFrameInline" class="preview-frame-inline"></iframe>
         <button class="preview-close-btn" onclick="handleViewSwitch('code')" title="Kodu görüntüle">
@@ -15260,6 +15747,583 @@ async function _fmDlRaw() {
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(a.href);
     showToast(zipName + ' indirildi (' + filesToZip.length + ' dosya)');
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ── DESKTOP ADAPTATION LOGIC ──────────────────────────────────────
+   Aktivasyon: viewport ≥1024px. Mobil davranışa müdahale etmez.
+   ════════════════════════════════════════════════════════════════════ */
+const _dsk = (function () {
+    const BP = 1024;
+    const MIN_PANE = 200;
+    let active = false;
+    let splitView = false;
+    let splitRatio = 0.5;      // 0..1 — kod alanı oranı
+    let dragging = false;
+    let openMenuEl = null;
+    let previewWin = null;
+
+    const $ = id => document.getElementById(id);
+
+    function isDesktop() { return window.innerWidth >= BP; }
+
+    function activate() {
+        if (active) return;
+        active = true;
+        ['desktopSidebar', 'desktopTopbar', 'desktopStatusbar'].forEach(id => {
+            const el = $(id);
+            if (el) el.style.display = '';
+        });
+        // Alt bar ve FAB gizleme CSS tarafından halledilir.
+        // CodeMirror'ı yeni ölçülere göre yenile
+        refreshCM();
+        _dsk.updateTitle();
+        _dsk.updateStatus();
+        _dsk.updateSync('ok', 'Hazır');
+    }
+
+    function deactivate() {
+        if (!active) return;
+        active = false;
+        ['desktopSidebar', 'desktopTopbar', 'desktopStatusbar'].forEach(id => {
+            const el = $(id);
+            if (el) el.style.display = 'none';
+        });
+        // Split view kapatılır
+        if (splitView) setSplit(false);
+        closeOpenMenu();
+        refreshCM();
+    }
+
+    function onResize() {
+        if (isDesktop()) activate();
+        else deactivate();
+        if (active) applySplitRatio();
+        refreshCM();
+    }
+
+    function refreshCM() {
+        if (window.cm) {
+            setTimeout(() => { try { cm.refresh(); } catch (e) {} }, 60);
+        }
+    }
+
+    /* ── Split View ─────────────────────────────────────────────── */
+    function setSplit(on) {
+        splitView = !!on;
+        document.body.classList.toggle('split-view', splitView);
+        const splitLabel = $('dskStatusSplit');
+        if (splitLabel) splitLabel.textContent = splitView ? 'Bölünmüş' : 'Tek Görünüm';
+        if (splitView) {
+            // Preview iframe'i güncel içerikle doldur
+            const frame = $('previewFrameInline');
+            if (frame && typeof _buildPreviewHtml === 'function') {
+                frame.srcdoc = _buildPreviewHtml();
+            }
+            applySplitRatio();
+        }
+        refreshCM();
+    }
+
+    function toggleSplit() {
+        if (!active) {
+            // Masaüstünde değilsek mobil toggle kullan
+            if (typeof toggleBottomBarView === 'function') toggleBottomBarView();
+            return;
+        }
+        setSplit(!splitView);
+    }
+
+    function applySplitRatio() {
+        if (!splitView) return;
+        const code = document.querySelector('.code-area');
+        const prev = document.querySelector('.preview-area');
+        if (!code || !prev) return;
+        const main = $('appMain');
+        const total = main ? main.clientWidth - 5 : 0; // 5px splitter
+        if (total <= 0) return;
+        let cw = Math.round(total * splitRatio);
+        cw = Math.max(MIN_PANE, Math.min(total - MIN_PANE, cw));
+        code.style.flex = '0 0 ' + cw + 'px';
+        prev.style.flex = '0 0 ' + (total - cw) + 'px';
+    }
+
+    /* ── Splitter Drag ──────────────────────────────────────────── */
+    function initSplitter() {
+        const splitter = $('desktopSplitter');
+        if (!splitter) return;
+        let startX = 0, startRatio = 0.5;
+
+        const onMove = (e) => {
+            if (!dragging) return;
+            const main = $('appMain');
+            const rect = main.getBoundingClientRect();
+            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            splitRatio = Math.max(0.12, Math.min(0.88, x / rect.width));
+            applySplitRatio();
+        };
+        const onUp = () => {
+            if (!dragging) return;
+            dragging = false;
+            splitter.classList.remove('dragging');
+            document.body.style.userSelect = '';
+            document.body.style.cursor = '';
+            refreshCM();
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onUp);
+            window.removeEventListener('touchmove', onMove);
+            window.removeEventListener('touchend', onUp);
+        };
+        const onDown = (e) => {
+            if (!active || !splitView) return;
+            dragging = true;
+            splitter.classList.add('dragging');
+            document.body.style.userSelect = 'none';
+            document.body.style.cursor = 'col-resize';
+            startX = e.touches ? e.touches[0].clientX : e.clientX;
+            startRatio = splitRatio;
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onUp);
+            window.addEventListener('touchmove', onMove, { passive: false });
+            window.addEventListener('touchend', onUp);
+            e.preventDefault();
+        };
+        splitter.addEventListener('mousedown', onDown);
+        splitter.addEventListener('touchstart', onDown, { passive: false });
+    }
+
+    /* ── Sidebar / Panel açma ───────────────────────────────────── */
+    function sidebar(panel) {
+        const map = {
+            files:    () => typeof toggleFileManager === 'function' && toggleFileManager(),
+            search:   () => typeof openSearchPanel === 'function' && openSearchPanel(),
+            feed:     () => typeof openFeedPanel === 'function' && openFeedPanel(),
+            messages: () => typeof openMessagesPanel === 'function' && openMessagesPanel(),
+            versions: () => typeof openVersionPanel === 'function' && openVersionPanel(),
+            notif:    () => typeof openNotifPanel === 'function' && openNotifPanel(),
+            profile:  () => typeof openProfilePanel === 'function' && openProfilePanel(),
+            saved:    () => typeof openSavedFilesPanel === 'function' && openSavedFilesPanel(),
+        };
+        if (map[panel]) map[panel]();
+        // Active highlight
+        document.querySelectorAll('.desktop-sidebar-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.panel === panel);
+        });
+    }
+
+    /* ── Menü dropdown (File/Edit/View/Tools) ──────────────────── */
+    const menuDefs = {
+        file: [
+            { label: 'Yeni Dosya',      sc: 'Ctrl+N',      fn: 'newFile' },
+            { label: 'Aç',              sc: 'Ctrl+O',      fn: 'openFile' },
+            { label: 'Kayıtlı Dosyalar',sc: 'Ctrl+P',      fn: 'savedFiles' },
+            { sep: true },
+            { label: 'Kaydet',          sc: 'Ctrl+S',      fn: 'save' },
+            { sep: true },
+            { label: 'İndir',           sc: '',            fn: 'download' },
+            { label: 'Yükle',           sc: '',            fn: 'upload' },
+        ],
+        edit: [
+            { label: 'Geri Al',         sc: 'Ctrl+Z',      fn: 'undo' },
+            { label: 'Yinele',          sc: 'Ctrl+Y',      fn: 'redo' },
+            { sep: true },
+            { label: 'Kes',             sc: 'Ctrl+X',      fn: 'cut' },
+            { label: 'Kopyala',         sc: 'Ctrl+C',      fn: 'copy' },
+            { label: 'Yapıştır',        sc: 'Ctrl+V',      fn: 'paste' },
+            { sep: true },
+            { label: 'Bul',             sc: 'Ctrl+F',      fn: 'find' },
+            { label: 'Değiştir',        sc: 'Ctrl+H',      fn: 'replace' },
+            { label: 'Satıra Git',      sc: 'Ctrl+G',      fn: 'gotoLine' },
+        ],
+        view: [
+            { label: 'Önizlemeyi Böl',  sc: 'Ctrl+K V',    fn: 'toggleSplit' },
+            { label: 'Tam Ekran Önizle',sc: 'Ctrl+Shift+P',fn: 'fullPreview' },
+            { label: 'Yeni Pencere',    sc: '',            fn: 'popoutPreview' },
+            { sep: true },
+            { label: 'Dosyalar Paneli', sc: 'Ctrl+B',      fn: 'sidebarFiles' },
+            { label: 'Kenar Çubuğunu Gizle', sc: '',       fn: 'toggleSidebar' },
+            { sep: true },
+            { label: 'Sayfa (HTML)',    sc: 'Ctrl+1',      fn: 'tabHtml' },
+            { label: 'Stil (CSS)',      sc: 'Ctrl+2',      fn: 'tabCss' },
+            { label: 'Kod (JS)',        sc: 'Ctrl+3',      fn: 'tabJs' },
+        ],
+        tools: [
+            { label: 'Versiyon Geçmişi',sc: '',            fn: 'versions' },
+            { label: 'Koleksiyonlar',   sc: '',            fn: 'collections' },
+            { label: 'Kullanıcı Ara',   sc: '',            fn: 'userSearch' },
+            { label: 'Ayarlar',         sc: '',            fn: 'settings' },
+        ],
+    };
+
+    function menu(type, ev) {
+        ev && ev.stopPropagation();
+        const btn = ev && ev.currentTarget;
+        if (openMenuEl === btn) { closeOpenMenu(); return; }
+        closeOpenMenu();
+        const defs = menuDefs[type];
+        if (!defs || !btn) return;
+        const dd = $('desktopMenuDropdown');
+        dd.innerHTML = defs.map(it => it.sep
+            ? '<div class="desktop-ctx-sep"></div>'
+            : `<div class="desktop-ctx-item" data-fn="${it.fn}"><span>${it.label}</span>${it.sc ? `<span class="ctx-shortcut">${it.sc}</span>` : ''}</div>`
+        ).join('');
+        dd.querySelectorAll('.desktop-ctx-item').forEach(el => {
+            el.addEventListener('click', () => {
+                menuAction(el.dataset.fn);
+                closeOpenMenu();
+            });
+        });
+        const r = btn.getBoundingClientRect();
+        dd.style.left = r.left + 'px';
+        dd.style.top  = (r.bottom + 4) + 'px';
+        dd.classList.add('open');
+        btn.classList.add('open');
+        openMenuEl = btn;
+    }
+
+    function closeOpenMenu() {
+        if (openMenuEl) openMenuEl.classList.remove('open');
+        openMenuEl = null;
+        const dd = $('desktopMenuDropdown');
+        if (dd) dd.classList.remove('open');
+    }
+
+    function menuAction(fn) {
+        const a = {
+            newFile:     () => typeof startNewFile === 'function' ? startNewFile() : location.reload(),
+            openFile:    () => { const inp = $('fileInput'); if (inp) inp.click(); },
+            savedFiles:  () => typeof openSavedFilesPanel === 'function' && openSavedFilesPanel(),
+            save:        () => typeof handleQuickSave === 'function' && handleQuickSave(),
+            download:    () => typeof openFmDownloadModal === 'function' && openFmDownloadModal(),
+            upload:      () => { const inp = $('fileInput'); if (inp) inp.click(); },
+            undo:        () => window.cm && cm.undo(),
+            redo:        () => window.cm && cm.redo(),
+            cut:         () => ctxAction('cut'),
+            copy:        () => ctxAction('copy'),
+            paste:       () => ctxAction('paste'),
+            find:        () => typeof _openSearch === 'function' && _openSearch(),
+            replace:     () => { if (typeof _openSearch === 'function') _openSearch(); setTimeout(() => { const ri = $('replaceInput'); if (ri) ri.focus(); }, 80); },
+            gotoLine:    () => gotoLinePrompt(),
+            toggleSplit: () => toggleSplit(),
+            fullPreview: () => typeof handleViewSwitch === 'function' && handleViewSwitch('preview'),
+            popoutPreview: () => popoutPreview(),
+            sidebarFiles:() => sidebar('files'),
+            toggleSidebar:() => {
+                const sb = $('desktopSidebar');
+                if (!sb) return;
+                const hidden = sb.dataset.hidden === '1';
+                sb.dataset.hidden = hidden ? '0' : '1';
+                sb.style.display = hidden ? '' : 'none';
+                document.querySelectorAll('main#appMain,.desktop-topbar,.desktop-statusbar')
+                    .forEach(el => el.style.left = hidden ? '' : '0');
+                refreshCM();
+            },
+            tabHtml:     () => typeof _switchEditorTab === 'function' && _switchEditorTab('html'),
+            tabCss:      () => typeof _switchEditorTab === 'function' && _switchEditorTab('css'),
+            tabJs:       () => typeof _switchEditorTab === 'function' && _switchEditorTab('js'),
+            versions:    () => typeof openVersionPanel === 'function' && openVersionPanel(),
+            collections: () => typeof openCollectionsPanel === 'function' ? openCollectionsPanel() : (typeof openColl === 'function' && openColl()),
+            userSearch:  () => typeof openSearchPanel === 'function' && openSearchPanel(),
+            settings:    () => typeof openProfilePanel === 'function' && openProfilePanel(),
+        };
+        if (a[fn]) a[fn]();
+    }
+
+    function gotoLinePrompt() {
+        if (!window.cm) return;
+        const v = prompt('Satır numarası:');
+        if (!v) return;
+        const n = parseInt(v, 10);
+        if (!isFinite(n) || n < 1) return;
+        cm.setCursor({ line: n - 1, ch: 0 });
+        cm.focus();
+    }
+
+    /* ── Context Menu ───────────────────────────────────────────── */
+    function showCtxMenu(x, y) {
+        const m = $('desktopCtxMenu');
+        if (!m) return;
+        m.classList.add('open');
+        const r = m.getBoundingClientRect();
+        const vw = window.innerWidth, vh = window.innerHeight;
+        if (x + r.width > vw) x = vw - r.width - 8;
+        if (y + r.height > vh) y = vh - r.height - 8;
+        m.style.left = x + 'px';
+        m.style.top  = y + 'px';
+    }
+    function hideCtxMenu() {
+        const m = $('desktopCtxMenu');
+        if (m) m.classList.remove('open');
+    }
+    async function ctxAction(action) {
+        hideCtxMenu();
+        if (!window.cm) return;
+        const cm = window.cm;
+        switch (action) {
+            case 'cut':
+                try {
+                    const sel = cm.getSelection();
+                    if (sel) {
+                        await navigator.clipboard.writeText(sel);
+                        cm.replaceSelection('');
+                    }
+                } catch (e) { document.execCommand('cut'); }
+                break;
+            case 'copy':
+                try {
+                    const sel = cm.getSelection();
+                    if (sel) await navigator.clipboard.writeText(sel);
+                } catch (e) { document.execCommand('copy'); }
+                break;
+            case 'paste':
+                try {
+                    const txt = await navigator.clipboard.readText();
+                    if (txt != null) cm.replaceSelection(txt);
+                } catch (e) { document.execCommand('paste'); }
+                break;
+            case 'selectAll':
+                cm.execCommand('selectAll');
+                break;
+            case 'find':
+                if (typeof _openSearch === 'function') _openSearch();
+                break;
+            case 'duplicateLine': {
+                const c = cm.getCursor();
+                const line = cm.getLine(c.line);
+                cm.replaceRange('\n' + line, { line: c.line, ch: line.length });
+                break;
+            }
+            case 'deleteLine':
+                cm.execCommand('deleteLine');
+                break;
+        }
+        cm.focus();
+    }
+
+    /* ── Klavye Kısayolları ─────────────────────────────────────── */
+    let chordKey = null;
+    function onKeydown(e) {
+        if (!active) return;
+        const mod = e.ctrlKey || e.metaKey;
+
+        // Chord: Ctrl+K, <next key>
+        if (chordKey === 'k') {
+            chordKey = null;
+            if (e.key.toLowerCase() === 'v') { e.preventDefault(); toggleSplit(); return; }
+            if (e.key.toLowerCase() === 'b') { e.preventDefault(); menuAction('toggleSidebar'); return; }
+        }
+
+        if (!mod) {
+            if (e.key === 'Escape') {
+                closeOpenMenu();
+                hideCtxMenu();
+            }
+            return;
+        }
+
+        const k = e.key.toLowerCase();
+        // Chord başlatıcı
+        if (k === 'k' && !e.shiftKey && !e.altKey) {
+            chordKey = 'k';
+            setTimeout(() => { chordKey = null; }, 1200);
+            e.preventDefault();
+            return;
+        }
+        if (k === 's' && !e.shiftKey) {
+            e.preventDefault(); menuAction('save'); return;
+        }
+        if (k === 'n' && !e.shiftKey) {
+            e.preventDefault(); menuAction('newFile'); return;
+        }
+        if (k === 'o' && !e.shiftKey) {
+            e.preventDefault(); menuAction('openFile'); return;
+        }
+        if (k === 'p' && e.shiftKey) {
+            e.preventDefault(); menuAction('fullPreview'); return;
+        }
+        if (k === 'f' && !e.shiftKey) {
+            e.preventDefault(); menuAction('find'); return;
+        }
+        if (k === 'f' && e.shiftKey) {
+            e.preventDefault(); menuAction('userSearch'); return;
+        }
+        if (k === 'h' && !e.shiftKey) {
+            e.preventDefault(); menuAction('replace'); return;
+        }
+        if (k === 'g' && !e.shiftKey) {
+            e.preventDefault(); gotoLinePrompt(); return;
+        }
+        if (k === 'b' && !e.shiftKey) {
+            e.preventDefault(); menuAction('sidebarFiles'); return;
+        }
+        if (k === '1') { e.preventDefault(); menuAction('tabHtml'); return; }
+        if (k === '2') { e.preventDefault(); menuAction('tabCss'); return; }
+        if (k === '3') { e.preventDefault(); menuAction('tabJs'); return; }
+    }
+
+    /* ── Status Bar ─────────────────────────────────────────────── */
+    function updateStatus() {
+        if (!active || !window.cm) return;
+        const cm = window.cm;
+        const c = cm.getCursor();
+        const lineEl = $('dskStatusLine');
+        const colEl  = $('dskStatusCol');
+        const sizeEl = $('dskStatusSize');
+        const langEl = $('dskStatusLang');
+        const selEl  = $('dskStatusSel');
+        const selTxt = $('dskStatusSelText');
+        if (lineEl) lineEl.textContent = (c.line + 1);
+        if (colEl)  colEl.textContent  = (c.ch + 1);
+        if (sizeEl) {
+            const bytes = (cm.getValue() || '').length;
+            sizeEl.textContent = bytes < 1024 ? bytes + ' B' : (bytes / 1024).toFixed(1) + ' KB';
+        }
+        if (langEl) {
+            const tab = (typeof _activeTab !== 'undefined') ? _activeTab : 'html';
+            langEl.textContent = tab === 'html' ? 'HTML' : tab === 'css' ? 'CSS' : tab === 'js' ? 'JavaScript' : tab.toUpperCase();
+        }
+        const sel = cm.getSelection();
+        if (sel && sel.length) {
+            if (selEl) selEl.style.display = '';
+            if (selTxt) selTxt.textContent = sel.length + ' karakter';
+        } else {
+            if (selEl) selEl.style.display = 'none';
+        }
+    }
+
+    function updateTitle() {
+        const el = $('desktopFileTitle');
+        if (!el) return;
+        const name = (typeof loadedFilename !== 'undefined' && loadedFilename) ? loadedFilename : 'Yeni Dosya';
+        el.textContent = name;
+        el.classList.toggle('dirty', !!(typeof hasUnsavedChanges !== 'undefined' && hasUnsavedChanges));
+    }
+
+    function updateSync(state, text) {
+        const dot = $('dskStatusDot');
+        const txt = $('dskStatusSyncText');
+        if (dot) {
+            dot.classList.remove('ok','dirty','error','syncing');
+            dot.classList.add(state || 'ok');
+        }
+        if (txt) txt.textContent = text || 'Hazır';
+    }
+
+    /* ── Popout Preview ─────────────────────────────────────────── */
+    function popoutPreview() {
+        const html = (typeof _buildPreviewHtml === 'function') ? _buildPreviewHtml() : '';
+        if (previewWin && !previewWin.closed) {
+            previewWin.document.open();
+            previewWin.document.write(html);
+            previewWin.document.close();
+            previewWin.focus();
+            return;
+        }
+        previewWin = window.open('', 'editor_preview',
+            'width=1024,height=720,menubar=no,toolbar=no,location=no');
+        if (previewWin) {
+            previewWin.document.open();
+            previewWin.document.write(html);
+            previewWin.document.close();
+        }
+    }
+    function refreshPopout() {
+        if (previewWin && !previewWin.closed && typeof _buildPreviewHtml === 'function') {
+            try {
+                previewWin.document.open();
+                previewWin.document.write(_buildPreviewHtml());
+                previewWin.document.close();
+            } catch (e) {}
+        }
+    }
+
+    /* ── handleViewSwitch wrapper ───────────────────────────────── */
+    function wrapViewSwitch() {
+        if (typeof window.handleViewSwitch !== 'function') return;
+        if (window._origHandleViewSwitch) return; // zaten wrap edildi
+        window._origHandleViewSwitch = window.handleViewSwitch;
+        window.handleViewSwitch = function (view) {
+            if (active) {
+                if (view === 'preview') { setSplit(true);  return; }
+                if (view === 'code')    { setSplit(false); return; }
+            }
+            return window._origHandleViewSwitch(view);
+        };
+    }
+
+    /* ── Init ───────────────────────────────────────────────────── */
+    function init() {
+        if (isDesktop()) activate();
+
+        initSplitter();
+        wrapViewSwitch();
+        window.addEventListener('resize', onResize);
+        window.addEventListener('keydown', onKeydown);
+
+        // Global click → menüleri kapat
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.desktop-menu-item') &&
+                !e.target.closest('.desktop-menu-dropdown')) {
+                closeOpenMenu();
+            }
+            if (!e.target.closest('.desktop-ctx-menu')) {
+                hideCtxMenu();
+            }
+        });
+
+        // Context menu — editör alanında
+        document.addEventListener('contextmenu', (e) => {
+            if (!active) return;
+            const inEditor = e.target.closest('.CodeMirror') || e.target.closest('.code-area');
+            if (!inEditor) return;
+            e.preventDefault();
+            showCtxMenu(e.clientX, e.clientY);
+        });
+
+        // CodeMirror hook — status bar ve title
+        const hookCM = () => {
+            if (!window.cm) return false;
+            cm.on('cursorActivity', () => updateStatus());
+            cm.on('change', () => { updateStatus(); updateTitle(); refreshPopout(); if (splitView) _refreshSplitPreview(); });
+            updateStatus();
+            return true;
+        };
+        if (!hookCM()) {
+            const iv = setInterval(() => { if (hookCM()) clearInterval(iv); }, 250);
+            setTimeout(() => clearInterval(iv), 8000);
+        }
+
+        // Başlık güncellemeleri — periodik (dirty flag için hook yok)
+        setInterval(updateTitle, 1200);
+    }
+
+    function _refreshSplitPreview() {
+        const frame = $('previewFrameInline');
+        if (frame && typeof _buildPreviewHtml === 'function') {
+            frame.srcdoc = _buildPreviewHtml();
+        }
+    }
+
+    // Public API
+    return {
+        init,
+        sidebar,
+        menu,
+        toggleSplit,
+        find: () => menuAction('find'),
+        popoutPreview,
+        ctxAction,
+        updateStatus,
+        updateTitle,
+        updateSync,
+    };
+})();
+
+// Desktop hazır olduğunda başlat
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => _dsk.init());
+} else {
+    _dsk.init();
 }
 </script>
 
