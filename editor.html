@@ -2680,6 +2680,22 @@ body.preview-mode .file-title-bar { display: none !important; }
     background: rgba(255,69,58,0.15); color: #ff453a; border-radius: 5px; padding: 1px 4px;
 }
 .diff-tab.has-adds .diff-tab-badge { background: rgba(52,199,89,0.15); color: #34c759; }
+.diff-sub-tab-bar {
+    display: flex; border-bottom: 1px solid var(--glass-border);
+    background: var(--card-bg); flex-shrink: 0; padding: 0 8px; gap: 0;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.diff-sub-tab {
+    padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer;
+    color: var(--text-secondary); border-bottom: 2px solid transparent;
+    background: none; border-top: none; border-left: none; border-right: none;
+    transition: all 0.15s; white-space: nowrap;
+}
+.diff-sub-tab.active { color: #007aff; border-bottom-color: #007aff; }
+.diff-sub-tab .diff-tab-badge {
+    display: inline-block; margin-left: 3px; font-size: 9px; font-weight: 700;
+    background: rgba(255,69,58,0.15); color: #ff453a; border-radius: 5px; padding: 1px 3px;
+}
 .diff-stats {
     display: flex; align-items: center; gap: 14px;
     padding: 8px 16px; border-bottom: 1px solid var(--glass-border);
@@ -4454,6 +4470,7 @@ body.preview-mode .file-title-bar { display: none !important; }
         <button class="diff-tab" id="diffTabJs"   onclick="switchDiffTab('js')">JS</button>
         <button class="diff-tab" id="diffTabVisual" onclick="switchDiffTab('visual')">👁 Görsel</button>
     </div>
+    <div class="diff-sub-tab-bar" id="diffSubTabBar" style="display:none;"></div>
     <div class="diff-stats" id="diffStats"></div>
     <div class="diff-content" id="diffContent">
         <div class="diff-loading">Yükleniyor...</div>
@@ -6866,14 +6883,16 @@ async function _doAutoSave() {
     const timeStr = now.toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
     const summary = `Oto-kayıt: ${timeStr}`;
 
+    const autoSaveCode = _fmActiveProjectId ? _fmSerializeProject(_fmActiveProjectId) : code;
+
     // Önce dosyayı buluta kaydet
     const idx = savedFiles.findIndex(f => f.id === currentOpenFileId);
     if (idx !== -1) {
-        savedFiles[idx].code = code;
+        savedFiles[idx].code = autoSaveCode;
         await saveFileToCloud(savedFiles[idx]);
     }
 
-    const vResult = await VersionManager.create(currentOpenFileId, code, summary, { isAutosave: true });
+    const vResult = await VersionManager.create(currentOpenFileId, autoSaveCode, summary, { isAutosave: true });
     if (vResult && !vResult.skipped) {
         updateVersionBadge(vResult.version_number);
         showToast(`Oto-kayıt yapıldı: ${timeStr}`);
@@ -7145,7 +7164,8 @@ async function _doUpdateWithVersion(summary) {
     if (!currentOpenFileId) return;
     const idx = savedFiles.findIndex(f => f.id === currentOpenFileId);
     if (idx === -1) return;
-    savedFiles[idx].code      = code;
+    const saveCode = _fmActiveProjectId ? _fmSerializeProject(_fmActiveProjectId) : code;
+    savedFiles[idx].code      = saveCode;
     savedFiles[idx].filename  = loadedFilename || savedFiles[idx].filename;
     savedFiles[idx].timestamp = new Date().toISOString();
     hasUnsavedChanges = false;
@@ -7153,7 +7173,7 @@ async function _doUpdateWithVersion(summary) {
 
     const cloudResult = await saveFileToCloud(savedFiles[idx]);
     if (cloudResult) {
-        const vResult = await VersionManager.create(currentOpenFileId, code, summary);
+        const vResult = await VersionManager.create(currentOpenFileId, saveCode, summary);
         if (vResult && !vResult.skipped) {
             updateVersionBadge(vResult.version_number);
             currentVersionId = vResult.id;
@@ -7175,6 +7195,118 @@ let _diffActiveTab  = 'html';
 let _diffVersionNum = null;
 let _diffOldCode    = '';     // Görsel diff için sol panel kodu
 let _diffNewCode    = '';     // Görsel diff için sağ panel kodu
+let _diffSubTab     = null;   // null = birleşik, veya dosya adı
+let _diffCssFiles   = [];     // [{name, lines, isNew, isRemoved}]
+let _diffJsFiles    = [];     // [{name, lines, isNew, isRemoved}]
+
+// JSON proje veya HTML kodunu dosya listesine ayrıştır
+function _parseDiffCode(rawCode) {
+    const trimmed = (rawCode || '').trim();
+    if (trimmed.startsWith('{"__fm_project"')) {
+        try {
+            const data = JSON.parse(trimmed);
+            return { isProject: true, files: data.files || [] };
+        } catch(e) {}
+    }
+    const tabs = _splitHtmlToTabs(`<html><body>${rawCode}</body></html>`);
+    return {
+        isProject: false,
+        files: [
+            { file_type: 'page', name: 'index.html', content: tabs.html || '' },
+            { file_type: 'style', name: 'style.css', content: tabs.css || '' },
+            { file_type: 'code', name: 'script.js', content: tabs.js || '' }
+        ]
+    };
+}
+
+// Dosya tipine göre dosya-dosya diff hesapla
+function _computeMultiFileDiff(oldParsed, newParsed, fileType) {
+    const oldFiles = oldParsed.files.filter(f => f.file_type === fileType);
+    const newFiles = newParsed.files.filter(f => f.file_type === fileType);
+    const allNames = [...new Set([...oldFiles.map(f => f.name), ...newFiles.map(f => f.name)])];
+    return allNames.map(name => {
+        const oldF = oldFiles.find(f => f.name === name);
+        const newF = newFiles.find(f => f.name === name);
+        return {
+            name,
+            lines: _computeDiff(oldF ? oldF.content || '' : '', newF ? newF.content || '' : ''),
+            isNew: !oldF,
+            isRemoved: !newF
+        };
+    });
+}
+
+// JSON proje kodunu önizleme HTML'ine dönüştür
+function _buildPreviewFromCode(rawCode) {
+    const trimmed = (rawCode || '').trim();
+    if (trimmed.startsWith('{"__fm_project"')) {
+        try {
+            const data = JSON.parse(trimmed);
+            const files = data.files || [];
+            const html = files.filter(f => f.file_type === 'page').map(f => f.content || '').join('\n');
+            const css  = files.filter(f => f.file_type === 'style').map(f => f.content || '').join('\n').trim();
+            const js   = files.filter(f => f.file_type === 'code').map(f => f.content || '').join('\n').trim();
+            const styleTag  = css ? `<style>\n${css}\n</style>` : '';
+            const scriptTag = js  ? `<script>\n${js}\n<\/script>` : '';
+            return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">${styleTag}</head><body>${html}${scriptTag}</body></html>`;
+        } catch(e) {}
+    }
+    return rawCode;
+}
+
+// Diff verilerini iki parse edilmiş koddan hesapla
+function _computeDiffFromParsed(oldParsed, newParsed) {
+    const merge = (parsed, ft) => parsed.files.filter(f => f.file_type === ft).map(f => f.content || '').join('\n');
+    _diffData = {
+        html: _computeDiff(merge(oldParsed, 'page'), merge(newParsed, 'page')),
+        css:  _computeDiff(merge(oldParsed, 'style'), merge(newParsed, 'style')),
+        js:   _computeDiff(merge(oldParsed, 'code'), merge(newParsed, 'code'))
+    };
+    _diffCssFiles = _computeMultiFileDiff(oldParsed, newParsed, 'style');
+    _diffJsFiles  = _computeMultiFileDiff(oldParsed, newParsed, 'code');
+    _diffSubTab   = null;
+}
+
+// Diff tab badge'lerini güncelle
+function _updateDiffBadges() {
+    ['html','css','js'].forEach(t => {
+        const lines  = _diffData[t];
+        const chg    = lines.filter(l => l.type !== 'same').length;
+        const adds   = lines.filter(l => l.type === 'added').length;
+        const el     = document.getElementById('diffTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (!el) return;
+        el.innerHTML = t.toUpperCase() + (chg ? ` <span class="diff-tab-badge${adds > 0 ? ' has-adds' : ''}">${chg}</span>` : '');
+    });
+}
+
+// Diff alt-sekme çubuğunu render et
+function _renderDiffSubTabs(fileType) {
+    const bar = document.getElementById('diffSubTabBar');
+    const filesData = fileType === 'css' ? _diffCssFiles : _diffJsFiles;
+    if (!filesData || filesData.length <= 1) {
+        bar.style.display = 'none';
+        return;
+    }
+    bar.style.display = 'flex';
+    let html = `<button class="diff-sub-tab active" data-subfile="" onclick="switchDiffSubTab(null)">Tümü</button>`;
+    filesData.forEach(f => {
+        const chg = f.lines.filter(l => l.type !== 'same').length;
+        const adds = f.lines.filter(l => l.type === 'added').length;
+        const badge = chg ? ` <span class="diff-tab-badge${adds > 0 ? ' has-adds' : ''}">${chg}</span>` : '';
+        const label = f.isNew ? `${f.name} (yeni)` : f.isRemoved ? `${f.name} (silindi)` : f.name;
+        html += `<button class="diff-sub-tab" data-subfile="${escapeHtml(f.name)}" onclick="switchDiffSubTab('${escapeHtml(f.name)}')">${escapeHtml(label)}${badge}</button>`;
+    });
+    bar.innerHTML = html;
+}
+
+function switchDiffSubTab(fileName) {
+    _diffSubTab = fileName;
+    document.querySelectorAll('.diff-sub-tab').forEach(btn => {
+        const match = fileName === null ? btn.dataset.subfile === '' : btn.dataset.subfile === fileName;
+        btn.classList.toggle('active', match);
+    });
+    _renderDiffTab(_diffActiveTab);
+}
 
 async function showDiff(versionId, versionNum) {
     const panel = document.getElementById('diffPanel');
@@ -7203,38 +7335,25 @@ async function showDiff(versionId, versionNum) {
         return;
     }
 
-    // Eski versiyonu tab'lara böl
-    const oldTabs = _splitHtmlToTabs(`<html><body>${ver.code}</body></html>`);
+    // Eski versiyonu parse et
     _diffOldCode = ver.code;
+    const oldParsed = _parseDiffCode(ver.code);
 
-    // Güncel içerik: farklı dosya ise savedFiles'tan al, yoksa editör içeriği
-    let nowTabs;
+    // Güncel içerik: farklı dosya ise savedFiles'tan al, yoksa editör/proje içeriği
+    let currentCode;
     if (_versionPanelFileId && _versionPanelFileId !== currentOpenFileId) {
         const pf = savedFiles.find(f => f.id === _versionPanelFileId);
-        nowTabs = pf ? _splitHtmlToTabs(`<html><body>${pf.code}</body></html>`) : { html: _tabs.html || '', css: _tabs.css || '', js: _tabs.js || '' };
-        _diffNewCode = pf ? pf.code : code;
+        currentCode = pf ? pf.code : (_fmActiveProjectId ? _fmSerializeProject(_fmActiveProjectId) : code);
     } else {
-        nowTabs = { html: _tabs.html || '', css: _tabs.css || '', js: _tabs.js || '' };
-        _diffNewCode = code;
+        currentCode = _fmActiveProjectId ? _fmSerializeProject(_fmActiveProjectId) : code;
     }
+    _diffNewCode = currentCode;
+    const newParsed = _parseDiffCode(currentCode);
 
-    // Her tab için LCS diff hesapla
-    _diffData = {
-        html: _computeDiff(oldTabs.html || '', nowTabs.html),
-        css:  _computeDiff(oldTabs.css  || '', nowTabs.css),
-        js:   _computeDiff(oldTabs.js   || '', nowTabs.js)
-    };
-
-    // Tab badge'leri güncelle
-    ['html','css','js'].forEach(t => {
-        const lines  = _diffData[t];
-        const chg    = lines.filter(l => l.type !== 'same').length;
-        const adds   = lines.filter(l => l.type === 'added').length;
-        const el     = document.getElementById('diffTab' + t.charAt(0).toUpperCase() + t.slice(1));
-        if (!el) return;
-        el.innerHTML = t.toUpperCase() + (chg ? ` <span class="diff-tab-badge${adds > 0 ? ' has-adds' : ''}">${chg}</span>` : '');
-    });
-
+    // Birleşik + dosya-dosya diff hesapla
+    _computeDiffFromParsed(oldParsed, newParsed);
+    _updateDiffBadges();
+    document.getElementById('diffSubTabBar').style.display = 'none';
     _renderDiffTab('html');
 }
 
@@ -7271,29 +7390,19 @@ async function showDiffBetweenVersions(idA, numA, idB, numB) {
     _diffOldCode = verA.code;
     _diffNewCode = verB.code;
 
-    const tabsA = _splitHtmlToTabs(`<html><body>${verA.code}</body></html>`);
-    const tabsB = _splitHtmlToTabs(`<html><body>${verB.code}</body></html>`);
+    const oldParsed = _parseDiffCode(verA.code);
+    const newParsed = _parseDiffCode(verB.code);
 
-    _diffData = {
-        html: _computeDiff(tabsA.html || '', tabsB.html || ''),
-        css:  _computeDiff(tabsA.css  || '', tabsB.css  || ''),
-        js:   _computeDiff(tabsA.js   || '', tabsB.js   || '')
-    };
-
-    ['html','css','js'].forEach(t => {
-        const lines  = _diffData[t];
-        const chg    = lines.filter(l => l.type !== 'same').length;
-        const adds   = lines.filter(l => l.type === 'added').length;
-        const el     = document.getElementById('diffTab' + t.charAt(0).toUpperCase() + t.slice(1));
-        if (!el) return;
-        el.innerHTML = t.toUpperCase() + (chg ? ` <span class="diff-tab-badge${adds > 0 ? ' has-adds' : ''}">${chg}</span>` : '');
-    });
-
+    _computeDiffFromParsed(oldParsed, newParsed);
+    _updateDiffBadges();
+    document.getElementById('diffSubTabBar').style.display = 'none';
     _renderDiffTab('html');
 }
 
 function closeDiffPanel() {
     document.getElementById('diffPanel').classList.remove('open');
+    document.getElementById('diffSubTabBar').style.display = 'none';
+    _diffSubTab = null;
     const fn = _diffPanelReturnFn;
     _diffPanelReturnFn = null;
     if (fn) fn();
@@ -7301,10 +7410,17 @@ function closeDiffPanel() {
 
 function switchDiffTab(tab) {
     _diffActiveTab = tab;
+    _diffSubTab = null;
     ['html','css','js','visual'].forEach(t => {
         const key = t === 'visual' ? 'Visual' : t.charAt(0).toUpperCase() + t.slice(1);
         document.getElementById('diffTab' + key)?.classList.toggle('active', t === tab);
     });
+    // Alt-sekme çubuğunu göster/gizle
+    if (tab === 'css' || tab === 'js') {
+        _renderDiffSubTabs(tab);
+    } else {
+        document.getElementById('diffSubTabBar').style.display = 'none';
+    }
     if (tab === 'visual') {
         _renderVisualDiff();
     } else {
@@ -7313,7 +7429,14 @@ function switchDiffTab(tab) {
 }
 
 function _renderDiffTab(tab) {
-    const lines = _diffData?.[tab];
+    let lines;
+    if (_diffSubTab && (tab === 'css' || tab === 'js')) {
+        const filesData = tab === 'css' ? _diffCssFiles : _diffJsFiles;
+        const fileEntry = filesData.find(f => f.name === _diffSubTab);
+        lines = fileEntry ? fileEntry.lines : [];
+    } else {
+        lines = _diffData?.[tab];
+    }
     if (!lines) return;
 
     const added   = lines.filter(l => l.type === 'added').length;
@@ -7380,8 +7503,9 @@ function _renderVisualDiff() {
     setTimeout(() => {
         const iOld = document.getElementById('visualDiffOld');
         const iNew = document.getElementById('visualDiffNew');
-        if (iOld) iOld.srcdoc = buildDoc(_diffOldCode);
-        if (iNew) iNew.srcdoc = buildDoc(_diffNewCode);
+        const wrapCode = c => (c || '').trim().startsWith('{"__fm_project"') ? _buildPreviewFromCode(c) : buildDoc(c);
+        if (iOld) iOld.srcdoc = wrapCode(_diffOldCode);
+        if (iNew) iNew.srcdoc = wrapCode(_diffNewCode);
     }, 50);
 }
 
@@ -14826,6 +14950,20 @@ async function _fmDeleteProject(id) {
     if (_fmActiveProjectId === id) {
         _fmActiveProjectId = null; _fmActiveFile = null;
         _fmActiveStyleId = null;   _fmActiveCodeId = null;
+        // Varsayılan proje varsa onu aç, yoksa editörü temizle
+        const defProj = _fmProjects.find(x => x.is_default);
+        if (defProj) {
+            _fmOpenProject(defProj.id, true);
+        } else {
+            _tabs = { html: '', css: '', js: '' };
+            code = '';
+            loadedFilename = '';
+            _activeTab = 'html';
+            updateFilenameDisplay();
+            updateEditor();
+            _fmUpdateSubTabs();
+            saveToStorage();
+        }
     }
     _fmRender();
     showToast('"' + p.name + '" silindi');
