@@ -4040,6 +4040,185 @@ body.device-sim-desktop { --device-w: 100%;   --device-h: 100%; }
     color: var(--text-secondary); font-size: 13px;
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   ── PHASE 4: Modal/Overlay Masaüstü Adaptasyonu ───────────────────
+   Tam ekran slide-in panelleri (Akış, Keşfet, Mesajlar, Bildirimler,
+   Profil, Kayıtlı Dosyalar, Koleksiyonlar, Public Profile, Konuşma)
+   masaüstünde merkezlenmiş modal'lara dönüştürülür.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Ortak backdrop — tüm modallar için */
+.desktop-modal-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 3000;
+    opacity: 0;
+    transition: opacity 0.22s ease;
+}
+.desktop-modal-backdrop.show {
+    display: block; opacity: 1;
+}
+
+@media (min-width: 1024px) {
+    /* ── Slide-in overlay'leri merkezi modal'a dönüştür ─────────── */
+    .fv-overlay,
+    .explore-overlay,
+    .messages-overlay,
+    .conv-overlay,
+    .notif-overlay,
+    .pub-profile-overlay,
+    .profile-panel-overlay,
+    .coll-overlay {
+        inset: auto !important;
+        position: fixed !important;
+        top: 56px !important;
+        left: 50% !important;
+        width: 92vw !important;
+        max-width: 860px;
+        height: calc(100vh - 110px) !important;
+        max-height: 820px;
+        transform: translate(-50%, -14px) scale(0.98) !important;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.22s ease, transform 0.26s cubic-bezier(0.25,0.8,0.25,1);
+        border-radius: 16px;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 24px 72px rgba(0,0,0,0.35),
+                    0 8px 24px rgba(0,0,0,0.18);
+        overflow: hidden;
+    }
+    .fv-overlay.open,
+    .explore-overlay.open,
+    .messages-overlay.open,
+    .conv-overlay.open,
+    .notif-overlay.open,
+    .pub-profile-overlay.open,
+    .profile-panel-overlay.open,
+    .coll-overlay.open {
+        transform: translate(-50%, 0) scale(1) !important;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* ── Her modal için ideal genişlik ─────────────────────────── */
+    .notif-overlay       { max-width: 480px !important; }
+    .conv-overlay        { max-width: 640px !important; }
+    .pub-profile-overlay { max-width: 720px !important; }
+    .profile-panel-overlay { max-width: 780px !important; }
+    .coll-overlay        { max-width: 720px !important; }
+    .explore-overlay     { max-width: 880px !important; }
+    .messages-overlay    { max-width: 560px !important; }
+    .fv-overlay          { max-width: 860px !important; }
+    #savedFilesPanel     { max-width: 860px !important; }
+    #feedOverlay         { max-width: 720px !important; bottom: auto !important; }
+
+    /* ── Search panel overlay — Spotlight tarzı modal ───────────── */
+    .search-panel-overlay {
+        padding-top: 14vh !important;
+        z-index: 5500;
+    }
+
+    /* ── Share-person overlay (mobil bottom-sheet) — merkeze alın ─ */
+    .share-person-overlay {
+        align-items: center !important;
+        padding: 24px !important;
+    }
+    .share-person-sheet {
+        max-width: 480px !important;
+        border-radius: 18px !important;
+        max-height: 80vh !important;
+    }
+
+    /* ── Panel içindeki scroll alanlarına yumuşak overflow ──────── */
+    .fv-overlay,
+    .explore-overlay,
+    .messages-overlay,
+    .conv-overlay,
+    .notif-overlay,
+    .pub-profile-overlay,
+    .profile-panel-overlay,
+    .coll-overlay {
+        background: var(--card-bg) !important;
+    }
+
+    /* ── Modal header ince ayar ─────────────────────────────────── */
+    .fv-overlay .fv-header,
+    .explore-overlay .fv-header,
+    .messages-overlay .fv-header,
+    .conv-overlay .conv-header,
+    .notif-overlay .notif-header,
+    .pub-profile-overlay .pub-profile-header,
+    .profile-panel-overlay .profile-header,
+    .coll-overlay .coll-header {
+        padding-top: 14px !important;
+    }
+
+    /* ── İndirme modal'ı — zaten merkezi ama boyut ayarı ────────── */
+    .fm-dl-modal { max-width: 420px; }
+
+    /* ── Duplicate modal, diğer modal-box'lar için max-width ────── */
+    .modal-box { max-width: 520px; }
+
+    /* ── Önceki phase 1/2'den gelen padding-left kuralı artık gereksiz
+         çünkü backdrop tam ekran. Kaldır: ────────────────────────── */
+    .modal-overlay,
+    .fv-overlay,
+    .coll-overlay,
+    .profile-panel-overlay,
+    .search-panel-overlay,
+    .explore-overlay,
+    .messages-overlay,
+    .pub-profile-overlay,
+    .notif-overlay {
+        padding-left: 0 !important;
+    }
+
+    /* ── Backdrop z-index, overlay'lerden düşük olmalı ──────────── */
+    .desktop-modal-backdrop { z-index: 4900; }
+    .fv-overlay,
+    .pub-profile-overlay,
+    .profile-panel-overlay { z-index: 5100 !important; }
+    .explore-overlay { z-index: 5850 !important; }
+    .search-panel-overlay { z-index: 6500 !important; }
+    .messages-overlay { z-index: 7100 !important; }
+    .conv-overlay { z-index: 7300 !important; }
+    .notif-overlay { z-index: 7600 !important; }
+    .coll-overlay { z-index: 8100 !important; }
+    #feedOverlay { z-index: 6100 !important; }
+    #savedFilesPanel { z-index: 6200 !important; }
+
+    /* ── Esc ipucu kenar çubuğu (modal header sağında) ──────────── */
+    .desktop-modal-esc-hint {
+        position: absolute; top: 14px; right: 16px;
+        font-size: 10.5px; font-weight: 600;
+        color: var(--text-secondary);
+        background: rgba(120,120,128,0.14);
+        padding: 3px 7px; border-radius: 6px;
+        pointer-events: none;
+        font-family: 'JetBrains Mono', monospace;
+        letter-spacing: 0.04em;
+        z-index: 10;
+    }
+}
+
+@media (min-width: 1440px) {
+    .fv-overlay,
+    .explore-overlay,
+    .messages-overlay,
+    .conv-overlay,
+    .notif-overlay,
+    .pub-profile-overlay,
+    .profile-panel-overlay,
+    .coll-overlay {
+        top: 72px !important;
+        max-height: 900px;
+        height: calc(100vh - 130px) !important;
+    }
+}
+
 </style>
 
 </head>
@@ -4270,6 +4449,9 @@ body.device-sim-desktop { --device-w: 100%;   --device-h: 100%; }
         <div class="cmd-palette-list" id="cmdPaletteList"></div>
     </div>
 </div>
+
+<!-- Modal backdrop (masaüstünde aktif modallar için) -->
+<div class="desktop-modal-backdrop" id="desktopModalBackdrop"></div>
 
 <header class="header" id="appHeader" style="display:none;">
     <div class="header-top">
@@ -17027,10 +17209,97 @@ const _dsk = (function () {
         return _origOnKeydown(e);
     };
 
+    /* ════════════════════════════════════════════════════════════════
+       PHASE 4: Modal/Overlay masaüstü yönetimi
+       - Backdrop açık modal varsa göster, yoksa gizle
+       - Backdrop'a tıklama → en üstteki modal'ı kapat
+       - Esc tuşu → en üstteki modal'ı kapat
+       ════════════════════════════════════════════════════════════════ */
+    const OVERLAY_DEFS = [
+        { id: 'savedFilesPanel',   close: () => typeof closeSavedFilesPanel === 'function' ? closeSavedFilesPanel() : _genericClose('savedFilesPanel') },
+        { id: 'feedOverlay',       close: () => typeof closeFeedPanel === 'function' ? closeFeedPanel() : _genericClose('feedOverlay') },
+        { id: 'exploreOverlay',    close: () => typeof closeExplorePanel === 'function' ? closeExplorePanel() : _genericClose('exploreOverlay') },
+        { id: 'messagesOverlay',   close: () => typeof closeMessagesPanel === 'function' ? closeMessagesPanel() : _genericClose('messagesOverlay') },
+        { id: 'convOverlay',       close: () => typeof closeConvPanel === 'function' ? closeConvPanel() : _genericClose('convOverlay') },
+        { id: 'pubProfileOverlay', close: () => typeof closePubProfilePanel === 'function' ? closePubProfilePanel() : _genericClose('pubProfileOverlay') },
+        { id: 'profilePanelOverlay', close: () => typeof closeProfilePanel === 'function' ? closeProfilePanel() : _genericClose('profilePanelOverlay') },
+        { id: 'notifOverlay',      close: () => typeof closeNotifPanel === 'function' ? closeNotifPanel() : _genericClose('notifOverlay') },
+        { id: 'collOverlay',       close: () => typeof closeCollPanel === 'function' ? closeCollPanel() : _genericClose('collOverlay') },
+        { id: 'searchPanelOverlay',close: () => typeof closeSearchPanel === 'function' ? closeSearchPanel() : _genericClose('searchPanelOverlay') },
+    ];
+    function _genericClose(id) {
+        const el = $(id);
+        if (el) el.classList.remove('open');
+    }
+    function _getOpenOverlays() {
+        return OVERLAY_DEFS.filter(o => {
+            const el = $(o.id);
+            return el && el.classList.contains('open');
+        });
+    }
+    function _updateBackdrop() {
+        const backdrop = $('desktopModalBackdrop');
+        if (!backdrop) return;
+        const any = active && _getOpenOverlays().length > 0;
+        backdrop.classList.toggle('show', any);
+    }
+    function _closeTopOverlay() {
+        const open = _getOpenOverlays();
+        if (!open.length) return false;
+        // Topmost = en yüksek z-index'e sahip olan
+        let top = open[0], topZ = -1;
+        open.forEach(o => {
+            const el = $(o.id);
+            const z = parseInt(getComputedStyle(el).zIndex, 10) || 0;
+            if (z > topZ) { topZ = z; top = o; }
+        });
+        top.close();
+        setTimeout(_updateBackdrop, 50);
+        return true;
+    }
+    function _initModalBackdrop() {
+        const backdrop = $('desktopModalBackdrop');
+        if (!backdrop) return;
+        backdrop.addEventListener('click', () => _closeTopOverlay());
+
+        // Tüm overlay'lerin class değişimini izle
+        const observer = new MutationObserver(() => _updateBackdrop());
+        OVERLAY_DEFS.forEach(o => {
+            const el = $(o.id);
+            if (el) observer.observe(el, { attributes: true, attributeFilter: ['class'] });
+        });
+    }
+
+    // Esc → topmost modal kapat (komut paleti ve context menu de dahil)
+    const _origOnKeydown2 = onKeydown;
+    onKeydown = function (e) {
+        if (e.key === 'Escape' && active) {
+            // Command palette öncelikli
+            const cmdOv = $('cmdPaletteOverlay');
+            if (cmdOv && cmdOv.classList.contains('open')) {
+                e.preventDefault(); closeCmd(); return;
+            }
+            // Sağ tık menüsü
+            const ctx = $('desktopCtxMenu');
+            if (ctx && ctx.classList.contains('open')) {
+                e.preventDefault();
+                ctx.classList.remove('open');
+                return;
+            }
+            // Açık bir overlay varsa kapat
+            if (_closeTopOverlay()) {
+                e.preventDefault();
+                return;
+            }
+        }
+        return _origOnKeydown2(e);
+    };
+
     // Phase 3 init hook — init() içine düşük invazif eklemeler
     const _origInit = init;
     init = function () {
         _origInit();
+        _initModalBackdrop();
 
         // Cmd palette input
         const cmdInp = $('cmdPaletteInput');
